@@ -1,0 +1,4 @@
+/Users/arvin/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+  -C \
+  "/Users/arvin/Downloads/Custom Hook Module/app/.cxx/Debug/6l48734n/arm64-v8a" \
+  native-lib

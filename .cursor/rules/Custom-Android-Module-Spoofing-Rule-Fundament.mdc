@@ -1,0 +1,27 @@
+---
+description: 
+alwaysApply: true
+---
+
+# Project Titan: Rules of Engagement
+
+## 1. Sicherheits-Leitplanken (No-Brick Policy)
+- NIEMALS Befehle wie `rm -rf /` oder `format` generieren.
+- NIEMALS `adb shell mount -o rw /` vorschlagen (Pixel 6 nutzt Shared Blocks/EROFS, das zerstört die Partition).
+- Alle System-Modifikationen müssen via **Zygisk RAM-Hooking** oder **SUSFS Kernel-Masking** erfolgen. Keine permanenten `/system` Änderungen.
+
+## 2. Technische Spezifikationen (Source of Truth)
+- **Target Hardware:** Google Pixel 6 (Oriole) mit Tensor G1.
+- **Environment:** Android 14 (API 34), KernelSU, SUSFS, Zygisk Next.
+- **Hooking Engine:** Dobby (Inline-Hooking) für Native, LSPosed (optional) für Java.
+- **Languages:** C++20 (Native), Kotlin (App), Python 3.10+ (Orchestrator).
+
+## 3. Code-Stil & Stealth-Vorgaben
+- **Native Hooks:** Verwende ausschließlich Inline-Hooks für Libc-Funktionen. Vermeide PLT-Hooking, da es leicht detektierbar ist.
+- **Anti-Forensics:** Strings müssen im Binärformat verschlüsselt sein (XOR oder ähnliches), um `strings` Scans zu entgehen.
+- **Syscalls:** Bevorzuge `raw_syscalls` (inline assembly), um libc-interception durch Anti-Cheat-Engines zu umgehen.
+- **Memory:** Alle Allokationen müssen auf Anomalien geprüft werden. Keine ausführbaren Pages ohne File-Backing hinterlassen (SUSFS `sus_map` nutzen).
+
+## 4. Interaktion mit dem User
+- Wenn eine Aufgabe manuelle Schritte am Gerät erfordert (z.B. Kernel flashen oder KSU-Settings), weise explizit darauf hin.
+- Erkläre bei jedem Hook, gegen welche Säule der Erkennung (aus dem Research) er schützt.

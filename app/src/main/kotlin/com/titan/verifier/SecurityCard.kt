@@ -15,6 +15,7 @@ data class SecurityCard(
 )
 
 enum class CardStatus {
-    OK,    // Grün
-    ALERT  // Rot (z. B. Serial Java ≠ Native)
+    OK,               // Grün
+    ALERT,            // Rot (z. B. Serial Java ≠ Native)
+    IDENTITY_MISMATCH // Widevine OK, aber Serial gespooft
 }

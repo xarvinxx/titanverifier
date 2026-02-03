@@ -836,6 +836,7 @@ integer abc_config_activityDefaultDur
 integer abc_config_activityShortDur
 integer cancel_button_image_alpha
 integer config_tooltipAnimTime
+integer google_play_services_version
 integer status_bar_notification_info_maxnum
 interpolator btn_checkbox_checked_mtrl_animation_interpolator_0
 interpolator btn_checkbox_checked_mtrl_animation_interpolator_1
@@ -929,6 +930,7 @@ string call_notification_screening_text
 string close_drawer
 string close_sheet
 string collapsed
+string common_google_play_services_unknown_issue
 string date_input_headline
 string date_input_headline_description
 string date_input_invalid_for_pattern

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.titan.verifier.app-mergeDebugResources-43:/values-en-rXC/values-en-rXC.xml",
+            "outputFile": "com.titan.verifier.app-mergeDebugResources-44:/values-en-rXC/values-en-rXC.xml",
             "map": [
                 {
                     "source": "/Users/arvin/.gradle/caches/transforms-3/573a51c5cfecc2476db61277cd2cba29/transformed/ui-release/res/values-en-rXC/values-en-rXC.xml",

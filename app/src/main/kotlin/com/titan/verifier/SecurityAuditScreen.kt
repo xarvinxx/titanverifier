@@ -1,8 +1,16 @@
 package com.titan.verifier
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,13 +19,25 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -25,68 +45,203 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import android.widget.Toast
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SecurityAuditScreen() {
-    var cards by remember { mutableStateOf(emptyList<SecurityCard>()) }
-
-    fun runAudit() {
-        val javaSerial = Build.SERIAL.ifEmpty { Build.UNKNOWN }
-        val javaModel = Build.MODEL.ifEmpty { Build.UNKNOWN }
-        val javaId = Build.ID.ifEmpty { Build.UNKNOWN }
-        val javaFingerprint = Build.FINGERPRINT.ifEmpty { Build.UNKNOWN }
-
-        val nativeSerial = AuditEngine.getNativeProperty("SERIAL")
-        val nativeModel = AuditEngine.getNativeProperty("MODEL")
-        val nativeId = AuditEngine.getNativeProperty("ID")
-        val nativeFingerprint = AuditEngine.getNativeProperty("FINGERPRINT")
-
-        val serialOk = javaSerial == nativeSerial
-        cards = listOf(
-            SecurityCard(
-                name = "Serial Number",
-                javaValue = javaSerial,
-                nativeValue = nativeSerial,
-                status = if (serialOk) CardStatus.OK else CardStatus.ALERT
-            ),
-            SecurityCard(
-                name = "Model",
-                javaValue = javaModel,
-                nativeValue = nativeModel,
-                status = CardStatus.OK
-            ),
-            SecurityCard(
-                name = "Build ID",
-                javaValue = javaId,
-                nativeValue = nativeId,
-                status = CardStatus.OK
-            ),
-            SecurityCard(
-                name = "Fingerprint",
-                javaValue = javaFingerprint,
-                nativeValue = nativeFingerprint,
-                status = CardStatus.OK
-            )
-        )
+    val context = LocalContext.current
+    var layeredSections by remember { mutableStateOf(emptyList<LayeredAuditSection>()) }
+    var sections by remember { mutableStateOf(emptyList<AuditSection>()) }
+    val expanded = remember { mutableStateMapOf<String, Boolean>() }
+    var hasPhoneState by remember {
+        mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED)
+    }
+    var auditTrigger by remember { mutableStateOf(0) }
+    val scope = rememberCoroutineScope()
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasPhoneState = granted
+        if (granted) auditTrigger++
     }
 
-    LaunchedEffect(Unit) { runAudit() }
+    fun runAudit() {
+        // Layered Identity (Java | Native | Root)
+        val layeredIdentity = LayeredAuditSection(
+            title = "1. Layered Identity",
+            rows = listOf(
+                AuditEngine.getGsfIdLayered(context),
+                AuditEngine.getAndroidIdLayered(context),
+                AuditEngine.getImei1Layered(context),
+                AuditEngine.getImei2Layered(context),
+                AuditEngine.getSerialLayered(),
+                AuditEngine.getMacWlan0Layered()
+            )
+        )
+
+        // Weitere Identity-Werte (nur Java, keine Layered)
+        val imsi = AuditEngine.getImsi(context)
+        val simSerial = AuditEngine.getSimSerial(context)
+        val aaid = AuditEngine.getAdvertisingId(context)
+        val identitySection = AuditSection(
+            title = "2. Identity (Weitere)",
+            rows = listOf(
+                AuditRow("IMSI (Subscriber ID)", imsi.ifEmpty { "—" }, isCritical = true),
+                AuditRow("SIM Serial (ICCID)", simSerial.ifEmpty { "—" }, isCritical = false),
+                AuditRow("Advertising ID (AAID)", aaid.ifEmpty { "—" }, isCritical = false)
+            )
+        )
+
+        // Hardware & Native (Build/ro)
+        val bootSerial = AuditEngine.getBootSerial()
+        val buildModel = Build.MODEL.ifEmpty { Build.UNKNOWN }
+        val nativeModel = AuditEngine.getNativeProperty("MODEL")
+        val buildBoard = Build.BOARD.ifEmpty { Build.UNKNOWN }
+        val nativeBoard = AuditEngine.getNativeProperty("BOARD")
+        val fingerprint = Build.FINGERPRINT.ifEmpty { Build.UNKNOWN }
+        val hardwareSection = AuditSection(
+            title = "3. Hardware & Native",
+            rows = listOf(
+                AuditRow("Boot Serial (ro.boot.serialno)", bootSerial.ifEmpty { "—" }, isCritical = false),
+                AuditRow("Hardware Model (Build vs ro)", "$buildModel / $nativeModel", isCritical = false),
+                AuditRow("Board Name (Build vs ro)", "$buildBoard / $nativeBoard", isCritical = false),
+                AuditRow("Fingerprint", fingerprint, isCritical = false)
+            )
+        )
+
+        // DRM & Security
+        val widevineId = AuditEngine.getWidevineID()
+        val securityPatch = Build.VERSION.SECURITY_PATCH.ifEmpty { "—" }
+        val selinuxRaw = AuditEngine.getSelinuxEnforce()
+        val selinuxStr = when (selinuxRaw) {
+            1 -> "Enforcing (1)"
+            0 -> "Permissive (0)"
+            else -> "— (unreadable)"
+        }
+        val rootKsu = AuditEngine.checkRootForensics()
+        val rootSu = AuditEngine.checkRootPath("/sbin/su")
+        val rootStr = when {
+            rootKsu && rootSu -> "KSU + /sbin/su found"
+            rootKsu -> "KSU found"
+            rootSu -> "/sbin/su found"
+            else -> "None"
+        }
+
+        val drmSection = AuditSection(
+            title = "4. DRM & Security",
+            rows = listOf(
+                AuditRow("Widevine ID", widevineId.ifEmpty { "—" }, isCritical = true),
+                AuditRow("Security Patch", securityPatch, isCritical = false),
+                AuditRow("SELinux Status", selinuxStr, isCritical = false),
+                AuditRow("Root Check (statx)", rootStr, isCritical = true)
+            )
+        )
+
+        // Physical Hardware
+        val gpuRenderer = AuditEngine.getGpuRenderer()
+        val totalRam = AuditEngine.getTotalRam()
+        val inputDeviceList = AuditEngine.getInputDeviceList()
+        val gpuRed = gpuRenderer.isNotEmpty() && !gpuRenderer.contains("Mali-G78")
+        val ramGb = totalRam.replace(" GB", "").toDoubleOrNull() ?: 0.0
+        val ramRed = ramGb < 7.0 || ramGb > 9.0
+        val inputRed = inputDeviceList.contains("[EMULATOR]") ||
+            inputDeviceList.contains("virtual", ignoreCase = true) ||
+            inputDeviceList.contains("vbox", ignoreCase = true) ||
+            inputDeviceList.contains("goldfish", ignoreCase = true)
+
+        val physicalSection = AuditSection(
+            title = "5. Physical Hardware",
+            rows = listOf(
+                AuditRow("GPU Renderer", gpuRenderer.ifEmpty { "—" }, isCritical = false, forceRed = if (gpuRenderer.isEmpty()) null else gpuRed),
+                AuditRow("RAM (MemTotal)", totalRam.ifEmpty { "—" }, isCritical = false, forceRed = if (totalRam.isEmpty()) null else ramRed),
+                AuditRow("Input Devices", inputDeviceList.ifEmpty { "—" }.replace("\n", ", "), isCritical = false, forceRed = if (inputDeviceList.isEmpty()) null else inputRed)
+            )
+        )
+
+        // Network & Telemetry
+        val macWlan0 = AuditEngine.getMacAddressWlan0WithFallback()
+        val operatorName = AuditEngine.getOperatorName(context)
+        val bootloader = Build.BOOTLOADER.ifEmpty { Build.UNKNOWN }
+
+        val networkSection = AuditSection(
+            title = "6. Network & Telemetry",
+            rows = listOf(
+                AuditRow("MAC Address (WiFi wlan0)", macWlan0.ifEmpty { "—" }, isCritical = false),
+                AuditRow("Operator Name", operatorName.ifEmpty { "—" }, isCritical = false),
+                AuditRow("Bootloader", bootloader, isCritical = false)
+            )
+        )
+
+        layeredSections = listOf(layeredIdentity)
+        sections = listOf(identitySection, hardwareSection, drmSection, physicalSection, networkSection)
+        layeredSections.forEach { expanded[it.title] = expanded[it.title] ?: true }
+        sections.forEach { expanded[it.title] = expanded[it.title] ?: false }
+    }
+
+    LaunchedEffect(Unit, auditTrigger) { withContext(Dispatchers.Default) { runAudit() } }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Titan Security Audit", fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        "Ground Truth Auditor",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                actions = {
+                    FilledTonalButton(
+                        onClick = {
+                            val result = AuditExporter.buildReport(layeredSections, sections)
+                            val copied = AuditExporter.exportToClipboard(context, result.report)
+                            val file = AuditExporter.exportToFile(context, result.report)
+                            val msg = buildString {
+                                if (copied) append("Export in Zwischenablage. ")
+                                file?.let { append("Download/${it.name} ") }
+                                append("${result.missingCount} fehlen")
+                            }
+                            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                        },
+                        modifier = Modifier.padding(end = 8.dp),
+                        contentPadding = ButtonDefaults.ContentPadding
+                    ) {
+                        Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Export", fontSize = 13.sp)
+                    }
+                    FilledTonalButton(
+                        onClick = { scope.launch(Dispatchers.Default) { runAudit() } },
+                        modifier = Modifier.padding(end = 12.dp),
+                        contentPadding = ButtonDefaults.ContentPadding
+                    ) {
+                        Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Refresh", fontSize = 13.sp)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -98,31 +253,53 @@ fun SecurityAuditScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(16.dp)
+                .padding(horizontal = 12.dp)
         ) {
-            Button(
-                onClick = { runAudit() },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Refresh Audit")
+            if (!hasPhoneState) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "READ_PHONE_STATE fehlt (IMEI/IMSI)",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Button(onClick = { permissionLauncher.launch(Manifest.permission.READ_PHONE_STATE) }) {
+                            Text("Grant")
+                        }
+                    }
+                }
             }
-            Spacer(modifier = Modifier.height(16.dp))
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                if (cards.isEmpty()) {
-                    Text(
-                        "Tippe auf „Refresh Audit“, um Build- und Native-Werte zu laden.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                layeredSections.forEach { section ->
+                    ExpandableLayeredSection(
+                        section = section,
+                        isExpanded = expanded[section.title] == true,
+                        onToggle = { expanded[section.title] = !(expanded[section.title] ?: true) }
                     )
-                } else {
-                    cards.forEach { card ->
-                        SecurityCardItem(card = card)
-                    }
+                }
+                sections.forEach { section ->
+                    ExpandableSection(
+                        section = section,
+                        isExpanded = expanded[section.title] == true,
+                        onToggle = { expanded[section.title] = !(expanded[section.title] ?: true) }
+                    )
                 }
             }
         }
@@ -130,53 +307,204 @@ fun SecurityAuditScreen() {
 }
 
 @Composable
-private fun SecurityCardItem(card: SecurityCard) {
-    val statusColor = when (card.status) {
-        CardStatus.OK -> Color(0xFF2E7D32)
-        CardStatus.ALERT -> Color(0xFFC62828)
+private fun ExpandableLayeredSection(
+    section: LayeredAuditSection,
+    isExpanded: Boolean,
+    onToggle: () -> Unit
+) {
+    SectionCard(
+        title = section.title,
+        isExpanded = isExpanded,
+        onToggle = onToggle
+    ) {
+        section.rows.forEachIndexed { idx, row ->
+            if (idx > 0) Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+            )
+            LayeredAuditRowItem(row = row)
+        }
     }
+}
+
+@Composable
+private fun LayeredAuditRowItem(row: LayeredAuditRow) {
+    val (statusColor, statusBg) = when (row.status) {
+        LayeredStatus.INCONSISTENT -> Color(0xFFC62828) to Color(0xFFC62828).copy(alpha = 0.12f)
+        LayeredStatus.SPOOFED -> Color(0xFF2E7D32) to Color(0xFF2E7D32).copy(alpha = 0.12f)
+        LayeredStatus.CONSISTENT -> Color(0xFF2E7D32) to Color(0xFF2E7D32).copy(alpha = 0.12f)
+        LayeredStatus.MISSING -> Color(0xFFEF6C00) to Color(0xFFEF6C00).copy(alpha = 0.12f)
+        LayeredStatus.N_A -> MaterialTheme.colorScheme.onSurfaceVariant to MaterialTheme.colorScheme.surfaceVariant
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = row.label,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(statusBg)
+                    .padding(horizontal = 8.dp, vertical = 3.dp)
+            ) {
+                Text(
+                    text = row.status.name,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = statusColor,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 6.dp),
+            verticalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            LayerChip("Java", row.javaValue)
+            LayerChip("Native", row.nativeValue)
+            LayerChip("Root", row.rootValue)
+        }
+    }
+}
+
+@Composable
+private fun LayerChip(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(48.dp)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodySmall,
+            fontFamily = FontFamily.Monospace,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun SectionCard(
+    title: String,
+    isExpanded: Boolean,
+    onToggle: () -> Unit,
+    content: @Composable () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 52.dp)
+                    .clickable(onClick = onToggle)
+                    .padding(horizontal = 14.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = card.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Box(
+                Icon(
+                    imageVector = if (isExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                    contentDescription = if (isExpanded) "Einklappen" else "Aufklappen"
+                )
+            }
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                Column(
                     modifier = Modifier
-                        .background(statusColor, RoundedCornerShape(8.dp))
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp)
+                        .padding(bottom = 14.dp)
                 ) {
-                    Text(
-                        text = if (card.status == CardStatus.OK) "OK" else "ALERT",
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelMedium
-                    )
+                    content()
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Java: ${card.javaValue.ifEmpty { "—" }}",
-                style = MaterialTheme.typography.bodySmall,
-                fontFamily = FontFamily.Monospace
-            )
-            if (card.nativeValue != null) {
-                Text(
-                    text = "Native: ${card.nativeValue.ifEmpty { "—" }}",
-                    style = MaterialTheme.typography.bodySmall,
-                    fontFamily = FontFamily.Monospace
-                )
-            }
         }
+    }
+}
+
+@Composable
+private fun ExpandableSection(
+    section: AuditSection,
+    isExpanded: Boolean,
+    onToggle: () -> Unit
+) {
+    SectionCard(
+        title = section.title,
+        isExpanded = isExpanded,
+        onToggle = onToggle
+    ) {
+        section.rows.forEachIndexed { idx, row ->
+            if (idx > 0) Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+            )
+            AuditRowItem(row = row)
+        }
+    }
+}
+
+@Composable
+private fun AuditRowItem(row: AuditRow) {
+    val isEmpty = row.value.isBlank() || row.value == "—"
+    val isRed = row.forceRed == true || (row.isCritical && isEmpty)
+    val textColor = if (isRed) Color(0xFFC62828) else MaterialTheme.colorScheme.onSurface
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Text(
+            text = row.label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = row.value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontFamily = FontFamily.Monospace,
+            color = textColor,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }

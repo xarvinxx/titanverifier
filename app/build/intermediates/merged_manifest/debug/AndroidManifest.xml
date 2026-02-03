@@ -8,6 +8,16 @@
         android:minSdkVersion="31"
         android:targetSdkVersion="34" />
 
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Package Visibility (Android 11+): GSF ContentResolver abfragen -->
+    <queries>
+        <package android:name="com.google.android.gsf" />
+        <package android:name="com.google.android.gms" />
+    </queries>
+    <!-- Include required permissions for Advertising Id -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+
     <permission
         android:name="com.titan.verifier.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature" />
@@ -33,6 +43,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"

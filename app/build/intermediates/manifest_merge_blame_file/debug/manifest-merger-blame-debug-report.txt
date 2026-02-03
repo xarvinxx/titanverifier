@@ -8,118 +8,146 @@
 8        android:minSdkVersion="31"
 9        android:targetSdkVersion="34" />
 10
-11    <permission
-11-->[androidx.core:core:1.12.0] /Users/arvin/.gradle/caches/transforms-3/2ccd268e0ca2e1cd10ec650ac8067a3e/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
-12        android:name="com.titan.verifier.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
-12-->[androidx.core:core:1.12.0] /Users/arvin/.gradle/caches/transforms-3/2ccd268e0ca2e1cd10ec650ac8067a3e/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
-13        android:protectionLevel="signature" />
-13-->[androidx.core:core:1.12.0] /Users/arvin/.gradle/caches/transforms-3/2ccd268e0ca2e1cd10ec650ac8067a3e/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
-14
-15    <uses-permission android:name="com.titan.verifier.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
-15-->[androidx.core:core:1.12.0] /Users/arvin/.gradle/caches/transforms-3/2ccd268e0ca2e1cd10ec650ac8067a3e/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
-15-->[androidx.core:core:1.12.0] /Users/arvin/.gradle/caches/transforms-3/2ccd268e0ca2e1cd10ec650ac8067a3e/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
-16
-17    <application
-17-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:3:5-18:19
-18        android:allowBackup="true"
-18-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:4:9-35
-19        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-19-->[androidx.core:core:1.12.0] /Users/arvin/.gradle/caches/transforms-3/2ccd268e0ca2e1cd10ec650ac8067a3e/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
-20        android:debuggable="true"
-21        android:extractNativeLibs="false"
-22        android:icon="@android:drawable/ic_lock_lock"
-22-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:5:9-54
-23        android:label="@string/app_name"
-23-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:6:9-41
-24        android:roundIcon="@android:drawable/ic_lock_lock"
-24-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:7:9-59
-25        android:supportsRtl="true"
-25-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:8:9-35
-26        android:theme="@style/Theme.TitanVerifier" >
-26-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:9:9-51
-27        <activity
-27-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:10:9-17:20
-28            android:name="com.titan.verifier.MainActivity"
-28-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:11:13-41
-29            android:exported="true" >
-29-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:12:13-36
-30            <intent-filter>
-30-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:13:13-16:29
-31                <action android:name="android.intent.action.MAIN" />
-31-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:14:17-69
-31-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:14:25-66
-32
-33                <category android:name="android.intent.category.LAUNCHER" />
-33-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:15:17-77
-33-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:15:27-74
-34            </intent-filter>
-35        </activity>
-36
-37        <provider
-37-->[androidx.emoji2:emoji2:1.3.0] /Users/arvin/.gradle/caches/transforms-3/1013ef46c93a36dde6dd37cde80d0559/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
-38            android:name="androidx.startup.InitializationProvider"
-38-->[androidx.emoji2:emoji2:1.3.0] /Users/arvin/.gradle/caches/transforms-3/1013ef46c93a36dde6dd37cde80d0559/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
-39            android:authorities="com.titan.verifier.androidx-startup"
-39-->[androidx.emoji2:emoji2:1.3.0] /Users/arvin/.gradle/caches/transforms-3/1013ef46c93a36dde6dd37cde80d0559/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
-40            android:exported="false" >
-40-->[androidx.emoji2:emoji2:1.3.0] /Users/arvin/.gradle/caches/transforms-3/1013ef46c93a36dde6dd37cde80d0559/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
-41            <meta-data
-41-->[androidx.emoji2:emoji2:1.3.0] /Users/arvin/.gradle/caches/transforms-3/1013ef46c93a36dde6dd37cde80d0559/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
-42                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-42-->[androidx.emoji2:emoji2:1.3.0] /Users/arvin/.gradle/caches/transforms-3/1013ef46c93a36dde6dd37cde80d0559/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
-43                android:value="androidx.startup" />
-43-->[androidx.emoji2:emoji2:1.3.0] /Users/arvin/.gradle/caches/transforms-3/1013ef46c93a36dde6dd37cde80d0559/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
-44            <meta-data
-44-->[androidx.lifecycle:lifecycle-process:2.6.1] /Users/arvin/.gradle/caches/transforms-3/bbd237f7361595eb5e5cf3bde898df2a/transformed/lifecycle-process-2.6.1/AndroidManifest.xml:29:13-31:52
-45                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-45-->[androidx.lifecycle:lifecycle-process:2.6.1] /Users/arvin/.gradle/caches/transforms-3/bbd237f7361595eb5e5cf3bde898df2a/transformed/lifecycle-process-2.6.1/AndroidManifest.xml:30:17-78
-46                android:value="androidx.startup" />
-46-->[androidx.lifecycle:lifecycle-process:2.6.1] /Users/arvin/.gradle/caches/transforms-3/bbd237f7361595eb5e5cf3bde898df2a/transformed/lifecycle-process-2.6.1/AndroidManifest.xml:31:17-49
-47            <meta-data
-47-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
-48                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
-48-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
-49                android:value="androidx.startup" />
-49-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
-50        </provider>
-51
-52        <receiver
-52-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
-53            android:name="androidx.profileinstaller.ProfileInstallReceiver"
-53-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
-54            android:directBootAware="false"
-54-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
-55            android:enabled="true"
-55-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
-56            android:exported="true"
-56-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
-57            android:permission="android.permission.DUMP" >
-57-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
-58            <intent-filter>
-58-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
-59                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
-59-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
-59-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
-60            </intent-filter>
-61            <intent-filter>
-61-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
-62                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
-62-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
-62-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
-63            </intent-filter>
-64            <intent-filter>
-64-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
-65                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
-65-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
-65-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
-66            </intent-filter>
-67            <intent-filter>
-67-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
-68                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
-68-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
-68-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
-69            </intent-filter>
-70        </receiver>
-71    </application>
-72
-73</manifest>
+11    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+11-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:3:5-75
+11-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:3:22-72
+12    <uses-permission android:name="android.permission.INTERNET" />
+12-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:4:5-67
+12-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:4:22-64
+13    <!-- Package Visibility (Android 11+): GSF ContentResolver abfragen -->
+14    <queries>
+14-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:6:5-9:15
+15        <package android:name="com.google.android.gsf" />
+15-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:7:9-58
+15-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:7:18-55
+16        <package android:name="com.google.android.gms" />
+16-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:8:9-58
+16-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:8:18-55
+17    </queries>
+18    <!-- Include required permissions for Advertising Id -->
+19    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+19-->[com.google.android.gms:play-services-ads-identifier:18.0.1] /Users/arvin/.gradle/caches/transforms-3/f0f5183433e12f826853e1956858900d/transformed/play-services-ads-identifier-18.0.1/AndroidManifest.xml:23:5-79
+19-->[com.google.android.gms:play-services-ads-identifier:18.0.1] /Users/arvin/.gradle/caches/transforms-3/f0f5183433e12f826853e1956858900d/transformed/play-services-ads-identifier-18.0.1/AndroidManifest.xml:23:22-76
+20
+21    <permission
+21-->[androidx.core:core:1.12.0] /Users/arvin/.gradle/caches/transforms-3/2ccd268e0ca2e1cd10ec650ac8067a3e/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
+22        android:name="com.titan.verifier.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+22-->[androidx.core:core:1.12.0] /Users/arvin/.gradle/caches/transforms-3/2ccd268e0ca2e1cd10ec650ac8067a3e/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
+23        android:protectionLevel="signature" />
+23-->[androidx.core:core:1.12.0] /Users/arvin/.gradle/caches/transforms-3/2ccd268e0ca2e1cd10ec650ac8067a3e/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
+24
+25    <uses-permission android:name="com.titan.verifier.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+25-->[androidx.core:core:1.12.0] /Users/arvin/.gradle/caches/transforms-3/2ccd268e0ca2e1cd10ec650ac8067a3e/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
+25-->[androidx.core:core:1.12.0] /Users/arvin/.gradle/caches/transforms-3/2ccd268e0ca2e1cd10ec650ac8067a3e/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
+26
+27    <application
+27-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:10:5-25:19
+28        android:allowBackup="true"
+28-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:11:9-35
+29        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+29-->[androidx.core:core:1.12.0] /Users/arvin/.gradle/caches/transforms-3/2ccd268e0ca2e1cd10ec650ac8067a3e/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
+30        android:debuggable="true"
+31        android:extractNativeLibs="false"
+32        android:icon="@android:drawable/ic_lock_lock"
+32-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:12:9-54
+33        android:label="@string/app_name"
+33-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:13:9-41
+34        android:roundIcon="@android:drawable/ic_lock_lock"
+34-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:14:9-59
+35        android:supportsRtl="true"
+35-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:15:9-35
+36        android:theme="@style/Theme.TitanVerifier" >
+36-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:16:9-51
+37        <activity
+37-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:17:9-24:20
+38            android:name="com.titan.verifier.MainActivity"
+38-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:18:13-41
+39            android:exported="true" >
+39-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:19:13-36
+40            <intent-filter>
+40-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:20:13-23:29
+41                <action android:name="android.intent.action.MAIN" />
+41-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:21:17-69
+41-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:21:25-66
+42
+43                <category android:name="android.intent.category.LAUNCHER" />
+43-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:22:17-77
+43-->/Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:22:27-74
+44            </intent-filter>
+45        </activity>
+46
+47        <meta-data
+47-->[com.google.android.gms:play-services-basement:18.0.0] /Users/arvin/.gradle/caches/transforms-3/0d8c5d067a5cd95fd6679bf10a59cfb5/transformed/play-services-basement-18.0.0/AndroidManifest.xml:21:9-23:69
+48            android:name="com.google.android.gms.version"
+48-->[com.google.android.gms:play-services-basement:18.0.0] /Users/arvin/.gradle/caches/transforms-3/0d8c5d067a5cd95fd6679bf10a59cfb5/transformed/play-services-basement-18.0.0/AndroidManifest.xml:22:13-58
+49            android:value="@integer/google_play_services_version" />
+49-->[com.google.android.gms:play-services-basement:18.0.0] /Users/arvin/.gradle/caches/transforms-3/0d8c5d067a5cd95fd6679bf10a59cfb5/transformed/play-services-basement-18.0.0/AndroidManifest.xml:23:13-66
+50
+51        <provider
+51-->[androidx.emoji2:emoji2:1.3.0] /Users/arvin/.gradle/caches/transforms-3/1013ef46c93a36dde6dd37cde80d0559/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+52            android:name="androidx.startup.InitializationProvider"
+52-->[androidx.emoji2:emoji2:1.3.0] /Users/arvin/.gradle/caches/transforms-3/1013ef46c93a36dde6dd37cde80d0559/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+53            android:authorities="com.titan.verifier.androidx-startup"
+53-->[androidx.emoji2:emoji2:1.3.0] /Users/arvin/.gradle/caches/transforms-3/1013ef46c93a36dde6dd37cde80d0559/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+54            android:exported="false" >
+54-->[androidx.emoji2:emoji2:1.3.0] /Users/arvin/.gradle/caches/transforms-3/1013ef46c93a36dde6dd37cde80d0559/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+55            <meta-data
+55-->[androidx.emoji2:emoji2:1.3.0] /Users/arvin/.gradle/caches/transforms-3/1013ef46c93a36dde6dd37cde80d0559/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+56                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+56-->[androidx.emoji2:emoji2:1.3.0] /Users/arvin/.gradle/caches/transforms-3/1013ef46c93a36dde6dd37cde80d0559/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+57                android:value="androidx.startup" />
+57-->[androidx.emoji2:emoji2:1.3.0] /Users/arvin/.gradle/caches/transforms-3/1013ef46c93a36dde6dd37cde80d0559/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+58            <meta-data
+58-->[androidx.lifecycle:lifecycle-process:2.6.1] /Users/arvin/.gradle/caches/transforms-3/bbd237f7361595eb5e5cf3bde898df2a/transformed/lifecycle-process-2.6.1/AndroidManifest.xml:29:13-31:52
+59                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+59-->[androidx.lifecycle:lifecycle-process:2.6.1] /Users/arvin/.gradle/caches/transforms-3/bbd237f7361595eb5e5cf3bde898df2a/transformed/lifecycle-process-2.6.1/AndroidManifest.xml:30:17-78
+60                android:value="androidx.startup" />
+60-->[androidx.lifecycle:lifecycle-process:2.6.1] /Users/arvin/.gradle/caches/transforms-3/bbd237f7361595eb5e5cf3bde898df2a/transformed/lifecycle-process-2.6.1/AndroidManifest.xml:31:17-49
+61            <meta-data
+61-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:29:13-31:52
+62                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+62-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:30:17-85
+63                android:value="androidx.startup" />
+63-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:31:17-49
+64        </provider>
+65
+66        <receiver
+66-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:34:9-52:20
+67            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+67-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:35:13-76
+68            android:directBootAware="false"
+68-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:36:13-44
+69            android:enabled="true"
+69-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:37:13-35
+70            android:exported="true"
+70-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:38:13-36
+71            android:permission="android.permission.DUMP" >
+71-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:39:13-57
+72            <intent-filter>
+72-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:40:13-42:29
+73                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+73-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:17-91
+73-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:41:25-88
+74            </intent-filter>
+75            <intent-filter>
+75-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:43:13-45:29
+76                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+76-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:17-85
+76-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:44:25-82
+77            </intent-filter>
+78            <intent-filter>
+78-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:46:13-48:29
+79                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+79-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:17-88
+79-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:47:25-85
+80            </intent-filter>
+81            <intent-filter>
+81-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:49:13-51:29
+82                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+82-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:17-95
+82-->[androidx.profileinstaller:profileinstaller:1.3.0] /Users/arvin/.gradle/caches/transforms-3/90a5c045bb237d34bfde7528c354fcd3/transformed/profileinstaller-1.3.0/AndroidManifest.xml:50:25-92
+83            </intent-filter>
+84        </receiver>
+85    </application>
+86
+87</manifest>

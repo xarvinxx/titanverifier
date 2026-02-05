@@ -86,6 +86,9 @@ fun SecurityAuditScreen() {
     }
 
     fun runAudit() {
+        // Identity sofort in Native synchronisieren, sobald verfügbar
+        AuditEngine.syncIdentityToNative(context)
+
         // Layered Identity (Java | Native | Root)
         val layeredIdentity = LayeredAuditSection(
             title = "1. Layered Identity",
@@ -94,7 +97,7 @@ fun SecurityAuditScreen() {
                 AuditEngine.getAndroidIdLayered(context),
                 AuditEngine.getImei1Layered(context),
                 AuditEngine.getImei2Layered(context),
-                AuditEngine.getSerialLayered(),
+                AuditEngine.getSerialLayered(context),
                 AuditEngine.getMacWlan0Layered()
             )
         )
@@ -103,12 +106,14 @@ fun SecurityAuditScreen() {
         val imsi = AuditEngine.getImsi(context)
         val simSerial = AuditEngine.getSimSerial(context)
         val aaid = AuditEngine.getAdvertisingId(context)
+        val nativeHookImei = AuditEngine.getNativeHookImei()
         val identitySection = AuditSection(
             title = "2. Identity (Weitere)",
             rows = listOf(
                 AuditRow("IMSI (Subscriber ID)", imsi.ifEmpty { "—" }, isCritical = true),
                 AuditRow("SIM Serial (ICCID)", simSerial.ifEmpty { "—" }, isCritical = false),
-                AuditRow("Advertising ID (AAID)", aaid.ifEmpty { "—" }, isCritical = false)
+                AuditRow("Advertising ID (AAID)", aaid.ifEmpty { "—" }, isCritical = false),
+                AuditRow("Native Hook-Memory", nativeHookImei.ifEmpty { "—" }, isCritical = false)
             )
         )
 
@@ -130,7 +135,7 @@ fun SecurityAuditScreen() {
         )
 
         // DRM & Security
-        val widevineId = AuditEngine.getWidevineID()
+        val widevineId = AuditEngine.getWidevineIdWithFallback(context)
         val securityPatch = Build.VERSION.SECURITY_PATCH.ifEmpty { "—" }
         val selinuxRaw = AuditEngine.getSelinuxEnforce()
         val selinuxStr = when (selinuxRaw) {
@@ -146,6 +151,11 @@ fun SecurityAuditScreen() {
             rootSu -> "/sbin/su found"
             else -> "None"
         }
+        val privilegedContext = AuditEngine.isPrivilegedContext(context)
+        val privilegedStr = if (privilegedContext) "Yes (FLAG_SYSTEM)" else "No"
+        val detailedStatus = AuditEngine.getDetailedIdentityStatus(context)
+        val privAppStr = if (detailedStatus.isUnderSystemPrivApp) "Yes" else "No"
+        val permStatusStr = "Level=${detailedStatus.permissionProtectionLevel}, Granted=${detailedStatus.permissionGranted}"
 
         val drmSection = AuditSection(
             title = "4. DRM & Security",
@@ -153,7 +163,11 @@ fun SecurityAuditScreen() {
                 AuditRow("Widevine ID", widevineId.ifEmpty { "—" }, isCritical = true),
                 AuditRow("Security Patch", securityPatch, isCritical = false),
                 AuditRow("SELinux Status", selinuxStr, isCritical = false),
-                AuditRow("Root Check (statx)", rootStr, isCritical = true)
+                AuditRow("Root Check (statx)", rootStr, isCritical = true),
+                AuditRow("Privileged Context (Connectivity Audit)", privilegedStr, isCritical = false),
+                AuditRow("Under /system/priv-app", privAppStr, isCritical = false),
+                AuditRow("READ_PRIVILEGED_PHONE_STATE", permStatusStr, isCritical = false),
+                AuditRow("Package Path", detailedStatus.packageCodePath.ifEmpty { "—" }, isCritical = false)
             )
         )
 
@@ -231,6 +245,17 @@ fun SecurityAuditScreen() {
                         Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
                         Text("Export", fontSize = 13.sp)
+                    }
+                    FilledTonalButton(
+                        onClick = {
+                            val ok = RootShell.forceGrantPrivilegedPermission()
+                            Toast.makeText(context, if (ok) "Grant versucht" else "Grant fehlgeschlagen", Toast.LENGTH_SHORT).show()
+                            if (ok) scope.launch(Dispatchers.Default) { runAudit() }
+                        },
+                        modifier = Modifier.padding(end = 8.dp),
+                        contentPadding = ButtonDefaults.ContentPadding
+                    ) {
+                        Text("Grant Priv", fontSize = 12.sp)
                     }
                     FilledTonalButton(
                         onClick = { scope.launch(Dispatchers.Default) { runAudit() } },

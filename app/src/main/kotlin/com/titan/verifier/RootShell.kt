@@ -38,12 +38,30 @@ object RootShell {
         } else {
             runProcess(arrayOf("su", "-M", "-c", command))
                 ?: run {
-                    Log.w(TAG, "su -M returned null, trying su -c")
+                    Log.w(TAG, "su -M returned null, fallback to su -c")
                     useSuC = true
                     runProcess(arrayOf("su", "-c", command))
                 }
         }
         return result
+    }
+
+    /**
+     * Umgehung "managed by role" (Android 14): cmd permissionmgr statt pm grant.
+     * Gibt true zurück, wenn der Befehl erfolgreich ausgeführt wurde.
+     */
+    fun forceGrantPrivilegedPermission(): Boolean {
+        val perm = "android.permission.READ_PRIVILEGED_PHONE_STATE"
+        val pkg = "com.titan.verifier"
+        val cmd1 = "cmd permissionmgr grant-runtime-permission $pkg $perm"
+        val out1 = execute(cmd1)
+        if (out1 != null && !out1.lowercase().contains("error") && !out1.lowercase().contains("denied") && !out1.lowercase().contains("managed by role")) return true
+        val cmd2 = "cmd permission grant-runtime-permission $pkg $perm"
+        val out2 = execute(cmd2)
+        if (out2 != null && !out2.lowercase().contains("error") && !out2.lowercase().contains("denied")) return true
+        val cmd3 = "pm grant $pkg $perm"
+        val out3 = execute(cmd3)
+        return out3 != null && !out3.lowercase().contains("managed by role") && !out3.lowercase().contains("error")
     }
 
     private fun runProcess(args: Array<String>): String? {
@@ -52,10 +70,10 @@ object RootShell {
             val stdout = BufferedReader(InputStreamReader(process.inputStream)).readText().trim()
             val stderr = BufferedReader(InputStreamReader(process.errorStream)).readText().trim()
             process.waitFor()
-            if (stderr.isNotEmpty()) Log.w(TAG, "stderr: $stderr")
+            if (stderr.isNotEmpty()) Log.w(TAG, "stderr present (masked)")
             if (stdout.isNotEmpty()) stdout else null
-        } catch (t: Throwable) {
-            Log.w(TAG, "execute failed", t)
+        } catch (_: Throwable) {
+            Log.w(TAG, "execute failed")
             null
         }
     }

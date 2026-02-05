@@ -14,6 +14,8 @@
 #include <algorithm>
 #include <cctype>
 #include <cerrno>
+#include <mutex>
+#include <dlfcn.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 
@@ -35,6 +37,14 @@ constexpr uint8_t kWidevineUuid[16] = {
     0x8d, 0x6d, 0x09, 0x94, 0x64, 0x62, 0xf3, 0x67
 };
 
+// Thread-safe native identity cache (synced from Java/Root)
+static std::mutex g_identityMutex;
+static std::string g_syncedGsfId;
+static std::string g_syncedAndroidId;
+
+// Native-Backdoor: IMEI Hook-Memory (wenn Kernel Java-API blockiert)
+static std::string hooked_imei = "PENDING";
+
 std::string getSystemProperty(const char* name) {
     char value[kPropValueMax] = {};
     if (__system_property_get(name, value) > 0) {
@@ -55,6 +65,18 @@ std::string bytesToHex(const uint8_t* data, size_t len) {
 }
 
 std::string getWidevineIdImpl() {
+    // Prüfen ob libmediadrm.so bzw. libmediandk.so für die App zugänglich ist
+    void* handle = dlopen("libmediadrm.so", RTLD_NOW);
+    if (!handle) {
+        handle = dlopen("libmediandk.so", RTLD_NOW);
+    }
+    if (!handle) {
+        const char* err = dlerror();
+        LOGI("Widevine: dlopen failed, dlerror=%s", err ? err : "unknown");
+        return "ERROR: LIBRARY_UNAVAILABLE(dlopen)";
+    }
+    dlclose(handle);  // Nur Verfügbarkeitsprüfung; eigentliche Calls nutzen Link-Zeit-Bindung
+
     // Widevine UUID: ED282E16-FDD2-47C7-8D6D-09946462F367 (16 bytes, big-endian)
     AMediaDrm* drm = AMediaDrm_createByUUID(kWidevineUuid);
     if (drm == nullptr) {
@@ -70,7 +92,7 @@ std::string getWidevineIdImpl() {
     if (status == AMEDIA_OK && value.ptr != nullptr && value.length > 0) {
         result = bytesToHex(value.ptr, value.length);
     } else {
-        LOGI("AMediaDrm_getPropertyByteArray failed, status=%d", static_cast<int>(status));
+        LOGI("AMediaDrm_getPropertyByteArray failed, status=%d (AMEDIA_OK=0)", static_cast<int>(status));
         result = "ERROR: GET_PROPERTY_" + std::to_string(static_cast<int>(status));
     }
     AMediaDrm_release(drm);
@@ -110,8 +132,17 @@ std::string readSmallFile(const char* path, size_t maxLen = 64) {
 
 int getSelinuxEnforceImpl() {
     std::string s = readSmallFile("/sys/fs/selinux/enforce", 4);
-    if (s.empty()) return -1;
-    return (s[0] == '1') ? 1 : 0;
+    if (!s.empty()) {
+        return (s[0] == '1') ? 1 : 0;
+    }
+    // Fallback: ro.boot.selinux Property (z.B. "enforcing" / "permissive")
+    char prop[kPropValueMax] = {};
+    if (__system_property_get("ro.boot.selinux", prop) > 0) {
+        std::string p(prop);
+        if (p.find("enforcing") != std::string::npos || p == "1") return 1;
+        if (p.find("permissive") != std::string::npos || p == "0") return 0;
+    }
+    return -1;
 }
 
 std::string getMacAddressWlan0Impl() {
@@ -330,6 +361,55 @@ Java_com_titan_verifier_AuditEngine_getTotalRam(JNIEnv* env, jclass clazz) {
     (void)clazz;
     std::string s = getTotalRamImpl();
     return env->NewStringUTF(s.c_str());
+}
+
+// NativeEngine.setFakeImei: IMEI in Native Hook-Memory setzen (Backdoor bei Kernel-Block)
+JNIEXPORT void JNICALL
+Java_com_titan_verifier_NativeEngine_setFakeImei(JNIEnv* env, jclass clazz, jstring imei) {
+    (void)clazz;
+    std::lock_guard<std::mutex> lock(g_identityMutex);
+    if (imei != nullptr) {
+        const char* chars = env->GetStringUTFChars(imei, nullptr);
+        if (chars) {
+            hooked_imei = chars;
+            env->ReleaseStringUTFChars(imei, chars);
+        }
+    } else {
+        hooked_imei = "PENDING";
+    }
+}
+
+// NativeEngine.getNativeImei: Hook-Memory IMEI auslesen
+JNIEXPORT jstring JNICALL
+Java_com_titan_verifier_NativeEngine_getNativeImei(JNIEnv* env, jclass clazz) {
+    (void)clazz;
+    std::lock_guard<std::mutex> lock(g_identityMutex);
+    return env->NewStringUTF(hooked_imei.c_str());
+}
+
+// NativeEngine.syncIdentity: Thread-sicher GSF + Android ID im Native-Speicher ablegen
+JNIEXPORT void JNICALL
+Java_com_titan_verifier_NativeEngine_syncIdentity(JNIEnv* env, jclass clazz, jstring gsfId, jstring androidId) {
+    (void)clazz;
+    std::lock_guard<std::mutex> lock(g_identityMutex);
+    if (gsfId != nullptr) {
+        const char* chars = env->GetStringUTFChars(gsfId, nullptr);
+        if (chars) {
+            g_syncedGsfId = chars;
+            env->ReleaseStringUTFChars(gsfId, chars);
+        }
+    } else {
+        g_syncedGsfId.clear();
+    }
+    if (androidId != nullptr) {
+        const char* chars = env->GetStringUTFChars(androidId, nullptr);
+        if (chars) {
+            g_syncedAndroidId = chars;
+            env->ReleaseStringUTFChars(androidId, chars);
+        }
+    } else {
+        g_syncedAndroidId.clear();
+    }
 }
 
 } // extern "C"

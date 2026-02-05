@@ -98,6 +98,11 @@
 				"role" : "libraries"
 			},
 			{
+				"backtrace" : 2,
+				"fragment" : "-ldl",
+				"role" : "libraries"
+			},
+			{
 				"fragment" : "-latomic -lm",
 				"role" : "libraries"
 			}

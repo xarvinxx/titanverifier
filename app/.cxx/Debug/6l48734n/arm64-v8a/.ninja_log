@@ -1,10 +1,7 @@
 # ninja log v5
-474	603	1770039872274167271	/Users/arvin/Downloads/Custom Hook Module/app/build/intermediates/cxx/Debug/6l48734n/obj/arm64-v8a/libnative-lib.so	4cab4316caf534bf
-1	474	1770039872166395302	CMakeFiles/native-lib.dir/audit_engine.cpp.o	e72ddee68e3325f2
 0	48	1770038724341728285	CMakeFiles/native-lib.dir/native-lib.cpp.o	c29685ffc8aca30f
-0	613	1770046986922219101	CMakeFiles/native-lib.dir/audit_engine.cpp.o	e72ddee68e3325f2
-614	764	1770046987046457865	/Users/arvin/Downloads/Custom Hook Module/app/build/intermediates/cxx/Debug/6l48734n/obj/arm64-v8a/libnative-lib.so	faa228e1e3bafe60
-1	552	1770048162011849202	CMakeFiles/native-lib.dir/audit_engine.cpp.o	e72ddee68e3325f2
-552	816	1770048162247484138	/Users/arvin/Downloads/Custom Hook Module/app/build/intermediates/cxx/Debug/6l48734n/obj/arm64-v8a/libnative-lib.so	faa228e1e3bafe60
 1	431	1770048426139430779	CMakeFiles/native-lib.dir/audit_engine.cpp.o	e72ddee68e3325f2
 432	560	1770048426248643068	/Users/arvin/Downloads/Custom Hook Module/app/build/intermediates/cxx/Debug/6l48734n/obj/arm64-v8a/libnative-lib.so	faa228e1e3bafe60
+5	1168	1770216362006985703	CMakeFiles/native-lib.dir/native-lib.cpp.o	c29685ffc8aca30f
+5	1425	1770216362262503903	CMakeFiles/native-lib.dir/audit_engine.cpp.o	e72ddee68e3325f2
+1425	2210	1770216363024571771	/Users/arvin/Downloads/Custom Hook Module/app/build/intermediates/cxx/Debug/6l48734n/obj/arm64-v8a/libnative-lib.so	3f36d23045307472

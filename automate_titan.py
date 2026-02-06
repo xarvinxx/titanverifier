@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Project Titan – Phase 3.3 Convergence Master Automator
+Project Titan – Phase 4.2 Singularity Master Automator
 
 Vollautomatisches Deployment für Pixel 6 (Android 14 + KernelSU):
 1. Build: APK + Native SO
 2. Push: APK nach /system/priv-app/
 3. Zygisk: SO nach /data/adb/modules/.../zygisk/
-4. Bridge: Erstelle /data/local/tmp/.titan_state
+4. Bridge: Erstelle /data/local/tmp/.titan_identity (Key=Value Format)
 5. SELinux: Setze korrekten Security-Context
 6. Permissions: XML-Patch für privilegierte Permissions
 7. Finalize: System-Neustart
@@ -18,6 +18,7 @@ Anforderungen:
 
 Verwendung:
     python automate_titan.py [--skip-build] [--bridge-only] [--verbose]
+    python automate_titan.py --generate-identity  # Generiere realistische Pixel 6 IDs
 """
 
 import os
@@ -26,9 +27,11 @@ import sys
 import argparse
 import tempfile
 import shutil
+import random
+import hashlib
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict
 from datetime import datetime
 
 # ==============================================================================
@@ -51,8 +54,9 @@ MODULE_PATH = f"/data/adb/modules/{MODULE_ID}"
 PRIV_APP_PATH = f"{MODULE_PATH}/system/priv-app/TitanVerifier"
 ZYGISK_PATH = f"{MODULE_PATH}/zygisk"
 
-# Bridge-Konfiguration
-BRIDGE_PATH = f"{REMOTE_TMP}/.titan_state"
+# Bridge-Konfiguration (Phase 4.1+ Key-Value Format)
+BRIDGE_PATH = f"{REMOTE_TMP}/.titan_identity"
+BRIDGE_PATH_LEGACY = f"{REMOTE_TMP}/.titan_state"
 
 # Permission-Konfiguration
 RUNTIME_PERMISSIONS = "/data/system/users/0/runtime-permissions.xml"
@@ -63,11 +67,139 @@ PRIVILEGED_PERMISSIONS = [
 ]
 
 # SELinux Contexts
+# WICHTIG: system_file:s0 für Zygote-Zugriff!
 SELINUX_CONTEXT_SYSTEM = "u:object_r:system_file:s0"
-SELINUX_CONTEXT_DATA = "u:object_r:shell_data_file:s0"
 
 # Verbose-Flag
 VERBOSE = False
+
+
+# ==============================================================================
+# Identity Generation (Pixel 6 Realistic)
+# ==============================================================================
+
+def luhn_checksum(number: str) -> int:
+    """Berechnet Luhn-Prüfziffer für eine Nummer."""
+    def digits_of(n):
+        return [int(d) for d in str(n)]
+    digits = digits_of(number)
+    odd_digits = digits[-1::-2]
+    even_digits = digits[-2::-2]
+    checksum = sum(odd_digits)
+    for d in even_digits:
+        checksum += sum(digits_of(d * 2))
+    return checksum % 10
+
+
+def generate_luhn_valid_number(prefix: str, length: int) -> str:
+    """Generiert eine Luhn-konforme Nummer mit gegebenem Präfix."""
+    # Fülle mit Zufallsziffern bis length-1
+    body = prefix + ''.join([str(random.randint(0, 9)) for _ in range(length - len(prefix) - 1)])
+    # Berechne Prüfziffer
+    check = (10 - luhn_checksum(body + '0')) % 10
+    return body + str(check)
+
+
+def generate_pixel6_imei() -> str:
+    """
+    Generiert eine realistische Pixel 6 IMEI (Luhn-konform).
+    TAC (Type Allocation Code) für Pixel 6: 35847631
+    """
+    # Pixel 6 TAC Präfixe (Google/Pixel 6 Range)
+    pixel6_tacs = [
+        "35847631",  # Pixel 6
+        "35847632",  # Pixel 6 Pro
+        "35226911",  # Pixel 6 (alternative)
+    ]
+    tac = random.choice(pixel6_tacs)
+    return generate_luhn_valid_number(tac, 15)
+
+
+def generate_android_id() -> str:
+    """Generiert eine realistische Android ID (16 hex chars)."""
+    return ''.join(random.choices('0123456789abcdef', k=16))
+
+
+def generate_gsf_id() -> str:
+    """Generiert eine realistische GSF ID (16-18 digits)."""
+    # GSF IDs sind typischerweise 16-18 stellige Dezimalzahlen
+    return ''.join([str(random.randint(0, 9)) for _ in range(17)])
+
+
+def generate_serial() -> str:
+    """Generiert eine realistische Pixel Serial Number."""
+    # Pixel Serials: Format wie "1A234B567C8D" (12 alphanumerisch)
+    chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789'  # Ohne I, O (verwechselbar)
+    return ''.join(random.choices(chars, k=12))
+
+
+def generate_mac_address() -> str:
+    """Generiert eine realistische, lokal administrierte MAC-Adresse."""
+    # Lokal administrierte MAC (Bit 1 gesetzt): x2:xx:xx:xx:xx:xx
+    mac = [
+        random.randint(0, 255) | 0x02,  # Locally administered bit
+        random.randint(0, 255),
+        random.randint(0, 255),
+        random.randint(0, 255),
+        random.randint(0, 255),
+        random.randint(0, 255),
+    ]
+    mac[0] &= 0xFE  # Unicast bit clear
+    return ':'.join(f'{b:02x}' for b in mac)
+
+
+def generate_widevine_id() -> str:
+    """Generiert eine Widevine Device ID (32 hex chars)."""
+    return hashlib.sha256(os.urandom(32)).hexdigest()[:32]
+
+
+def generate_imsi() -> str:
+    """Generiert eine realistische IMSI (MCC+MNC+MSIN)."""
+    # US Carrier (T-Mobile): MCC=310, MNC=260
+    mcc = "310"
+    mnc = "260"
+    msin = ''.join([str(random.randint(0, 9)) for _ in range(10)])
+    return mcc + mnc + msin
+
+
+def generate_iccid() -> str:
+    """Generiert eine realistische ICCID (SIM Serial)."""
+    # ICCID Format: 89 (Telecom) + Country + Issuer + Account + Check
+    # US: 8901410 (Verizon) oder 890126 (AT&T)
+    prefix = random.choice(["8901410", "890126", "890141"])
+    body = prefix + ''.join([str(random.randint(0, 9)) for _ in range(19 - len(prefix) - 1)])
+    check = (10 - luhn_checksum(body + '0')) % 10
+    return body + str(check)
+
+
+def generate_pixel6_identity() -> Dict[str, str]:
+    """
+    Generiert eine vollständige, realistische Pixel 6 Identität.
+    Alle IMEIs sind Luhn-konform, alle IDs im korrekten Format.
+    """
+    serial = generate_serial()
+    return {
+        "serial": serial,
+        "boot_serial": serial,  # Normalerweise identisch
+        "imei1": generate_pixel6_imei(),
+        "imei2": generate_pixel6_imei(),
+        "gsf_id": generate_gsf_id(),
+        "android_id": generate_android_id(),
+        "wifi_mac": generate_mac_address(),
+        "widevine_id": generate_widevine_id(),
+        "imsi": generate_imsi(),
+        "sim_serial": generate_iccid(),
+    }
+
+
+def print_identity(identity: Dict[str, str]) -> None:
+    """Zeigt generierte Identität formatiert an."""
+    print("\n" + "=" * 60)
+    print("Generated Pixel 6 Identity")
+    print("=" * 60)
+    for key, value in identity.items():
+        print(f"  {key:15} = {value}")
+    print("=" * 60)
 
 
 # ==============================================================================
@@ -109,8 +241,6 @@ def adb(args: list[str], check: bool = True, capture: bool = False) -> subproces
 def adb_shell(cmd: str, as_root: bool = False, check: bool = True) -> subprocess.CompletedProcess:
     """Führt adb shell [cmd] aus."""
     if as_root:
-        # Für KernelSU/Magisk: su -c "command"
-        # Escaping für verschachtelte Quotes
         escaped_cmd = cmd.replace('"', '\\"')
         cmd = f'su -c "{escaped_cmd}"'
     return adb(["shell", cmd], check=check, capture=True)
@@ -121,7 +251,6 @@ def check_adb_root() -> bool:
     result = adb_shell("id", as_root=True, check=False)
     if result.returncode == 0 and "uid=0" in result.stdout:
         return True
-    # Fallback: adb root
     result = adb(["root"], check=False, capture=True)
     return result.returncode == 0
 
@@ -166,17 +295,15 @@ def step_build_native() -> bool:
     """1b. Build: Native SO mit CMake + NDK."""
     log("Building Native SO...")
     
-    # Prüfe NDK
     ndk_home = os.environ.get("ANDROID_NDK_HOME") or os.environ.get("ANDROID_NDK")
     if not ndk_home:
-        # Versuche Standard-Pfade
         possible_paths = [
             Path.home() / "Android" / "Sdk" / "ndk",
+            Path.home() / "Library" / "Android" / "sdk" / "ndk",
             Path("/opt/android-ndk"),
         ]
         for p in possible_paths:
             if p.exists():
-                # Nimm neueste Version
                 versions = sorted(p.iterdir(), reverse=True)
                 if versions:
                     ndk_home = str(versions[0])
@@ -184,15 +311,11 @@ def step_build_native() -> bool:
     
     if not ndk_home or not Path(ndk_home).exists():
         log("Android NDK nicht gefunden", "ERROR")
-        log("Setze ANDROID_NDK_HOME oder installiere NDK via Android Studio", "ERROR")
         return False
     
     log(f"NDK: {ndk_home}")
-    
-    # Erstelle Build-Verzeichnis
     NATIVE_BUILD_DIR.mkdir(parents=True, exist_ok=True)
     
-    # CMake konfigurieren
     toolchain = Path(ndk_home) / "build" / "cmake" / "android.toolchain.cmake"
     cmake_cmd = [
         "cmake",
@@ -202,29 +325,19 @@ def step_build_native() -> bool:
         "-DANDROID_ABI=arm64-v8a",
         "-DANDROID_PLATFORM=android-30",
         "-DCMAKE_BUILD_TYPE=Release",
+        "-DTITAN_STEALTH_MODE=OFF",
     ]
     
     result = run(cmake_cmd, check=False, capture=True)
     if result.returncode != 0:
         log("CMake-Konfiguration fehlgeschlagen", "ERROR")
-        if VERBOSE and result.stderr:
-            print(result.stderr)
         return False
     
-    # Build
-    result = run(
-        ["cmake", "--build", str(NATIVE_BUILD_DIR), "-j"],
-        check=False,
-        capture=True
-    )
-    
+    result = run(["cmake", "--build", str(NATIVE_BUILD_DIR), "-j"], check=False, capture=True)
     if result.returncode != 0:
         log("Native-Build fehlgeschlagen", "ERROR")
-        if VERBOSE and result.stderr:
-            print(result.stderr)
         return False
     
-    # Prüfe Output
     if NATIVE_SO_PATH.exists():
         size_kb = NATIVE_SO_PATH.stat().st_size / 1024
         log(f"Native SO erstellt: {NATIVE_SO_PATH.name} ({size_kb:.1f} KB)", "OK")
@@ -251,24 +364,21 @@ def step_systemize() -> None:
     """3. Systemize: Module-Struktur + APK als priv-app."""
     log("Systemizing APK as priv-app...")
     
-    # Erstelle Module-Struktur
     ensure_directory(PRIV_APP_PATH)
-    ensure_directory(f"{ZYGISK_PATH}/arm64-v8a")
+    ensure_directory(f"{ZYGISK_PATH}")
     
-    # Kopiere APK
     if APK_PATH.exists():
         adb_shell(f"cp {REMOTE_APK_TMP} {PRIV_APP_PATH}/TitanVerifier.apk", as_root=True)
         adb_shell(f"chmod 644 {PRIV_APP_PATH}/TitanVerifier.apk", as_root=True)
         adb_shell(f"chown root:root {PRIV_APP_PATH}/TitanVerifier.apk", as_root=True)
         log("APK installiert als priv-app", "OK")
     
-    # module.prop erstellen
     module_prop = f"""id={MODULE_ID}
 name=Titan Verifier
-version=1.0.0
-versionCode=1
+version=4.2.0
+versionCode=420
 author=Lead-Architect
-description=Project Titan - Hardware Identity Spoofing (Phase 3.3)
+description=Project Titan - Full Identity Spoofing (Phase 4.2 Singularity)
 """
     
     with tempfile.NamedTemporaryFile(mode="w", suffix=".prop", delete=False) as f:
@@ -286,18 +396,15 @@ description=Project Titan - Hardware Identity Spoofing (Phase 3.3)
 
 
 def step_deploy_zygisk() -> None:
-    """4. Zygisk: SO nach /data/adb/modules/.../zygisk/arm64-v8a/"""
+    """4. Zygisk: SO nach /data/adb/modules/.../zygisk/"""
     log("Deploying Zygisk module...")
     
     if not NATIVE_SO_PATH.exists():
         log("Native SO nicht vorhanden - überspringe Zygisk-Deployment", "WARN")
         return
     
-    # Erstelle Zygisk-Verzeichnis
-    ensure_directory(f"{ZYGISK_PATH}/arm64-v8a")
+    ensure_directory(ZYGISK_PATH)
     
-    # Kopiere SO
-    # WICHTIG: Für Zygisk muss die Datei arm64-v8a.so heißen (nicht libtitan_zygisk.so)
     zygisk_so_path = f"{ZYGISK_PATH}/arm64-v8a.so"
     adb_shell(f"cp {REMOTE_SO_TMP} {zygisk_so_path}", as_root=True)
     adb_shell(f"chmod 644 {zygisk_so_path}", as_root=True)
@@ -313,31 +420,37 @@ def step_selinux_context() -> None:
     # Module-Dateien: system_file Context
     adb_shell(f"chcon -R {SELINUX_CONTEXT_SYSTEM} {MODULE_PATH}", as_root=True, check=False)
     
-    # Bridge-Datei: shell_data_file Context (lesbar für alle Prozesse)
-    adb_shell(f"chcon {SELINUX_CONTEXT_DATA} {BRIDGE_PATH}", as_root=True, check=False)
+    # Bridge-Datei: WICHTIG - system_file Context für Zygote-Zugriff!
+    adb_shell(f"chcon {SELINUX_CONTEXT_SYSTEM} {BRIDGE_PATH}", as_root=True, check=False)
     
     log("SELinux-Contexts gesetzt", "OK")
 
 
-def step_create_bridge(serial: str = "", imei: str = "", boot_serial: str = "",
-                       gsfid: str = "") -> None:
-    """6. Bridge: Erstelle /data/local/tmp/.titan_state"""
-    log("Creating Bridge file...")
+def step_create_bridge(identity: Optional[Dict[str, str]] = None) -> None:
+    """
+    6. Bridge: Erstelle /data/local/tmp/.titan_identity
     
-    # Wenn keine Werte übergeben, verwende Platzhalter
-    if not serial:
-        serial = "TITAN_SERIAL_001"
-    if not imei:
-        imei = "123456789012345"
-    if not boot_serial:
-        boot_serial = serial
-    if not gsfid:
-        gsfid = "1234567890123456"
+    Format: Key=Value (eine Zeile pro Feld)
+    """
+    log("Creating Bridge file (Key=Value format)...")
     
-    # Bridge-Format: serial\nimei\nboot_serial\ngsfid
-    bridge_content = f"{serial}\n{imei}\n{boot_serial}\n{gsfid}\n"
+    # Generiere Identität falls nicht übergeben
+    if identity is None:
+        identity = generate_pixel6_identity()
+        print_identity(identity)
     
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".titan_state", delete=False) as f:
+    # Bridge-Content im Key=Value Format
+    bridge_lines = [
+        "# Titan Identity Bridge - Phase 4.2 Singularity",
+        f"# Generated: {datetime.now().isoformat()}",
+        "",
+    ]
+    for key, value in identity.items():
+        bridge_lines.append(f"{key}={value}")
+    
+    bridge_content = "\n".join(bridge_lines) + "\n"
+    
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".titan_identity", delete=False) as f:
         f.write(bridge_content)
         tmp_bridge = f.name
     
@@ -345,14 +458,14 @@ def step_create_bridge(serial: str = "", imei: str = "", boot_serial: str = "",
         adb(["push", tmp_bridge, BRIDGE_PATH])
         # WICHTIG: chmod 666 damit Zygisk-Module lesen können
         adb_shell(f"chmod 666 {BRIDGE_PATH}", as_root=True)
-        # SELinux-Context für Lesbarkeit
-        adb_shell(f"chcon {SELINUX_CONTEXT_DATA} {BRIDGE_PATH}", as_root=True, check=False)
+        # SELinux: system_file für Zygote-Zugriff
+        adb_shell(f"chcon {SELINUX_CONTEXT_SYSTEM} {BRIDGE_PATH}", as_root=True, check=False)
     finally:
         os.unlink(tmp_bridge)
     
     log(f"Bridge erstellt: {BRIDGE_PATH}", "OK")
-    log(f"  Serial: {serial}")
-    log(f"  IMEI: {imei}")
+    log(f"  Format: Key=Value (10 Felder)")
+    log(f"  SELinux: {SELINUX_CONTEXT_SYSTEM}")
 
 
 def _indent_xml(elem: ET.Element, level: int = 0, indent: str = "  ") -> None:
@@ -378,7 +491,6 @@ def step_xml_patch() -> None:
     
     local_xml = PROJECT_ROOT / "runtime-permissions-patched.xml"
     
-    # Pull aktuelle runtime-permissions.xml
     result = run(
         ["adb", "shell", "su", "-c", f"cat {RUNTIME_PERMISSIONS}"],
         check=False,
@@ -388,7 +500,6 @@ def step_xml_patch() -> None:
     if result.returncode == 0 and result.stdout:
         local_xml.write_text(result.stdout, encoding="utf-8")
     else:
-        # Fallback: Neues XML erstellen
         local_xml.write_text(
             '<?xml version="1.0" encoding="utf-8"?>\n<packages/>\n',
             encoding="utf-8"
@@ -405,7 +516,6 @@ def step_xml_patch() -> None:
     def local_tag(e: ET.Element) -> str:
         return e.tag.split("}")[-1] if "}" in e.tag else e.tag
     
-    # Finde oder erstelle pkg-Element
     pkg_el = None
     for p in root.iter():
         if local_tag(p) == "pkg" and p.get("name") == PKG_NAME:
@@ -416,7 +526,6 @@ def step_xml_patch() -> None:
         pkg_el = ET.SubElement(root, "pkg", name=PKG_NAME)
         log(f"Erstelle <pkg name=\"{PKG_NAME}\">")
     
-    # Füge alle privilegierten Permissions hinzu
     for permission in PRIVILEGED_PERMISSIONS:
         found = False
         for item in pkg_el:
@@ -433,7 +542,6 @@ def step_xml_patch() -> None:
     _indent_xml(root)
     tree.write(local_xml, encoding="utf-8", xml_declaration=True, method="xml")
     
-    # Push zurück aufs Gerät
     adb(["push", str(local_xml), f"{REMOTE_TMP}/runtime-permissions-patched.xml"])
     adb_shell(
         f"cp {REMOTE_TMP}/runtime-permissions-patched.xml {RUNTIME_PERMISSIONS}",
@@ -442,7 +550,6 @@ def step_xml_patch() -> None:
     adb_shell(f"chown system:system {RUNTIME_PERMISSIONS}", as_root=True)
     adb_shell(f"chmod 600 {RUNTIME_PERMISSIONS}", as_root=True)
     
-    # Cleanup
     local_xml.unlink(missing_ok=True)
     
     log("runtime-permissions.xml gepatcht", "OK")
@@ -457,7 +564,6 @@ def step_finalize(full_reboot: bool = False) -> None:
         adb(["reboot"], check=False)
         log("Gerät startet neu - warte auf Reconnect", "OK")
     else:
-        # Soft-Restart: stop && start
         log("Soft-Restart (stop && start)...")
         adb_shell("stop && start", as_root=True, check=False)
         log("System neu gestartet", "OK")
@@ -471,35 +577,45 @@ def main() -> None:
     global VERBOSE
     
     parser = argparse.ArgumentParser(
-        description="Project Titan - Automated Deployment",
+        description="Project Titan - Automated Deployment (Phase 4.2 Singularity)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Beispiele:
-  python automate_titan.py                  # Vollständiges Deployment
-  python automate_titan.py --skip-build     # Nur Deploy (ohne Build)
-  python automate_titan.py --bridge-only    # Nur Bridge-Datei aktualisieren
-  python automate_titan.py --full-reboot    # Mit vollständigem Reboot
+  python automate_titan.py                      # Vollständiges Deployment
+  python automate_titan.py --skip-build         # Nur Deploy (ohne Build)
+  python automate_titan.py --bridge-only        # Nur Bridge-Datei aktualisieren
+  python automate_titan.py --generate-identity  # Zeige generierte Pixel 6 IDs
+  python automate_titan.py --full-reboot        # Mit vollständigem Reboot
         """
     )
     parser.add_argument("--skip-build", action="store_true",
                         help="Überspringe Build-Schritte")
     parser.add_argument("--bridge-only", action="store_true",
                         help="Nur Bridge-Datei erstellen/aktualisieren")
+    parser.add_argument("--generate-identity", action="store_true",
+                        help="Generiere und zeige realistische Pixel 6 Identität")
     parser.add_argument("--full-reboot", action="store_true",
                         help="Vollständiger Reboot statt soft-restart")
     parser.add_argument("--verbose", "-v", action="store_true",
                         help="Ausführliche Ausgabe")
-    parser.add_argument("--serial", default="",
-                        help="Spoofed Serial Number für Bridge")
-    parser.add_argument("--imei", default="",
-                        help="Spoofed IMEI für Bridge")
+    
+    # Legacy-Argumente (ignoriert, aber akzeptiert für Kompatibilität)
+    parser.add_argument("--serial", default="", help=argparse.SUPPRESS)
+    parser.add_argument("--imei", default="", help=argparse.SUPPRESS)
     
     args = parser.parse_args()
     VERBOSE = args.verbose
     
+    # Generate-Identity Mode
+    if args.generate_identity:
+        identity = generate_pixel6_identity()
+        print_identity(identity)
+        return
+    
     print("=" * 60)
-    print("Project Titan - Phase 3.3 Convergence Deployment")
+    print("Project Titan - Phase 4.2 Singularity Deployment")
     print("Target: Pixel 6 | Android 14 | KernelSU + Zygisk Next")
+    print("Bridge: /data/local/tmp/.titan_identity (Key=Value)")
     print("=" * 60)
     
     # Prüfe ADB-Verbindung
@@ -514,14 +630,14 @@ Beispiele:
     log("Prüfe Root-Zugriff...")
     if not check_adb_root():
         log("Root-Zugriff nicht verfügbar!", "ERROR")
-        log("Stelle sicher, dass KernelSU/Magisk Shell-Root erlaubt", "ERROR")
         sys.exit(1)
     log("Root-Zugriff OK", "OK")
     
     # Bridge-Only Mode
     if args.bridge_only:
         print("\n[Bridge-Only Mode]")
-        step_create_bridge(serial=args.serial, imei=args.imei)
+        step_create_bridge()
+        step_selinux_context()
         print("\n" + "=" * 60)
         print("Bridge-Update abgeschlossen!")
         print("=" * 60)
@@ -548,7 +664,7 @@ Beispiele:
     step_selinux_context()
     
     print("\n[6/8] Bridge Setup")
-    step_create_bridge(serial=args.serial, imei=args.imei)
+    step_create_bridge()
     
     print("\n[7/8] Permission Patch")
     step_xml_patch()
@@ -559,13 +675,14 @@ Beispiele:
     print("\n" + "=" * 60)
     print("Deployment abgeschlossen!")
     print("=" * 60)
-    print(f"\nModule-Pfad: {MODULE_PATH}")
-    print(f"Zygisk-SO:   {ZYGISK_PATH}/arm64-v8a.so")
-    print(f"Bridge:      {BRIDGE_PATH}")
+    print(f"\nModule-Pfad:  {MODULE_PATH}")
+    print(f"Zygisk-SO:    {ZYGISK_PATH}/arm64-v8a.so")
+    print(f"Bridge:       {BRIDGE_PATH}")
+    print(f"SELinux:      {SELINUX_CONTEXT_SYSTEM}")
     print("\nNächste Schritte:")
     print("  1. Warte auf System-Neustart")
     print("  2. Öffne Titan Verifier App")
-    print("  3. Prüfe ob Serial/IMEI gespooft werden")
+    print("  3. Prüfe 'Titan Hook Status' Section")
 
 
 if __name__ == "__main__":

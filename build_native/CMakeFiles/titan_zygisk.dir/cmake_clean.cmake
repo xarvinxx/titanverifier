@@ -1,4 +1,5 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/titan_zygisk.dir/link.d"
   "CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o"
   "CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o.d"
   "CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o"

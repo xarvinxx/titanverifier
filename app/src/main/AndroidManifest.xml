@@ -16,6 +16,21 @@
         android:roundIcon="@android:drawable/ic_lock_lock"
         android:supportsRtl="true"
         android:theme="@style/Theme.TitanVerifier">
+        
+        <!-- LSPosed/Xposed Module Metadata -->
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+        <meta-data
+            android:name="xposedminversion"
+            android:value="82" />
+        <meta-data
+            android:name="xposeddescription"
+            android:value="Project Titan - Hardware Identity Spoofing (Phase 4.3)" />
+        <meta-data
+            android:name="xposedscope"
+            android:resource="@array/xposed_scope" />
+            
         <activity
             android:name=".MainActivity"
             android:exported="true">

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LSPosed Module Scope: Apps that will be hooked -->
+    <string-array name="xposed_scope">
+        <!-- Self-hooking for verification -->
+        <item>com.titan.verifier</item>
+        <!-- System processes for comprehensive identity masking -->
+        <item>android</item>
+        <item>com.android.phone</item>
+        <item>com.google.android.gms</item>
+        <item>com.google.android.gsf</item>
+    </string-array>
+</resources>

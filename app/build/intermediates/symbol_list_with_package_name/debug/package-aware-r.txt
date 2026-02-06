@@ -30,6 +30,7 @@ animator fragment_fade_enter
 animator fragment_fade_exit
 animator fragment_open_enter
 animator fragment_open_exit
+array xposed_scope
 attr actionBarDivider
 attr actionBarItemBackground
 attr actionBarPopupTheme

@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:2:1-28:12
-INJECTED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:2:1-28:12
-INJECTED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:2:1-28:12
-INJECTED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:2:1-28:12
+ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:2:1-43:12
+INJECTED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:2:1-43:12
+INJECTED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:2:1-43:12
+INJECTED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:2:1-43:12
 MERGED from [androidx.compose.material3:material3:1.1.2] /Users/arvin/.gradle/caches/transforms-3/a42b12ad0a51f8e308439dbb8e147289/transformed/material3-1.1.2/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.appcompat:appcompat-resources:1.6.1] /Users/arvin/.gradle/caches/transforms-3/af7216361ca839e24eaca4905b35b800/transformed/appcompat-resources-1.6.1/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.appcompat:appcompat:1.6.1] /Users/arvin/.gradle/caches/transforms-3/af226701e07b6e5753175ffad1df9a85/transformed/appcompat-1.6.1/AndroidManifest.xml:17:1-22:12
@@ -89,7 +89,7 @@ ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifes
 	android:name
 		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:9:18-55
 application
-ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:11:5-27:19
+ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:11:5-42:19
 MERGED from [com.google.android.gms:play-services-ads-identifier:18.0.1] /Users/arvin/.gradle/caches/transforms-3/f0f5183433e12f826853e1956858900d/transformed/play-services-ads-identifier-18.0.1/AndroidManifest.xml:25:5-20
 MERGED from [com.google.android.gms:play-services-ads-identifier:18.0.1] /Users/arvin/.gradle/caches/transforms-3/f0f5183433e12f826853e1956858900d/transformed/play-services-ads-identifier-18.0.1/AndroidManifest.xml:25:5-20
 MERGED from [com.google.android.gms:play-services-basement:18.0.0] /Users/arvin/.gradle/caches/transforms-3/0d8c5d067a5cd95fd6679bf10a59cfb5/transformed/play-services-basement-18.0.0/AndroidManifest.xml:20:5-24:19
@@ -122,22 +122,46 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/arvin/.gradle/caches
 		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:12:9-35
 	android:theme
 		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:18:9-51
+meta-data#xposedmodule
+ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:21:9-23:36
+	android:value
+		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:23:13-33
+	android:name
+		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:22:13-40
+meta-data#xposedminversion
+ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:24:9-26:34
+	android:value
+		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:26:13-31
+	android:name
+		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:25:13-44
+meta-data#xposeddescription
+ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:27:9-29:86
+	android:value
+		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:29:13-83
+	android:name
+		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:28:13-45
+meta-data#xposedscope
+ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:30:9-32:54
+	android:resource
+		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:32:13-51
+	android:name
+		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:31:13-39
 activity#com.titan.verifier.MainActivity
-ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:19:9-26:20
+ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:34:9-41:20
 	android:exported
-		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:21:13-36
+		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:36:13-36
 	android:name
-		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:20:13-41
+		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:35:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:22:13-25:29
+ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:37:13-40:29
 action#android.intent.action.MAIN
-ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:23:17-69
+ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:38:17-69
 	android:name
-		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:23:25-66
+		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:38:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:24:17-77
+ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:39:17-77
 	android:name
-		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:24:27-74
+		ADDED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml:39:27-74
 uses-sdk
 INJECTED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /Users/arvin/Downloads/Custom Hook Module/app/src/main/AndroidManifest.xml

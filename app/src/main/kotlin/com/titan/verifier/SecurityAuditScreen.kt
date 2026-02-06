@@ -88,6 +88,58 @@ fun SecurityAuditScreen() {
     fun runAudit() {
         // Identity sofort in Native synchronisieren, sobald verfügbar
         AuditEngine.syncIdentityToNative(context)
+        
+        // === Titan Hook Validation (Phase 4.2 Singularity) ===
+        val validation = AuditEngine.getValidationSummary(context)
+        val hookStatusSection = AuditSection(
+            title = "0. Titan Singularity Status",
+            rows = buildList {
+                // Übersicht
+                add(AuditRow(
+                    label = "Hook Status",
+                    value = validation.getStatusText(),
+                    isCritical = !validation.allVerified,
+                    forceRed = if (validation.configuredCount > 0) !validation.allVerified else null
+                ))
+                
+                // Success Rate als Prozent
+                val rateText = if (validation.configuredCount > 0) {
+                    val percent = (validation.successRate * 100).toInt()
+                    "$percent% (${validation.verifiedCount}/${validation.configuredCount})"
+                } else {
+                    "Bridge nicht geladen"
+                }
+                add(AuditRow(
+                    label = "Success Rate",
+                    value = rateText,
+                    isCritical = validation.mismatchCount > 0,
+                    forceRed = validation.mismatchCount > 0
+                ))
+                
+                // Einzelne Felder mit verbesserter Darstellung
+                val orderedKeys = listOf(
+                    "serial", "boot_serial", "imei1", "imei2", 
+                    "gsf_id", "android_id", "wifi_mac",
+                    "imsi", "sim_serial", "widevine_id"
+                )
+                orderedKeys.forEach { key ->
+                    val result = validation.results[key] ?: return@forEach
+                    val displayValue = when (result.status) {
+                        AuditEngine.HookStatus.VERIFIED -> "[T] ${result.expectedValue}"
+                        AuditEngine.HookStatus.MISMATCH -> "⚠ ${result.displayValue.removePrefix("⚠ ")} (expected: ${result.expectedValue})"
+                        AuditEngine.HookStatus.NOT_CONFIGURED -> "— (not in bridge)"
+                        AuditEngine.HookStatus.EMPTY_CONFIG -> "— (empty)"
+                    }
+                    val isGreen = result.status == AuditEngine.HookStatus.VERIFIED
+                    add(AuditRow(
+                        label = key.replace("_", " ").replaceFirstChar { it.uppercase() },
+                        value = displayValue,
+                        isCritical = result.status == AuditEngine.HookStatus.MISMATCH,
+                        forceRed = result.status == AuditEngine.HookStatus.MISMATCH
+                    ))
+                }
+            }
+        )
 
         // Layered Identity (Java | Native | Root)
         val layeredIdentity = LayeredAuditSection(
@@ -207,9 +259,12 @@ fun SecurityAuditScreen() {
         )
 
         layeredSections = listOf(layeredIdentity)
-        sections = listOf(identitySection, hardwareSection, drmSection, physicalSection, networkSection)
+        sections = listOf(hookStatusSection, identitySection, hardwareSection, drmSection, physicalSection, networkSection)
         layeredSections.forEach { expanded[it.title] = expanded[it.title] ?: true }
-        sections.forEach { expanded[it.title] = expanded[it.title] ?: false }
+        // Hook Status immer expanded, Rest collapsed
+        sections.forEachIndexed { idx, sec -> 
+            expanded[sec.title] = expanded[sec.title] ?: (idx == 0) 
+        }
     }
 
     LaunchedEffect(Unit, auditTrigger) { withContext(Dispatchers.Default) { runAudit() } }

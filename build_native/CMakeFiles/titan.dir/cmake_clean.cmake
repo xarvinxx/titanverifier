@@ -1,4 +1,5 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/titan.dir/link.d"
   "CMakeFiles/titan.dir/main.cpp.o"
   "CMakeFiles/titan.dir/main.cpp.o.d"
   "lib/arm64-v8a/libtitan.pdb"

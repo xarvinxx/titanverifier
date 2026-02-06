@@ -15,70 +15,105 @@ import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
+import java.io.File
+import java.io.FileInputStream
 import java.net.NetworkInterface
-import java.util.UUID
 
 /**
- * Project Titan - LSPosed/Xposed Module (Phase 4.8 - Surgical Safe Edition)
+ * Project Titan - LSPosed Module (Phase 6.0 - Total Stealth)
  * 
- * FAIL-SAFE Hooks: Wenn Bridge nicht lesbar, Original-Wert zurückgeben.
- * Keine Crashes, keine Bootloops.
- * 
- * Surgical Fixes für:
- * - GSF ID (GServices + ContentResolver)
- * - WiFi MAC (WifiInfo + NetworkInterface)
- * - Widevine ID (MediaDrm)
+ * EXTENDED SCOPE: Verifier, TikTok, GMS, Play Store
+ * FULL COVERAGE: GSF, Widevine, MAC, All IDs
  */
 class TitanXposedModule : IXposedHookLoadPackage {
 
     companion object {
-        private const val TAG = "TITAN-SAFE-HOOK"
+        private const val TAG = "TITAN-TOTAL"
         
+        // EXTENDED SCOPE - Alle relevanten Packages
         private val TARGET_PACKAGES = setOf(
-            "com.titan.verifier",
-            "android",
-            "com.android.phone",
-            "com.google.android.gms",
-            "com.google.android.gsf"
+            "com.titan.verifier",           // Unser Auditor
+            "com.zhiliaoapp.musically",     // TikTok International
+            "com.ss.android.ugc.trill",     // TikTok
+            "com.google.android.gms",       // GMS (für GSF)
+            "com.android.vending",          // Play Store
+            "com.google.android.gsf",       // GSF Provider
+            "android"                        // System Framework
         )
         
         private const val GSF_CONTENT_URI = "content://com.google.android.gsf.gservices"
+        
+        // MAC-Pfade die wir abfangen
+        private val MAC_PATHS = setOf(
+            "/sys/class/net/wlan0/address",
+            "/sys/class/net/eth0/address",
+            "/proc/net/arp"
+        )
+        
+        // Lazy Bridge Cache
+        @Volatile private var bridgeLoaded = false
+        private var cachedGsfId: String? = null
+        private var cachedAndroidId: String? = null
+        private var cachedImei1: String? = null
+        private var cachedImei2: String? = null
+        private var cachedMac: String? = null
+        private var cachedWidevine: String? = null
+        private var cachedImsi: String? = null
+        private var cachedSimSerial: String? = null
+        private var cachedSerial: String? = null
+        private var cachedOperator: String? = null
     }
     
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         if (lpparam.packageName !in TARGET_PACKAGES) return
         
-        log("Initializing SAFE hooks for: ${lpparam.packageName}")
+        log("Phase 6.0 Total Stealth for: ${lpparam.packageName}")
         
-        // Fail-Safe: Prüfe Bridge zuerst
-        val bridgeAvailable = try {
-            TitanBridgeReader.isBridgeAvailable()
-        } catch (e: Throwable) {
-            log("Bridge check failed: ${e.message}")
-            false
-        }
-        
-        if (!bridgeAvailable) {
-            log("WARNING: Bridge not available - hooks will pass-through to original")
-        }
-        
-        // === Surgical Hook Installation ===
-        safeHook("TelephonyManager") { hookTelephonyManager(lpparam) }
-        safeHook("Settings.Secure") { hookSettingsSecure(lpparam) }
+        // Core Identity Hooks
+        safeHook("TelephonyManager") { hookTelephonyManager() }
+        safeHook("Settings.Secure") { hookSettingsSecure() }
         safeHook("SystemProperties") { hookSystemProperties(lpparam) }
-        safeHook("ContentResolver-GSF") { hookContentResolverGsf(lpparam) }
-        safeHook("GServices") { hookGServices(lpparam) }
-        safeHook("WifiInfo") { hookWifiInfo(lpparam) }
-        safeHook("NetworkInterface") { hookNetworkInterface(lpparam) }
-        safeHook("MediaDrm-Widevine") { hookMediaDrmWidevine(lpparam) }
-        safeHook("InputManager") { hookInputManager(lpparam) }
         
-        log("All SAFE hooks installed for ${lpparam.packageName}")
+        // GSF Total Coverage
+        safeHook("GSF-ContentResolver") { hookGsfContentResolver() }
+        safeHook("GSF-ContentProviderClient") { hookGsfContentProviderClient(lpparam) }
+        safeHook("Gservices-Direct") { hookGservicesDirect(lpparam) }
+        
+        // MAC Total Coverage
+        safeHook("WifiInfo") { hookWifiInfo() }
+        safeHook("NetworkInterface") { hookNetworkInterface() }
+        safeHook("FileInputStream-MAC") { hookFileInputStreamMac() }
+        safeHook("File.readText-MAC") { hookFileReadTextMac(lpparam) }
+        
+        // Widevine Total Coverage
+        safeHook("MediaDrm-Widevine") { hookMediaDrm() }
+        
+        // Stealth
+        safeHook("InputManager") { hookInputManager() }
+        
+        log("Total Stealth hooks complete for ${lpparam.packageName}")
     }
     
-    /**
-     * Wrapper für sichere Hook-Installation mit Logging.
-     */
+    private fun ensureBridgeLoaded() {
+        if (bridgeLoaded) return
+        try {
+            cachedGsfId = TitanBridgeReader.getGsfId()
+            cachedAndroidId = TitanBridgeReader.getAndroidId()
+            cachedImei1 = TitanBridgeReader.getImei1()
+            cachedImei2 = TitanBridgeReader.getImei2()
+            cachedMac = TitanBridgeReader.getWifiMac()
+            cachedWidevine = TitanBridgeReader.getWidevineId()
+            cachedImsi = TitanBridgeReader.getImsi()
+            cachedSimSerial = TitanBridgeReader.getSimSerial()
+            cachedSerial = TitanBridgeReader.getSerial()
+            cachedOperator = TitanBridgeReader.getOperatorName()
+            bridgeLoaded = true
+            log("Bridge loaded: GSF=$cachedGsfId, MAC=$cachedMac, Widevine=$cachedWidevine")
+        } catch (e: Throwable) {
+            log("Bridge error: ${e.message}")
+        }
+    }
+    
     private inline fun safeHook(name: String, block: () -> Unit) {
         try {
             block()
@@ -88,134 +123,84 @@ class TitanXposedModule : IXposedHookLoadPackage {
         }
     }
     
-    /**
-     * Fail-Safe Getter: Gibt null zurück wenn Bridge nicht lesbar.
-     */
-    private fun safeGetBridgeValue(getter: () -> String?): String? {
-        return try {
-            getter()
-        } catch (e: Throwable) {
-            log("Bridge read error: ${e.message}")
-            null
-        }
-    }
-    
     // =========================================================================
-    // TelephonyManager Hooks (IMEI, IMSI, SIM, Operator)
+    // TelephonyManager
     // =========================================================================
     
-    private fun hookTelephonyManager(lpparam: XC_LoadPackage.LoadPackageParam) {
-        val tmClass = TelephonyManager::class.java
+    private fun hookTelephonyManager() {
+        val tm = TelephonyManager::class.java
         
-        // getImei(int)
-        tryHook(tmClass, "getImei", Int::class.javaPrimitiveType) { param ->
-            val slot = param.args[0] as Int
-            val value = safeGetBridgeValue { 
-                if (slot == 0) TitanBridgeReader.getImei1() else TitanBridgeReader.getImei2()
+        XposedHelpers.findAndHookMethod(tm, "getImei", Int::class.javaPrimitiveType, object : XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam) {
+                ensureBridgeLoaded()
+                val slot = param.args[0] as Int
+                val v = if (slot == 0) cachedImei1 else cachedImei2
+                v?.let { param.result = it; log("Spoofed IMEI($slot)") }
             }
-            if (value != null) {
-                param.result = value
-                log("Spoofed getImei($slot) -> $value")
-            }
-        }
+        })
         
-        // getImei()
-        tryHook(tmClass, "getImei") { param ->
-            safeGetBridgeValue { TitanBridgeReader.getImei1() }?.let {
-                param.result = it
-                log("Spoofed getImei() -> $it")
+        XposedHelpers.findAndHookMethod(tm, "getImei", object : XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam) {
+                ensureBridgeLoaded()
+                cachedImei1?.let { param.result = it; log("Spoofed IMEI()") }
             }
-        }
+        })
         
-        // getDeviceId variants
-        tryHook(tmClass, "getDeviceId", Int::class.javaPrimitiveType) { param ->
-            val slot = param.args[0] as Int
-            safeGetBridgeValue { 
-                if (slot == 0) TitanBridgeReader.getImei1() else TitanBridgeReader.getImei2()
-            }?.let {
-                param.result = it
-                log("Spoofed getDeviceId($slot) -> $it")
-            }
-        }
+        try {
+            XposedHelpers.findAndHookMethod(tm, "getDeviceId", Int::class.javaPrimitiveType, object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    ensureBridgeLoaded()
+                    val slot = param.args[0] as Int
+                    (if (slot == 0) cachedImei1 else cachedImei2)?.let { param.result = it }
+                }
+            })
+            XposedHelpers.findAndHookMethod(tm, "getDeviceId", object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    ensureBridgeLoaded()
+                    cachedImei1?.let { param.result = it }
+                }
+            })
+        } catch (_: Throwable) {}
         
-        tryHook(tmClass, "getDeviceId") { param ->
-            safeGetBridgeValue { TitanBridgeReader.getImei1() }?.let {
-                param.result = it
-                log("Spoofed getDeviceId() -> $it")
-            }
-        }
-        
-        // getSubscriberId (IMSI)
-        tryHook(tmClass, "getSubscriberId") { param ->
-            safeGetBridgeValue { TitanBridgeReader.getImsi() }?.let {
-                param.result = it
-                log("Spoofed getSubscriberId() -> $it")
-            }
-        }
-        
-        tryHook(tmClass, "getSubscriberId", Int::class.javaPrimitiveType) { param ->
-            safeGetBridgeValue { TitanBridgeReader.getImsi() }?.let {
-                param.result = it
-                log("Spoofed getSubscriberId(int) -> $it")
-            }
-        }
-        
-        // getSimSerialNumber (ICCID)
-        tryHook(tmClass, "getSimSerialNumber") { param ->
-            safeGetBridgeValue { TitanBridgeReader.getSimSerial() }?.let {
-                param.result = it
-                log("Spoofed getSimSerialNumber() -> $it")
-            }
-        }
-        
-        tryHook(tmClass, "getSimSerialNumber", Int::class.javaPrimitiveType) { param ->
-            safeGetBridgeValue { TitanBridgeReader.getSimSerial() }?.let {
-                param.result = it
-                log("Spoofed getSimSerialNumber(int) -> $it")
-            }
-        }
-        
-        // getNetworkOperatorName
-        tryHook(tmClass, "getNetworkOperatorName") { param ->
-            safeGetBridgeValue { TitanBridgeReader.getOperatorName() }?.let {
-                param.result = it
-                log("Spoofed getNetworkOperatorName() -> $it")
-            }
-        }
-        
-        // getSimOperatorName
-        tryHook(tmClass, "getSimOperatorName") { param ->
-            safeGetBridgeValue { TitanBridgeReader.getOperatorName() }?.let {
-                param.result = it
-                log("Spoofed getSimOperatorName() -> $it")
-            }
-        }
+        try {
+            XposedHelpers.findAndHookMethod(tm, "getSubscriberId", object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    ensureBridgeLoaded()
+                    cachedImsi?.let { param.result = it }
+                }
+            })
+            XposedHelpers.findAndHookMethod(tm, "getSimSerialNumber", object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    ensureBridgeLoaded()
+                    cachedSimSerial?.let { param.result = it }
+                }
+            })
+            XposedHelpers.findAndHookMethod(tm, "getNetworkOperatorName", object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    ensureBridgeLoaded()
+                    cachedOperator?.let { param.result = it }
+                }
+            })
+        } catch (_: Throwable) {}
     }
     
     // =========================================================================
     // Settings.Secure (Android ID)
     // =========================================================================
     
-    private fun hookSettingsSecure(lpparam: XC_LoadPackage.LoadPackageParam) {
+    private fun hookSettingsSecure() {
         XposedHelpers.findAndHookMethod(
-            Settings.Secure::class.java,
-            "getString",
-            ContentResolver::class.java,
-            String::class.java,
+            Settings.Secure::class.java, "getString",
+            ContentResolver::class.java, String::class.java,
             object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
-                    try {
-                        val name = param.args[1] as? String ?: return
-                        
-                        if (name == Settings.Secure.ANDROID_ID) {
-                            safeGetBridgeValue { TitanBridgeReader.getAndroidId() }?.let {
-                                param.result = it
-                                log("Spoofed ANDROID_ID -> $it")
-                            }
+                    val name = param.args[1] as? String ?: return
+                    if (name == Settings.Secure.ANDROID_ID) {
+                        ensureBridgeLoaded()
+                        cachedAndroidId?.let {
+                            param.result = it
+                            log("Spoofed ANDROID_ID -> $it")
                         }
-                    } catch (e: Throwable) {
-                        log("Settings.Secure hook error: ${e.message}")
-                        // Fail-safe: Let original method run
                     }
                 }
             }
@@ -223,374 +208,316 @@ class TitanXposedModule : IXposedHookLoadPackage {
     }
     
     // =========================================================================
-    // SystemProperties (GSF ID + Serial backup)
+    // SystemProperties
     // =========================================================================
     
     private fun hookSystemProperties(lpparam: XC_LoadPackage.LoadPackageParam) {
-        val spClass = XposedHelpers.findClass("android.os.SystemProperties", lpparam.classLoader)
-        
-        XposedHelpers.findAndHookMethod(spClass, "get", String::class.java, object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                try {
-                    val key = param.args[0] as? String ?: return
-                    handlePropertyGet(key, param)
-                } catch (e: Throwable) {
-                    // Fail-safe: Original continues
-                }
-            }
-        })
-        
-        XposedHelpers.findAndHookMethod(spClass, "get", String::class.java, String::class.java, object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                try {
-                    val key = param.args[0] as? String ?: return
-                    handlePropertyGet(key, param)
-                } catch (e: Throwable) {
-                    // Fail-safe
-                }
-            }
-        })
-    }
-    
-    private fun handlePropertyGet(key: String, param: XC_MethodHook.MethodHookParam) {
-        val keyLower = key.lowercase()
-        
-        // GSF ID
-        if (keyLower.contains("gsf") || key == "ro.com.google.gservices.gsf.id") {
-            safeGetBridgeValue { TitanBridgeReader.getGsfId() }?.let {
-                param.result = it
-                log("Spoofed SystemProperties($key) -> $it")
-            }
-            return
-        }
-        
-        // Serial backup
-        if (key == "ro.serialno" || key == "ro.boot.serialno") {
-            safeGetBridgeValue { TitanBridgeReader.getSerial() }?.let {
-                param.result = it
-                log("Spoofed SystemProperties($key) -> $it")
-            }
-        }
-    }
-    
-    // =========================================================================
-    // SURGICAL GSF Hook: ContentResolver.query
-    // =========================================================================
-    
-    private fun hookContentResolverGsf(lpparam: XC_LoadPackage.LoadPackageParam) {
-        XposedHelpers.findAndHookMethod(
-            ContentResolver::class.java,
-            "query",
-            Uri::class.java,
-            Array<String>::class.java,
-            String::class.java,
-            Array<String>::class.java,
-            String::class.java,
-            object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    try {
-                        val uri = param.args[0] as? Uri ?: return
-                        if (!uri.toString().startsWith(GSF_CONTENT_URI)) return
-                        
-                        val gsfId = safeGetBridgeValue { TitanBridgeReader.getGsfId() } ?: return
-                        val cursor = param.result as? Cursor ?: return
-                        
-                        // Sicher: Nur wenn Cursor gültig ist
-                        if (cursor.isClosed) return
-                        
-                        // Erstelle Matrix-Cursor mit gespoofter GSF ID
-                        val matrixCursor = MatrixCursor(arrayOf("name", "value"))
-                        matrixCursor.addRow(arrayOf("android_id", gsfId))
-                        
-                        param.result = matrixCursor
-                        log("Spoofed GSF via ContentResolver -> $gsfId")
-                        
-                    } catch (e: Throwable) {
-                        log("GSF ContentResolver hook error: ${e.message}")
-                        // Fail-safe: Original result stays
-                    }
-                }
-            }
-        )
-    }
-    
-    // =========================================================================
-    // SURGICAL GSF Hook: Gservices.getString direkt
-    // =========================================================================
-    
-    private fun hookGServices(lpparam: XC_LoadPackage.LoadPackageParam) {
         try {
-            val gservicesClass = XposedHelpers.findClass(
-                "com.google.android.gsf.Gservices",
-                lpparam.classLoader
-            )
+            val sp = XposedHelpers.findClass("android.os.SystemProperties", lpparam.classLoader)
             
-            // getString(ContentResolver, String)
-            XposedHelpers.findAndHookMethod(
-                gservicesClass,
-                "getString",
-                ContentResolver::class.java,
-                String::class.java,
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        try {
-                            val key = param.args[1] as? String ?: return
-                            if (key == "android_id" || key.lowercase().contains("gsf")) {
-                                safeGetBridgeValue { TitanBridgeReader.getGsfId() }?.let {
-                                    param.result = it
-                                    log("Spoofed Gservices.getString($key) -> $it")
-                                }
-                            }
-                        } catch (e: Throwable) {
-                            // Fail-safe
-                        }
-                    }
-                }
-            )
-            
-            // getLong mit GSF ID
-            XposedHelpers.findAndHookMethod(
-                gservicesClass,
-                "getLong",
-                ContentResolver::class.java,
-                String::class.java,
-                Long::class.javaPrimitiveType,
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        try {
-                            val key = param.args[1] as? String ?: return
-                            if (key == "android_id" || key.lowercase().contains("gsf")) {
-                                safeGetBridgeValue { TitanBridgeReader.getGsfId() }?.let { gsfStr ->
-                                    val gsfLong = gsfStr.toLongOrNull()
-                                    if (gsfLong != null) {
-                                        param.result = gsfLong
-                                        log("Spoofed Gservices.getLong($key) -> $gsfLong")
-                                    }
-                                }
-                            }
-                        } catch (e: Throwable) {
-                            // Fail-safe
-                        }
-                    }
-                }
-            )
-            
-            log("Hooked Gservices class directly")
-        } catch (e: Throwable) {
-            // Gservices class might not exist in all contexts
-            log("Gservices class not found (expected in non-GMS context)")
-        }
-    }
-    
-    // =========================================================================
-    // SURGICAL MAC Hook: WifiInfo
-    // =========================================================================
-    
-    private fun hookWifiInfo(lpparam: XC_LoadPackage.LoadPackageParam) {
-        XposedHelpers.findAndHookMethod(
-            WifiInfo::class.java,
-            "getMacAddress",
-            object : XC_MethodHook() {
+            XposedHelpers.findAndHookMethod(sp, "get", String::class.java, object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
-                    try {
-                        safeGetBridgeValue { TitanBridgeReader.getWifiMac() }?.let {
-                            param.result = it
-                            log("Spoofed WifiInfo.getMacAddress() -> $it")
-                        }
-                    } catch (e: Throwable) {
-                        // Fail-safe
-                    }
-                }
-            }
-        )
-    }
-    
-    // =========================================================================
-    // SURGICAL MAC Hook: NetworkInterface.getHardwareAddress()
-    // =========================================================================
-    
-    private fun hookNetworkInterface(lpparam: XC_LoadPackage.LoadPackageParam) {
-        XposedHelpers.findAndHookMethod(
-            NetworkInterface::class.java,
-            "getHardwareAddress",
-            object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    try {
-                        val ni = param.thisObject as? NetworkInterface ?: return
-                        val name = ni.name ?: return
-                        
-                        // Nur wlan0 und eth0 spoofen
-                        if (name != "wlan0" && name != "eth0") return
-                        
-                        val macStr = safeGetBridgeValue { TitanBridgeReader.getWifiMac() } ?: return
-                        val macBytes = parseMacToBytes(macStr)
-                        
-                        if (macBytes != null) {
-                            param.result = macBytes
-                            log("Spoofed NetworkInterface($name).getHardwareAddress() -> $macStr")
-                        }
-                    } catch (e: Throwable) {
-                        log("NetworkInterface hook error: ${e.message}")
-                        // Fail-safe: Original continues
-                    }
-                }
-            }
-        )
-    }
-    
-    /**
-     * Parst MAC-String zu Byte-Array (null-safe).
-     */
-    private fun parseMacToBytes(mac: String?): ByteArray? {
-        if (mac.isNullOrEmpty()) return null
-        
-        return try {
-            val parts = mac.split(":")
-            if (parts.size != 6) return null
-            
-            ByteArray(6) { i ->
-                parts[i].toInt(16).toByte()
-            }
-        } catch (e: Exception) {
-            null
-        }
-    }
-    
-    // =========================================================================
-    // SURGICAL Widevine Hook: MediaDrm.getPropertyByteArray
-    // =========================================================================
-    
-    private fun hookMediaDrmWidevine(lpparam: XC_LoadPackage.LoadPackageParam) {
-        XposedHelpers.findAndHookMethod(
-            MediaDrm::class.java,
-            "getPropertyByteArray",
-            String::class.java,
-            object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    try {
-                        val property = param.args[0] as? String ?: return
-                        
-                        // deviceUniqueId ist die Widevine Device ID
-                        if (property == MediaDrm.PROPERTY_DEVICE_UNIQUE_ID || 
-                            property == "deviceUniqueId" ||
-                            property.lowercase().contains("deviceuniqueid")) {
-                            
-                            val widevineHex = safeGetBridgeValue { TitanBridgeReader.getWidevineId() }
-                            if (!widevineHex.isNullOrEmpty()) {
-                                val bytes = hexToBytes(widevineHex)
-                                if (bytes != null && bytes.isNotEmpty()) {
-                                    param.result = bytes
-                                    log("Spoofed MediaDrm.deviceUniqueId -> ${bytes.size} bytes")
-                                }
-                            }
-                        }
-                    } catch (e: Throwable) {
-                        log("MediaDrm hook error: ${e.message}")
-                        // Fail-safe: Original continues
-                    }
-                }
-            }
-        )
-        
-        // Auch getPropertyString hooken
-        XposedHelpers.findAndHookMethod(
-            MediaDrm::class.java,
-            "getPropertyString",
-            String::class.java,
-            object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    try {
-                        val property = param.args[0] as? String ?: return
-                        
-                        if (property.lowercase().contains("deviceid") ||
-                            property.lowercase().contains("unique")) {
-                            safeGetBridgeValue { TitanBridgeReader.getWidevineId() }?.let {
-                                param.result = it
-                                log("Spoofed MediaDrm.getPropertyString($property) -> $it")
-                            }
-                        }
-                    } catch (e: Throwable) {
-                        // Fail-safe
-                    }
-                }
-            }
-        )
-    }
-    
-    /**
-     * Konvertiert Hex-String zu Byte-Array (null-safe).
-     */
-    private fun hexToBytes(hex: String?): ByteArray? {
-        if (hex.isNullOrEmpty()) return null
-        
-        return try {
-            val clean = hex.replace(Regex("[^0-9a-fA-F]"), "")
-            if (clean.length < 2 || clean.length % 2 != 0) return null
-            
-            ByteArray(clean.length / 2) { i ->
-                clean.substring(i * 2, i * 2 + 2).toInt(16).toByte()
-            }
-        } catch (e: Exception) {
-            null
-        }
-    }
-    
-    // =========================================================================
-    // InputManager Hook (Device IDs - Anonymität)
-    // =========================================================================
-    
-    private fun hookInputManager(lpparam: XC_LoadPackage.LoadPackageParam) {
-        XposedHelpers.findAndHookMethod(
-            InputManager::class.java,
-            "getInputDeviceIds",
-            object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    try {
-                        param.result = IntArray(0)
-                        log("Spoofed InputManager.getInputDeviceIds() -> empty")
-                    } catch (e: Throwable) {
-                        // Fail-safe
-                    }
-                }
-            }
-        )
-    }
-    
-    // =========================================================================
-    // Helper: Vararg Hook Wrapper
-    // =========================================================================
-    
-    private fun tryHook(clazz: Class<*>, methodName: String, vararg paramTypes: Any?, callback: (XC_MethodHook.MethodHookParam) -> Unit) {
-        try {
-            val args = mutableListOf<Any?>()
-            args.addAll(paramTypes)
-            args.add(object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    try {
-                        callback(param)
-                    } catch (e: Throwable) {
-                        log("Hook callback error: ${e.message}")
-                    }
+                    handlePropertyGet(param.args[0] as? String, param)
                 }
             })
-            
-            if (paramTypes.isEmpty()) {
-                XposedHelpers.findAndHookMethod(clazz, methodName, args.last())
-            } else {
-                XposedHelpers.findAndHookMethod(clazz, methodName, *args.toTypedArray())
+            XposedHelpers.findAndHookMethod(sp, "get", String::class.java, String::class.java, object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    handlePropertyGet(param.args[0] as? String, param)
+                }
+            })
+        } catch (_: Throwable) {}
+    }
+    
+    private fun handlePropertyGet(key: String?, param: XC_MethodHook.MethodHookParam) {
+        if (key == null) return
+        ensureBridgeLoaded()
+        
+        when {
+            key.contains("gsf", ignoreCase = true) || key == "ro.com.google.gservices.gsf.id" -> {
+                cachedGsfId?.let { param.result = it; log("Spoofed SystemProperties($key) -> $it") }
             }
-        } catch (e: Throwable) {
-            // Method might not exist
+            key == "ro.serialno" || key == "ro.boot.serialno" -> {
+                cachedSerial?.let { param.result = it }
+            }
         }
     }
     
     // =========================================================================
-    // Logging
+    // GSF Total Coverage - ContentResolver.query
     // =========================================================================
     
-    private fun log(msg: String) {
+    private fun hookGsfContentResolver() {
+        XposedHelpers.findAndHookMethod(
+            ContentResolver::class.java, "query",
+            Uri::class.java, Array<String>::class.java, String::class.java,
+            Array<String>::class.java, String::class.java,
+            object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    val uri = param.args[0] as? Uri ?: return
+                    val uriStr = uri.toString()
+                    
+                    if (uriStr.contains("gsf") || uriStr.contains("gservices")) {
+                        ensureBridgeLoaded()
+                        cachedGsfId?.let { gsfId ->
+                            // MatrixCursor mit ALLEN GSF-relevanten Feldern
+                            val cursor = MatrixCursor(arrayOf("name", "value"))
+                            cursor.addRow(arrayOf("android_id", gsfId))
+                            cursor.addRow(arrayOf("gsf_id", gsfId))
+                            cursor.addRow(arrayOf("device_id", gsfId))
+                            param.result = cursor
+                            log("GSF MatrixCursor injected -> $gsfId")
+                        }
+                    }
+                }
+            }
+        )
+    }
+    
+    // =========================================================================
+    // GSF Total Coverage - ContentProviderClient.query
+    // =========================================================================
+    
+    private fun hookGsfContentProviderClient(lpparam: XC_LoadPackage.LoadPackageParam) {
         try {
-            XposedBridge.log("[$TAG] $msg")
+            val cpc = XposedHelpers.findClass("android.content.ContentProviderClient", lpparam.classLoader)
+            
+            XposedHelpers.findAndHookMethod(cpc, "query",
+                Uri::class.java, Array<String>::class.java, String::class.java,
+                Array<String>::class.java, String::class.java,
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val uri = param.args[0] as? Uri ?: return
+                        if (uri.toString().contains("gsf") || uri.toString().contains("gservices")) {
+                            ensureBridgeLoaded()
+                            cachedGsfId?.let { gsfId ->
+                                val cursor = MatrixCursor(arrayOf("name", "value"))
+                                cursor.addRow(arrayOf("android_id", gsfId))
+                                param.result = cursor
+                                log("GSF ContentProviderClient -> $gsfId")
+                            }
+                        }
+                    }
+                }
+            )
         } catch (_: Throwable) {}
+    }
+    
+    // =========================================================================
+    // GSF Total Coverage - Gservices.getString/getLong direkt
+    // =========================================================================
+    
+    private fun hookGservicesDirect(lpparam: XC_LoadPackage.LoadPackageParam) {
+        try {
+            val gs = XposedHelpers.findClass("com.google.android.gsf.Gservices", lpparam.classLoader)
+            
+            XposedHelpers.findAndHookMethod(gs, "getString",
+                ContentResolver::class.java, String::class.java,
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val key = param.args[1] as? String ?: return
+                        if (key == "android_id" || key.contains("gsf", ignoreCase = true)) {
+                            ensureBridgeLoaded()
+                            cachedGsfId?.let { param.result = it; log("Gservices.getString($key) -> $it") }
+                        }
+                    }
+                }
+            )
+            
+            XposedHelpers.findAndHookMethod(gs, "getLong",
+                ContentResolver::class.java, String::class.java, Long::class.javaPrimitiveType,
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val key = param.args[1] as? String ?: return
+                        if (key == "android_id" || key.contains("gsf", ignoreCase = true)) {
+                            ensureBridgeLoaded()
+                            cachedGsfId?.toLongOrNull()?.let { param.result = it; log("Gservices.getLong($key) -> $it") }
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {
+            log("Gservices class not found (expected outside GMS)")
+        }
+    }
+    
+    // =========================================================================
+    // MAC Total Coverage - WifiInfo
+    // =========================================================================
+    
+    private fun hookWifiInfo() {
+        XposedHelpers.findAndHookMethod(WifiInfo::class.java, "getMacAddress", object : XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam) {
+                ensureBridgeLoaded()
+                cachedMac?.let { param.result = it; log("WifiInfo.getMacAddress -> $it") }
+            }
+        })
+    }
+    
+    // =========================================================================
+    // MAC Total Coverage - NetworkInterface
+    // =========================================================================
+    
+    private fun hookNetworkInterface() {
+        XposedHelpers.findAndHookMethod(NetworkInterface::class.java, "getHardwareAddress", object : XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam) {
+                val ni = param.thisObject as? NetworkInterface ?: return
+                val name = ni.name ?: return
+                if (name != "wlan0" && name != "eth0") return
+                
+                ensureBridgeLoaded()
+                cachedMac?.let { mac ->
+                    parseMacToBytes(mac)?.let {
+                        param.result = it
+                        log("NetworkInterface($name).getHardwareAddress -> $mac")
+                    }
+                }
+            }
+        })
+    }
+    
+    // =========================================================================
+    // MAC Total Coverage - FileInputStream (für /sys/ Zugriffe)
+    // =========================================================================
+    
+    private fun hookFileInputStreamMac() {
+        // File constructor
+        XposedHelpers.findAndHookConstructor(FileInputStream::class.java, File::class.java, object : XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam) {
+                val file = param.args[0] as? File ?: return
+                if (file.absolutePath in MAC_PATHS || (file.absolutePath.contains("/sys/class/net/") && file.absolutePath.endsWith("/address"))) {
+                    ensureBridgeLoaded()
+                    cachedMac?.let { mac ->
+                        val tempFile = File.createTempFile("titan_", ".tmp")
+                        tempFile.writeText("$mac\n")
+                        tempFile.deleteOnExit()
+                        param.args[0] = tempFile
+                        log("FileInputStream(File) MAC redirect -> $mac")
+                    }
+                }
+            }
+        })
+        
+        // String path constructor
+        XposedHelpers.findAndHookConstructor(FileInputStream::class.java, String::class.java, object : XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam) {
+                val path = param.args[0] as? String ?: return
+                if (path in MAC_PATHS || (path.contains("/sys/class/net/") && path.endsWith("/address"))) {
+                    ensureBridgeLoaded()
+                    cachedMac?.let { mac ->
+                        val tempFile = File.createTempFile("titan_", ".tmp")
+                        tempFile.writeText("$mac\n")
+                        tempFile.deleteOnExit()
+                        param.args[0] = tempFile.absolutePath
+                        log("FileInputStream(String) MAC redirect -> $mac")
+                    }
+                }
+            }
+        })
+    }
+    
+    // =========================================================================
+    // MAC Total Coverage - Kotlin File.readText
+    // =========================================================================
+    
+    private fun hookFileReadTextMac(lpparam: XC_LoadPackage.LoadPackageParam) {
+        try {
+            XposedHelpers.findAndHookMethod(
+                "kotlin.io.FilesKt__FileReadWriteKt", lpparam.classLoader,
+                "readText", File::class.java, java.nio.charset.Charset::class.java,
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val file = param.args[0] as? File ?: return
+                        if (file.absolutePath in MAC_PATHS) {
+                            ensureBridgeLoaded()
+                            cachedMac?.let {
+                                param.result = "$it\n"
+                                log("File.readText MAC -> $it")
+                            }
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+    }
+    
+    // =========================================================================
+    // Widevine Total Coverage - MediaDrm
+    // =========================================================================
+    
+    private fun hookMediaDrm() {
+        // getPropertyByteArray - Widevine Device ID
+        XposedHelpers.findAndHookMethod(MediaDrm::class.java, "getPropertyByteArray", String::class.java,
+            object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    val prop = param.args[0] as? String ?: return
+                    
+                    if (prop == MediaDrm.PROPERTY_DEVICE_UNIQUE_ID || 
+                        prop.equals("deviceUniqueId", ignoreCase = true) ||
+                        prop.contains("unique", ignoreCase = true) ||
+                        prop.contains("device", ignoreCase = true)) {
+                        
+                        ensureBridgeLoaded()
+                        cachedWidevine?.let { hex ->
+                            hexToBytes(hex)?.let { bytes ->
+                                param.result = bytes
+                                log("MediaDrm.getPropertyByteArray($prop) -> ${bytes.size} bytes")
+                            }
+                        }
+                    }
+                }
+            }
+        )
+        
+        // getPropertyString
+        XposedHelpers.findAndHookMethod(MediaDrm::class.java, "getPropertyString", String::class.java,
+            object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    val prop = param.args[0] as? String ?: return
+                    
+                    if (prop.contains("device", ignoreCase = true) || prop.contains("unique", ignoreCase = true)) {
+                        ensureBridgeLoaded()
+                        cachedWidevine?.let {
+                            param.result = it
+                            log("MediaDrm.getPropertyString($prop)")
+                        }
+                    }
+                }
+            }
+        )
+    }
+    
+    // =========================================================================
+    // InputManager (Stealth)
+    // =========================================================================
+    
+    private fun hookInputManager() {
+        XposedHelpers.findAndHookMethod(InputManager::class.java, "getInputDeviceIds", object : XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam) {
+                param.result = IntArray(0)
+            }
+        })
+    }
+    
+    // =========================================================================
+    // Helpers
+    // =========================================================================
+    
+    private fun parseMacToBytes(mac: String): ByteArray? {
+        return try {
+            val parts = mac.split(":")
+            if (parts.size != 6) null else ByteArray(6) { parts[it].toInt(16).toByte() }
+        } catch (_: Exception) { null }
+    }
+    
+    private fun hexToBytes(hex: String): ByteArray? {
+        return try {
+            val clean = hex.replace(Regex("[^0-9a-fA-F]"), "")
+            if (clean.length < 2 || clean.length % 2 != 0) null
+            else ByteArray(clean.length / 2) { clean.substring(it * 2, it * 2 + 2).toInt(16).toByte() }
+        } catch (_: Exception) { null }
+    }
+    
+    private fun log(msg: String) {
+        try { XposedBridge.log("[$TAG] $msg") } catch (_: Throwable) {}
     }
 }

@@ -2692,12 +2692,20 @@
         <item name="colorPrimary">@color/primary</item>
     </style></file><file path="/Users/arvin/Downloads/Custom Hook Module/app/src/main/res/values/arrays.xml" qualifiers=""><string-array name="xposed_scope">
         
-        <item>com.titan.verifier</item>
-        
         <item>android</item>
-        <item>com.android.phone</item>
-        <item>com.google.android.gms</item>
+        
+        
         <item>com.google.android.gsf</item>
+        <item>com.google.android.gms</item>
+        <item>com.android.vending</item>
+        <item>com.android.phone</item>
+        
+        
+        <item>com.zhiliaoapp.musically</item>
+        <item>com.ss.android.ugc.trill</item>
+        
+        
+        <item>com.titan.verifier</item>
     </string-array></file><file path="/Users/arvin/Downloads/Custom Hook Module/app/src/main/res/values/strings.xml" qualifiers=""><string name="app_name">Titan Verifier</string></file></source></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="debug$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/arvin/Downloads/Custom Hook Module/app/src/debug/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="debug" generated-set="debug$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/arvin/Downloads/Custom Hook Module/app/src/debug/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/arvin/Downloads/Custom Hook Module/app/build/generated/res/resValues/debug"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated" generated-set="generated$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/arvin/Downloads/Custom Hook Module/app/build/generated/res/resValues/debug"/></dataSet><mergedItems><configuration qualifiers=""><declare-styleable name="AlertDialog">
         <attr name="android:layout"/>
         <attr format="reference" name="buttonPanelSideLayout"/>

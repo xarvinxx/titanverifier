@@ -2,12 +2,20 @@
 <resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2" xmlns:ns2="http://schemas.android.com/tools">
     <string-array name="xposed_scope">
         
-        <item>com.titan.verifier</item>
-        
         <item>android</item>
-        <item>com.android.phone</item>
-        <item>com.google.android.gms</item>
+        
+        
         <item>com.google.android.gsf</item>
+        <item>com.google.android.gms</item>
+        <item>com.android.vending</item>
+        <item>com.android.phone</item>
+        
+        
+        <item>com.zhiliaoapp.musically</item>
+        <item>com.ss.android.ugc.trill</item>
+        
+        
+        <item>com.titan.verifier</item>
     </string-array>
     <attr format="reference" name="drawerArrowStyle"/>
     <attr format="dimension" name="height"/>

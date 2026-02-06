@@ -23,9 +23,18 @@ object AuditEngine {
 
     private const val TAG = "AuditEngine"
     
-    // Bridge-Pfade (müssen mit Zygisk-Modul synchron sein)
-    private const val BRIDGE_PATH_PRIMARY = "/data/local/tmp/.titan_identity"
-    private const val BRIDGE_PATH_LEGACY = "/data/local/tmp/.titan_state"
+    // Bridge-Pfade (Phase 6.5 - App-Datenordner priorisiert)
+    // Die AuditEngine läuft mit App-Rechten, daher muss die Bridge im App-Datenordner liegen!
+    private val BRIDGE_PATHS = arrayOf(
+        // App-eigener Datenordner (primär!)
+        "/data/data/com.titan.verifier/files/.titan_identity",
+        "/data/data/com.titan.verifier/files/titan_identity",
+        "/data/user/0/com.titan.verifier/files/.titan_identity",
+        // Legacy-Pfade (falls Root verfügbar)
+        "/data/adb/modules/titan_verifier/titan_identity",
+        "/sdcard/.titan_identity",
+        "/data/local/tmp/.titan_identity"
+    )
 
     private fun norm(s: String): String = s.trim()
 
@@ -54,38 +63,39 @@ object AuditEngine {
     /**
      * Lädt die erwarteten Spoofing-Werte aus der Bridge-Datei.
      * Format: key=value (eine Zeile pro Feld)
+     * Durchsucht alle konfigurierten Pfade.
      */
     private fun loadBridgeValues(): Map<String, String> {
         val values = mutableMapOf<String, String>()
         
-        // Versuche primären Pfad
-        var bridgeFile = java.io.File(BRIDGE_PATH_PRIMARY)
-        if (!bridgeFile.exists()) {
-            bridgeFile = java.io.File(BRIDGE_PATH_LEGACY)
-        }
-        
-        if (!bridgeFile.exists() || !bridgeFile.canRead()) {
-            Log.w(TAG, "[T] Bridge file not accessible")
-            return values
-        }
-        
-        try {
-            bridgeFile.readLines().forEach { line ->
-                val trimmed = line.trim()
-                if (trimmed.isEmpty() || trimmed.startsWith("#")) return@forEach
-                
-                val eqIndex = trimmed.indexOf('=')
-                if (eqIndex > 0) {
-                    val key = trimmed.substring(0, eqIndex).trim().lowercase()
-                    val value = trimmed.substring(eqIndex + 1).trim()
-                    values[key] = value
+        // Durchsuche alle Bridge-Pfade
+        for (path in BRIDGE_PATHS) {
+            try {
+                val bridgeFile = java.io.File(path)
+                if (bridgeFile.exists() && bridgeFile.canRead()) {
+                    bridgeFile.readLines().forEach { line ->
+                        val trimmed = line.trim()
+                        if (trimmed.isEmpty() || trimmed.startsWith("#")) return@forEach
+                        
+                        val eqIndex = trimmed.indexOf('=')
+                        if (eqIndex > 0) {
+                            val key = trimmed.substring(0, eqIndex).trim().lowercase()
+                            val value = trimmed.substring(eqIndex + 1).trim()
+                            values[key] = value
+                        }
+                    }
+                    
+                    if (values.isNotEmpty()) {
+                        Log.d(TAG, "[T] Bridge loaded from $path (${values.size} values)")
+                        return values
+                    }
                 }
+            } catch (e: Exception) {
+                Log.d(TAG, "[T] Bridge path $path: ${e.message}")
             }
-            Log.d(TAG, "[T] Loaded ${values.size} bridge values")
-        } catch (e: Exception) {
-            Log.e(TAG, "[T] Failed to read bridge: ${e.message}")
         }
         
+        Log.w(TAG, "[T] Bridge file not found in any path!")
         return values
     }
     

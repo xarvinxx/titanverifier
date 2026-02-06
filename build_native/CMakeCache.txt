@@ -18,7 +18,7 @@
 ANDROID_ABI:UNINITIALIZED=arm64-v8a
 
 //No help, variable specified on the command line.
-ANDROID_PLATFORM:UNINITIALIZED=android-33
+ANDROID_PLATFORM:UNINITIALIZED=android-30
 
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-addr2line
@@ -230,8 +230,8 @@ CMAKE_STRIP:FILEPATH=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchain
 //Path to a program.
 CMAKE_TAPI:FILEPATH=CMAKE_TAPI-NOTFOUND
 
-//The CMake toolchain file
-CMAKE_TOOLCHAIN_FILE:FILEPATH=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/build/cmake/android.toolchain.cmake
+//No help, variable specified on the command line.
+CMAKE_TOOLCHAIN_FILE:UNINITIALIZED=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393.bak/build/cmake/android.toolchain.cmake
 
 //If this value is on, makefiles will be generated without the
 // .SILENT directive, and all commands will be echoed to the console

@@ -76,15 +76,15 @@ CMakeFiles/titan.dir/main.cpp.o: CMakeFiles/titan.dir/flags.make
 CMakeFiles/titan.dir/main.cpp.o: /Users/arvin/Downloads/Custom\ Hook\ Module/module/main.cpp
 CMakeFiles/titan.dir/main.cpp.o: CMakeFiles/titan.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/titan.dir/main.cpp.o"
-	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android33 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/titan.dir/main.cpp.o -MF CMakeFiles/titan.dir/main.cpp.o.d -o CMakeFiles/titan.dir/main.cpp.o -c "/Users/arvin/Downloads/Custom Hook Module/module/main.cpp"
+	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android30 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/titan.dir/main.cpp.o -MF CMakeFiles/titan.dir/main.cpp.o.d -o CMakeFiles/titan.dir/main.cpp.o -c "/Users/arvin/Downloads/Custom Hook Module/module/main.cpp"
 
 CMakeFiles/titan.dir/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/titan.dir/main.cpp.i"
-	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android33 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/Users/arvin/Downloads/Custom Hook Module/module/main.cpp" > CMakeFiles/titan.dir/main.cpp.i
+	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android30 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/Users/arvin/Downloads/Custom Hook Module/module/main.cpp" > CMakeFiles/titan.dir/main.cpp.i
 
 CMakeFiles/titan.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/titan.dir/main.cpp.s"
-	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android33 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/Users/arvin/Downloads/Custom Hook Module/module/main.cpp" -o CMakeFiles/titan.dir/main.cpp.s
+	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android30 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/Users/arvin/Downloads/Custom Hook Module/module/main.cpp" -o CMakeFiles/titan.dir/main.cpp.s
 
 # Object files for target titan
 titan_OBJECTS = \

@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- LSPosed Module Scope: Apps that will be hooked -->
+    <!-- LSPosed Module Scope: Phase 6.0 Total Stealth -->
     <string-array name="xposed_scope">
-        <!-- Self-hooking for verification -->
-        <item>com.titan.verifier</item>
-        <!-- System processes for comprehensive identity masking -->
+        <!-- System Framework (für grundlegende ID-Spoofing) -->
         <item>android</item>
-        <item>com.android.phone</item>
-        <item>com.google.android.gms</item>
+        
+        <!-- GMS / GSF (für GSF-ID Spoofing) -->
         <item>com.google.android.gsf</item>
+        <item>com.google.android.gms</item>
+        <item>com.android.vending</item>
+        <item>com.android.phone</item>
+        
+        <!-- TikTok (Hauptziel) -->
+        <item>com.zhiliaoapp.musically</item>
+        <item>com.ss.android.ugc.trill</item>
+        
+        <!-- Unser Verifier (für Testing) -->
+        <item>com.titan.verifier</item>
     </string-array>
 </resources>

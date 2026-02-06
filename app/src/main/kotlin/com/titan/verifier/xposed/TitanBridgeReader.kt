@@ -16,13 +16,26 @@ object TitanBridgeReader {
     
     private const val TAG = "TitanBridge"
     
-    // Bridge-Pfade (Phase 5.0 - Stabiler Boot-Pfad priorisiert)
-    // /data/adb/ ist sicher während des Bootvorgangs
+    // Bridge-Pfade (Phase 6.0 - Multi-Path für LSPosed Zugriff)
+    // LSPosed läuft mit App-Rechten, daher App-Datenordner priorisieren!
     private val BRIDGE_PATHS = arrayOf(
-        "/data/adb/modules/titan_verifier/titan_identity", // PRIMARY (sicher während Boot!)
-        "/sdcard/.titan_identity",                         // World-readable (für LSPosed in GMS)
-        "/storage/emulated/0/.titan_identity",             // Alias für /sdcard/
-        "/data/local/tmp/.titan_identity"                  // Legacy
+        // App-eigene Datenordner (LSPosed kann diese lesen!)
+        "/data/data/com.titan.verifier/files/.titan_identity",
+        "/data/data/com.titan.verifier/files/titan_identity",
+        "/data/user/0/com.titan.verifier/files/.titan_identity",
+        
+        // TikTok Datenordner (falls dort gespiegelt)
+        "/data/data/com.zhiliaoapp.musically/files/.titan_identity",
+        "/data/data/com.ss.android.ugc.trill/files/.titan_identity",
+        
+        // World-readable Pfade
+        "/sdcard/.titan_identity",
+        "/storage/emulated/0/.titan_identity",
+        "/sdcard/Android/data/com.titan.verifier/files/.titan_identity",
+        
+        // Root-only (funktioniert nur wenn Zygisk aktiv)
+        "/data/adb/modules/titan_verifier/titan_identity",
+        "/data/local/tmp/.titan_identity"
     )
     
     // Gecachte Werte

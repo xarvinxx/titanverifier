@@ -1,18 +1,14 @@
-/**
- * Project Titan - Zygisk Module (Phase 4.2 - Singularity)
+/*
+ * Project Titan - Zygisk Module (Phase 5.0 - Final Convergence)
  * 
- * Vollständige Hardware-Identity-Spoofing Implementierung.
+ * Maximale Stabilitaet durch strikte App-Isolation.
+ * Nur Ziel-Apps werden gehookt, niemals System-Prozesse.
  * 
- * Native Hooks (Dobby):
- * - __system_property_get: serial, boot_serial, IMEI, GSF, Android ID
- * - getifaddrs: MAC-Adressen für wlan0/eth0
+ * Native Hooks via Dobby:
+ * - __system_property_get: Serial, IMEI, GSF, Android ID
+ * - getifaddrs: MAC-Adressen fuer wlan0 und eth0
  * 
- * JNI Hooks (Active):
- * - Settings.Secure.getString (Android ID)
- * - ContentResolver query (GSF ID via GServices)
- * - TelephonyManager methods (via native properties)
- * 
- * Target: Google Pixel 6 (Oriole), Android 14, KernelSU + Zygisk Next
+ * Target: Google Pixel 6 Oriole, Android 14, KernelSU und Zygisk Next
  */
 
 #include <jni.h>
@@ -55,50 +51,60 @@
 #endif
 
 // ==============================================================================
-// Konfiguration
+// Konfiguration - Phase 5.0
 // ==============================================================================
 
 #define TITAN_KILL_SWITCH       "/data/local/tmp/titan_stop"
-#define TITAN_BRIDGE_PRIMARY    "/data/local/tmp/.titan_identity"
-#define TITAN_BRIDGE_FALLBACK   "/data/adb/modules/titan_verifier/titan_identity"
-#define TITAN_BRIDGE_LEGACY     "/data/local/tmp/.titan_state"
 
-static const char* TARGET_PACKAGE = "com.titan.verifier";
+// EINZIGE Bridge-Quelle (sicher waehrend Boot)
+#define TITAN_BRIDGE_PATH       "/data/adb/modules/titan_verifier/titan_identity"
+
+// Ziel-Apps (NIEMALS System-Prozesse!)
+static const char* TARGET_APPS[] = {
+    "com.titan.verifier",           // Unser Auditor
+    "com.zhiliaoapp.musically",     // TikTok International
+    "com.ss.android.ugc.trill",     // TikTok (andere Region)
+    nullptr
+};
+
+// ==============================================================================
+// Hardcoded Pixel 6 Defaults (Fail-Safe)
+// ==============================================================================
+
+static const char* DEFAULT_SERIAL = "28161FDF6006P8";
+static const char* DEFAULT_IMEI1 = "352269111271008";
+static const char* DEFAULT_IMEI2 = "358476312016587";
+static const char* DEFAULT_ANDROID_ID = "d7f4b30e1b210a83";
+static const char* DEFAULT_GSF_ID = "3a8c4f72d91e50b6";
+static const char* DEFAULT_WIFI_MAC = "94:b9:7e:d3:a1:f4";
+static const char* DEFAULT_WIDEVINE_ID = "a1b2c3d4e5f67890a1b2c3d4e5f67890";
 
 // ==============================================================================
 // Globaler State (Thread-Safe)
 // ==============================================================================
 
-// Original-Funktionen (Trampolines)
 using SystemPropertyGetFn = int (*)(const char* name, char* value);
 using GetifaddrsFn = int (*)(struct ifaddrs** ifap);
 
 static SystemPropertyGetFn g_origSystemPropertyGet = nullptr;
 static GetifaddrsFn g_origGetifaddrs = nullptr;
 
-// State-Flags
 static std::atomic<bool> g_propertyHookInstalled{false};
 static std::atomic<bool> g_macHookInstalled{false};
-static std::atomic<bool> g_jniHooksInstalled{false};
 static std::atomic<bool> g_bridgeLoaded{false};
 static std::atomic<bool> g_killSwitchActive{false};
+static std::atomic<bool> g_usingDefaults{false};
 
-// Thread-Safety für JNI Operations
 static std::mutex g_jniMutex;
 static JNIEnv* g_cachedEnv = nullptr;
 
-// JNI Cache
-static jclass g_settingsSecureClass = nullptr;
-static jmethodID g_origGetString = nullptr;
-
 // ==============================================================================
-// Kill-Switch Check
+// Kill-Switch Check (ERSTE Zeile in onLoad!)
 // ==============================================================================
 
 static bool checkKillSwitch() {
     struct stat st;
     if (stat(TITAN_KILL_SWITCH, &st) == 0) {
-        LOGW("[TITAN] Kill-switch detected at %s, hooks disabled", TITAN_KILL_SWITCH);
         g_killSwitchActive = true;
         return true;
     }
@@ -106,8 +112,37 @@ static bool checkKillSwitch() {
 }
 
 // ==============================================================================
-// Bridge Loading (Key=Value Format)
+// Target App Check (Strikte Isolation)
 // ==============================================================================
+
+static bool isTargetApp(const char* packageName) {
+    if (!packageName) return false;
+    
+    for (int i = 0; TARGET_APPS[i] != nullptr; i++) {
+        if (strcmp(packageName, TARGET_APPS[i]) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// ==============================================================================
+// Bridge Loading mit Fail-Safe Defaults
+// ==============================================================================
+
+static void applyDefaults() {
+    TitanHardware& hw = TitanHardware::getInstance();
+    hw.setSerial(DEFAULT_SERIAL);
+    hw.setBootSerial(DEFAULT_SERIAL);
+    hw.setImei1(DEFAULT_IMEI1);
+    hw.setImei2(DEFAULT_IMEI2);
+    hw.setAndroidId(DEFAULT_ANDROID_ID);
+    hw.setGsfId(DEFAULT_GSF_ID);
+    hw.setWifiMac(DEFAULT_WIFI_MAC);
+    hw.setWidevineId(DEFAULT_WIDEVINE_ID);
+    g_usingDefaults = true;
+    LOGI("[TITAN] Using hardcoded Pixel 6 defaults");
+}
 
 static bool loadBridgeFromFile(const char* path) {
     int fd = open(path, O_RDONLY);
@@ -160,32 +195,23 @@ static bool loadBridgeFromFile(const char* path) {
     return foundAny;
 }
 
-static bool loadBridge() {
-    if (g_bridgeLoaded.load()) return true;
+static void loadBridge() {
+    if (g_bridgeLoaded.load()) return;
     
-    if (loadBridgeFromFile(TITAN_BRIDGE_PRIMARY)) {
-        LOGI("[TITAN] Bridge loaded from: %s", TITAN_BRIDGE_PRIMARY);
+    if (loadBridgeFromFile(TITAN_BRIDGE_PATH)) {
+        LOGI("[TITAN] Bridge loaded from: %s", TITAN_BRIDGE_PATH);
         g_bridgeLoaded = true;
-        return true;
-    }
-    if (loadBridgeFromFile(TITAN_BRIDGE_FALLBACK)) {
-        LOGI("[TITAN] Bridge loaded from: %s", TITAN_BRIDGE_FALLBACK);
-        g_bridgeLoaded = true;
-        return true;
-    }
-    if (loadBridgeFromFile(TITAN_BRIDGE_LEGACY)) {
-        LOGI("[TITAN] Bridge loaded from legacy: %s", TITAN_BRIDGE_LEGACY);
-        g_bridgeLoaded = true;
-        return true;
+        return;
     }
     
-    LOGE("[TITAN] Failed to load bridge from any path!");
-    return false;
+    // Fail-Safe: Hardcoded Defaults verwenden
+    LOGW("[TITAN] Bridge not found, using defaults");
+    applyDefaults();
+    g_bridgeLoaded = true;
 }
 
 // ==============================================================================
-// Hook: __system_property_get (Extended)
-// Säule 1 & 2: Property-Fingerprinting
+// Hook: __system_property_get
 // ==============================================================================
 
 static int titan_hooked_system_property_get(const char* name, char* value) {
@@ -193,158 +219,93 @@ static int titan_hooked_system_property_get(const char* name, char* value) {
         return g_origSystemPropertyGet ? g_origSystemPropertyGet(name, value) : 0;
     }
     
-    if (!g_bridgeLoaded.load()) loadBridge();
-    
     TitanHardware& hw = TitanHardware::getInstance();
     char spoofed[128] = {};
     
-    // === Serial Properties ===
-    if (strcmp(name, "ro.serialno") == 0) {
+    // === Serial ===
+    if (strcmp(name, "ro.serialno") == 0 || strcmp(name, "ro.boot.serialno") == 0) {
         hw.getSerial(spoofed, sizeof(spoofed));
         if (spoofed[0] != '\0') {
             strncpy(value, spoofed, 91);
             value[91] = '\0';
-            LOGI("[TITAN] Spoofed ro.serialno -> %s", spoofed);
-            return static_cast<int>(strlen(value));
+            return (int)strlen(value);
         }
     }
     
-    if (strcmp(name, "ro.boot.serialno") == 0) {
-        hw.getBootSerial(spoofed, sizeof(spoofed));
-        if (spoofed[0] != '\0') {
-            strncpy(value, spoofed, 91);
-            value[91] = '\0';
-            LOGI("[TITAN] Spoofed ro.boot.serialno -> %s", spoofed);
-            return static_cast<int>(strlen(value));
-        }
-    }
-    
-    // === GSF ID Properties ===
+    // === GSF ID ===
     if (strcmp(name, "ro.com.google.gservices.gsf.id") == 0 ||
-        strcmp(name, "ro.gsf.id") == 0 ||
-        strcmp(name, "gsf.id") == 0) {
+        strcmp(name, "ro.gsf.id") == 0 || strcmp(name, "gsf.id") == 0) {
         hw.getGsfId(spoofed, sizeof(spoofed));
         if (spoofed[0] != '\0') {
             strncpy(value, spoofed, 91);
             value[91] = '\0';
-            LOGI("[TITAN] Spoofed GSF property %s -> %s", name, spoofed);
-            return static_cast<int>(strlen(value));
+            return (int)strlen(value);
         }
     }
     
-    // === Android ID Properties ===
-    if (strcmp(name, "ro.build.android_id") == 0 ||
-        strcmp(name, "net.hostname") == 0) {
+    // === Android ID ===
+    if (strcmp(name, "ro.build.android_id") == 0 || strcmp(name, "net.hostname") == 0) {
         hw.getAndroidId(spoofed, sizeof(spoofed));
         if (spoofed[0] != '\0') {
             strncpy(value, spoofed, 63);
             value[63] = '\0';
-            LOGI("[TITAN] Spoofed Android ID property %s -> %s", name, spoofed);
-            return static_cast<int>(strlen(value));
+            return (int)strlen(value);
         }
     }
     
-    // === IMEI Properties (Extended) ===
-    // Primäre IMEI Properties
-    if (strcmp(name, "gsm.baseband.imei") == 0 ||
-        strcmp(name, "ro.ril.oem.imei") == 0 ||
-        strcmp(name, "ril.IMEI") == 0 ||
-        strcmp(name, "gsm.imei") == 0 ||
-        strcmp(name, "persist.radio.imei") == 0) {
+    // === IMEI ===
+    if (strcmp(name, "gsm.baseband.imei") == 0 || strcmp(name, "ro.ril.oem.imei") == 0 ||
+        strcmp(name, "ril.IMEI") == 0 || strcmp(name, "gsm.imei") == 0) {
         hw.getImei1(spoofed, sizeof(spoofed));
         if (spoofed[0] != '\0') {
             strncpy(value, spoofed, 31);
             value[31] = '\0';
-            LOGI("[TITAN] Spoofed IMEI property %s -> %s", name, spoofed);
-            return static_cast<int>(strlen(value));
+            return (int)strlen(value);
         }
     }
     
-    // IMEI1 Slot-spezifisch
-    if (strstr(name, "gsm.imei1") != nullptr ||
-        strstr(name, "ril.imei1") != nullptr ||
-        strstr(name, "persist.radio.imei1") != nullptr) {
+    if (strstr(name, "imei1") != nullptr) {
         hw.getImei1(spoofed, sizeof(spoofed));
         if (spoofed[0] != '\0') {
             strncpy(value, spoofed, 31);
             value[31] = '\0';
-            LOGI("[TITAN] Spoofed IMEI1 property %s -> %s", name, spoofed);
-            return static_cast<int>(strlen(value));
+            return (int)strlen(value);
         }
     }
     
-    // IMEI2 Slot-spezifisch (Dual SIM)
-    if (strstr(name, "gsm.imei2") != nullptr ||
-        strstr(name, "ril.imei2") != nullptr ||
-        strstr(name, "persist.radio.imei2") != nullptr) {
+    if (strstr(name, "imei2") != nullptr) {
         hw.getImei2(spoofed, sizeof(spoofed));
         if (spoofed[0] != '\0') {
             strncpy(value, spoofed, 31);
             value[31] = '\0';
-            LOGI("[TITAN] Spoofed IMEI2 property %s -> %s", name, spoofed);
-            return static_cast<int>(strlen(value));
+            return (int)strlen(value);
         }
     }
     
-    // === IMSI Properties ===
-    if (strcmp(name, "gsm.sim.operator.numeric") == 0 ||
-        strstr(name, "imsi") != nullptr) {
-        hw.getImsi(spoofed, sizeof(spoofed));
-        if (spoofed[0] != '\0') {
-            strncpy(value, spoofed, 31);
-            value[31] = '\0';
-            LOGI("[TITAN] Spoofed IMSI property %s -> %s", name, spoofed);
-            return static_cast<int>(strlen(value));
-        }
-    }
-    
-    // === SIM Serial (ICCID) Properties ===
-    if (strstr(name, "iccid") != nullptr ||
-        strstr(name, "sim.serial") != nullptr) {
-        hw.getSimSerial(spoofed, sizeof(spoofed));
-        if (spoofed[0] != '\0') {
-            strncpy(value, spoofed, 31);
-            value[31] = '\0';
-            LOGI("[TITAN] Spoofed SIM Serial property %s -> %s", name, spoofed);
-            return static_cast<int>(strlen(value));
-        }
-    }
-    
-    // === WiFi MAC Property ===
-    if (strcmp(name, "ro.boot.wifimacaddr") == 0 ||
-        strcmp(name, "wifi.interface.mac") == 0 ||
-        strstr(name, "wlan.driver.macaddr") != nullptr) {
+    // === WiFi MAC ===
+    if (strcmp(name, "ro.boot.wifimacaddr") == 0 || strstr(name, "wlan.driver.macaddr") != nullptr) {
         hw.getWifiMac(spoofed, sizeof(spoofed));
         if (spoofed[0] != '\0') {
             strncpy(value, spoofed, 23);
             value[23] = '\0';
-            LOGI("[TITAN] Spoofed WiFi MAC property %s -> %s", name, spoofed);
-            return static_cast<int>(strlen(value));
+            return (int)strlen(value);
         }
     }
     
-    // Fallback: Original
     return g_origSystemPropertyGet ? g_origSystemPropertyGet(name, value) : 0;
 }
 
 // ==============================================================================
-// Hook: getifaddrs (MAC Spoofing)
-// Säule 3: Network-Fingerprinting
+// Hook: getifaddrs (MAC)
 // ==============================================================================
 
 static bool parseMacString(const char* macStr, unsigned char* out) {
     if (!macStr || !out) return false;
-    
-    int values[6];
-    int count = sscanf(macStr, "%x:%x:%x:%x:%x:%x",
-        &values[0], &values[1], &values[2],
-        &values[3], &values[4], &values[5]);
-    
-    if (count != 6) return false;
-    
-    for (int i = 0; i < 6; i++) {
-        out[i] = static_cast<unsigned char>(values[i]);
+    int v[6];
+    if (sscanf(macStr, "%x:%x:%x:%x:%x:%x", &v[0], &v[1], &v[2], &v[3], &v[4], &v[5]) != 6) {
+        return false;
     }
+    for (int i = 0; i < 6; i++) out[i] = (unsigned char)v[i];
     return true;
 }
 
@@ -354,8 +315,6 @@ static int titan_hooked_getifaddrs(struct ifaddrs** ifap) {
     int result = g_origGetifaddrs(ifap);
     if (result != 0 || !ifap || !*ifap) return result;
     
-    if (!g_bridgeLoaded.load()) loadBridge();
-    
     TitanHardware& hw = TitanHardware::getInstance();
     char spoofedMac[24] = {};
     hw.getWifiMac(spoofedMac, sizeof(spoofedMac));
@@ -363,30 +322,16 @@ static int titan_hooked_getifaddrs(struct ifaddrs** ifap) {
     if (spoofedMac[0] == '\0') return result;
     
     unsigned char newMac[6];
-    if (!parseMacString(spoofedMac, newMac)) {
-        LOGW("[TITAN] Invalid MAC format: %s", spoofedMac);
-        return result;
-    }
+    if (!parseMacString(spoofedMac, newMac)) return result;
     
-    // Iteriere und ersetze MAC für wlan0/eth0
     for (struct ifaddrs* ifa = *ifap; ifa != nullptr; ifa = ifa->ifa_next) {
         if (!ifa->ifa_name || !ifa->ifa_addr) continue;
-        
-        // Nur wlan0 und eth0 (präziser Filter lt. Review-Checklist)
-        if (strcmp(ifa->ifa_name, "wlan0") != 0 && 
-            strcmp(ifa->ifa_name, "eth0") != 0) {
-            continue;
-        }
-        
-        // Nur AF_PACKET (Link-Layer)
+        if (strcmp(ifa->ifa_name, "wlan0") != 0 && strcmp(ifa->ifa_name, "eth0") != 0) continue;
         if (ifa->ifa_addr->sa_family != AF_PACKET) continue;
         
-        // sockaddr_ll Struktur korrekt überschreiben
         struct sockaddr_ll* sll = reinterpret_cast<struct sockaddr_ll*>(ifa->ifa_addr);
         if (sll->sll_halen == 6) {
-            // Binäre MAC in sll_addr überschreiben
             memcpy(sll->sll_addr, newMac, 6);
-            LOGI("[TITAN] Spoofed MAC for %s -> %s", ifa->ifa_name, spoofedMac);
         }
     }
     
@@ -394,21 +339,7 @@ static int titan_hooked_getifaddrs(struct ifaddrs** ifap) {
 }
 
 // ==============================================================================
-// JNI Helper: Thread-Safe Environment Access
-// ==============================================================================
-
-static JNIEnv* getJNIEnv() {
-    std::lock_guard<std::mutex> lock(g_jniMutex);
-    return g_cachedEnv;
-}
-
-static void setJNIEnv(JNIEnv* env) {
-    std::lock_guard<std::mutex> lock(g_jniMutex);
-    g_cachedEnv = env;
-}
-
-// ==============================================================================
-// Native Hook Installation (Dobby)
+// Hook Installation (Dobby)
 // ==============================================================================
 
 static bool installPropertyHook() {
@@ -423,12 +354,7 @@ static bool installPropertyHook() {
         if (libc) addr = dlsym(libc, "__system_property_get");
     }
     
-    if (!addr) {
-        LOGE("[TITAN] Failed to resolve __system_property_get");
-        return false;
-    }
-    
-    LOGI("[TITAN] Found __system_property_get at %p", addr);
+    if (!addr) return false;
     
 #ifdef USE_DOBBY
     int ret = DobbyHook(addr,
@@ -437,24 +363,15 @@ static bool installPropertyHook() {
     
     if (ret == 0) {
         g_propertyHookInstalled = true;
-        LOGI("[TITAN] Property hook installed (extended IMEI/GSF/MAC)");
+        LOGI("[TITAN] Property hook OK");
         return true;
     }
-    LOGE("[TITAN] Property hook failed: %d", ret);
 #endif
     return false;
 }
 
 static bool installMacHook() {
     if (g_macHookInstalled.load()) return true;
-    
-    TitanHardware& hw = TitanHardware::getInstance();
-    char mac[24] = {};
-    hw.getWifiMac(mac, sizeof(mac));
-    if (mac[0] == '\0') {
-        LOGI("[TITAN] No wifi_mac configured, skipping MAC hook");
-        return true;
-    }
     
     void* addr = nullptr;
 #ifdef USE_DOBBY
@@ -465,12 +382,7 @@ static bool installMacHook() {
         if (libc) addr = dlsym(libc, "getifaddrs");
     }
     
-    if (!addr) {
-        LOGW("[TITAN] Failed to resolve getifaddrs");
-        return false;
-    }
-    
-    LOGI("[TITAN] Found getifaddrs at %p", addr);
+    if (!addr) return false;
     
 #ifdef USE_DOBBY
     int ret = DobbyHook(addr,
@@ -479,77 +391,11 @@ static bool installMacHook() {
     
     if (ret == 0) {
         g_macHookInstalled = true;
-        LOGI("[TITAN] MAC hook installed (wlan0/eth0 only)");
+        LOGI("[TITAN] MAC hook OK");
         return true;
     }
-    LOGE("[TITAN] MAC hook failed: %d", ret);
 #endif
     return false;
-}
-
-// ==============================================================================
-// JNI Hooks Installation
-// ==============================================================================
-
-static bool installJniHooks(JNIEnv* env) {
-    if (g_jniHooksInstalled.load()) return true;
-    if (!env) return false;
-    
-    // Thread-Safety: Cache JNIEnv
-    setJNIEnv(env);
-    
-    int hooked = 0;
-    
-    // === Settings.Secure.getString ===
-    jclass settingsClass = env->FindClass("android/provider/Settings$Secure");
-    if (settingsClass) {
-        g_settingsSecureClass = (jclass)env->NewGlobalRef(settingsClass);
-        g_origGetString = env->GetStaticMethodID(settingsClass, "getString",
-            "(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;");
-        
-        if (g_origGetString) {
-            LOGI("[TITAN] Settings.Secure.getString method found");
-            hooked++;
-        }
-        env->DeleteLocalRef(settingsClass);
-    } else {
-        env->ExceptionClear();
-    }
-    
-    // === TelephonyManager ===
-    jclass tmClass = env->FindClass("android/telephony/TelephonyManager");
-    if (tmClass) {
-        LOGI("[TITAN] TelephonyManager class found (property hooks active)");
-        hooked++;
-        env->DeleteLocalRef(tmClass);
-    } else {
-        env->ExceptionClear();
-    }
-    
-    // === MediaDrm ===
-    jclass mediaDrmClass = env->FindClass("android/media/MediaDrm");
-    if (mediaDrmClass) {
-        LOGI("[TITAN] MediaDrm class found");
-        hooked++;
-        env->DeleteLocalRef(mediaDrmClass);
-    } else {
-        env->ExceptionClear();
-    }
-    
-    // === ContentResolver (GSF) ===
-    jclass contentResolverClass = env->FindClass("android/content/ContentResolver");
-    if (contentResolverClass) {
-        LOGI("[TITAN] ContentResolver class found (GSF via properties)");
-        hooked++;
-        env->DeleteLocalRef(contentResolverClass);
-    } else {
-        env->ExceptionClear();
-    }
-    
-    g_jniHooksInstalled = (hooked > 0);
-    LOGI("[TITAN] JNI preparation complete: %d classes found", hooked);
-    
-    return g_jniHooksInstalled;
 }
 
 // ==============================================================================
@@ -561,19 +407,17 @@ public:
     void onLoad(zygisk::Api* api, JNIEnv* env) override {
         m_api = api;
         m_env = env;
-        setJNIEnv(env);
         
-        LOGI("[TITAN] Module loaded (API v%d) - Singularity Build", ZYGISK_API_VERSION);
-        
+        // ERSTE ZEILE: Kill-Switch Check!
         if (checkKillSwitch()) {
-            LOGW("[TITAN] Kill-switch active");
+            LOGW("[TITAN] Kill-switch active, all hooks disabled");
             return;
         }
         
-        if (loadBridge()) {
-            LOGI("[TITAN] Bridge pre-loaded");
-            logLoadedValues();
-        }
+        LOGI("[TITAN] Module loaded (Phase 5.0 - Final Convergence)");
+        
+        // Bridge laden (mit Fail-Safe)
+        loadBridge();
     }
     
     void preAppSpecialize(zygisk::AppSpecializeArgs* args) override {
@@ -582,22 +426,22 @@ public:
             return;
         }
         
-        m_packageName.clear();
+        m_packageName[0] = '\0';
         if (m_env && args->nice_name) {
             const char* pkg = m_env->GetStringUTFChars(args->nice_name, nullptr);
             if (pkg) {
-                m_packageName = pkg;
+                strncpy(m_packageName, pkg, sizeof(m_packageName) - 1);
                 m_env->ReleaseStringUTFChars(args->nice_name, pkg);
             }
         }
         
-        if (m_packageName != TARGET_PACKAGE) {
-            LOGD("[TITAN] Not target (%s), unloading", m_packageName.c_str());
+        // STRIKTE ISOLATION: Nur Ziel-Apps!
+        if (!isTargetApp(m_packageName)) {
             if (m_api) m_api->setOption(zygisk::Option::DLCLOSE_MODULE_LIBRARY);
             m_shouldInject = false;
         } else {
             m_shouldInject = true;
-            LOGI("[TITAN] Target detected: %s", m_packageName.c_str());
+            LOGI("[TITAN] Target: %s", m_packageName);
         }
     }
     
@@ -606,24 +450,18 @@ public:
         if (!m_shouldInject) return;
         if (g_killSwitchActive.load()) return;
         
-        LOGI("[TITAN] Injecting into %s (Singularity Mode)", m_packageName.c_str());
+        LOGI("[TITAN] Injecting (Phase 5.0)");
         
-        if (!g_bridgeLoaded.load()) loadBridge();
-        
-        // Native Hooks (Dobby)
         bool propOk = installPropertyHook();
         bool macOk = installMacHook();
         
-        // JNI Preparation
-        bool jniOk = installJniHooks(m_env);
-        
-        LOGI("[TITAN] Hooks: property=%d mac=%d jni=%d", propOk, macOk, jniOk);
-        LOGI("[TITAN] Singularity active - all identity vectors covered");
+        LOGI("[TITAN] Hooks: prop=%d mac=%d defaults=%d", 
+             propOk, macOk, g_usingDefaults.load());
     }
     
     void preServerSpecialize(zygisk::ServerSpecializeArgs* args) override {
         (void)args;
-        LOGD("[TITAN] System server, unloading");
+        // NIEMALS System Server hooken!
         if (m_api) m_api->setOption(zygisk::Option::DLCLOSE_MODULE_LIBRARY);
     }
     
@@ -632,44 +470,9 @@ public:
     }
     
 private:
-    void logLoadedValues() {
-        TitanHardware& hw = TitanHardware::getInstance();
-        char buf[128];
-        
-        hw.getSerial(buf, sizeof(buf));
-        if (buf[0]) LOGI("[TITAN] serial: %s", buf);
-        
-        hw.getBootSerial(buf, sizeof(buf));
-        if (buf[0]) LOGI("[TITAN] boot_serial: %s", buf);
-        
-        hw.getImei1(buf, sizeof(buf));
-        if (buf[0]) LOGI("[TITAN] imei1: %s", buf);
-        
-        hw.getImei2(buf, sizeof(buf));
-        if (buf[0]) LOGI("[TITAN] imei2: %s", buf);
-        
-        hw.getAndroidId(buf, sizeof(buf));
-        if (buf[0]) LOGI("[TITAN] android_id: %s", buf);
-        
-        hw.getGsfId(buf, sizeof(buf));
-        if (buf[0]) LOGI("[TITAN] gsf_id: %s", buf);
-        
-        hw.getWifiMac(buf, sizeof(buf));
-        if (buf[0]) LOGI("[TITAN] wifi_mac: %s", buf);
-        
-        hw.getWidevineId(buf, sizeof(buf));
-        if (buf[0]) LOGI("[TITAN] widevine_id: %s", buf);
-        
-        hw.getImsi(buf, sizeof(buf));
-        if (buf[0]) LOGI("[TITAN] imsi: %s", buf);
-        
-        hw.getSimSerial(buf, sizeof(buf));
-        if (buf[0]) LOGI("[TITAN] sim_serial: %s", buf);
-    }
-    
     zygisk::Api* m_api = nullptr;
     JNIEnv* m_env = nullptr;
-    std::string m_packageName;
+    char m_packageName[256] = {};
     bool m_shouldInject = false;
 };
 
@@ -680,19 +483,13 @@ private:
 REGISTER_ZYGISK_MODULE(TitanModule)
 
 static void companionHandler(int fd) {
-    LOGI("[TITAN] Companion invoked (fd=%d)", fd);
-    
     loadBridge();
     TitanHardware& hw = TitanHardware::getInstance();
-    
-    // Sende alle Werte serialisiert
     char serial[96] = {};
     hw.getSerial(serial, sizeof(serial));
-    
-    uint32_t len = static_cast<uint32_t>(strlen(serial));
+    uint32_t len = (uint32_t)strlen(serial);
     write(fd, &len, sizeof(len));
     if (len > 0) write(fd, serial, len);
-    
     close(fd);
 }
 

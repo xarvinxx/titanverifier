@@ -1,24 +1,20 @@
 #!/usr/bin/env python3
 """
-Project Titan – Phase 4.2 Singularity Master Automator
+Project Titan – Phase 5.0 Final Convergence Automator
 
-Vollautomatisches Deployment für Pixel 6 (Android 14 + KernelSU):
-1. Build: APK + Native SO
-2. Push: APK nach /system/priv-app/
-3. Zygisk: SO nach /data/adb/modules/.../zygisk/
-4. Bridge: Erstelle /data/local/tmp/.titan_identity (Key=Value Format)
-5. SELinux: Setze korrekten Security-Context
-6. Permissions: XML-Patch für privilegierte Permissions
-7. Finalize: System-Neustart
+STABILE Deployment-Lösung für Pixel 6 (Android 14 + KernelSU):
+1. Build: APK + Native SO (optimiert)
+2. Zygisk: SO nach /data/adb/modules/.../zygisk/
+3. Bridge: NUR /data/adb/modules/.../titan_identity (Boot-sicher!)
+4. SELinux: Korrekter Security-Context
+5. Kill-Switch: Sicherheitsschalter setzen
+6. Update-Flag: Modul neu laden
 
-Anforderungen:
-- ADB mit Root-Zugriff (KernelSU oder Magisk)
-- Android NDK im PATH oder ANDROID_NDK_HOME gesetzt
-- Gradle Wrapper im Projektverzeichnis
+WICHTIG: Keine Zugriffe auf /sdcard oder /data/local/tmp während Boot!
 
 Verwendung:
     python automate_titan.py [--skip-build] [--bridge-only] [--verbose]
-    python automate_titan.py --generate-identity  # Generiere realistische Pixel 6 IDs
+    python automate_titan.py --generate-identity
 """
 
 import os
@@ -54,9 +50,10 @@ MODULE_PATH = f"/data/adb/modules/{MODULE_ID}"
 PRIV_APP_PATH = f"{MODULE_PATH}/system/priv-app/TitanVerifier"
 ZYGISK_PATH = f"{MODULE_PATH}/zygisk"
 
-# Bridge-Konfiguration (Phase 4.1+ Key-Value Format)
-BRIDGE_PATH = f"{REMOTE_TMP}/.titan_identity"
-BRIDGE_PATH_LEGACY = f"{REMOTE_TMP}/.titan_state"
+# Bridge-Konfiguration (Phase 5.0 - NUR Boot-sicherer Pfad!)
+BRIDGE_PATH = f"{MODULE_PATH}/titan_identity"          # PRIMARY (einzige Quelle!)
+BRIDGE_PATH_SDCARD = "/sdcard/.titan_identity"         # Backup für LSPosed
+KILL_SWITCH_PATH = "/data/local/tmp/titan_stop"
 
 # Permission-Konfiguration
 RUNTIME_PERMISSIONS = "/data/system/users/0/runtime-permissions.xml"
@@ -172,6 +169,12 @@ def generate_iccid() -> str:
     return body + str(check)
 
 
+def generate_operator_name() -> str:
+    """Generiert einen realistischen US Carrier Namen."""
+    carriers = ["T-Mobile", "Verizon", "AT&T", "Google Fi", "Mint Mobile"]
+    return random.choice(carriers)
+
+
 def generate_pixel6_identity() -> Dict[str, str]:
     """
     Generiert eine vollständige, realistische Pixel 6 Identität.
@@ -189,6 +192,7 @@ def generate_pixel6_identity() -> Dict[str, str]:
         "widevine_id": generate_widevine_id(),
         "imsi": generate_imsi(),
         "sim_serial": generate_iccid(),
+        "operator_name": generate_operator_name(),
     }
 
 
@@ -426,13 +430,58 @@ def step_selinux_context() -> None:
     log("SELinux-Contexts gesetzt", "OK")
 
 
-def step_create_bridge(identity: Optional[Dict[str, str]] = None) -> None:
+def step_susfs_mac_overlay(mac_address: str) -> None:
     """
-    6. Bridge: Erstelle /data/local/tmp/.titan_identity
+    5b. SUSFS MAC Overlay: Überlager /sys/class/net/wlan0/address mit gespoofter MAC.
+    Dies ist eine zusätzliche Schutzschicht für Apps, die direkt /sys lesen.
+    
+    Benötigt SUSFS-Unterstützung im Kernel.
+    """
+    log("Setting up SUSFS MAC overlay...")
+    
+    # Prüfe ob SUSFS verfügbar ist
+    susfs_check = adb_shell("su -c 'which susfs 2>/dev/null || echo NOT_FOUND'", as_root=False, check=False)
+    
+    if "NOT_FOUND" in susfs_check.stdout or susfs_check.returncode != 0:
+        log("SUSFS not available - skipping MAC overlay", "WARN")
+        return
+    
+    try:
+        # Erstelle temporäre Datei mit MAC-Adresse
+        mac_file_path = f"{REMOTE_TMP}/.titan_mac_overlay"
+        adb_shell(f"echo '{mac_address}' > {mac_file_path}", as_root=True)
+        adb_shell(f"chmod 444 {mac_file_path}", as_root=True)
+        
+        # SUSFS Overlay erstellen (falls unterstützt)
+        # susfs add_sus_path /sys/class/net/wlan0/address
+        # susfs update_sus_path /sys/class/net/wlan0/address {mac_file_path}
+        result = adb_shell(
+            f"susfs add_sus_path /sys/class/net/wlan0/address 2>/dev/null",
+            as_root=True, check=False
+        )
+        
+        if result.returncode == 0:
+            adb_shell(
+                f"susfs update_sus_path /sys/class/net/wlan0/address {mac_file_path}",
+                as_root=True, check=False
+            )
+            log(f"SUSFS MAC overlay created: {mac_address}", "OK")
+        else:
+            log("SUSFS overlay failed (kernel might not support)", "WARN")
+            
+    except Exception as e:
+        log(f"SUSFS MAC overlay error: {e}", "WARN")
+
+
+def step_create_bridge(identity: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+    """
+    Phase 5.0: Bridge ONLY in /data/adb/modules/titan_verifier/titan_identity
     
     Format: Key=Value (eine Zeile pro Feld)
+    
+    Returns: Die verwendete identity für weitere Schritte
     """
-    log("Creating Bridge file (Key=Value format)...")
+    log("Creating Bridge file (Phase 5.0 - Boot-safe path)...")
     
     # Generiere Identität falls nicht übergeben
     if identity is None:
@@ -441,7 +490,7 @@ def step_create_bridge(identity: Optional[Dict[str, str]] = None) -> None:
     
     # Bridge-Content im Key=Value Format
     bridge_lines = [
-        "# Titan Identity Bridge - Phase 4.2 Singularity",
+        "# Titan Identity Bridge - Phase 5.0 Final Convergence",
         f"# Generated: {datetime.now().isoformat()}",
         "",
     ]
@@ -455,17 +504,44 @@ def step_create_bridge(identity: Optional[Dict[str, str]] = None) -> None:
         tmp_bridge = f.name
     
     try:
-        adb(["push", tmp_bridge, BRIDGE_PATH])
-        # WICHTIG: chmod 666 damit Zygisk-Module lesen können
-        adb_shell(f"chmod 666 {BRIDGE_PATH}", as_root=True)
-        # SELinux: system_file für Zygote-Zugriff
+        # PRIMARY: /data/adb/modules/titan_verifier/titan_identity
+        adb(["push", tmp_bridge, f"{REMOTE_TMP}/titan_identity_tmp"])
+        adb_shell(f"cp {REMOTE_TMP}/titan_identity_tmp {BRIDGE_PATH}", as_root=True)
+        adb_shell(f"chmod 644 {BRIDGE_PATH}", as_root=True)
         adb_shell(f"chcon {SELINUX_CONTEXT_SYSTEM} {BRIDGE_PATH}", as_root=True, check=False)
+        
+        # BACKUP: /sdcard/.titan_identity (für LSPosed in GMS-Prozessen)
+        adb_shell(f"cp {REMOTE_TMP}/titan_identity_tmp {BRIDGE_PATH_SDCARD}", as_root=True, check=False)
+        adb_shell(f"chmod 644 {BRIDGE_PATH_SDCARD}", as_root=True, check=False)
+        
+        # Cleanup
+        adb_shell(f"rm {REMOTE_TMP}/titan_identity_tmp", as_root=True, check=False)
+        
     finally:
         os.unlink(tmp_bridge)
     
     log(f"Bridge erstellt: {BRIDGE_PATH}", "OK")
-    log(f"  Format: Key=Value (10 Felder)")
+    log(f"  Backup: {BRIDGE_PATH_SDCARD}")
+    log(f"  Format: Key=Value (11 Felder)")
     log(f"  SELinux: {SELINUX_CONTEXT_SYSTEM}")
+    
+    return identity
+
+
+def step_set_kill_switch() -> None:
+    """Phase 5.0: Kill-Switch setzen für sicheres Testen."""
+    log("Setting kill-switch for safe testing...")
+    adb_shell(f"touch {KILL_SWITCH_PATH}", as_root=True)
+    adb_shell(f"chmod 644 {KILL_SWITCH_PATH}", as_root=True)
+    log(f"Kill-switch aktiv: {KILL_SWITCH_PATH}", "OK")
+    log("  HINWEIS: Entferne mit 'adb shell rm {KILL_SWITCH_PATH}' um Hooks zu aktivieren")
+
+
+def step_trigger_module_update() -> None:
+    """Phase 5.0: Update-Flag setzen damit KernelSU das Modul neu lädt."""
+    log("Triggering module update...")
+    adb_shell(f"touch {MODULE_PATH}/update", as_root=True, check=False)
+    log(f"Update-Flag gesetzt: {MODULE_PATH}/update", "OK")
 
 
 def _indent_xml(elem: ET.Element, level: int = 0, indent: str = "  ") -> None:
@@ -577,15 +653,19 @@ def main() -> None:
     global VERBOSE
     
     parser = argparse.ArgumentParser(
-        description="Project Titan - Automated Deployment (Phase 4.2 Singularity)",
+        description="Project Titan - Phase 5.0 Final Convergence Deployment",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Beispiele:
-  python automate_titan.py                      # Vollständiges Deployment
+  python automate_titan.py                      # Vollständiges Deployment (mit Kill-Switch)
   python automate_titan.py --skip-build         # Nur Deploy (ohne Build)
   python automate_titan.py --bridge-only        # Nur Bridge-Datei aktualisieren
   python automate_titan.py --generate-identity  # Zeige generierte Pixel 6 IDs
-  python automate_titan.py --full-reboot        # Mit vollständigem Reboot
+
+Nach Deployment:
+  1. Manuell rebooten: adb reboot
+  2. KernelSU + LSPosed konfigurieren
+  3. Kill-Switch entfernen: adb shell rm /data/local/tmp/titan_stop
         """
     )
     parser.add_argument("--skip-build", action="store_true",
@@ -613,9 +693,10 @@ Beispiele:
         return
     
     print("=" * 60)
-    print("Project Titan - Phase 4.2 Singularity Deployment")
+    print("Project Titan - Phase 5.0 Final Convergence")
     print("Target: Pixel 6 | Android 14 | KernelSU + Zygisk Next")
-    print("Bridge: /data/local/tmp/.titan_identity (Key=Value)")
+    print("Bridge: /data/adb/modules/titan_verifier/titan_identity")
+    print("Safety: Kill-switch enabled by default")
     print("=" * 60)
     
     # Prüfe ADB-Verbindung
@@ -643,46 +724,61 @@ Beispiele:
         print("=" * 60)
         return
     
-    # Vollständiges Deployment
-    print("\n[1/8] Build")
+    # Phase 5.0 Deployment
+    print("\n[1/10] Build")
     if not args.skip_build:
         step_build_apk()
         step_build_native()
     else:
         log("Build übersprungen (--skip-build)", "WARN")
     
-    print("\n[2/8] Push")
+    print("\n[2/10] Push")
     step_push_files()
     
-    print("\n[3/8] Systemize")
+    print("\n[3/10] Systemize")
     step_systemize()
     
-    print("\n[4/8] Zygisk Deploy")
+    print("\n[4/10] Zygisk Deploy")
     step_deploy_zygisk()
     
-    print("\n[5/8] SELinux Context")
+    print("\n[5/10] SELinux Context")
     step_selinux_context()
     
-    print("\n[6/8] Bridge Setup")
-    step_create_bridge()
+    print("\n[6/10] Bridge Setup (Boot-safe path)")
+    identity = step_create_bridge()
     
-    print("\n[7/8] Permission Patch")
+    print("\n[7/10] SUSFS MAC Overlay (Optional)")
+    if identity.get("wifi_mac"):
+        step_susfs_mac_overlay(identity["wifi_mac"])
+    
+    print("\n[8/10] Permission Patch")
     step_xml_patch()
     
-    print("\n[8/8] Finalize")
-    step_finalize(full_reboot=args.full_reboot)
+    print("\n[9/10] Kill-Switch (Safety)")
+    step_set_kill_switch()
+    
+    print("\n[10/10] Module Update Flag")
+    step_trigger_module_update()
     
     print("\n" + "=" * 60)
-    print("Deployment abgeschlossen!")
+    print("Phase 5.0 Deployment COMPLETE!")
     print("=" * 60)
     print(f"\nModule-Pfad:  {MODULE_PATH}")
     print(f"Zygisk-SO:    {ZYGISK_PATH}/arm64-v8a.so")
     print(f"Bridge:       {BRIDGE_PATH}")
+    print(f"Kill-Switch:  {KILL_SWITCH_PATH} (AKTIV)")
     print(f"SELinux:      {SELINUX_CONTEXT_SYSTEM}")
-    print("\nNächste Schritte:")
-    print("  1. Warte auf System-Neustart")
-    print("  2. Öffne Titan Verifier App")
-    print("  3. Prüfe 'Titan Hook Status' Section")
+    print("\n" + "=" * 60)
+    print("WICHTIGE NÄCHSTE SCHRITTE:")
+    print("=" * 60)
+    print("1. Starte das Gerät MANUELL neu (adb reboot)")
+    print("2. Nach Boot: Öffne KernelSU - prüfe ob 'titan_verifier' erscheint")
+    print("3. Öffne LSPosed - aktiviere 'Titan Verifier' für:")
+    print("   - System Framework")
+    print("   - com.titan.verifier")
+    print("   - com.zhiliaoapp.musically (TikTok)")
+    print(f"4. ERST wenn stabil: adb shell rm {KILL_SWITCH_PATH}")
+    print("5. App neu starten und Audit prüfen")
 
 
 if __name__ == "__main__":

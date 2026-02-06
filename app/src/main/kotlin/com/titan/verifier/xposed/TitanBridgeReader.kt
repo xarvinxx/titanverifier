@@ -16,11 +16,13 @@ object TitanBridgeReader {
     
     private const val TAG = "TitanBridge"
     
-    // Bridge-Pfade (synchron mit Zygisk-Modul)
+    // Bridge-Pfade (Phase 5.0 - Stabiler Boot-Pfad priorisiert)
+    // /data/adb/ ist sicher während des Bootvorgangs
     private val BRIDGE_PATHS = arrayOf(
-        "/data/local/tmp/.titan_identity",
-        "/data/adb/modules/titan_verifier/titan_identity",
-        "/data/local/tmp/.titan_state"  // Legacy
+        "/data/adb/modules/titan_verifier/titan_identity", // PRIMARY (sicher während Boot!)
+        "/sdcard/.titan_identity",                         // World-readable (für LSPosed in GMS)
+        "/storage/emulated/0/.titan_identity",             // Alias für /sdcard/
+        "/data/local/tmp/.titan_identity"                  // Legacy
     )
     
     // Gecachte Werte
@@ -111,6 +113,8 @@ object TitanBridgeReader {
     fun getImsi(): String? = loadBridgeValues()["imsi"]
     
     fun getSimSerial(): String? = loadBridgeValues()["sim_serial"] ?: loadBridgeValues()["iccid"]
+    
+    fun getOperatorName(): String? = loadBridgeValues()["operator_name"] ?: loadBridgeValues()["operator"]
     
     /**
      * Prüft ob die Bridge geladen werden kann.

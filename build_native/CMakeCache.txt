@@ -18,7 +18,7 @@
 ANDROID_ABI:UNINITIALIZED=arm64-v8a
 
 //No help, variable specified on the command line.
-ANDROID_PLATFORM:UNINITIALIZED=android-30
+ANDROID_PLATFORM:UNINITIALIZED=android-33
 
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-addr2line

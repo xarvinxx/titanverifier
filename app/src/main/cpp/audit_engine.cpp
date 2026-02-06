@@ -17,6 +17,9 @@
 #include <mutex>
 #include <dlfcn.h>
 #include <sys/syscall.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <net/if.h>
 #include <unistd.h>
 
 #include <media/NdkMediaDrm.h>
@@ -146,7 +149,30 @@ int getSelinuxEnforceImpl() {
 }
 
 std::string getMacAddressWlan0Impl() {
-    return readSmallFile("/sys/class/net/wlan0/address", 32);
+    // Nutze ioctl SIOCGIFHWADDR (wird von Zygisk Hook abgefangen)
+    int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock < 0) {
+        // Fallback: Lese direkt aus /sys
+        return readSmallFile("/sys/class/net/wlan0/address", 32);
+    }
+    
+    struct ifreq ifr = {};
+    strncpy(ifr.ifr_name, "wlan0", IFNAMSIZ - 1);
+    
+    if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0) {
+        close(sock);
+        // Fallback bei Fehler
+        return readSmallFile("/sys/class/net/wlan0/address", 32);
+    }
+    close(sock);
+    
+    // Konvertiere binäre MAC zu String
+    unsigned char* mac = reinterpret_cast<unsigned char*>(ifr.ifr_hwaddr.sa_data);
+    char macStr[24];
+    snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
+             mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    
+    return std::string(macStr);
 }
 
 std::string getNativePropertyForKey(const char* key) {

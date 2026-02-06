@@ -1,0 +1,9 @@
+/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles/titan_zygisk.dir
+/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles/titan.dir
+/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles/build_dobby.dir
+/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles/edit_cache.dir
+/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles/rebuild_cache.dir
+/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles/list_install_components.dir
+/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles/install.dir
+/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles/install/local.dir
+/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles/install/strip.dir

@@ -441,10 +441,32 @@ class TitanXposedModule : IXposedHookLoadPackage {
     }
     
     // =========================================================================
-    // Widevine Total Coverage - MediaDrm
+    // Widevine Total Coverage - MediaDrm (Phase 7.8 Full Emulation)
     // =========================================================================
     
     private fun hookMediaDrm() {
+        // Master Widevine ID (Phase 7.8 - Fixed Pixel 6 Identity)
+        val MASTER_WIDEVINE_ID = "10179c6bcba352dbd5ce5c88fec8e098"
+        // Hook MediaDrm Konstruktor - Exception abfangen und durchlassen
+        try {
+            XposedHelpers.findAndHookConstructor(
+                MediaDrm::class.java,
+                java.util.UUID::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        if (param.throwable != null) {
+                            log("MediaDrm constructor threw: ${param.throwable.message}")
+                            // Wir können die Exception nicht unterdrücken bei Konstruktoren
+                        } else {
+                            log("MediaDrm constructor succeeded")
+                        }
+                    }
+                }
+            )
+        } catch (e: Throwable) {
+            log("MediaDrm constructor hook failed: ${e.message}")
+        }
+        
         // getPropertyByteArray - Widevine Device ID
         XposedHelpers.findAndHookMethod(MediaDrm::class.java, "getPropertyByteArray", String::class.java,
             object : XC_MethodHook() {
@@ -457,11 +479,11 @@ class TitanXposedModule : IXposedHookLoadPackage {
                         prop.contains("device", ignoreCase = true)) {
                         
                         ensureBridgeLoaded()
-                        cachedWidevine?.let { hex ->
-                            hexToBytes(hex)?.let { bytes ->
-                                param.result = bytes
-                                log("MediaDrm.getPropertyByteArray($prop) -> ${bytes.size} bytes")
-                            }
+                        // Nutze Bridge-Wert oder Master-ID
+                        val widevinHex = cachedWidevine ?: MASTER_WIDEVINE_ID
+                        hexToBytes(widevinHex)?.let { bytes ->
+                            param.result = bytes
+                            log("MediaDrm.getPropertyByteArray($prop) -> ${bytes.size} bytes (spoofed)")
                         }
                     }
                 }
@@ -476,10 +498,9 @@ class TitanXposedModule : IXposedHookLoadPackage {
                     
                     if (prop.contains("device", ignoreCase = true) || prop.contains("unique", ignoreCase = true)) {
                         ensureBridgeLoaded()
-                        cachedWidevine?.let {
-                            param.result = it
-                            log("MediaDrm.getPropertyString($prop)")
-                        }
+                        val widevinHex = cachedWidevine ?: MASTER_WIDEVINE_ID
+                        param.result = widevinHex
+                        log("MediaDrm.getPropertyString($prop) -> spoofed")
                     }
                 }
             }

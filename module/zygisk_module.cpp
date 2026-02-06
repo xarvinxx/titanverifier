@@ -74,7 +74,7 @@ static const char* DEFAULT_IMEI2 = "358476312016587";
 static const char* DEFAULT_ANDROID_ID = "d7f4b30e1b210a83";
 static const char* DEFAULT_GSF_ID = "3a8c4f72d91e50b6";
 static const char* DEFAULT_WIFI_MAC = "be:08:6e:16:a6:5d";
-static const char* DEFAULT_WIDEVINE_ID = "a1b2c3d4e5f67890a1b2c3d4e5f67890";
+static const char* DEFAULT_WIDEVINE_ID = "10179c6bcba352dbd5ce5c88fec8e098";
 
 // ==============================================================================
 // Original Function Pointers
@@ -90,6 +90,13 @@ using FopenFn = FILE* (*)(const char* pathname, const char* mode);
 using FreadFn = size_t (*)(void* ptr, size_t size, size_t nmemb, FILE* stream);
 using FgetsFn = char* (*)(char* s, int size, FILE* stream);
 
+// Widevine NDK API Types
+struct AMediaDrm;
+typedef int media_status_t;
+#define AMEDIA_OK 0
+using AMediaDrmGetPropertyByteArrayFn = media_status_t (*)(AMediaDrm*, const char*, uint8_t**, size_t*);
+using AMediaDrmIsCryptoSchemeSupportedFn = bool (*)(const uint8_t uuid[16], const char* mimeType);
+
 static SystemPropertyGetFn g_origSystemPropertyGet = nullptr;
 static GetifaddrsFn g_origGetifaddrs = nullptr;
 static IoctlFn g_origIoctl = nullptr;
@@ -99,6 +106,19 @@ static ReadFn g_origRead = nullptr;
 static FopenFn g_origFopen = nullptr;
 static FreadFn g_origFread = nullptr;
 static FgetsFn g_origFgets = nullptr;
+static AMediaDrmGetPropertyByteArrayFn g_origAMediaDrmGetPropertyByteArray = nullptr;
+static AMediaDrmIsCryptoSchemeSupportedFn g_origAMediaDrmIsCryptoSchemeSupported = nullptr;
+
+// Widevine UUID (ed282e16-fdd2-47c7-8d6d-09946462f367)
+static const uint8_t WIDEVINE_UUID[16] = {
+    0xed, 0x28, 0x2e, 0x16, 0xfd, 0xd2, 0x47, 0xc7,
+    0x8d, 0x6d, 0x09, 0x94, 0x64, 0x62, 0xf3, 0x67
+};
+
+// Master Widevine ID (Phase 7.8 - Fixed Pixel 6 Identity)
+static const char* MASTER_WIDEVINE_HEX = "10179c6bcba352dbd5ce5c88fec8e098";
+static uint8_t g_widevineBytes[16] = {0};
+static bool g_widevineParsed = false;
 
 // Track fopen'd MAC files
 static std::unordered_set<FILE*> g_macFileStreams;
@@ -526,6 +546,70 @@ static char* titan_hooked_fgets(char* s, int size, FILE* stream) {
 }
 
 // ==============================================================================
+// Hook: Widevine NDK API (AMediaDrm)
+// ==============================================================================
+
+static void parseWidevineHex() {
+    if (g_widevineParsed) return;
+    
+    // Versuche erst Bridge-Wert
+    TitanHardware& hw = TitanHardware::getInstance();
+    char widevineBuf[64] = {};
+    hw.getWidevineId(widevineBuf, sizeof(widevineBuf));
+    
+    const char* hexStr = widevineBuf[0] ? widevineBuf : MASTER_WIDEVINE_HEX;
+    
+    for (int i = 0; i < 16 && hexStr[i*2] && hexStr[i*2+1]; i++) {
+        char byte[3] = { hexStr[i*2], hexStr[i*2+1], 0 };
+        g_widevineBytes[i] = (uint8_t)strtol(byte, nullptr, 16);
+    }
+    
+    g_widevineParsed = true;
+    LOGI("[TITAN] Widevine ID parsed: %02x%02x%02x%02x...", 
+         g_widevineBytes[0], g_widevineBytes[1], g_widevineBytes[2], g_widevineBytes[3]);
+}
+
+static media_status_t titan_hooked_AMediaDrm_getPropertyByteArray(
+    AMediaDrm* drm, const char* propertyName, uint8_t** propertyValue, size_t* propertyValueSize) {
+    
+    if (!propertyName) {
+        return g_origAMediaDrmGetPropertyByteArray ? 
+               g_origAMediaDrmGetPropertyByteArray(drm, propertyName, propertyValue, propertyValueSize) : -1;
+    }
+    
+    // Prüfe ob deviceUniqueId oder ähnliche Properties
+    if (strcmp(propertyName, "deviceUniqueId") == 0 ||
+        strstr(propertyName, "unique") || strstr(propertyName, "device")) {
+        
+        parseWidevineHex();
+        
+        // Allokiere Speicher für das Ergebnis
+        *propertyValueSize = 16;
+        *propertyValue = (uint8_t*)malloc(16);
+        if (*propertyValue) {
+            memcpy(*propertyValue, g_widevineBytes, 16);
+            LOGI("[TITAN] AMediaDrm_getPropertyByteArray(%s) -> Spoofed 16 bytes", propertyName);
+            return AMEDIA_OK;
+        }
+    }
+    
+    // Fallback zum Original
+    return g_origAMediaDrmGetPropertyByteArray ? 
+           g_origAMediaDrmGetPropertyByteArray(drm, propertyName, propertyValue, propertyValueSize) : -1;
+}
+
+static bool titan_hooked_AMediaDrm_isCryptoSchemeSupported(const uint8_t uuid[16], const char* mimeType) {
+    // Widevine UUID immer unterstützen
+    if (memcmp(uuid, WIDEVINE_UUID, 16) == 0) {
+        LOGI("[TITAN] AMediaDrm_isCryptoSchemeSupported(Widevine) -> true");
+        return true;
+    }
+    
+    return g_origAMediaDrmIsCryptoSchemeSupported ?
+           g_origAMediaDrmIsCryptoSchemeSupported(uuid, mimeType) : false;
+}
+
+// ==============================================================================
 // Hook Installation
 // ==============================================================================
 
@@ -602,9 +686,35 @@ static void installAllHooks() {
         installed++;
         LOGI("[TITAN] fgets hook OK");
     }
+    
+    // Widevine NDK Hooks (libmediandk.so)
+    void* mediandk = dlopen("libmediandk.so", RTLD_NOW | RTLD_NOLOAD);
+    if (!mediandk) {
+        mediandk = dlopen("libmediandk.so", RTLD_NOW);
+    }
+    
+    if (mediandk) {
+        // AMediaDrm_getPropertyByteArray
+        void* getPropAddr = dlsym(mediandk, "AMediaDrm_getPropertyByteArray");
+        if (getPropAddr && DobbyHook(getPropAddr, (dobby_dummy_func_t)titan_hooked_AMediaDrm_getPropertyByteArray,
+                                     (dobby_dummy_func_t*)&g_origAMediaDrmGetPropertyByteArray) == 0) {
+            installed++;
+            LOGI("[TITAN] AMediaDrm_getPropertyByteArray hook OK");
+        }
+        
+        // AMediaDrm_isCryptoSchemeSupported
+        void* isSupportedAddr = dlsym(mediandk, "AMediaDrm_isCryptoSchemeSupported");
+        if (isSupportedAddr && DobbyHook(isSupportedAddr, (dobby_dummy_func_t)titan_hooked_AMediaDrm_isCryptoSchemeSupported,
+                                         (dobby_dummy_func_t*)&g_origAMediaDrmIsCryptoSchemeSupported) == 0) {
+            installed++;
+            LOGI("[TITAN] AMediaDrm_isCryptoSchemeSupported hook OK");
+        }
+    } else {
+        LOGW("[TITAN] libmediandk.so not loaded (Widevine hooks skipped)");
+    }
 #endif
     
-    LOGI("[TITAN] Total hooks installed: %d/8", installed);
+    LOGI("[TITAN] Total hooks installed: %d/10", installed);
 }
 
 // ==============================================================================

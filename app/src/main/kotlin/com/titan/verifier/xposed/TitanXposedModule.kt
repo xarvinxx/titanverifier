@@ -778,6 +778,31 @@ class TitanXposedModule : IXposedHookLoadPackage {
         }
         
         log("Build fields overridden (${PIXEL6_BUILD_FIELDS.size} + ${PIXEL6_VERSION_FIELDS.size} fields)")
+        
+        // Hook Build.getSerial() - gibt Bridge-Serial zurück
+        try {
+            XposedHelpers.findAndHookMethod(
+                buildClass, "getSerial",
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        ensureBridgeLoaded()
+                        cachedSerial?.let { 
+                            param.result = it
+                            log("Build.getSerial() -> $it")
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // Hook Build.SERIAL Feld direkt
+        try {
+            ensureBridgeLoaded()
+            cachedSerial?.let { serial ->
+                XposedHelpers.setStaticObjectField(buildClass, "SERIAL", serial)
+                log("Build.SERIAL = $serial")
+            }
+        } catch (_: Throwable) {}
     }
     
     // =========================================================================
@@ -1004,17 +1029,23 @@ class TitanXposedModule : IXposedHookLoadPackage {
             XposedHelpers.findAndHookMethod(sensorClass, "getVendor", object : XC_MethodHook() {
                 override fun afterHookedMethod(param: MethodHookParam) {
                     val vendor = param.result as? String ?: return
-                    // Ersetze generische Vendor-Namen durch echte Pixel 6 Hersteller
                     if (vendor.contains("AOSP", ignoreCase = true) || 
-                        vendor.contains("Google", ignoreCase = true) ||
                         vendor.contains("Virtual", ignoreCase = true)) {
-                        // Lass echte Google-Sensoren (Composite) durch
-                        if (!vendor.equals("Google", ignoreCase = true)) {
-                            param.result = "Bosch"
-                        }
+                        param.result = "Bosch"
                     }
                 }
             })
+        } catch (_: Throwable) {}
+        
+        // Block Sensor Serial Number (forensischer Fingerprint)
+        try {
+            val sensorClass = XposedHelpers.findClass("android.hardware.Sensor", lpparam.classLoader)
+            XposedHelpers.findAndHookMethod(sensorClass, "getSerialNumber", object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    param.result = ""  // Keine echte Hardware-Seriennummer preisgeben
+                }
+            })
+            log("Sensor.getSerialNumber() blocked")
         } catch (_: Throwable) {}
     }
     

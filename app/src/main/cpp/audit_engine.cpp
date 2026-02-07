@@ -269,6 +269,9 @@ std::string getGpuRendererImpl() {
 }
 
 // ─── Input devices (/proc/bus/input/devices) ─────────────────────────────────
+// WICHTIG: Nutze fopen() statt std::ifstream!
+// std::ifstream auf Android 14 bionic routet intern über open() und bypassed den fopen-Hook.
+// Unsere Zygisk-Hooks fangen sowohl fopen() als auch open() ab.
 static bool containsEmulatorKeyword(const std::string& s) {
     std::string lower = s;
     std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return std::tolower(c); });
@@ -278,23 +281,43 @@ static bool containsEmulatorKeyword(const std::string& s) {
 }
 
 std::string getInputDeviceListImpl() {
-    std::ifstream f("/proc/bus/input/devices");
-    if (!f) return {};
-    std::string line;
+    // Versuche zuerst fopen() (wird von Zygisk fopen-Hook abgefangen)
+    FILE* fp = fopen("/proc/bus/input/devices", "r");
+    if (!fp) {
+        LOGI("getInputDeviceListImpl: fopen failed, errno=%d", errno);
+        return {};
+    }
+    
     std::ostringstream out;
     bool first = true;
-    while (std::getline(f, line)) {
+    char lineBuf[512];
+    
+    while (fgets(lineBuf, sizeof(lineBuf), fp) != nullptr) {
+        std::string line(lineBuf);
+        // Strip trailing whitespace
+        while (!line.empty() && (line.back() == '\r' || line.back() == '\n' || line.back() == ' ')) {
+            line.pop_back();
+        }
+        
         const char* prefix = "N: Name=";
         if (line.size() > 8 && line.compare(0, 8, prefix) == 0) {
             std::string name = line.substr(8);
-            while (!name.empty() && (name.back() == '\r' || name.back() == '\n')) name.pop_back();
+            // Entferne umgebende Anführungszeichen
+            if (name.size() >= 2 && name.front() == '"' && name.back() == '"') {
+                name = name.substr(1, name.size() - 2);
+            }
             if (containsEmulatorKeyword(name)) name += " [EMULATOR]";
             if (!first) out << "\n";
             out << name;
             first = false;
         }
     }
-    return out.str();
+    
+    fclose(fp);
+    
+    std::string result = out.str();
+    LOGI("getInputDeviceListImpl: found devices: %s", result.empty() ? "(empty)" : result.c_str());
+    return result;
 }
 
 // ─── RAM (MemTotal from /proc/meminfo) ──────────────────────────────────────

@@ -1000,4 +1000,166 @@ object AuditEngine {
         val mac = bridge["wifi_mac"] ?: "?"
         return "$serial / $operator / ${mac.takeLast(8)}"
     }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Phase 15.0 - Universal Consistency Check
+    // Vergleicht Java-API-Werte mit Native-Werten und Bridge-Erwartungen
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    data class ConsistencyItem(
+        val label: String,
+        val javaValue: String,
+        val nativeValue: String,
+        val isConsistent: Boolean
+    )
+    
+    data class ConsistencyResult(
+        val items: List<ConsistencyItem>,
+        val totalChecks: Int,
+        val consistentCount: Int,
+        val inconsistentCount: Int
+    )
+    
+    /**
+     * Vergleicht Java-Framework-Werte mit Native-Property-Werten.
+     * Jede Diskrepanz wird als INCONSISTENT gemeldet.
+     */
+    fun checkConsistency(context: Context): ConsistencyResult {
+        val items = mutableListOf<ConsistencyItem>()
+        
+        // 1. Build.MODEL vs ro.product.model
+        val javaModel = Build.MODEL
+        val nativeModel = getNativeProp("ro.product.model")
+        items.add(ConsistencyItem("Build.MODEL", javaModel, nativeModel, 
+            javaModel == nativeModel || nativeModel.isEmpty()))
+        
+        // 2. Build.MANUFACTURER vs ro.product.manufacturer
+        val javaMfr = Build.MANUFACTURER
+        val nativeMfr = getNativeProp("ro.product.manufacturer")
+        items.add(ConsistencyItem("Build.MANUFACTURER", javaMfr, nativeMfr,
+            javaMfr == nativeMfr || nativeMfr.isEmpty()))
+        
+        // 3. Build.BRAND vs ro.product.brand
+        val javaBrand = Build.BRAND
+        val nativeBrand = getNativeProp("ro.product.brand")
+        items.add(ConsistencyItem("Build.BRAND", javaBrand, nativeBrand,
+            javaBrand == nativeBrand || nativeBrand.isEmpty()))
+        
+        // 4. Build.DEVICE vs ro.product.device
+        val javaDevice = Build.DEVICE
+        val nativeDevice = getNativeProp("ro.product.device")
+        items.add(ConsistencyItem("Build.DEVICE", javaDevice, nativeDevice,
+            javaDevice == nativeDevice || nativeDevice.isEmpty()))
+        
+        // 5. Build.FINGERPRINT vs ro.build.fingerprint
+        val javaFp = Build.FINGERPRINT
+        val nativeFp = getNativeProp("ro.build.fingerprint")
+        items.add(ConsistencyItem("Build.FINGERPRINT", javaFp, nativeFp,
+            javaFp == nativeFp || nativeFp.isEmpty()))
+        
+        // 6. Build.BOARD vs ro.product.board
+        val javaBoard = Build.BOARD
+        val nativeBoard = getNativeProp("ro.product.board")
+        items.add(ConsistencyItem("Build.BOARD", javaBoard, nativeBoard,
+            javaBoard == nativeBoard || nativeBoard.isEmpty()))
+        
+        // 7. Build.HARDWARE vs ro.hardware
+        val javaHw = Build.HARDWARE
+        val nativeHw = getNativeProp("ro.hardware")
+        items.add(ConsistencyItem("Build.HARDWARE", javaHw, nativeHw,
+            javaHw == nativeHw || nativeHw.isEmpty()))
+        
+        // 8. Build.DISPLAY vs ro.build.display.id
+        val javaDisplay = Build.DISPLAY
+        val nativeDisplay = getNativeProp("ro.build.display.id")
+        items.add(ConsistencyItem("Build.DISPLAY", javaDisplay, nativeDisplay,
+            javaDisplay == nativeDisplay || nativeDisplay.isEmpty()))
+        
+        // 9. Build.VERSION.SECURITY_PATCH vs ro.build.version.security_patch
+        val javaPatch = Build.VERSION.SECURITY_PATCH
+        val nativePatch = getNativeProp("ro.build.version.security_patch")
+        items.add(ConsistencyItem("VERSION.SECURITY_PATCH", javaPatch, nativePatch,
+            javaPatch == nativePatch || nativePatch.isEmpty()))
+        
+        // 10. Build.VERSION.RELEASE vs ro.build.version.release
+        val javaRelease = Build.VERSION.RELEASE
+        val nativeRelease = getNativeProp("ro.build.version.release")
+        items.add(ConsistencyItem("VERSION.RELEASE", javaRelease, nativeRelease,
+            javaRelease == nativeRelease || nativeRelease.isEmpty()))
+        
+        // 11. Serial: Build.getSerial() vs Native ro.serialno
+        val javaSerial = try { Build.getSerial() } catch (_: Throwable) { "" }
+        val nativeSerial = getNativeSerial()
+        items.add(ConsistencyItem("Serial", javaSerial, nativeSerial,
+            javaSerial == nativeSerial || javaSerial.isEmpty() || nativeSerial.isEmpty()))
+        
+        // 12. WiFi MAC: Java WifiInfo vs Native
+        val javaMac = getJavaMacAddress(context)
+        val nativeMac = getMacAddressWlan0()
+        items.add(ConsistencyItem("WiFi MAC", javaMac, nativeMac,
+            javaMac == nativeMac || javaMac.isEmpty() || nativeMac.isEmpty()))
+        
+        // 13. CPU-Info: /proc/cpuinfo Hardware field
+        val cpuHardware = getCpuHardware()
+        val expectedCpu = "GS101 Oriole"
+        items.add(ConsistencyItem("/proc/cpuinfo Hardware", cpuHardware, expectedCpu,
+            cpuHardware.contains("GS101") || cpuHardware.isEmpty()))
+        
+        // 14. Kernel Version: /proc/version
+        val kernelVersion = getKernelVersion()
+        items.add(ConsistencyItem("/proc/version", 
+            if (kernelVersion.length > 40) kernelVersion.take(40) + "..." else kernelVersion,
+            "gs101-based",
+            kernelVersion.contains("android") || kernelVersion.isEmpty()))
+        
+        val consistent = items.count { it.isConsistent }
+        val inconsistent = items.count { !it.isConsistent }
+        
+        return ConsistencyResult(items, items.size, consistent, inconsistent)
+    }
+    
+    /**
+     * Liest eine System-Property über den Java-Reflection-Weg.
+     */
+    private fun getNativeProp(key: String): String {
+        return try {
+            val clazz = Class.forName("android.os.SystemProperties")
+            val method = clazz.getMethod("get", String::class.java)
+            method.invoke(null, key) as? String ?: ""
+        } catch (_: Throwable) { "" }
+    }
+    
+    /**
+     * Liest die MAC-Adresse über die Java WiFi API.
+     */
+    private fun getJavaMacAddress(context: Context): String {
+        return try {
+            val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE)
+            if (wifiManager != null) {
+                val wifiInfo = wifiManager.javaClass.getMethod("getConnectionInfo").invoke(wifiManager)
+                val mac = wifiInfo?.javaClass?.getMethod("getMacAddress")?.invoke(wifiInfo) as? String
+                if (mac != null && mac != "02:00:00:00:00:00") mac else ""
+            } else ""
+        } catch (_: Throwable) { "" }
+    }
+    
+    /**
+     * Liest /proc/cpuinfo Hardware-Zeile.
+     */
+    private fun getCpuHardware(): String {
+        return try {
+            val lines = File("/proc/cpuinfo").readLines()
+            val hwLine = lines.firstOrNull { it.startsWith("Hardware") }
+            hwLine?.substringAfter(":")?.trim() ?: ""
+        } catch (_: Throwable) { "" }
+    }
+    
+    /**
+     * Liest /proc/version.
+     */
+    private fun getKernelVersion(): String {
+        return try {
+            File("/proc/version").readText().trim()
+        } catch (_: Throwable) { "" }
+    }
 }

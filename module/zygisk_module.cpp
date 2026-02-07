@@ -141,6 +141,9 @@ static bool g_widevineParsed = false;
 // Track fopen'd MAC files
 static std::unordered_set<FILE*> g_macFileStreams;
 
+// Track open'd input device FDs
+static std::unordered_set<int> g_inputDeviceFds;
+
 // ==============================================================================
 // State
 // ==============================================================================
@@ -279,25 +282,37 @@ static bool isInputDevicesPath(const char* path) {
     return strcmp(path, "/proc/bus/input/devices") == 0;
 }
 
-// Pixel 6 Input-Device-Datei (realistisch)
+static bool isCpuInfoPath(const char* path) {
+    if (!path) return false;
+    return strcmp(path, "/proc/cpuinfo") == 0;
+}
+
+static bool isKernelVersionPath(const char* path) {
+    if (!path) return false;
+    return strcmp(path, "/proc/version") == 0;
+}
+
+// Pixel 6 Input-Device-Datei (realistisches Oriole Hardware-Layout)
+// Enthält: fts_ts (STM Touchscreen), gpio-keys (Vol+/Vol-), goodix_fp (Fingerabdruck),
+//          Power Button, uinput-fpc (Fingerprint Sensor HAL)
 static const char* FAKE_INPUT_DEVICES = 
     "I: Bus=0018 Vendor=0000 Product=0000 Version=0000\n"
-    "N: Name=\"sec_touchscreen\"\n"
-    "P: Phys=\n"
-    "S: Sysfs=/devices/virtual/input/input0\n"
+    "N: Name=\"fts_ts\"\n"
+    "P: Phys=i2c-fts_ts\n"
+    "S: Sysfs=/devices/platform/110d0000.spi/spi_master/spi7/spi7.0/input/input0\n"
     "U: Uniq=\n"
     "H: Handlers=event0\n"
     "B: PROP=2\n"
     "B: EV=b\n"
     "B: KEY=420 0 0 0 0 0 0 0 0 0 0\n"
-    "B: ABS=6e18000 0\n"
+    "B: ABS=6e18000 0 0\n"
     "\n"
     "I: Bus=0019 Vendor=0001 Product=0001 Version=0100\n"
     "N: Name=\"gpio-keys\"\n"
     "P: Phys=gpio-keys/input0\n"
     "S: Sysfs=/devices/platform/gpio-keys/input/input1\n"
     "U: Uniq=\n"
-    "H: Handlers=event1\n"
+    "H: Handlers=event1 keychord\n"
     "B: PROP=0\n"
     "B: EV=3\n"
     "B: KEY=8000 100000 0 0 0\n"
@@ -305,13 +320,116 @@ static const char* FAKE_INPUT_DEVICES =
     "I: Bus=0019 Vendor=0001 Product=0001 Version=0100\n"
     "N: Name=\"Power Button\"\n"
     "P: Phys=LNXPWRBN/button/input0\n"
-    "S: Sysfs=/devices/LNXSYSTM:00/LNXPWRBN:00/input/input2\n"
+    "S: Sysfs=/devices/platform/power-button/input/input2\n"
     "U: Uniq=\n"
-    "H: Handlers=event2\n"
+    "H: Handlers=event2 keychord\n"
     "B: PROP=0\n"
     "B: EV=3\n"
     "B: KEY=10000000000000 0\n"
+    "\n"
+    "I: Bus=0018 Vendor=27c6 Product=0000 Version=0100\n"
+    "N: Name=\"goodix_fp\"\n"
+    "P: Phys=\n"
+    "S: Sysfs=/devices/platform/odm/odm:fp_hal/goodix_fp/input/input3\n"
+    "U: Uniq=\n"
+    "H: Handlers=event3\n"
+    "B: PROP=0\n"
+    "B: EV=1\n"
+    "\n"
+    "I: Bus=0003 Vendor=0000 Product=0000 Version=0000\n"
+    "N: Name=\"uinput-fpc\"\n"
+    "P: Phys=\n"
+    "S: Sysfs=/devices/virtual/input/input4\n"
+    "U: Uniq=\n"
+    "H: Handlers=event4\n"
+    "B: PROP=0\n"
+    "B: EV=3\n"
+    "B: KEY=4000000000 0 0 0 0 0\n"
     "\n";
+
+// Pixel 6 /proc/cpuinfo (Tensor G1 / Exynos gs101 - echtes Format)
+static const char* FAKE_CPUINFO =
+    "Processor\t: AArch64 Processor rev 0 (aarch64)\n"
+    "processor\t: 0\n"
+    "BogoMIPS\t: 52.00\n"
+    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
+    "CPU implementer\t: 0x41\n"
+    "CPU architecture: 8\n"
+    "CPU variant\t: 0x1\n"
+    "CPU part\t: 0xd05\n"
+    "CPU revision\t: 0\n"
+    "\n"
+    "processor\t: 1\n"
+    "BogoMIPS\t: 52.00\n"
+    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
+    "CPU implementer\t: 0x41\n"
+    "CPU architecture: 8\n"
+    "CPU variant\t: 0x1\n"
+    "CPU part\t: 0xd05\n"
+    "CPU revision\t: 0\n"
+    "\n"
+    "processor\t: 2\n"
+    "BogoMIPS\t: 52.00\n"
+    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
+    "CPU implementer\t: 0x41\n"
+    "CPU architecture: 8\n"
+    "CPU variant\t: 0x1\n"
+    "CPU part\t: 0xd05\n"
+    "CPU revision\t: 0\n"
+    "\n"
+    "processor\t: 3\n"
+    "BogoMIPS\t: 52.00\n"
+    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
+    "CPU implementer\t: 0x41\n"
+    "CPU architecture: 8\n"
+    "CPU variant\t: 0x1\n"
+    "CPU part\t: 0xd05\n"
+    "CPU revision\t: 0\n"
+    "\n"
+    "processor\t: 4\n"
+    "BogoMIPS\t: 52.00\n"
+    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
+    "CPU implementer\t: 0x41\n"
+    "CPU architecture: 8\n"
+    "CPU variant\t: 0x2\n"
+    "CPU part\t: 0xd08\n"
+    "CPU revision\t: 0\n"
+    "\n"
+    "processor\t: 5\n"
+    "BogoMIPS\t: 52.00\n"
+    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
+    "CPU implementer\t: 0x41\n"
+    "CPU architecture: 8\n"
+    "CPU variant\t: 0x2\n"
+    "CPU part\t: 0xd08\n"
+    "CPU revision\t: 0\n"
+    "\n"
+    "processor\t: 6\n"
+    "BogoMIPS\t: 52.00\n"
+    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
+    "CPU implementer\t: 0x41\n"
+    "CPU architecture: 8\n"
+    "CPU variant\t: 0x1\n"
+    "CPU part\t: 0xd44\n"
+    "CPU revision\t: 0\n"
+    "\n"
+    "processor\t: 7\n"
+    "BogoMIPS\t: 52.00\n"
+    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
+    "CPU implementer\t: 0x41\n"
+    "CPU architecture: 8\n"
+    "CPU variant\t: 0x1\n"
+    "CPU part\t: 0xd44\n"
+    "CPU revision\t: 0\n"
+    "\n"
+    "Hardware\t: GS101 Oriole\n"
+    "Serial\t\t: 0000000000000000\n";
+
+// Pixel 6 /proc/version (Kernel-Version für GS101)
+static const char* FAKE_KERNEL_VERSION =
+    "Linux version 5.10.149-android13-4-00003-g05231a35ff43-ab9850636 "
+    "(build-user@build-host) (Android (8508608, based on r450784e) clang version "
+    "14.0.7, LLD 14.0.7) #1 SMP PREEMPT Mon Jan 30 19:12:27 UTC 2023\n";
 
 // ==============================================================================
 // Build Property Overrides (Pixel 6 - Oriole, Android 14)
@@ -546,6 +664,28 @@ static ssize_t titan_hooked_recvmsg(int sockfd, struct msghdr* msg, int flags) {
 // Hook: open (MAC File Shadowing)
 // ==============================================================================
 
+// Helper: Erstellt eine temporäre Datei via open() und gibt den FD zurück
+static int createFakeOpenFd(const char* origPath, int flags, mode_t mode,
+                             const char* content, size_t contentLen, const char* tag) {
+    if (!g_origOpen) return -1;
+    
+    char tempPath[128];
+    snprintf(tempPath, sizeof(tempPath), "/data/local/tmp/.titan_%s_%d", tag, getpid());
+    
+    int writeFd = g_origOpen(tempPath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (writeFd >= 0) {
+        write(writeFd, content, contentLen);
+        close(writeFd);
+        
+        int fakeFd = g_origOpen(tempPath, flags & ~(O_WRONLY | O_CREAT | O_TRUNC), mode);
+        if (fakeFd >= 0) {
+            LOGI("[TITAN] open redirect: %s -> %s (fd=%d) [%s]", origPath, tempPath, fakeFd, tag);
+            return fakeFd;
+        }
+    }
+    return -1;
+}
+
 static int titan_hooked_open(const char* pathname, int flags, mode_t mode) {
     if (!g_origOpen) return -1;
     
@@ -558,24 +698,40 @@ static int titan_hooked_open(const char* pathname, int flags, mode_t mode) {
         hw.getWifiMac(macStr, sizeof(macStr));
         
         if (macStr[0]) {
-            char tempPath[128];
-            snprintf(tempPath, sizeof(tempPath), "/data/local/tmp/.titan_mac_%d", getpid());
-            
-            // Schreibe MAC in temporäre Datei
-            int writeFd = g_origOpen(tempPath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            if (writeFd >= 0) {
-                char buf[32];
-                int len = snprintf(buf, sizeof(buf), "%s\n", macStr);
-                write(writeFd, buf, len);
-                close(writeFd);
-                
-                // Öffne die temporäre Datei mit den originalen Flags
-                int fakeFd = g_origOpen(tempPath, flags, mode);
-                if (fakeFd >= 0) {
-                    LOGI("[TITAN] open() MAC redirect: %s -> %s (fd=%d, MAC=%s)", pathname, tempPath, fakeFd, macStr);
-                    return fakeFd;
-                }
-            }
+            char macContent[32];
+            int len = snprintf(macContent, sizeof(macContent), "%s\n", macStr);
+            int fakeFd = createFakeOpenFd(pathname, flags, mode, macContent, (size_t)len, "mac_open");
+            if (fakeFd >= 0) return fakeFd;
+        }
+    }
+    
+    // Input Devices Pfad -> Fake Pixel 6 Device-Liste
+    if (pathname && isInputDevicesPath(pathname)) {
+        size_t contentLen = strlen(FAKE_INPUT_DEVICES);
+        int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_INPUT_DEVICES, contentLen, "input_open");
+        if (fakeFd >= 0) {
+            LOGI("[TITAN] open() input devices redirected: %s (fd=%d, %zu bytes)", pathname, fakeFd, contentLen);
+            return fakeFd;
+        }
+    }
+    
+    // /proc/cpuinfo -> Fake Tensor G1 CPU-Info
+    if (pathname && isCpuInfoPath(pathname)) {
+        size_t contentLen = strlen(FAKE_CPUINFO);
+        int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_CPUINFO, contentLen, "cpuinfo");
+        if (fakeFd >= 0) {
+            LOGI("[TITAN] open() cpuinfo redirected (Tensor G1, %zu bytes)", contentLen);
+            return fakeFd;
+        }
+    }
+    
+    // /proc/version -> Fake Kernel Version
+    if (pathname && isKernelVersionPath(pathname)) {
+        size_t contentLen = strlen(FAKE_KERNEL_VERSION);
+        int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_KERNEL_VERSION, contentLen, "version");
+        if (fakeFd >= 0) {
+            LOGI("[TITAN] open() kernel version redirected");
+            return fakeFd;
         }
     }
     
@@ -668,6 +824,18 @@ static FILE* titan_hooked_fopen(const char* pathname, const char* mode) {
     // Input Devices -> Fake Pixel 6 Device-Liste
     if (pathname && isInputDevicesPath(pathname)) {
         FILE* fake = createFakeFopen(pathname, mode, FAKE_INPUT_DEVICES, "input");
+        if (fake) return fake;
+    }
+    
+    // /proc/cpuinfo -> Fake Tensor G1
+    if (pathname && isCpuInfoPath(pathname)) {
+        FILE* fake = createFakeFopen(pathname, mode, FAKE_CPUINFO, "cpuinfo");
+        if (fake) return fake;
+    }
+    
+    // /proc/version -> Fake Kernel Version
+    if (pathname && isKernelVersionPath(pathname)) {
+        FILE* fake = createFakeFopen(pathname, mode, FAKE_KERNEL_VERSION, "version");
         if (fake) return fake;
     }
     

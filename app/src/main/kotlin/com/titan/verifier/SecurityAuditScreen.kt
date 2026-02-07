@@ -324,8 +324,31 @@ fun SecurityAuditScreen() {
             }
         )
 
+        // === 8. Java ↔ Native Consistency Check (Phase 15.0) ===
+        val consistency = AuditEngine.checkConsistency(context)
+        val consistencySection = AuditSection(
+            title = "8. Java ↔ Native Consistency",
+            rows = buildList {
+                val totalStr = "${consistency.consistentCount}/${consistency.totalChecks} consistent"
+                val hasIssue = consistency.inconsistentCount > 0
+                add(AuditRow("Consistency Score", totalStr, isCritical = hasIssue, forceRed = hasIssue))
+                if (hasIssue) {
+                    add(AuditRow("⚠ Inconsistencies", "${consistency.inconsistentCount} detected", isCritical = true, forceRed = true))
+                }
+                for (item in consistency.items) {
+                    val statusIcon = if (item.isConsistent) "✓" else "✗"
+                    val detail = if (item.javaValue == item.nativeValue || item.nativeValue.isEmpty()) {
+                        "$statusIcon ${item.javaValue.take(50)}"
+                    } else {
+                        "$statusIcon Java=${item.javaValue.take(25)} | Native=${item.nativeValue.take(25)}"
+                    }
+                    add(AuditRow("  ${item.label}", detail, isCritical = !item.isConsistent, forceRed = !item.isConsistent))
+                }
+            }
+        )
+
         layeredSections = listOf(layeredIdentity)
-        sections = listOf(hookStatusSection, identitySection, hardwareSection, drmSection, physicalSection, networkSection, forensicsSection)
+        sections = listOf(hookStatusSection, identitySection, hardwareSection, drmSection, physicalSection, networkSection, forensicsSection, consistencySection)
         layeredSections.forEach { expanded[it.title] = expanded[it.title] ?: true }
         // Hook Status immer expanded, Rest collapsed
         sections.forEachIndexed { idx, sec -> 

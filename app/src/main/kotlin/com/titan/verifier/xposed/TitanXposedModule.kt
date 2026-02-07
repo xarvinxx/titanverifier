@@ -194,6 +194,7 @@ class TitanXposedModule : IXposedHookLoadPackage {
         safeHook("DisplayMetrics") { hookDisplayMetrics() }
         safeHook("SensorManager") { hookSensorManager(lpparam) }
         safeHook("BatteryManager") { hookBatteryManager() }
+        safeHook("SensorJitter") { hookSensorJitter(lpparam) }
         
         log("Full Spectrum hooks complete for ${lpparam.packageName}")
     }
@@ -1050,12 +1051,11 @@ class TitanXposedModule : IXposedHookLoadPackage {
     }
     
     // =========================================================================
-    // Battery Manager (Realistische Werte) – Phase 10.0
+    // Battery Manager (Realistische Werte mit Ohm'scher Spannungskurve) – Phase 15.0
     // =========================================================================
     
     private fun hookBatteryManager() {
         // Generiere einen pseudo-zufälligen aber stabilen Ladestand pro Session
-        // Basiert auf der aktuellen Stunde, damit er sich natürlich verändert
         val hour = (System.currentTimeMillis() / 3600000) % 24
         val sessionBattery = when {
             hour in 0..5   -> (35..55).random()
@@ -1066,19 +1066,22 @@ class TitanXposedModule : IXposedHookLoadPackage {
             else           -> (30..60).random()
         }
         
+        // Ohm'sche Spannungskurve: V = 3.3 + (level/100) * 0.9
+        // 0% -> 3300mV, 50% -> 3750mV, 100% -> 4200mV (LiPo Zelle)
+        val sessionVoltage = (3300 + (sessionBattery * 9)).coerceIn(3300, 4200)
+        
+        // Temperatur: 25-32°C (realistisch für Smartphone im Betrieb)
+        // Leicht variierend basierend auf Akkulevel (höher = wärmer beim Laden)
+        val sessionTemp = 250 + (sessionBattery / 10) + (0..20).random()
+        
         try {
             XposedHelpers.findAndHookMethod(
                 BatteryManager::class.java, "getIntProperty", Int::class.javaPrimitiveType,
                 object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
-                        val property = param.args[0] as Int
-                        when (property) {
-                            BatteryManager.BATTERY_PROPERTY_CAPACITY -> {
-                                // Realistischer Ladestand (nicht immer 100%)
-                                param.result = sessionBattery
-                            }
+                        when (param.args[0] as Int) {
+                            BatteryManager.BATTERY_PROPERTY_CAPACITY -> param.result = sessionBattery
                             BatteryManager.BATTERY_PROPERTY_STATUS -> {
-                                // DISCHARGING wenn unter 90%, sonst FULL
                                 param.result = if (sessionBattery < 90) 
                                     BatteryManager.BATTERY_STATUS_DISCHARGING 
                                 else 
@@ -1088,33 +1091,71 @@ class TitanXposedModule : IXposedHookLoadPackage {
                     }
                 }
             )
-            log("BatteryManager: Session level = $sessionBattery%")
         } catch (_: Throwable) {}
         
-        // Hook Intent.ACTION_BATTERY_CHANGED Extras via BatteryManager
-        // Der BatteryManager.getIntProperty Hook oben fängt die meisten Abfragen ab.
-        // Für sticky Broadcast, hooke registerReceiver-Ergebnis:
         try {
             XposedHelpers.findAndHookMethod(
                 "android.content.Intent", null, "getIntExtra",
                 String::class.java, Int::class.javaPrimitiveType,
                 object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
-                        val key = param.args[0] as? String ?: return
-                        when (key) {
+                        when (param.args[0] as? String) {
                             "level" -> param.result = sessionBattery
                             "scale" -> param.result = 100
-                            "temperature" -> param.result = 280  // 28.0°C - normal
-                            "voltage" -> param.result = 3850     // 3.85V - normal
-                            "health" -> param.result = 2         // BATTERY_HEALTH_GOOD
-                            "plugged" -> {
-                                // 0 = nicht angeschlossen (realistischer)
-                                if (sessionBattery < 95) param.result = 0
-                            }
+                            "temperature" -> param.result = sessionTemp
+                            "voltage" -> param.result = sessionVoltage  // Ohm'sche Kurve
+                            "health" -> param.result = 2                 // BATTERY_HEALTH_GOOD
+                            "plugged" -> { if (sessionBattery < 95) param.result = 0 }
                         }
                     }
                 }
             )
+        } catch (_: Throwable) {}
+    }
+    
+    // =========================================================================
+    // Sensor Jitter (Behavioral Biometrics) – Phase 15.0
+    // Verhindert statische Sensorwerte, die auf Emulator/Hook hinweisen
+    // =========================================================================
+    
+    private fun hookSensorJitter(lpparam: XC_LoadPackage.LoadPackageParam) {
+        try {
+            val listenerClass = XposedHelpers.findClass(
+                "android.hardware.SensorEventListener", lpparam.classLoader
+            )
+            
+            // Hook SensorManager.registerListener -> onSensorChanged wird gehookt
+            val sensorEventClass = XposedHelpers.findClass(
+                "android.hardware.SensorEvent", lpparam.classLoader
+            )
+            
+            // Hooke die interne Dispatching-Methode
+            XposedHelpers.findAndHookMethod(
+                "android.hardware.SystemSensorManager\$SensorEventQueue",
+                lpparam.classLoader,
+                "dispatchSensorEvent",
+                Int::class.javaPrimitiveType,  // handle
+                FloatArray::class.java,         // values
+                Int::class.javaPrimitiveType,   // accuracy
+                Long::class.javaPrimitiveType,  // timestamp
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val values = param.args[1] as? FloatArray ?: return
+                        
+                        // Füge minimale Varianz hinzu (0.0001 Jitter)
+                        // Nur für Accelerometer/Gyro relevant (3 Achsen)
+                        if (values.size >= 3) {
+                            for (i in 0 until minOf(values.size, 3)) {
+                                // Mikro-Jitter: ±0.0001 (unmerklich, aber nicht statisch)
+                                val jitter = ((Math.random() - 0.5) * 0.0002).toFloat()
+                                values[i] += jitter
+                            }
+                            param.args[1] = values
+                        }
+                    }
+                }
+            )
+            log("SensorJitter: Behavioral biometrics active (±0.0001 variance)")
         } catch (_: Throwable) {}
     }
     
@@ -1137,7 +1178,13 @@ class TitanXposedModule : IXposedHookLoadPackage {
         } catch (_: Exception) { null }
     }
     
+    // Stealth-Logging: Nur beim Init loggen, nicht bei jedem Hook-Call
+    @Volatile private var logCount = 0
+    private val MAX_LOG_LINES = 50  // Danach still
+    
     private fun log(msg: String) {
+        if (logCount >= MAX_LOG_LINES) return
+        logCount++
         try { XposedBridge.log("[$TAG] $msg") } catch (_: Throwable) {}
     }
 }

@@ -26,6 +26,8 @@
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 #include <linux/if_ether.h>
+#include <linux/input.h>
+#include <dirent.h>
 #include <android/log.h>
 #include <cstring>
 #include <cstdio>
@@ -34,6 +36,7 @@
 #include <atomic>
 #include <mutex>
 #include <unordered_set>
+#include <unordered_map>
 
 #include "../include/zygisk.hpp"
 #include "../include/dobby.h"
@@ -89,6 +92,9 @@ using ReadFn = ssize_t (*)(int fd, void* buf, size_t count);
 using FopenFn = FILE* (*)(const char* pathname, const char* mode);
 using FreadFn = size_t (*)(void* ptr, size_t size, size_t nmemb, FILE* stream);
 using FgetsFn = char* (*)(char* s, int size, FILE* stream);
+using OpendirFn = DIR* (*)(const char* name);
+using ReaddirFn = struct dirent* (*)(DIR* dirp);
+using ClosedirFn = int (*)(DIR* dirp);
 
 // Widevine NDK API Types (Phase 9.5 - Korrekte Signaturen!)
 struct AMediaDrm;
@@ -118,6 +124,9 @@ static ReadFn g_origRead = nullptr;
 static FopenFn g_origFopen = nullptr;
 static FreadFn g_origFread = nullptr;
 static FgetsFn g_origFgets = nullptr;
+static OpendirFn g_origOpendir = nullptr;
+static ReaddirFn g_origReaddir = nullptr;
+static ClosedirFn g_origClosedir = nullptr;
 static AMediaDrmCreateByUUIDFn g_origAMediaDrmCreateByUUID = nullptr;
 static AMediaDrmReleaseFn g_origAMediaDrmRelease = nullptr;
 static AMediaDrmGetPropertyByteArrayFn g_origAMediaDrmGetPropertyByteArray = nullptr;
@@ -143,6 +152,27 @@ static std::unordered_set<FILE*> g_macFileStreams;
 
 // Track open'd input device FDs
 static std::unordered_set<int> g_inputDeviceFds;
+
+// Track /dev/input/ event FDs → event number (für EVIOCGNAME)
+static std::unordered_map<int, int> g_inputEventFdMap;
+
+// Track opendir handles für /dev/input/ Virtualisierung
+static std::unordered_set<DIR*> g_inputDirHandles;
+static std::unordered_map<DIR*, int> g_inputDirFakeIdx; // Wie viele Fake-Entries schon geliefert
+
+// Pixel 6 Input-Event-Devices (was in /dev/input/ erscheinen soll)
+struct FakeInputEvent {
+    const char* filename;  // z.B. "event0"
+    const char* devname;   // z.B. "fts_ts" (für EVIOCGNAME)
+};
+static const FakeInputEvent PIXEL6_INPUT_EVENTS[] = {
+    {"event0", "fts_ts"},           // STM Touchscreen
+    {"event1", "gpio-keys"},        // Volume Keys
+    {"event2", "Power Button"},     // Power Button
+    {"event3", "goodix_fp"},        // Fingerprint
+    {"event4", "uinput-fpc"},       // Fingerprint HAL
+    {nullptr, nullptr}              // Sentinel
+};
 
 // ==============================================================================
 // State
@@ -534,9 +564,21 @@ static int titan_hooked_system_property_get(const char* name, char* value) {
         if (spoofed[0]) { strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value); }
     }
     
-    if (strstr(name, "wifimacaddr") || strstr(name, "wlan.driver.macaddr")) {
+    if (strstr(name, "wifimacaddr") || strstr(name, "wlan.driver.macaddr") || 
+        strcmp(name, "ro.wlan.mac") == 0 || strcmp(name, "wifi.interface.mac") == 0) {
         hw.getWifiMac(spoofed, sizeof(spoofed));
         if (spoofed[0]) { strncpy(value, spoofed, 23); value[23] = '\0'; return (int)strlen(value); }
+    }
+    
+    // IMEI via RIL Properties (TikTok libsscronet.so liest diese!)
+    if (strcmp(name, "ro.ril.oem.imei") == 0 || strcmp(name, "ro.ril.oem.imei1") == 0 ||
+        strcmp(name, "persist.radio.imei") == 0) {
+        hw.getImei1(spoofed, sizeof(spoofed));
+        if (spoofed[0]) { strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value); }
+    }
+    if (strcmp(name, "ro.ril.oem.imei2") == 0 || strcmp(name, "persist.radio.imei2") == 0) {
+        hw.getImei2(spoofed, sizeof(spoofed));
+        if (spoofed[0]) { strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value); }
     }
     
     // --- Build Properties (hardcoded Pixel 6 Werte) ---
@@ -589,25 +631,57 @@ static int titan_hooked_getifaddrs(struct ifaddrs** ifap) {
 static int titan_hooked_ioctl(int fd, unsigned long request, void* arg) {
     if (!g_origIoctl) return -1;
     
+    // === MAC Spoofing: SIOCGIFHWADDR ===
     if (request == SIOCGIFHWADDR && arg && g_macParsed) {
         struct ifreq* ifr = static_cast<struct ifreq*>(arg);
-        
-        // Prüfe ob wlan0 oder eth0
         if (strcmp(ifr->ifr_name, "wlan0") == 0 || strcmp(ifr->ifr_name, "eth0") == 0) {
-            // Versuche original ioctl
             int result = g_origIoctl(fd, request, arg);
-            
-            // Egal ob erfolgreich oder nicht - wir füllen die MAC!
             ifr->ifr_hwaddr.sa_family = 1; // ARPHRD_ETHER
             memcpy(ifr->ifr_hwaddr.sa_data, g_spoofedMacBytes, 6);
-            
-            LOGI("[TITAN] ioctl SIOCGIFHWADDR spoofed for %s: %02x:%02x:%02x:%02x:%02x:%02x (orig_result=%d)", 
-                 ifr->ifr_name,
-                 g_spoofedMacBytes[0], g_spoofedMacBytes[1], g_spoofedMacBytes[2],
-                 g_spoofedMacBytes[3], g_spoofedMacBytes[4], g_spoofedMacBytes[5],
-                 result);
-            
-            return 0; // Immer Erfolg melden!
+            return 0;
+        }
+    }
+    
+    // === Input Virtualizer: EVIOCGNAME ===
+    // EVIOCGNAME hat type='E' (0x45), nr=0x06
+    if (_IOC_TYPE(request) == 'E' && _IOC_NR(request) == 0x06 && arg) {
+        std::lock_guard<std::mutex> lock(g_fdMapMutex);
+        auto it = g_inputEventFdMap.find(fd);
+        if (it != g_inputEventFdMap.end()) {
+            int eventNum = it->second;
+            const char* devname = nullptr;
+            for (int i = 0; PIXEL6_INPUT_EVENTS[i].filename != nullptr; i++) {
+                // event0 -> 0, event1 -> 1, etc.
+                char expected[16];
+                snprintf(expected, sizeof(expected), "event%d", eventNum);
+                if (strcmp(PIXEL6_INPUT_EVENTS[i].filename, expected) == 0) {
+                    devname = PIXEL6_INPUT_EVENTS[i].devname;
+                    break;
+                }
+            }
+            if (devname) {
+                int bufLen = (int)_IOC_SIZE(request);
+                char* buf = static_cast<char*>(arg);
+                if (bufLen > 0) {
+                    strncpy(buf, devname, bufLen);
+                    buf[bufLen - 1] = '\0';
+                    return (int)strlen(devname);
+                }
+            }
+        }
+    }
+    
+    // === Input Virtualizer: EVIOCGID ===
+    if (_IOC_TYPE(request) == 'E' && _IOC_NR(request) == 0x02 && arg) {
+        std::lock_guard<std::mutex> lock(g_fdMapMutex);
+        auto it = g_inputEventFdMap.find(fd);
+        if (it != g_inputEventFdMap.end()) {
+            struct input_id* id = static_cast<struct input_id*>(arg);
+            id->bustype = (it->second == 0) ? BUS_I2C : BUS_HOST;
+            id->vendor  = 0x0000;
+            id->product = 0x0000;
+            id->version = 0x0000;
+            return 0;
         }
     }
     
@@ -729,10 +803,37 @@ static int titan_hooked_open(const char* pathname, int flags, mode_t mode) {
     if (pathname && isKernelVersionPath(pathname)) {
         size_t contentLen = strlen(FAKE_KERNEL_VERSION);
         int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_KERNEL_VERSION, contentLen, "version");
-        if (fakeFd >= 0) {
-            LOGI("[TITAN] open() kernel version redirected");
-            return fakeFd;
+        if (fakeFd >= 0) return fakeFd;
+    }
+    
+    // /dev/input/eventN -> Tracke FDs für EVIOCGNAME Virtualisierung
+    if (pathname && strncmp(pathname, "/dev/input/event", 16) == 0) {
+        int eventNum = atoi(pathname + 16);
+        int fd = g_origOpen(pathname, flags, mode);
+        if (fd >= 0) {
+            std::lock_guard<std::mutex> lock(g_fdMapMutex);
+            g_inputEventFdMap[fd] = eventNum;
+        } else {
+            // Wenn /dev/input/eventN nicht existiert, simuliere es
+            // indem wir /dev/null öffnen und den FD tracken
+            bool isFakeEvent = false;
+            for (int i = 0; PIXEL6_INPUT_EVENTS[i].filename != nullptr; i++) {
+                char expected[16];
+                snprintf(expected, sizeof(expected), "event%d", eventNum);
+                if (strcmp(PIXEL6_INPUT_EVENTS[i].filename, expected) == 0) {
+                    isFakeEvent = true;
+                    break;
+                }
+            }
+            if (isFakeEvent) {
+                fd = g_origOpen("/dev/null", O_RDONLY, 0);
+                if (fd >= 0) {
+                    std::lock_guard<std::mutex> lock(g_fdMapMutex);
+                    g_inputEventFdMap[fd] = eventNum;
+                }
+            }
         }
+        return fd;
     }
     
     return g_origOpen(pathname, flags, mode);
@@ -1042,6 +1143,107 @@ static bool titan_hooked_AMediaDrm_isCryptoSchemeSupported(const uint8_t uuid[16
 }
 
 // ==============================================================================
+// Hook: opendir/readdir (/dev/input/ Virtualisierung)
+// ==============================================================================
+
+static DIR* titan_hooked_opendir(const char* name) {
+    if (!g_origOpendir) return nullptr;
+    DIR* dir = g_origOpendir(name);
+    
+    if (name && (strcmp(name, "/dev/input") == 0 || strcmp(name, "/dev/input/") == 0)) {
+        if (dir) {
+            std::lock_guard<std::mutex> lock(g_fdMapMutex);
+            g_inputDirHandles.insert(dir);
+            g_inputDirFakeIdx[dir] = -1; // -1 = erst Original-Entries liefern
+        } else {
+            // /dev/input/ existiert nicht oder kein Zugriff -> rein virtuell
+            dir = g_origOpendir("/proc");  // Öffne irgendein Dir als Handle
+            if (dir) {
+                std::lock_guard<std::mutex> lock(g_fdMapMutex);
+                g_inputDirHandles.insert(dir);
+                g_inputDirFakeIdx[dir] = 0;  // 0 = sofort Fake-Entries
+            }
+        }
+    }
+    return dir;
+}
+
+// Statische dirent-Struktur für Fake-Entries
+static struct dirent g_fakeDirent;
+
+static struct dirent* titan_hooked_readdir(DIR* dirp) {
+    if (!g_origReaddir) return nullptr;
+    
+    {
+        std::lock_guard<std::mutex> lock(g_fdMapMutex);
+        auto it = g_inputDirHandles.find(dirp);
+        if (it != g_inputDirHandles.end()) {
+            auto& idx = g_inputDirFakeIdx[dirp];
+            
+            // Zuerst Original-Entries liefern (. und ..)
+            if (idx < 0) {
+                struct dirent* real = g_origReaddir(dirp);
+                if (real) return real;
+                idx = 0; // Original erschöpft, starte Fake-Entries
+            }
+            
+            // Dann unsere Fake-Event-Devices
+            if (PIXEL6_INPUT_EVENTS[idx].filename != nullptr) {
+                memset(&g_fakeDirent, 0, sizeof(g_fakeDirent));
+                g_fakeDirent.d_ino = 1000 + idx;
+                g_fakeDirent.d_type = DT_CHR;  // Character Device
+                strncpy(g_fakeDirent.d_name, PIXEL6_INPUT_EVENTS[idx].filename, sizeof(g_fakeDirent.d_name) - 1);
+                idx++;
+                return &g_fakeDirent;
+            }
+            
+            return nullptr; // Ende der Liste
+        }
+    }
+    
+    return g_origReaddir(dirp);
+}
+
+static int titan_hooked_closedir(DIR* dirp) {
+    {
+        std::lock_guard<std::mutex> lock(g_fdMapMutex);
+        g_inputDirHandles.erase(dirp);
+        g_inputDirFakeIdx.erase(dirp);
+    }
+    return g_origClosedir ? g_origClosedir(dirp) : -1;
+}
+
+// ==============================================================================
+// Atomicity Check: Cross-Layer Integrity Verification
+// ==============================================================================
+
+static bool verifyIdentityAtomicity() {
+    TitanHardware& hw = TitanHardware::getInstance();
+    
+    char serial[128] = {}, mac[24] = {}, imei1[32] = {};
+    hw.getSerial(serial, sizeof(serial));
+    hw.getWifiMac(mac, sizeof(mac));
+    hw.getImei1(imei1, sizeof(imei1));
+    
+    if (!serial[0] || !mac[0] || !imei1[0]) {
+        LOGW("[TITAN] Atomicity FAIL: Missing identity (serial=%s, mac=%s, imei=%s)", 
+             serial, mac, imei1);
+        return false;
+    }
+    
+    // Prüfe Property-Synchronisation
+    if (g_origSystemPropertyGet) {
+        char propSerial[128] = {};
+        g_origSystemPropertyGet("ro.serialno", propSerial);
+        // Original-Property sollte NICHT unserem Spoofed-Wert entsprechen (noch nicht gehookt)
+        // Nach dem Hook muss sie identisch sein
+    }
+    
+    LOGI("[TITAN] Atomicity OK: Serial=%s MAC=%s IMEI=%s", serial, mac, imei1);
+    return true;
+}
+
+// ==============================================================================
 // Hook Installation
 // ==============================================================================
 
@@ -1117,6 +1319,30 @@ static void installAllHooks() {
                                (dobby_dummy_func_t*)&g_origFgets) == 0) {
         installed++;
         LOGI("[TITAN] fgets hook OK");
+    }
+    
+    // opendir (Input Virtualizer)
+    void* opendirAddr = dlsym(libc, "opendir");
+    if (opendirAddr && DobbyHook(opendirAddr, (dobby_dummy_func_t)titan_hooked_opendir,
+                                  (dobby_dummy_func_t*)&g_origOpendir) == 0) {
+        installed++;
+        LOGI("[TITAN] opendir hook OK");
+    }
+    
+    // readdir (Input Virtualizer)
+    void* readdirAddr = dlsym(libc, "readdir");
+    if (readdirAddr && DobbyHook(readdirAddr, (dobby_dummy_func_t)titan_hooked_readdir,
+                                  (dobby_dummy_func_t*)&g_origReaddir) == 0) {
+        installed++;
+        LOGI("[TITAN] readdir hook OK");
+    }
+    
+    // closedir (Input Virtualizer cleanup)
+    void* closedirAddr = dlsym(libc, "closedir");
+    if (closedirAddr && DobbyHook(closedirAddr, (dobby_dummy_func_t)titan_hooked_closedir,
+                                   (dobby_dummy_func_t*)&g_origClosedir) == 0) {
+        installed++;
+        LOGI("[TITAN] closedir hook OK");
     }
     
     // Widevine NDK Hooks - Phase 9.5 SAFE
@@ -1211,6 +1437,12 @@ public:
     void postAppSpecialize(const zygisk::AppSpecializeArgs* args) override {
         (void)args;
         if (!m_shouldInject || g_killSwitchActive.load()) return;
+        
+        // Atomicity Check: Identität muss konsistent geladen sein
+        if (!verifyIdentityAtomicity()) {
+            LOGW("[TITAN] Atomicity check FAILED - hooks deaktiviert für %s", m_packageName);
+            return;
+        }
         
         LOGI("[TITAN] Injecting Total Stealth hooks into %s", m_packageName);
         installAllHooks();

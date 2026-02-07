@@ -19,6 +19,7 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <sys/uio.h>
+#include <sys/mman.h>
 #include <ifaddrs.h>
 #include <net/if.h>
 #include <netpacket/packet.h>
@@ -67,6 +68,8 @@ static const char* TARGET_APPS[] = {
     "com.zhiliaoapp.musically",
     "com.ss.android.ugc.trill",
     "com.google.android.gms",
+    "com.androidfung.drminfo",       // DRM Info App
+    "tw.reh.deviceid",               // Device ID App
     nullptr
 };
 
@@ -95,6 +98,8 @@ using FgetsFn = char* (*)(char* s, int size, FILE* stream);
 using OpendirFn = DIR* (*)(const char* name);
 using ReaddirFn = struct dirent* (*)(DIR* dirp);
 using ClosedirFn = int (*)(DIR* dirp);
+using SystemPropertyReadOldFn = int (*)(const void* pi, char* name, char* value);
+using SendmsgFn = ssize_t (*)(int sockfd, const struct msghdr* msg, int flags);
 
 // Widevine NDK API Types (Phase 9.5 - Korrekte Signaturen!)
 struct AMediaDrm;
@@ -127,6 +132,8 @@ static FgetsFn g_origFgets = nullptr;
 static OpendirFn g_origOpendir = nullptr;
 static ReaddirFn g_origReaddir = nullptr;
 static ClosedirFn g_origClosedir = nullptr;
+static SystemPropertyReadOldFn g_origSysPropRead = nullptr;
+static SendmsgFn g_origSendmsg = nullptr;
 static AMediaDrmCreateByUUIDFn g_origAMediaDrmCreateByUUID = nullptr;
 static AMediaDrmReleaseFn g_origAMediaDrmRelease = nullptr;
 static AMediaDrmGetPropertyByteArrayFn g_origAMediaDrmGetPropertyByteArray = nullptr;
@@ -159,6 +166,10 @@ static std::unordered_map<int, int> g_inputEventFdMap;
 // Track opendir handles für /dev/input/ Virtualisierung
 static std::unordered_set<DIR*> g_inputDirHandles;
 static std::unordered_map<DIR*, int> g_inputDirFakeIdx; // Wie viele Fake-Entries schon geliefert
+
+// Track Netlink Sockets für RTM_GETLINK (sendmsg → recvmsg Korrelation)
+static std::unordered_set<int> g_netlinkSockets;
+static std::mutex g_netlinkMutex;
 
 // Pixel 6 Input-Event-Devices (was in /dev/input/ erscheinen soll)
 struct FakeInputEvent {
@@ -698,12 +709,20 @@ static ssize_t titan_hooked_recvmsg(int sockfd, struct msghdr* msg, int flags) {
     ssize_t result = g_origRecvmsg(sockfd, msg, flags);
     if (result <= 0 || !msg || !g_macParsed) return result;
     
-    // Prüfe ob es ein Netlink Socket ist
-    struct sockaddr_nl* nladdr = nullptr;
+    // Prüfe ob es ein Netlink Socket ist (via msg_name ODER tracked Sockets)
+    bool isNetlink = false;
     if (msg->msg_name && msg->msg_namelen >= sizeof(struct sockaddr_nl)) {
-        nladdr = static_cast<struct sockaddr_nl*>(msg->msg_name);
-        if (nladdr->nl_family != AF_NETLINK) return result;
+        struct sockaddr_nl* nladdr = static_cast<struct sockaddr_nl*>(msg->msg_name);
+        if (nladdr->nl_family == AF_NETLINK) isNetlink = true;
     }
+    
+    // Auch getrackete Netlink-Sockets (von sendmsg RTM_GETLINK) abfangen
+    if (!isNetlink) {
+        std::lock_guard<std::mutex> lock(g_netlinkMutex);
+        if (g_netlinkSockets.count(sockfd)) isNetlink = true;
+    }
+    
+    if (!isNetlink) return result;
     
     // Parse Netlink Nachrichten und patch MAC in RTM_NEWLINK
     for (size_t i = 0; i < msg->msg_iovlen; i++) {
@@ -1214,6 +1233,359 @@ static int titan_hooked_closedir(DIR* dirp) {
 }
 
 // ==============================================================================
+// Direct Memory Property Patching (Phase 12 - System Transmutation)
+// 
+// Statt __system_property_get zu hooken (detektierbar!), remappen wir die
+// Property-Memory-Area als MAP_PRIVATE und patchen die Werte direkt im RAM.
+// Jede App sieht dann den Fake-Wert über JEDE API (getprop, native, Java).
+// ==============================================================================
+
+// __system_property_find - libc Symbol
+using SystemPropertyFindFn = const void* (*)(const char*);
+static SystemPropertyFindFn g_sysPropFind = nullptr;
+
+// __system_property_read_callback - neuere API (Android 8+)
+using SystemPropertyReadCallbackFn = void (*)(
+    const void* pi,
+    void (*callback)(void* cookie, const char* name, const char* value, uint32_t serial),
+    void* cookie);
+static SystemPropertyReadCallbackFn g_origPropReadCallback = nullptr;
+
+/**
+ * Phase 1: Privatize Property Mappings
+ * 
+ * Scannt /proc/self/maps nach __properties__ Regionen und ersetzt
+ * die MAP_SHARED Mappings durch MAP_PRIVATE Kopien.
+ * Danach sind Schreibzugriffe nur noch prozess-lokal sichtbar.
+ */
+static int g_privatizedRegions = 0;
+
+static void privatizePropertyMappings() {
+    FILE* maps = fopen("/proc/self/maps", "r");
+    if (!maps) {
+        LOGW("[TITAN-MEM] Cannot open /proc/self/maps");
+        return;
+    }
+    
+    char line[512];
+    while (fgets(line, sizeof(line), maps)) {
+        if (!strstr(line, "__properties__")) continue;
+        
+        // Parse: start-end perms offset dev inode pathname
+        uintptr_t start = 0, end = 0;
+        char perms[8] = {};
+        if (sscanf(line, "%lx-%lx %4s", &start, &end, perms) != 3) continue;
+        
+        size_t size = end - start;
+        if (size == 0 || size > 2 * 1024 * 1024) continue; // Safety: max 2MB
+        
+        // Backup der Originaldaten
+        void* backup = malloc(size);
+        if (!backup) continue;
+        memcpy(backup, (void*)start, size);
+        
+        // Re-map als MAP_PRIVATE|MAP_ANONYMOUS (ersetzt MAP_SHARED)
+        // MAP_FIXED überschreibt das bestehende Mapping an derselben Adresse
+        void* newMap = mmap((void*)start, size, PROT_READ | PROT_WRITE,
+                            MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+        if (newMap == MAP_FAILED) {
+            free(backup);
+            LOGW("[TITAN-MEM] mmap failed for %lx-%lx (errno=%d)", start, end, errno);
+            continue;
+        }
+        
+        // Originaldaten wiederherstellen (jetzt in privater Kopie)
+        memcpy(newMap, backup, size);
+        free(backup);
+        
+        // Read-Only setzen (wird beim Patchen temporär aufgehoben)
+        mprotect(newMap, size, PROT_READ);
+        
+        g_privatizedRegions++;
+        LOGI("[TITAN-MEM] Privatized: %lx-%lx (%zu bytes) [%s]", start, end, size, perms);
+    }
+    
+    fclose(maps);
+    LOGI("[TITAN-MEM] Privatized %d property regions", g_privatizedRegions);
+}
+
+/**
+ * Phase 2: Patch einzelne Properties im privatisierten Speicher
+ * 
+ * prop_info Layout (Android 14):
+ *   [uint32_t serial] [char value[92]] [char name[...]]
+ *   Offset 0: serial (atomic, Bit 0 = dirty flag)
+ *   Offset 4: value (max 91 chars + null)
+ */
+static bool patchPropertyDirect(const char* name, const char* newValue) {
+    if (!g_sysPropFind) {
+        void* libc = dlopen("libc.so", RTLD_NOW | RTLD_NOLOAD);
+        if (libc) {
+            g_sysPropFind = (SystemPropertyFindFn)dlsym(libc, "__system_property_find");
+        }
+    }
+    if (!g_sysPropFind) return false;
+    
+    const void* pi = g_sysPropFind(name);
+    if (!pi) return false;
+    
+    // Value-Pointer: 4 Bytes nach prop_info Start (nach uint32_t serial)
+    char* valuePtr = ((char*)pi) + sizeof(uint32_t);
+    
+    // Seiten-Grenzen berechnen für mprotect
+    size_t pageSize = sysconf(_SC_PAGESIZE);
+    uintptr_t pageStart = (uintptr_t)valuePtr & ~(pageSize - 1);
+    size_t regionSize = pageSize * 2; // 2 Seiten für Sicherheit
+    
+    // Temporär beschreibbar machen
+    if (mprotect((void*)pageStart, regionSize, PROT_READ | PROT_WRITE) != 0) {
+        LOGW("[TITAN-MEM] mprotect WRITE failed for %s (errno=%d)", name, errno);
+        return false;
+    }
+    
+    // Wert patchen
+    size_t len = strlen(newValue);
+    if (len > 91) len = 91;
+    memcpy(valuePtr, newValue, len);
+    valuePtr[len] = '\0';
+    
+    // Serial aktualisieren (atomic increment, low bit = dirty cleared)
+    uint32_t* serialPtr = (uint32_t*)pi;
+    uint32_t curSerial = __atomic_load_n(serialPtr, __ATOMIC_RELAXED);
+    __atomic_store_n(serialPtr, (curSerial | 1) + 1, __ATOMIC_RELEASE);
+    
+    // Wieder Read-Only
+    mprotect((void*)pageStart, regionSize, PROT_READ);
+    
+    return true;
+}
+
+/**
+ * Phase 3: Alle Identity-Properties im RAM patchen
+ * 
+ * Wird VOR installAllHooks() aufgerufen, damit die Werte bereits
+ * im Speicher liegen bevor irgendein Hook aktiv ist.
+ */
+static void patchAllPropertiesInMemory() {
+    if (g_privatizedRegions == 0) {
+        LOGW("[TITAN-MEM] No privatized regions - skipping memory patching");
+        return;
+    }
+    
+    TitanHardware& hw = TitanHardware::getInstance();
+    int patched = 0;
+    
+    // Identity Properties aus Bridge
+    char buf[128];
+    
+    hw.getSerial(buf, sizeof(buf));
+    if (buf[0]) {
+        if (patchPropertyDirect("ro.serialno", buf)) patched++;
+        if (patchPropertyDirect("ro.boot.serialno", buf)) patched++;
+    }
+    
+    hw.getImei1(buf, sizeof(buf));
+    if (buf[0]) {
+        if (patchPropertyDirect("ro.ril.oem.imei", buf)) patched++;
+        if (patchPropertyDirect("ro.ril.oem.imei1", buf)) patched++;
+        if (patchPropertyDirect("persist.radio.imei", buf)) patched++;
+        if (patchPropertyDirect("gsm.baseband.imei", buf)) patched++;
+    }
+    
+    hw.getImei2(buf, sizeof(buf));
+    if (buf[0]) {
+        if (patchPropertyDirect("ro.ril.oem.imei2", buf)) patched++;
+        if (patchPropertyDirect("persist.radio.imei2", buf)) patched++;
+    }
+    
+    hw.getWifiMac(buf, sizeof(buf));
+    if (buf[0]) {
+        if (patchPropertyDirect("ro.wlan.mac", buf)) patched++;
+        if (patchPropertyDirect("wifi.interface.mac", buf)) patched++;
+    }
+    
+    // Build Properties (hardcoded Pixel 6)
+    for (int i = 0; PIXEL6_BUILD_PROPS[i].name != nullptr; i++) {
+        if (patchPropertyDirect(PIXEL6_BUILD_PROPS[i].name, PIXEL6_BUILD_PROPS[i].value)) {
+            patched++;
+        }
+    }
+    
+    LOGI("[TITAN-MEM] Direct memory patched: %d properties (NO HOOKS NEEDED for these!)", patched);
+}
+
+// ==============================================================================
+// Hook: __system_property_read_callback (Belt & Suspenders)
+// Deckt den neueren API-Pfad ab, den manche Apps statt __system_property_get nutzen
+// ==============================================================================
+
+struct PropReadCookieOverride {
+    void (*origCallback)(void*, const char*, const char*, uint32_t);
+    void* origCookie;
+    const char* overrideValue;
+};
+
+static void titanPropReadCallbackShim(void* cookie, const char* name, const char* value, uint32_t serial) {
+    PropReadCookieOverride* ctx = static_cast<PropReadCookieOverride*>(cookie);
+    // Liefere den Override-Wert statt des Original-Werts
+    ctx->origCallback(ctx->origCookie, name, ctx->overrideValue, serial);
+}
+
+static void titan_hooked_prop_read_callback(
+    const void* pi,
+    void (*callback)(void* cookie, const char* name, const char* value, uint32_t serial),
+    void* cookie) {
+    
+    if (!pi || !callback || !g_origPropReadCallback) {
+        if (g_origPropReadCallback) g_origPropReadCallback(pi, callback, cookie);
+        return;
+    }
+    
+    // Lese zuerst den echten Wert um den Property-Namen zu bekommen
+    struct { const char* name; const char* value; } captured = {nullptr, nullptr};
+    
+    g_origPropReadCallback(pi, [](void* cookie, const char* name, const char* value, uint32_t serial) {
+        auto* c = static_cast<decltype(captured)*>(cookie);
+        c->name = name;
+        c->value = value;
+    }, &captured);
+    
+    if (!captured.name) {
+        g_origPropReadCallback(pi, callback, cookie);
+        return;
+    }
+    
+    // Prüfe ob wir diesen Wert überschreiben wollen
+    TitanHardware& hw = TitanHardware::getInstance();
+    char spoofed[128] = {};
+    const char* overrideVal = nullptr;
+    
+    if (strcmp(captured.name, "ro.serialno") == 0 || strcmp(captured.name, "ro.boot.serialno") == 0) {
+        hw.getSerial(spoofed, sizeof(spoofed));
+        if (spoofed[0]) overrideVal = spoofed;
+    } else if (strstr(captured.name, "imei") || strcmp(captured.name, "gsm.baseband.imei") == 0) {
+        hw.getImei1(spoofed, sizeof(spoofed));
+        if (spoofed[0]) overrideVal = spoofed;
+    } else if (strstr(captured.name, "wlan.mac") || strstr(captured.name, "wifimacaddr")) {
+        hw.getWifiMac(spoofed, sizeof(spoofed));
+        if (spoofed[0]) overrideVal = spoofed;
+    } else {
+        // Build Properties checken
+        for (int i = 0; PIXEL6_BUILD_PROPS[i].name != nullptr; i++) {
+            if (strcmp(captured.name, PIXEL6_BUILD_PROPS[i].name) == 0) {
+                overrideVal = PIXEL6_BUILD_PROPS[i].value;
+                break;
+            }
+        }
+    }
+    
+    if (overrideVal) {
+        // Liefere unseren Override-Wert
+        callback(cookie, captured.name, overrideVal, 0);
+    } else {
+        // Original durchleiten
+        g_origPropReadCallback(pi, callback, cookie);
+    }
+}
+
+// ==============================================================================
+// Hook: __system_property_read (Ältere API - von manchen NDK-Libraries genutzt)
+// ==============================================================================
+
+static int titan_hooked_system_property_read(const void* pi, char* name, char* value) {
+    if (!g_origSysPropRead) return -1;
+    
+    // Original aufrufen um den echten Namen und Wert zu bekommen
+    int result = g_origSysPropRead(pi, name, value);
+    
+    if (!name || !value) return result;
+    
+    // Identity Properties aus der Bridge
+    TitanHardware& hw = TitanHardware::getInstance();
+    char spoofed[128] = {};
+    
+    if (strcmp(name, "ro.serialno") == 0 || strcmp(name, "ro.boot.serialno") == 0) {
+        hw.getSerial(spoofed, sizeof(spoofed));
+        if (spoofed[0]) { strncpy(value, spoofed, 91); value[91] = '\0'; return (int)strlen(value); }
+    }
+    
+    if (strstr(name, "gsf") || strcmp(name, "ro.com.google.gservices.gsf.id") == 0) {
+        hw.getGsfId(spoofed, sizeof(spoofed));
+        if (spoofed[0]) { strncpy(value, spoofed, 91); value[91] = '\0'; return (int)strlen(value); }
+    }
+    
+    if (strcmp(name, "gsm.baseband.imei") == 0 || strstr(name, "imei")) {
+        hw.getImei1(spoofed, sizeof(spoofed));
+        if (spoofed[0]) { strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value); }
+    }
+    
+    if (strstr(name, "wifimacaddr") || strstr(name, "wlan.driver.macaddr") || 
+        strcmp(name, "ro.wlan.mac") == 0 || strcmp(name, "wifi.interface.mac") == 0) {
+        hw.getWifiMac(spoofed, sizeof(spoofed));
+        if (spoofed[0]) { strncpy(value, spoofed, 23); value[23] = '\0'; return (int)strlen(value); }
+    }
+    
+    if (strcmp(name, "ro.ril.oem.imei") == 0 || strcmp(name, "ro.ril.oem.imei1") == 0 ||
+        strcmp(name, "persist.radio.imei") == 0) {
+        hw.getImei1(spoofed, sizeof(spoofed));
+        if (spoofed[0]) { strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value); }
+    }
+    if (strcmp(name, "ro.ril.oem.imei2") == 0 || strcmp(name, "persist.radio.imei2") == 0) {
+        hw.getImei2(spoofed, sizeof(spoofed));
+        if (spoofed[0]) { strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value); }
+    }
+    
+    // Build Properties (hardcoded Pixel 6 Werte)
+    for (int i = 0; PIXEL6_BUILD_PROPS[i].name != nullptr; i++) {
+        if (strcmp(name, PIXEL6_BUILD_PROPS[i].name) == 0) {
+            const char* override = PIXEL6_BUILD_PROPS[i].value;
+            size_t len = strlen(override);
+            if (len > 91) len = 91;
+            memcpy(value, override, len);
+            value[len] = '\0';
+            return (int)len;
+        }
+    }
+    
+    return result;
+}
+
+// ==============================================================================
+// Hook: sendmsg (Netlink RTM_GETLINK Request Tracking + Response MAC Patching)
+// ==============================================================================
+// TikToks libsscronet.so nutzt sendmsg um RTM_GETLINK Requests zu senden.
+// Wir tracken Netlink Sockets und stellen sicher, dass auch sendmsg-Responses
+// durch unseren recvmsg Hook laufen. Zusätzlich patchen wir RTM_NEWLINK
+// Messages die als Antwort auf RTM_GETLINK direkt im sendmsg-Kontext
+// als embedded Responses mitgeliefert werden können.
+
+static ssize_t titan_hooked_sendmsg(int sockfd, const struct msghdr* msg, int flags) {
+    if (!g_origSendmsg) return -1;
+    
+    // Tracke Netlink Sockets (AF_NETLINK)
+    if (msg && msg->msg_name && msg->msg_namelen >= sizeof(struct sockaddr_nl)) {
+        struct sockaddr_nl* nladdr = static_cast<struct sockaddr_nl*>(msg->msg_name);
+        if (nladdr->nl_family == AF_NETLINK) {
+            // Parse die Nachricht - wenn RTM_GETLINK, tracke den Socket
+            for (size_t i = 0; i < msg->msg_iovlen && msg->msg_iov; i++) {
+                char* data = static_cast<char*>(msg->msg_iov[i].iov_base);
+                size_t len = msg->msg_iov[i].iov_len;
+                if (len >= sizeof(struct nlmsghdr)) {
+                    struct nlmsghdr* nlh = reinterpret_cast<struct nlmsghdr*>(data);
+                    if (nlh->nlmsg_type == RTM_GETLINK) {
+                        std::lock_guard<std::mutex> lock(g_netlinkMutex);
+                        g_netlinkSockets.insert(sockfd);
+                        LOGI("[TITAN] Tracked RTM_GETLINK socket fd=%d (MAC will be spoofed on response)", sockfd);
+                    }
+                }
+            }
+        }
+    }
+    
+    return g_origSendmsg(sockfd, msg, flags);
+}
+
+// ==============================================================================
 // Atomicity Check: Cross-Layer Integrity Verification
 // ==============================================================================
 
@@ -1263,6 +1635,30 @@ static void installAllHooks() {
                               (dobby_dummy_func_t*)&g_origSystemPropertyGet) == 0) {
         installed++;
         LOGI("[TITAN] Property hook OK");
+    }
+    
+    // __system_property_read_callback (neuere API, ab Android 8)
+    void* propReadCbAddr = dlsym(libc, "__system_property_read_callback");
+    if (propReadCbAddr && DobbyHook(propReadCbAddr, (dobby_dummy_func_t)titan_hooked_prop_read_callback,
+                                     (dobby_dummy_func_t*)&g_origPropReadCallback) == 0) {
+        installed++;
+        LOGI("[TITAN] __system_property_read_callback hook OK");
+    }
+    
+    // __system_property_read (ältere API - manche NDK Libs nutzen diese statt _get)
+    void* propReadAddr = dlsym(libc, "__system_property_read");
+    if (propReadAddr && DobbyHook(propReadAddr, (dobby_dummy_func_t)titan_hooked_system_property_read,
+                                   (dobby_dummy_func_t*)&g_origSysPropRead) == 0) {
+        installed++;
+        LOGI("[TITAN] __system_property_read (legacy) hook OK");
+    }
+    
+    // sendmsg (Netlink RTM_GETLINK Tracking)
+    void* sendmsgAddr = dlsym(libc, "sendmsg");
+    if (sendmsgAddr && DobbyHook(sendmsgAddr, (dobby_dummy_func_t)titan_hooked_sendmsg,
+                                  (dobby_dummy_func_t*)&g_origSendmsg) == 0) {
+        installed++;
+        LOGI("[TITAN] sendmsg (Netlink) hook OK");
     }
     
     // getifaddrs
@@ -1388,7 +1784,7 @@ static void installAllHooks() {
     }
 #endif
     
-    LOGI("[TITAN] Total hooks installed: %d/11", installed);
+    LOGI("[TITAN] Total hooks installed: %d/13", installed);
 }
 
 // ==============================================================================
@@ -1444,8 +1840,20 @@ public:
             return;
         }
         
-        LOGI("[TITAN] Injecting Total Stealth hooks into %s", m_packageName);
+        LOGI("[TITAN] === Phase 12: System Transmutation für %s ===", m_packageName);
+        
+        // PHASE 1: Property Area Privatisierung (MAP_SHARED → MAP_PRIVATE)
+        // MUSS vor den Hooks passieren!
+        privatizePropertyMappings();
+        
+        // PHASE 2: Direct Memory Patching (Werte direkt im RAM ändern)
+        // Danach braucht __system_property_get für diese Props KEINEN Hook mehr
+        patchAllPropertiesInMemory();
+        
+        // PHASE 3: Hooks installieren (Belt & Suspenders für alles was Memory-Patch nicht abdeckt)
         installAllHooks();
+        
+        LOGI("[TITAN] === Transmutation complete: %d regions privatized ===", g_privatizedRegions);
     }
     
     void preServerSpecialize(zygisk::ServerSpecializeArgs* args) override {

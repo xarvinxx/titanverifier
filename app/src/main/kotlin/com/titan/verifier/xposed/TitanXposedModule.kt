@@ -40,7 +40,9 @@ class TitanXposedModule : IXposedHookLoadPackage {
             "com.google.android.gms",       // GMS (für GSF)
             "com.android.vending",          // Play Store
             "com.google.android.gsf",       // GSF Provider
-            "android"                        // System Framework
+            "android",                       // System Framework
+            "com.androidfung.drminfo",      // DRM Info App
+            "tw.reh.deviceid"               // Device ID App
         )
         
         private const val GSF_CONTENT_URI = "content://com.google.android.gsf.gservices"
@@ -195,6 +197,7 @@ class TitanXposedModule : IXposedHookLoadPackage {
         safeHook("SensorManager") { hookSensorManager(lpparam) }
         safeHook("BatteryManager") { hookBatteryManager() }
         safeHook("SensorJitter") { hookSensorJitter(lpparam) }
+        safeHook("AdvertisingId") { hookAdvertisingId(lpparam) }
         
         log("Full Spectrum hooks complete for ${lpparam.packageName}")
     }
@@ -365,6 +368,7 @@ class TitanXposedModule : IXposedHookLoadPackage {
     // =========================================================================
     
     private fun hookGsfContentResolver() {
+        // Variante 1: 5-arg query (ältere API)
         XposedHelpers.findAndHookMethod(
             ContentResolver::class.java, "query",
             Uri::class.java, Array<String>::class.java, String::class.java,
@@ -377,18 +381,73 @@ class TitanXposedModule : IXposedHookLoadPackage {
                     if (uriStr.contains("gsf") || uriStr.contains("gservices")) {
                         ensureBridgeLoaded()
                         cachedGsfId?.let { gsfId ->
-                            // MatrixCursor mit ALLEN GSF-relevanten Feldern
                             val cursor = MatrixCursor(arrayOf("name", "value"))
                             cursor.addRow(arrayOf("android_id", gsfId))
                             cursor.addRow(arrayOf("gsf_id", gsfId))
                             cursor.addRow(arrayOf("device_id", gsfId))
                             param.result = cursor
-                            log("GSF MatrixCursor injected -> $gsfId")
+                            log("GSF query(5-arg) -> $gsfId")
                         }
                     }
                 }
             }
         )
+        
+        // Variante 2: Bundle-basierte query (Android 11+ / API 30+)
+        try {
+            XposedHelpers.findAndHookMethod(
+                ContentResolver::class.java, "query",
+                Uri::class.java, Array<String>::class.java, android.os.Bundle::class.java,
+                android.os.CancellationSignal::class.java,
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val uri = param.args[0] as? Uri ?: return
+                        val uriStr = uri.toString()
+                        
+                        if (uriStr.contains("gsf") || uriStr.contains("gservices")) {
+                            ensureBridgeLoaded()
+                            cachedGsfId?.let { gsfId ->
+                                val cursor = MatrixCursor(arrayOf("name", "value"))
+                                cursor.addRow(arrayOf("android_id", gsfId))
+                                cursor.addRow(arrayOf("gsf_id", gsfId))
+                                cursor.addRow(arrayOf("device_id", gsfId))
+                                param.result = cursor
+                                log("GSF query(Bundle) -> $gsfId")
+                            }
+                        }
+                    }
+                }
+            )
+            log("GSF Bundle-query hook OK")
+        } catch (_: Throwable) {}
+        
+        // Variante 3: 6-arg query mit CancellationSignal (API 16+)
+        try {
+            XposedHelpers.findAndHookMethod(
+                ContentResolver::class.java, "query",
+                Uri::class.java, Array<String>::class.java, String::class.java,
+                Array<String>::class.java, String::class.java,
+                android.os.CancellationSignal::class.java,
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val uri = param.args[0] as? Uri ?: return
+                        val uriStr = uri.toString()
+                        
+                        if (uriStr.contains("gsf") || uriStr.contains("gservices")) {
+                            ensureBridgeLoaded()
+                            cachedGsfId?.let { gsfId ->
+                                val cursor = MatrixCursor(arrayOf("name", "value"))
+                                cursor.addRow(arrayOf("android_id", gsfId))
+                                cursor.addRow(arrayOf("gsf_id", gsfId))
+                                cursor.addRow(arrayOf("device_id", gsfId))
+                                param.result = cursor
+                                log("GSF query(6-arg+signal) -> $gsfId")
+                            }
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
     }
     
     // =========================================================================
@@ -1160,6 +1219,176 @@ class TitanXposedModule : IXposedHookLoadPackage {
     }
     
     // =========================================================================
+    // Advertising ID (AAID) Hook
+    // =========================================================================
+    
+    private fun hookAdvertisingId(lpparam: XC_LoadPackage.LoadPackageParam) {
+        val fakeAaid = generateDeterministicAaid()
+        log("AAID: Target value = $fakeAaid")
+        
+        // --- Methode 1: AdvertisingIdClient.Info.getId() ---
+        try {
+            val infoClass = XposedHelpers.findClass(
+                "com.google.android.gms.ads.identifier.AdvertisingIdClient\$Info",
+                lpparam.classLoader
+            )
+            XposedHelpers.findAndHookMethod(
+                infoClass, "getId",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        param.result = fakeAaid
+                        log("AAID: Info.getId() spoofed -> $fakeAaid")
+                    }
+                }
+            )
+            log("AAID: AdvertisingIdClient.Info.getId() hooked")
+        } catch (e: Throwable) {
+            log("AAID: Info class not in classloader (expected for non-GMS apps)")
+        }
+        
+        // --- Methode 2: AdvertisingIdClient.getAdvertisingIdInfo() ---
+        try {
+            val clientClass = XposedHelpers.findClass(
+                "com.google.android.gms.ads.identifier.AdvertisingIdClient",
+                lpparam.classLoader
+            )
+            XposedHelpers.findAndHookMethod(
+                clientClass, "getAdvertisingIdInfo",
+                android.content.Context::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val info = param.result ?: return
+                        // Reflection: Versuche alle bekannten Feld-Namen in verschiedenen GMS-Versionen
+                        for (fieldName in arrayOf("zzb", "zza", "mId", "advertisingId")) {
+                            try {
+                                val idField = info.javaClass.getDeclaredField(fieldName)
+                                idField.isAccessible = true
+                                idField.set(info, fakeAaid)
+                                log("AAID: getAdvertisingIdInfo field '$fieldName' spoofed -> $fakeAaid")
+                                return
+                            } catch (_: Throwable) {}
+                        }
+                        // Fallback: Versuche alle String-Felder zu patchen
+                        try {
+                            for (field in info.javaClass.declaredFields) {
+                                if (field.type == String::class.java) {
+                                    field.isAccessible = true
+                                    val current = field.get(info) as? String
+                                    if (current != null && current.matches(Regex("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"))) {
+                                        field.set(info, fakeAaid)
+                                        log("AAID: Patched UUID-field '${field.name}' -> $fakeAaid")
+                                        return
+                                    }
+                                }
+                            }
+                        } catch (_: Throwable) {}
+                    }
+                }
+            )
+            log("AAID: AdvertisingIdClient.getAdvertisingIdInfo() hooked")
+        } catch (e: Throwable) {
+            log("AAID: AdvertisingIdClient class not in classloader")
+        }
+        
+        // --- Methode 3: ContentResolver.call (GMS Ads Provider) ---
+        try {
+            // 4-arg Variante (Android 11+)
+            XposedHelpers.findAndHookMethod(
+                "android.content.ContentResolver", lpparam.classLoader,
+                "call",
+                Uri::class.java, String::class.java, String::class.java, android.os.Bundle::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val uri = param.args[0] as? Uri ?: return
+                        if (uri.authority?.contains("google.android.gms.ads") != true &&
+                            uri.authority?.contains("com.google.android.gms") != true) return
+                        
+                        val bundle = param.result as? android.os.Bundle ?: return
+                        // Suche nach AAID-ähnlichen Keys
+                        for (key in arrayOf("ad_id", "advertising_id", "adid", "id")) {
+                            val v = bundle.getString(key)
+                            if (v != null && v.contains("-")) {
+                                bundle.putString(key, fakeAaid)
+                                log("AAID: ContentResolver.call key='$key' spoofed -> $fakeAaid")
+                            }
+                        }
+                        param.result = bundle
+                    }
+                }
+            )
+            log("AAID: ContentResolver.call(4-arg) hooked")
+        } catch (_: Throwable) {}
+        
+        // --- Methode 4: ContentResolver.call (3-arg Legacy) ---
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.content.ContentResolver", lpparam.classLoader,
+                "call",
+                String::class.java, String::class.java, String::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val authority = param.args[0] as? String ?: return
+                        if (!authority.contains("google.android.gms")) return
+                        
+                        val bundle = param.result as? android.os.Bundle ?: return
+                        for (key in arrayOf("ad_id", "advertising_id", "adid", "id")) {
+                            val v = bundle.getString(key)
+                            if (v != null && v.contains("-")) {
+                                bundle.putString(key, fakeAaid)
+                                log("AAID: ContentResolver.call(3-arg) key='$key' -> $fakeAaid")
+                            }
+                        }
+                        param.result = bundle
+                    }
+                }
+            )
+            log("AAID: ContentResolver.call(3-arg) hooked")
+        } catch (_: Throwable) {}
+        
+        // --- Methode 5: IPC via Binder - Fange Intent-basierte AAID Abfragen ab ---
+        // Device ID und TikTok nutzen oft android.gms.ads.identifier.service.START
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.content.Context", lpparam.classLoader,
+                "bindService",
+                android.content.Intent::class.java,
+                android.content.ServiceConnection::class.java,
+                Int::class.javaPrimitiveType,
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val intent = param.args[0] as? android.content.Intent ?: return
+                        val action = intent.action ?: return
+                        if (action.contains("ads.identifier") || action.contains("advertising_id")) {
+                            log("AAID: bindService detected action=$action")
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+    }
+    
+    /**
+     * Generiert eine deterministische AAID basierend auf der Bridge-Identität.
+     * Damit ist die AAID pro Identitäts-Profil konsistent, aber unterschiedlich
+     * zwischen verschiedenen Profilen.
+     */
+    private fun generateDeterministicAaid(): String {
+        try {
+            val seed = "${cachedSerial}-${cachedImei1}-${cachedGsfId}-aaid"
+            val md = java.security.MessageDigest.getInstance("SHA-256")
+            val hash = md.digest(seed.toByteArray())
+            // Format als UUID: 8-4-4-4-12
+            val hex = hash.joinToString("") { "%02x".format(it) }
+            return "${hex.substring(0,8)}-${hex.substring(8,12)}-4${hex.substring(13,16)}-" +
+                   "${(hex.substring(16,17).toInt(16) and 0x3 or 0x8).toString(16)}${hex.substring(17,20)}-" +
+                   "${hex.substring(20,32)}"
+        } catch (_: Throwable) {
+            // Fallback: feste AAID
+            return "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
+        }
+    }
+    
+    // =========================================================================
     // Helpers
     // =========================================================================
     
@@ -1180,7 +1409,7 @@ class TitanXposedModule : IXposedHookLoadPackage {
     
     // Stealth-Logging: Nur beim Init loggen, nicht bei jedem Hook-Call
     @Volatile private var logCount = 0
-    private val MAX_LOG_LINES = 50  // Danach still
+    private val MAX_LOG_LINES = 200  // Erhöht für Phase 13 Debugging
     
     private fun log(msg: String) {
         if (logCount >= MAX_LOG_LINES) return

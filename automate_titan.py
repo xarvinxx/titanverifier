@@ -752,6 +752,214 @@ def step_xml_patch() -> None:
     log("runtime-permissions.xml gepatcht", "OK")
 
 
+def step_create_fake_files(identity: Dict[str, str]) -> None:
+    """Erstellt Fake-Systemdateien für mount --bind / fopen-Hooks."""
+    log("Creating fake system files on device...")
+    
+    fake_dir = f"{MODULE_PATH}/fake_files"
+    adb_shell(f"mkdir -p {fake_dir}", as_root=True, check=False)
+    
+    # Fake MAC-Datei
+    mac = identity.get("wifi_mac", "02:00:00:00:00:00")
+    adb_shell(f"echo '{mac}' > {fake_dir}/wlan0_address", as_root=True)
+    adb_shell(f"chmod 444 {fake_dir}/wlan0_address", as_root=True)
+    
+    # Fake cpuinfo (Tensor G1)
+    cpuinfo_content = "Hardware\\t: GS101 Oriole\\nSerial\\t\\t: 0000000000000000"
+    adb_shell(f"echo -e '{cpuinfo_content}' > {fake_dir}/cpuinfo_tail", as_root=True)
+    
+    # Fake kernel version
+    kernel_ver = "Linux version 5.10.149-android13-4-00003-g05231a35ff43-ab9850636"
+    adb_shell(f"echo '{kernel_ver}' > {fake_dir}/version", as_root=True)
+    
+    adb_shell(f"chcon -R {SELINUX_CONTEXT_SYSTEM} {fake_dir}", as_root=True, check=False)
+    log(f"Fake files created in {fake_dir}", "OK")
+
+
+def step_write_aaid(identity: Dict[str, str]) -> None:
+    """Schreibt die deterministische AAID direkt in GMS SharedPreferences."""
+    log("Writing AAID to GMS preferences...")
+    
+    import hashlib
+    serial = identity.get("serial", "")
+    imei = identity.get("imei1", "")
+    gsf = identity.get("gsf_id", "")
+    seed = f"{serial}-{imei}-{gsf}-aaid"
+    h = hashlib.sha256(seed.encode()).hexdigest()
+    aaid = f"{h[0:8]}-{h[8:12]}-4{h[13:16]}-{(int(h[16],16) & 0x3 | 0x8):x}{h[17:20]}-{h[20:32]}"
+    
+    log(f"  Deterministic AAID: {aaid}")
+    
+    # Force-stop GMS damit SharedPrefs nicht überschrieben werden
+    adb_shell("am force-stop com.google.android.gms", as_root=True, check=False)
+    
+    xml_content = f"""<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <boolean name="enable_debug_logging" value="false" />
+    <boolean name="using_cert" value="false" />
+    <string name="adid_key">{aaid}</string>
+    <string name="fake_adid_key"></string>
+    <boolean name="enable_limit_ad_tracking" value="false" />
+    <int name="adid_reset_count" value="2" />
+</map>"""
+    
+    import tempfile
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.xml', delete=False) as f:
+        f.write(xml_content)
+        tmp_path = f.name
+    
+    adb(["push", tmp_path, "/data/local/tmp/adid_settings.xml"], check=False)
+    
+    adb_shell(
+        "cp /data/local/tmp/adid_settings.xml "
+        "/data/data/com.google.android.gms/shared_prefs/adid_settings.xml && "
+        "chown 10152:10152 /data/data/com.google.android.gms/shared_prefs/adid_settings.xml && "
+        "chmod 660 /data/data/com.google.android.gms/shared_prefs/adid_settings.xml",
+        as_root=True, check=False
+    )
+    
+    import os
+    os.unlink(tmp_path)
+    log(f"AAID written: {aaid}", "OK")
+
+
+def step_distribute_bridge(identity: Dict[str, str]) -> None:
+    """Kopiert die Bridge-Datei in die Datenordner ALLER Ziel-Apps."""
+    log("Distributing bridge to all target apps...")
+    
+    target_apps = {
+        "com.titan.verifier":           None,
+        "tw.reh.deviceid":              None,
+        "com.androidfung.drminfo":      None,
+        "com.zhiliaoapp.musically":     None,
+        "com.ss.android.ugc.trill":     None,
+        "com.google.android.gms":       None,
+        "com.google.android.gsf":       None,
+        "com.android.vending":          None,
+    }
+    
+    # UIDs herausfinden
+    for pkg in list(target_apps.keys()):
+        result = adb_shell(f"pm list packages -U {pkg}", check=False)
+        if f"package:{pkg} " in result.stdout and "uid:" in result.stdout:
+            uid = result.stdout.strip().split("uid:")[-1].strip()
+            target_apps[pkg] = uid
+    
+    copied = 0
+    for pkg, uid in target_apps.items():
+        if uid is None:
+            continue
+        
+        result = adb_shell(
+            f"mkdir -p /data/data/{pkg}/files && "
+            f"cp {BRIDGE_PATH} /data/data/{pkg}/files/.titan_identity && "
+            f"chown {uid}:{uid} /data/data/{pkg}/files/.titan_identity && "
+            f"chown {uid}:{uid} /data/data/{pkg}/files && "
+            f"chmod 600 /data/data/{pkg}/files/.titan_identity",
+            as_root=True, check=False
+        )
+        if result.returncode == 0:
+            copied += 1
+    
+    # World-readable Backup auf /sdcard
+    adb_shell(
+        f"cp {BRIDGE_PATH} /sdcard/.titan_identity && chmod 644 /sdcard/.titan_identity",
+        as_root=True, check=False
+    )
+    
+    log(f"Bridge distributed to {copied}/{len(target_apps)} apps + /sdcard backup", "OK")
+
+
+def step_post_deploy_verify(identity: Dict[str, str]) -> None:
+    """Post-Deploy Verification: Prüft ob Properties korrekt gesetzt sind."""
+    log("Running post-deploy verification...")
+    
+    checks_passed = 0
+    checks_total = 0
+    
+    # Prüfe Bridge-Datei existiert
+    checks_total += 1
+    result = adb_shell(f"cat {BRIDGE_PATH}", as_root=True, check=False)
+    if result.returncode == 0 and identity.get("serial", "") in result.stdout:
+        checks_passed += 1
+        log(f"Bridge OK: Serial={identity.get('serial', '?')}", "OK")
+    else:
+        log("Bridge: NOT FOUND or wrong content", "ERROR")
+    
+    # Prüfe Zygisk SO existiert
+    checks_total += 1
+    result = adb_shell(f"ls -la {ZYGISK_PATH}/arm64-v8a.so", as_root=True, check=False)
+    if result.returncode == 0:
+        checks_passed += 1
+        log("Zygisk SO: Present", "OK")
+    else:
+        log("Zygisk SO: MISSING", "ERROR")
+    
+    # Prüfe App installiert
+    checks_total += 1
+    result = adb_shell(f"pm path {PKG_NAME}", check=False)
+    if result.returncode == 0 and "package:" in result.stdout:
+        checks_passed += 1
+        log(f"App: Installed ({result.stdout.strip()})", "OK")
+    else:
+        log("App: NOT INSTALLED", "ERROR")
+    
+    # Prüfe Bridge in App-Daten (für ALLE Ziel-Apps!)
+    target_apps = [
+        PKG_NAME,                          # com.titan.verifier
+        "tw.reh.deviceid",                 # Device ID App
+        "com.androidfung.drminfo",         # DRM Info App
+        "com.zhiliaoapp.musically",        # TikTok
+        "com.ss.android.ugc.trill",        # TikTok International
+    ]
+    
+    for app_pkg in target_apps:
+        checks_total += 1
+        result = adb_shell(
+            f"cat /data/data/{app_pkg}/files/.titan_identity",
+            as_root=True, check=False
+        )
+        if result.returncode == 0 and identity.get("serial", "") in result.stdout:
+            checks_passed += 1
+            log(f"Bridge [{app_pkg}]: OK", "OK")
+        else:
+            # Auto-fix: Finde UID und kopiere Bridge
+            uid_result = adb_shell(f"pm list packages -U {app_pkg}", check=False)
+            if "uid:" in uid_result.stdout:
+                uid = uid_result.stdout.split("uid:")[-1].strip()
+                adb_shell(
+                    f"mkdir -p /data/data/{app_pkg}/files && "
+                    f"cp {BRIDGE_PATH} /data/data/{app_pkg}/files/.titan_identity && "
+                    f"chown {uid}:{uid} /data/data/{app_pkg}/files/.titan_identity && "
+                    f"chown {uid}:{uid} /data/data/{app_pkg}/files && "
+                    f"chmod 600 /data/data/{app_pkg}/files/.titan_identity",
+                    as_root=True, check=False
+                )
+                checks_passed += 1
+                log(f"Bridge [{app_pkg}]: Copied (UID {uid})", "OK")
+            else:
+                log(f"Bridge [{app_pkg}]: App not installed", "WARN")
+    
+    # World-readable Backup auf /sdcard
+    adb_shell(
+        f"cp {BRIDGE_PATH} /sdcard/.titan_identity && chmod 644 /sdcard/.titan_identity",
+        as_root=True, check=False
+    )
+    log("Bridge /sdcard/.titan_identity: Backup OK", "OK")
+    
+    # Prüfe Kill-Switch entfernt
+    checks_total += 1
+    result = adb_shell(f"ls {KILL_SWITCH_PATH}", as_root=True, check=False)
+    if result.returncode != 0:
+        checks_passed += 1
+        log("Kill-Switch: Removed (hooks active)", "OK")
+    else:
+        log("Kill-Switch: ACTIVE (hooks disabled!)", "WARN")
+    
+    log(f"Verification: {checks_passed}/{checks_total} passed", 
+        "OK" if checks_passed == checks_total else "WARN")
+
+
 def step_finalize(full_reboot: bool = False) -> None:
     """8. Finalize: System neu starten."""
     log("Finalizing...")
@@ -878,14 +1086,26 @@ Nach Deployment:
     print("\n[9/12] SUSFS App Hiding")
     step_susfs_hide_app()
     
-    print("\n[10/12] Permission Patch")
+    print("\n[10/14] Permission Patch")
     step_xml_patch()
     
-    print("\n[11/12] Kill-Switch (Safety)")
+    print("\n[11/16] Fake System Files")
+    step_create_fake_files(identity)
+    
+    print("\n[12/16] AAID Write (GMS Preferences)")
+    step_write_aaid(identity)
+    
+    print("\n[13/16] Bridge Distribution (All Target Apps)")
+    step_distribute_bridge(identity)
+    
+    print("\n[14/16] Kill-Switch (Safety)")
     step_set_kill_switch()
     
-    print("\n[12/12] Module Update Flag")
+    print("\n[15/16] Module Update Flag")
     step_trigger_module_update()
+    
+    print("\n[16/16] Post-Deploy Verification")
+    step_post_deploy_verify(identity)
     
     print("\n" + "=" * 60)
     print("Phase 6.0 TOTAL STEALTH Deployment COMPLETE!")

@@ -16,27 +16,56 @@ object TitanBridgeReader {
     
     private const val TAG = "TitanBridge"
     
-    // Bridge-Pfade (Phase 6.0 - Multi-Path für LSPosed Zugriff)
-    // LSPosed läuft mit App-Rechten, daher App-Datenordner priorisieren!
-    private val BRIDGE_PATHS = arrayOf(
-        // App-eigene Datenordner (LSPosed kann diese lesen!)
-        "/data/data/com.titan.verifier/files/.titan_identity",
-        "/data/data/com.titan.verifier/files/titan_identity",
-        "/data/user/0/com.titan.verifier/files/.titan_identity",
+    // Bridge-Pfade (Phase 13 - Universal IPC Bridge)
+    // KRITISCH: LSPosed Hooks laufen im Kontext der ZIEL-APP (nicht unserer App!)
+    // Daher muss die Bridge an world-readable oder per-app kopierten Pfaden liegen.
+    //
+    // Reihenfolge: 1. Eigener App-Ordner (falls dorthin kopiert)
+    //              2. World-readable Pfade (/sdcard)
+    //              3. Root-only Pfade (Fallback)
+    //              4. Bekannte Ziel-App-Ordner
+    private fun getBridgePaths(): Array<String> {
+        val paths = mutableListOf<String>()
         
-        // TikTok Datenordner (falls dort gespiegelt)
-        "/data/data/com.zhiliaoapp.musically/files/.titan_identity",
-        "/data/data/com.ss.android.ugc.trill/files/.titan_identity",
+        // 1. Versuche den eigenen App-Datenordner der aktuell laufenden App
+        // (LSPosed injiziert in den Ziel-Prozess, daher ist "eigener" Ordner = Ziel-App)
+        try {
+            val atClass = Class.forName("android.app.ActivityThread")
+            val currentPkg = atClass.getMethod("currentPackageName").invoke(null) as? String
+            if (!currentPkg.isNullOrEmpty()) {
+                val selfDataDir = "/data/data/$currentPkg/files"
+                paths.add("$selfDataDir/.titan_identity")
+                paths.add("$selfDataDir/titan_identity")
+            }
+        } catch (_: Throwable) {}
         
-        // World-readable Pfade
-        "/sdcard/.titan_identity",
-        "/storage/emulated/0/.titan_identity",
-        "/sdcard/Android/data/com.titan.verifier/files/.titan_identity",
+        // 2. Hardcoded bekannte Pfade für alle Target-Apps
+        val knownApps = arrayOf(
+            "com.titan.verifier",
+            "tw.reh.deviceid",
+            "com.androidfung.drminfo",
+            "com.zhiliaoapp.musically",
+            "com.ss.android.ugc.trill"
+        )
+        for (app in knownApps) {
+            paths.add("/data/data/$app/files/.titan_identity")
+        }
+        paths.add("/data/user/0/com.titan.verifier/files/.titan_identity")
         
-        // Root-only (funktioniert nur wenn Zygisk aktiv)
-        "/data/adb/modules/titan_verifier/titan_identity",
-        "/data/local/tmp/.titan_identity"
-    )
+        // 3. World-readable Pfade (sdcard)
+        paths.add("/sdcard/.titan_identity")
+        paths.add("/storage/emulated/0/.titan_identity")
+        paths.add("/sdcard/Android/data/com.titan.verifier/files/.titan_identity")
+        
+        // 4. Root-only Pfade (funktioniert wenn Zygisk den Zugriff erlaubt)
+        paths.add("/data/adb/modules/titan_verifier/titan_identity")
+        paths.add("/data/local/tmp/.titan_identity")
+        
+        return paths.toTypedArray()
+    }
+    
+    // Legacy-Feld für Kompatibilität
+    private val BRIDGE_PATHS: Array<String> get() = getBridgePaths()
     
     // Gecachte Werte
     private var cachedValues: Map<String, String>? = null

@@ -231,7 +231,7 @@ CMAKE_STRIP:FILEPATH=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchain
 CMAKE_TAPI:FILEPATH=CMAKE_TAPI-NOTFOUND
 
 //No help, variable specified on the command line.
-CMAKE_TOOLCHAIN_FILE:UNINITIALIZED=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393.bak/build/cmake/android.toolchain.cmake
+CMAKE_TOOLCHAIN_FILE:UNINITIALIZED=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/build/cmake/android.toolchain.cmake
 
 //If this value is on, makefiles will be generated without the
 // .SILENT directive, and all commands will be echoed to the console

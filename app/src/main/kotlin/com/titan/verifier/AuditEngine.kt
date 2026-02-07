@@ -1,7 +1,14 @@
 package com.titan.verifier
 
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.hardware.SensorManager
+import android.os.BatteryManager
+import android.os.Build
+import android.util.DisplayMetrics
 import android.util.Log
+import android.view.WindowManager
 import java.io.File
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
@@ -728,5 +735,269 @@ object AuditEngine {
             isCritical = false,
             status = status
         )
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Phase 10.0 - Full Spectrum Audit Functions
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    /**
+     * Battery-Status: Liest den gehookten Ladestand und Temperatur.
+     * TikTok nutzt konstante 100% als Emulator-Indikator.
+     */
+    data class BatteryAudit(
+        val level: Int,
+        val temperature: Float,
+        val voltage: Int,
+        val health: String,
+        val isCharging: Boolean,
+        val isRealistic: Boolean  // true wenn Level != 100 und Temp realistisch
+    )
+    
+    fun getBatteryStatus(context: Context): BatteryAudit {
+        return try {
+            val batteryStatus: Intent? = IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { filter ->
+                context.registerReceiver(null, filter)
+            }
+            val level = batteryStatus?.getIntExtra("level", -1) ?: -1
+            val scale = batteryStatus?.getIntExtra("scale", 100) ?: 100
+            val percent = if (scale > 0) (level * 100) / scale else level
+            val tempRaw = batteryStatus?.getIntExtra("temperature", -1) ?: -1
+            val tempC = tempRaw / 10.0f
+            val voltage = batteryStatus?.getIntExtra("voltage", -1) ?: -1
+            val healthInt = batteryStatus?.getIntExtra("health", -1) ?: -1
+            val healthStr = when (healthInt) {
+                BatteryManager.BATTERY_HEALTH_GOOD -> "Good"
+                BatteryManager.BATTERY_HEALTH_OVERHEAT -> "Overheat"
+                BatteryManager.BATTERY_HEALTH_DEAD -> "Dead"
+                BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE -> "Over Voltage"
+                BatteryManager.BATTERY_HEALTH_COLD -> "Cold"
+                else -> "Unknown ($healthInt)"
+            }
+            val plugged = batteryStatus?.getIntExtra("plugged", 0) ?: 0
+            val isCharging = plugged != 0
+            
+            // Realistisch = nicht konstant 100%, Temperatur zwischen 15-45°C
+            val isRealistic = percent in 1..99 && tempC in 15.0f..45.0f
+            
+            BatteryAudit(percent, tempC, voltage, healthStr, isCharging, isRealistic)
+        } catch (e: Throwable) {
+            Log.e(TAG, "getBatteryStatus failed: ${e.message}")
+            BatteryAudit(-1, -1f, -1, "Error", false, false)
+        }
+    }
+    
+    /**
+     * Build Property Stichproben-Audit.
+     * Prüft 8 kritische Properties auf Pixel 6 Konsistenz.
+     */
+    data class BuildPropAudit(
+        val properties: Map<String, String>,
+        val isConsistent: Boolean,
+        val mismatchCount: Int
+    )
+    
+    fun getBuildPropertyAudit(): BuildPropAudit {
+        val expected = mapOf(
+            "Build.MANUFACTURER" to "Google",
+            "Build.MODEL" to "Pixel 6",
+            "Build.BRAND" to "google",
+            "Build.DEVICE" to "oriole",
+            "Build.BOARD" to "oriole",
+            "Build.HARDWARE" to "oriole",
+            "Build.FINGERPRINT" to "google/oriole/oriole:14/AP1A.240505.004/11583682:user/release-keys",
+            "Build.DISPLAY" to "AP1A.240505.004"
+        )
+        
+        val actual = mapOf(
+            "Build.MANUFACTURER" to Build.MANUFACTURER,
+            "Build.MODEL" to Build.MODEL,
+            "Build.BRAND" to Build.BRAND,
+            "Build.DEVICE" to Build.DEVICE,
+            "Build.BOARD" to Build.BOARD,
+            "Build.HARDWARE" to Build.HARDWARE,
+            "Build.FINGERPRINT" to Build.FINGERPRINT,
+            "Build.DISPLAY" to Build.DISPLAY
+        )
+        
+        var mismatches = 0
+        val results = mutableMapOf<String, String>()
+        
+        for ((key, expectedVal) in expected) {
+            val actualVal = actual[key] ?: "—"
+            val match = actualVal.equals(expectedVal, ignoreCase = false)
+            if (!match) mismatches++
+            results[key] = if (match) "[T] $actualVal" else "⚠ $actualVal (expected: $expectedVal)"
+        }
+        
+        return BuildPropAudit(results, mismatches == 0, mismatches)
+    }
+    
+    /**
+     * Display Metrics Audit.
+     * Pixel 6: 1080x2400 @ 411dpi
+     */
+    data class DisplayAudit(
+        val width: Int,
+        val height: Int,
+        val densityDpi: Int,
+        val density: Float,
+        val isPixel6: Boolean
+    )
+    
+    fun getDisplayAudit(context: Context): DisplayAudit {
+        return try {
+            val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            val dm = DisplayMetrics()
+            wm.defaultDisplay.getRealMetrics(dm)
+            val isPixel6 = dm.widthPixels == 1080 && dm.heightPixels == 2400 && dm.densityDpi == 411
+            DisplayAudit(dm.widthPixels, dm.heightPixels, dm.densityDpi, dm.density, isPixel6)
+        } catch (e: Throwable) {
+            DisplayAudit(0, 0, 0, 0f, false)
+        }
+    }
+    
+    /**
+     * Sensor List Audit.
+     * Prüft ob verdächtige Virtual/Mock Sensoren vorhanden sind.
+     */
+    data class SensorAudit(
+        val totalCount: Int,
+        val sensorNames: List<String>,
+        val hasVirtual: Boolean,
+        val hasMock: Boolean
+    )
+    
+    fun getSensorAudit(context: Context): SensorAudit {
+        return try {
+            val sm = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+            val allSensors = sm.getSensorList(android.hardware.Sensor.TYPE_ALL)
+            val names = allSensors.map { "${it.name} (${it.vendor})" }
+            val hasVirtual = allSensors.any { 
+                it.name.contains("Virtual", true) || it.name.contains("Emulator", true) 
+            }
+            val hasMock = allSensors.any { 
+                it.name.contains("Mock", true) || it.vendor.contains("Mock", true) 
+            }
+            SensorAudit(allSensors.size, names, hasVirtual, hasMock)
+        } catch (e: Throwable) {
+            SensorAudit(0, emptyList(), false, false)
+        }
+    }
+    
+    /**
+     * Telephony Extended Audit.
+     * Prüft die neuen Phase 10.0 Felder.
+     */
+    data class TelephonyAudit(
+        val phoneNumber: String,
+        val simOperator: String,
+        val simOperatorName: String,
+        val networkOperator: String,
+        val simCountryIso: String,
+        val phoneType: String,
+        val networkType: String
+    )
+    
+    fun getTelephonyAudit(context: Context): TelephonyAudit {
+        return try {
+            val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+            val phoneNumber = try { tm?.line1Number ?: "" } catch (_: SecurityException) { "—" }
+            val simOp = tm?.simOperator ?: ""
+            val simOpName = tm?.simOperatorName ?: ""
+            val netOp = tm?.networkOperator ?: ""
+            val simCountry = tm?.simCountryIso ?: ""
+            val phoneType = when (tm?.phoneType) {
+                TelephonyManager.PHONE_TYPE_GSM -> "GSM"
+                TelephonyManager.PHONE_TYPE_CDMA -> "CDMA"
+                TelephonyManager.PHONE_TYPE_SIP -> "SIP"
+                else -> "NONE"
+            }
+            val netType = try {
+                when (tm?.dataNetworkType) {
+                    TelephonyManager.NETWORK_TYPE_LTE -> "LTE"
+                    TelephonyManager.NETWORK_TYPE_NR -> "5G NR"
+                    TelephonyManager.NETWORK_TYPE_HSDPA -> "HSDPA"
+                    TelephonyManager.NETWORK_TYPE_UMTS -> "UMTS"
+                    TelephonyManager.NETWORK_TYPE_EDGE -> "EDGE"
+                    TelephonyManager.NETWORK_TYPE_GPRS -> "GPRS"
+                    else -> "Unknown"
+                }
+            } catch (_: SecurityException) { "—" }
+            
+            TelephonyAudit(phoneNumber, simOp, simOpName, netOp, simCountry, phoneType, netType)
+        } catch (e: Throwable) {
+            TelephonyAudit("", "", "", "", "", "", "")
+        }
+    }
+    
+    /**
+     * Input Devices Check via Java API (InputManager).
+     * Ergänzt den nativen /proc/bus/input/devices Check.
+     */
+    fun getInputDevicesJava(context: Context): String {
+        return try {
+            val im = context.getSystemService(Context.INPUT_SERVICE) as? android.hardware.input.InputManager
+                ?: return "InputManager unavailable"
+            val ids = im.inputDeviceIds
+            if (ids.isEmpty()) return "No devices"
+            val devices = ids.toList().mapNotNull { id ->
+                im.getInputDevice(id)?.let { dev ->
+                    "${dev.name} (src=0x${Integer.toHexString(dev.sources)})"
+                }
+            }
+            devices.joinToString(", ")
+        } catch (e: Throwable) {
+            "Error: ${e.message}"
+        }
+    }
+    
+    /**
+     * Package Stealth Check: Kann sich die App selbst im PackageManager sehen?
+     * Und sieht sie verdächtige Packages (Magisk, KSU, LSPosed)?
+     */
+    data class StealthAudit(
+        val selfVisible: Boolean,
+        val suspiciousPackages: List<String>
+    )
+    
+    fun getStealthAudit(context: Context): StealthAudit {
+        val suspicious = mutableListOf<String>()
+        val pm = context.packageManager
+        
+        val selfVisible = try {
+            pm.getPackageInfo(context.packageName, 0)
+            true
+        } catch (_: Throwable) { false }
+        
+        val suspiciousPkgs = listOf(
+            "com.topjohnwu.magisk",
+            "io.github.vvb2060.magisk",
+            "me.weishu.kernelsu",
+            "org.lsposed.manager",
+            "org.meowcat.edxposed.manager",
+            "com.tsng.hidemyapplist"
+        )
+        for (pkg in suspiciousPkgs) {
+            try {
+                pm.getPackageInfo(pkg, 0)
+                suspicious.add(pkg)
+            } catch (_: Throwable) { /* not installed */ }
+        }
+        
+        return StealthAudit(selfVisible, suspicious)
+    }
+    
+    /**
+     * Bridge Identity Profile Name.
+     * Liest den Identity-Fingerprint aus der Bridge.
+     */
+    fun getIdentityProfile(): String {
+        val bridge = loadBridgeValues()
+        if (bridge.isEmpty()) return "Not configured"
+        val serial = bridge["serial"] ?: "?"
+        val operator = bridge["operator_name"] ?: bridge["sim_operator_name"] ?: "?"
+        val mac = bridge["wifi_mac"] ?: "?"
+        return "$serial / $operator / ${mac.takeLast(8)}"
     }
 }

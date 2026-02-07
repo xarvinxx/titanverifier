@@ -314,6 +314,80 @@ static const char* FAKE_INPUT_DEVICES =
     "\n";
 
 // ==============================================================================
+// Build Property Overrides (Pixel 6 - Oriole, Android 14)
+// ==============================================================================
+
+struct PropertyOverride {
+    const char* name;
+    const char* value;
+};
+
+static const PropertyOverride PIXEL6_BUILD_PROPS[] = {
+    // Product Properties
+    {"ro.product.manufacturer",             "Google"},
+    {"ro.product.model",                    "Pixel 6"},
+    {"ro.product.brand",                    "google"},
+    {"ro.product.name",                     "oriole"},
+    {"ro.product.device",                   "oriole"},
+    {"ro.product.board",                    "oriole"},
+    {"ro.hardware",                         "oriole"},
+    {"ro.hardware.chipname",                "gs101"},
+    
+    // Product Partitions (system, vendor, odm)
+    {"ro.product.system.brand",             "google"},
+    {"ro.product.system.model",             "Pixel 6"},
+    {"ro.product.system.manufacturer",      "Google"},
+    {"ro.product.system.device",            "oriole"},
+    {"ro.product.system.name",              "oriole"},
+    {"ro.product.vendor.brand",             "google"},
+    {"ro.product.vendor.model",             "Pixel 6"},
+    {"ro.product.vendor.manufacturer",      "Google"},
+    {"ro.product.vendor.device",            "oriole"},
+    {"ro.product.vendor.name",              "oriole"},
+    {"ro.product.odm.brand",               "google"},
+    {"ro.product.odm.model",               "Pixel 6"},
+    {"ro.product.odm.manufacturer",        "Google"},
+    {"ro.product.odm.device",              "oriole"},
+    {"ro.product.odm.name",                "oriole"},
+    {"ro.product.first_api_level",          "31"},
+    
+    // Build Properties
+    {"ro.build.display.id",                 "AP1A.240505.004"},
+    {"ro.build.description",                "oriole-user 14 AP1A.240505.004 11583682 release-keys"},
+    {"ro.build.fingerprint",                "google/oriole/oriole:14/AP1A.240505.004/11583682:user/release-keys"},
+    {"ro.build.product",                    "oriole"},
+    {"ro.build.type",                       "user"},
+    {"ro.build.tags",                       "release-keys"},
+    {"ro.build.id",                         "AP1A.240505.004"},
+    {"ro.build.flavor",                     "oriole-user"},
+    {"ro.build.host",                       "abfarm-release-rbe-64-00044"},
+    {"ro.build.user",                       "android-build"},
+    
+    // Build Versions
+    {"ro.build.version.sdk",                "34"},
+    {"ro.build.version.release",            "14"},
+    {"ro.build.version.release_or_codename","14"},
+    {"ro.build.version.security_patch",     "2024-05-05"},
+    {"ro.build.version.incremental",        "11583682"},
+    {"ro.build.version.codename",           "REL"},
+    {"ro.build.version.base_os",            ""},
+    {"ro.build.version.preview_sdk",        "0"},
+    
+    // SoC
+    {"ro.soc.manufacturer",                 "Google"},
+    {"ro.soc.model",                        "Tensor"},
+    
+    // Bootloader & Baseband
+    {"ro.bootimage.build.fingerprint",      "google/oriole/oriole:14/AP1A.240505.004/11583682:user/release-keys"},
+    {"ro.vendor.build.fingerprint",         "google/oriole/oriole:14/AP1A.240505.004/11583682:user/release-keys"},
+    {"ro.odm.build.fingerprint",            "google/oriole/oriole:14/AP1A.240505.004/11583682:user/release-keys"},
+    {"ro.system.build.fingerprint",         "google/oriole/oriole:14/AP1A.240505.004/11583682:user/release-keys"},
+    
+    // Sentinel
+    {nullptr, nullptr}
+};
+
+// ==============================================================================
 // Hook: __system_property_get
 // ==============================================================================
 
@@ -324,6 +398,8 @@ static int titan_hooked_system_property_get(const char* name, char* value) {
     
     TitanHardware& hw = TitanHardware::getInstance();
     char spoofed[128] = {};
+    
+    // --- Identity Properties (aus Bridge) ---
     
     if (strcmp(name, "ro.serialno") == 0 || strcmp(name, "ro.boot.serialno") == 0) {
         hw.getSerial(spoofed, sizeof(spoofed));
@@ -343,6 +419,23 @@ static int titan_hooked_system_property_get(const char* name, char* value) {
     if (strstr(name, "wifimacaddr") || strstr(name, "wlan.driver.macaddr")) {
         hw.getWifiMac(spoofed, sizeof(spoofed));
         if (spoofed[0]) { strncpy(value, spoofed, 23); value[23] = '\0'; return (int)strlen(value); }
+    }
+    
+    // --- Build Properties (hardcoded Pixel 6 Werte) ---
+    
+    for (int i = 0; PIXEL6_BUILD_PROPS[i].name != nullptr; i++) {
+        if (strcmp(name, PIXEL6_BUILD_PROPS[i].name) == 0) {
+            const char* override = PIXEL6_BUILD_PROPS[i].value;
+            size_t len = strlen(override);
+            if (len > 91) len = 91;
+            memcpy(value, override, len);
+            value[len] = '\0';
+            // Nur bei erstem Treffer loggen (Performance)
+            if (i == 0 || strstr(name, "fingerprint") || strstr(name, "display.id")) {
+                LOGI("[TITAN] Property spoofed: %s = %s", name, value);
+            }
+            return (int)len;
+        }
     }
     
     return g_origSystemPropertyGet ? g_origSystemPropertyGet(name, value) : 0;

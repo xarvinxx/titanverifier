@@ -129,6 +129,14 @@ object TitanBridgeReader {
     
     fun getOperatorName(): String? = loadBridgeValues()["operator_name"] ?: loadBridgeValues()["operator"]
     
+    fun getPhoneNumber(): String? = loadBridgeValues()["phone_number"] ?: loadBridgeValues()["line1_number"]
+    
+    fun getSimOperator(): String? = loadBridgeValues()["sim_operator"] ?: loadBridgeValues()["mcc_mnc"]
+    
+    fun getSimOperatorName(): String? = loadBridgeValues()["sim_operator_name"]
+    
+    fun getVoicemailNumber(): String? = loadBridgeValues()["voicemail_number"]
+    
     /**
      * Prüft ob die Bridge geladen werden kann.
      */

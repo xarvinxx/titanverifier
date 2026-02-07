@@ -29,9 +29,15 @@ object AuditExporter {
         val missing = mutableListOf<String>()
         val fmt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
 
+        // Identity Profile Header
+        val identityProfile = try { 
+            com.titan.verifier.AuditEngine.getIdentityProfile() 
+        } catch (_: Throwable) { "Unknown" }
+
         sb.appendLine("=== Ground Truth Auditor – Export ===")
         sb.appendLine("Datum: ${fmt.format(Date())}")
         sb.appendLine("Gerät: ${Build.MODEL}, Android ${Build.VERSION.SDK_INT}")
+        sb.appendLine("Identity Profile: $identityProfile")
         sb.appendLine()
 
         for (sec in layeredSections) {
@@ -54,7 +60,9 @@ object AuditExporter {
             sb.appendLine("--- ${sec.title} ---")
             for (row in sec.rows) {
                 val ok = !isMissing(row.value)
-                if (!ok) missing.add(row.label)
+                // Sub-property rows (indented labels) don't count as missing
+                val isSubRow = row.label.startsWith("  ")
+                if (!ok && !isSubRow) missing.add(row.label)
                 sb.appendLine("  ${row.label}: ${row.value} ${if (ok) "[OK]" else "[MISSING]"}")
             }
             sb.appendLine()

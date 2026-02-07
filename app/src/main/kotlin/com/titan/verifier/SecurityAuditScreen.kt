@@ -226,40 +226,106 @@ fun SecurityAuditScreen() {
         // Physical Hardware
         val gpuRenderer = AuditEngine.getGpuRenderer()
         val totalRam = AuditEngine.getTotalRam()
-        val inputDeviceList = AuditEngine.getInputDeviceList()
+        val inputDeviceListNative = AuditEngine.getInputDeviceList()
+        val inputDeviceListJava = AuditEngine.getInputDevicesJava(context)
+        val inputCombined = when {
+            inputDeviceListJava.isNotEmpty() && inputDeviceListJava != "No devices" && inputDeviceListJava != "InputManager unavailable" -> inputDeviceListJava
+            inputDeviceListNative.isNotEmpty() -> inputDeviceListNative
+            else -> "—"
+        }
         val gpuRed = gpuRenderer.isNotEmpty() && !gpuRenderer.contains("Mali-G78")
         val ramGb = totalRam.replace(" GB", "").toDoubleOrNull() ?: 0.0
         val ramRed = ramGb < 7.0 || ramGb > 9.0
-        val inputRed = inputDeviceList.contains("[EMULATOR]") ||
-            inputDeviceList.contains("virtual", ignoreCase = true) ||
-            inputDeviceList.contains("vbox", ignoreCase = true) ||
-            inputDeviceList.contains("goldfish", ignoreCase = true)
+        val inputRed = inputCombined.contains("[EMULATOR]") ||
+            inputCombined.contains("virtual", ignoreCase = true) ||
+            inputCombined.contains("vbox", ignoreCase = true) ||
+            inputCombined.contains("goldfish", ignoreCase = true)
+        val inputOk = inputCombined != "—" && inputCombined != "No devices" && !inputRed
+        
+        // Display Audit
+        val displayAudit = AuditEngine.getDisplayAudit(context)
+        val displayStr = "${displayAudit.width}x${displayAudit.height} @ ${displayAudit.densityDpi}dpi"
+        val displayRed = !displayAudit.isPixel6
 
         val physicalSection = AuditSection(
             title = "5. Physical Hardware",
             rows = listOf(
                 AuditRow("GPU Renderer", gpuRenderer.ifEmpty { "—" }, isCritical = false, forceRed = if (gpuRenderer.isEmpty()) null else gpuRed),
                 AuditRow("RAM (MemTotal)", totalRam.ifEmpty { "—" }, isCritical = false, forceRed = if (totalRam.isEmpty()) null else ramRed),
-                AuditRow("Input Devices", inputDeviceList.ifEmpty { "—" }.replace("\n", ", "), isCritical = false, forceRed = if (inputDeviceList.isEmpty()) null else inputRed)
+                AuditRow("Display Resolution", displayStr, isCritical = false, forceRed = displayRed),
+                AuditRow("Input Devices (Java)", inputCombined.replace("\n", ", "), isCritical = false, forceRed = if (inputCombined == "—") null else inputRed),
+                AuditRow("Input Devices (Native)", inputDeviceListNative.ifEmpty { "—" }.replace("\n", ", "), isCritical = false)
             )
         )
 
-        // Network & Telemetry
+        // Network & Telemetry (erweitert mit Phase 10.0)
         val macWlan0 = AuditEngine.getMacAddressWlan0WithFallback()
         val operatorName = AuditEngine.getOperatorName(context)
         val bootloader = Build.BOOTLOADER.ifEmpty { Build.UNKNOWN }
+        val telephony = AuditEngine.getTelephonyAudit(context)
 
         val networkSection = AuditSection(
             title = "6. Network & Telemetry",
             rows = listOf(
                 AuditRow("MAC Address (WiFi wlan0)", macWlan0.ifEmpty { "—" }, isCritical = false),
                 AuditRow("Operator Name", operatorName.ifEmpty { "—" }, isCritical = false),
+                AuditRow("Phone Number", telephony.phoneNumber.ifEmpty { "—" }, isCritical = false),
+                AuditRow("SIM Operator", "${telephony.simOperator} / ${telephony.simOperatorName}".ifEmpty { "—" }, isCritical = false),
+                AuditRow("Network Operator", telephony.networkOperator.ifEmpty { "—" }, isCritical = false),
+                AuditRow("SIM Country", telephony.simCountryIso.ifEmpty { "—" }, isCritical = false),
+                AuditRow("Phone Type", telephony.phoneType.ifEmpty { "—" }, isCritical = false),
+                AuditRow("Network Type", telephony.networkType.ifEmpty { "—" }, isCritical = false),
                 AuditRow("Bootloader", bootloader, isCritical = false)
             )
         )
 
+        // === 7. Forensics & Stealth (Phase 10.0 / 13.5) ===
+        val battery = AuditEngine.getBatteryStatus(context)
+        val buildProps = AuditEngine.getBuildPropertyAudit()
+        val sensor = AuditEngine.getSensorAudit(context)
+        val stealth = AuditEngine.getStealthAudit(context)
+        val identityProfile = AuditEngine.getIdentityProfile()
+        
+        val batteryStr = "${battery.level}% / ${battery.temperature}°C / ${battery.voltage}mV"
+        val batteryRed = !battery.isRealistic
+        
+        val sensorStr = "${sensor.totalCount} Sensors"
+        val sensorRed = sensor.hasVirtual || sensor.hasMock
+        val sensorDetail = if (sensor.sensorNames.size <= 5) {
+            sensor.sensorNames.joinToString(", ")
+        } else {
+            sensor.sensorNames.take(5).joinToString(", ") + " +${sensor.sensorNames.size - 5} more"
+        }
+        
+        val stealthStr = if (stealth.suspiciousPackages.isEmpty()) "Clean" 
+            else "Detected: ${stealth.suspiciousPackages.joinToString(", ")}"
+        val stealthRed = stealth.suspiciousPackages.isNotEmpty()
+
+        val forensicsSection = AuditSection(
+            title = "7. Forensics & Stealth",
+            rows = buildList {
+                add(AuditRow("Identity Profile", identityProfile, isCritical = false))
+                add(AuditRow("Battery Status", batteryStr, isCritical = false, forceRed = batteryRed))
+                add(AuditRow("Battery Health", battery.health, isCritical = false))
+                add(AuditRow("Charging", if (battery.isCharging) "Yes" else "No", isCritical = false))
+                add(AuditRow("Battery Realistic", if (battery.isRealistic) "Yes (Anti-Emu OK)" else "No (Suspicious!)", isCritical = false, forceRed = batteryRed))
+                add(AuditRow("Build Props", if (buildProps.isConsistent) "All OK (${buildProps.properties.size})" else "${buildProps.mismatchCount} Mismatches", isCritical = false, forceRed = !buildProps.isConsistent))
+                // Stichprobe der Properties
+                for ((key, value) in buildProps.properties) {
+                    add(AuditRow("  $key", value, isCritical = false, forceRed = value.startsWith("⚠")))
+                }
+                add(AuditRow("Display Match (Pixel 6)", if (displayAudit.isPixel6) "OK (1080x2400@411)" else "Mismatch ($displayStr)", isCritical = false, forceRed = displayRed))
+                add(AuditRow("Sensor Count", sensorStr, isCritical = false))
+                add(AuditRow("Sensor List", sensorDetail, isCritical = false))
+                add(AuditRow("Virtual Sensors", if (sensor.hasVirtual) "Detected!" else "None", isCritical = false, forceRed = sensorRed))
+                add(AuditRow("Mock Sensors", if (sensor.hasMock) "Detected!" else "None", isCritical = false, forceRed = sensorRed))
+                add(AuditRow("Package Stealth", stealthStr, isCritical = false, forceRed = stealthRed))
+                add(AuditRow("Self Visible", if (stealth.selfVisible) "Yes" else "Hidden", isCritical = false))
+            }
+        )
+
         layeredSections = listOf(layeredIdentity)
-        sections = listOf(hookStatusSection, identitySection, hardwareSection, drmSection, physicalSection, networkSection)
+        sections = listOf(hookStatusSection, identitySection, hardwareSection, drmSection, physicalSection, networkSection, forensicsSection)
         layeredSections.forEach { expanded[it.title] = expanded[it.title] ?: true }
         // Hook Status immer expanded, Rest collapsed
         sections.forEachIndexed { idx, sec -> 

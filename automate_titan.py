@@ -175,12 +175,50 @@ def generate_operator_name() -> str:
     return random.choice(carriers)
 
 
+def generate_phone_number() -> str:
+    """Generiert eine realistische US-Telefonnummer."""
+    # US Format: +1 (Area Code) XXX-XXXX
+    area_codes = ["202", "213", "312", "415", "646", "718", "310", "404", "617", "512"]
+    area = random.choice(area_codes)
+    exchange = str(random.randint(200, 999))
+    subscriber = str(random.randint(1000, 9999))
+    return f"+1{area}{exchange}{subscriber}"
+
+
+def generate_sim_operator() -> tuple:
+    """Generiert eine passende MCC+MNC und Operator-Name Kombination."""
+    operators = [
+        ("310260", "T-Mobile", "T-Mobile"),
+        ("310410", "AT&T", "AT&T"),
+        ("311480", "Verizon", "Verizon"),
+        ("310120", "Sprint", "Sprint"),
+        ("312530", "Google Fi", "Google Fi"),
+    ]
+    mcc_mnc, name, display_name = random.choice(operators)
+    return mcc_mnc, name, display_name
+
+
+def generate_voicemail_number(operator: str) -> str:
+    """Generiert eine realistische Voicemail-Nummer basierend auf dem Carrier."""
+    voicemail_numbers = {
+        "T-Mobile": "+18056377243",
+        "AT&T": "+18888880800",
+        "Verizon": "+18009220204",
+        "Sprint": "+18886028079",
+        "Google Fi": "+14043986429",
+    }
+    return voicemail_numbers.get(operator, "+18056377243")
+
+
 def generate_pixel6_identity() -> Dict[str, str]:
     """
     Generiert eine vollständige, realistische Pixel 6 Identität.
     Alle IMEIs sind Luhn-konform, alle IDs im korrekten Format.
+    Phase 10.0: Erweitert um Telephony, SIM-Operator, Telefonnummer.
     """
     serial = generate_serial()
+    sim_operator, operator_name, sim_operator_name = generate_sim_operator()
+    
     return {
         "serial": serial,
         "boot_serial": serial,  # Normalerweise identisch
@@ -192,7 +230,12 @@ def generate_pixel6_identity() -> Dict[str, str]:
         "widevine_id": generate_widevine_id(),
         "imsi": generate_imsi(),
         "sim_serial": generate_iccid(),
-        "operator_name": generate_operator_name(),
+        "operator_name": operator_name,
+        # Phase 10.0 – Full Spectrum
+        "phone_number": generate_phone_number(),
+        "sim_operator": sim_operator,
+        "sim_operator_name": sim_operator_name,
+        "voicemail_number": generate_voicemail_number(operator_name),
     }
 
 

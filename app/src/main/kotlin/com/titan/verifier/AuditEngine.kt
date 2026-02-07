@@ -345,41 +345,23 @@ object AuditEngine {
     external fun getTotalRam(): String
 
     /** 
-     * Widevine: Phase 7.8 - Bridge-First Strategy.
+     * Widevine: Phase 9.5 - NUR Java API (Ehrlichkeitsmodus).
      * 
-     * Da die Widevine HAL auf diesem Gerät defekt ist (NO_INIT),
-     * nutzen wir den Bridge-Wert als primäre Quelle.
-     * 
-     * WICHTIG: TikTok kann die Widevine ID ebenfalls nicht lesen (gleicher HAL-Fehler),
-     * daher ist die Emulation durch den Bridge-Wert ausreichend für Stealth.
+     * Nutzt ausschließlich getWidevineIdJava().
+     * Native API wird NICHT aufgerufen (Dobby SIGILL Problem).
+     * Wenn leer → Auditor zeigt MISSING.
      */
     fun getWidevineIdWithFallback(context: Context): String {
-        val bridgeValues = loadBridgeValues()
-        val bridgeWidevine = bridgeValues["widevine_id"]
-        
-        // Bridge-Wert hat Priorität (Phase 7.8 Emulation)
-        if (!bridgeWidevine.isNullOrEmpty()) {
-            Log.d(TAG, "[Widevine] Using configured identity: $bridgeWidevine")
-            return bridgeWidevine
-        }
-        
-        // Fallback: Java API (falls LSPosed-Hook aktiv)
+        // NUR Java API (MediaDrm) - LSPosed Hook unterdrückt Konstruktor-Exception
         val javaId = getWidevineIdJava()
         if (javaId.isNotEmpty() && javaId.length >= 16) {
-            Log.d(TAG, "[Widevine] Java API returned: $javaId")
+            Log.d(TAG, "[Widevine] Java API -> $javaId")
             return javaId
         }
         
-        // Fallback: Native JNI
-        val nativeId = getWidevineID()
-        if (nativeId.isNotEmpty() && !nativeId.startsWith("ERROR")) {
-            Log.d(TAG, "[Widevine] Native API returned: $nativeId")
-            return nativeId
-        }
-        
-        // Master-ID als absoluter Fallback
-        Log.w(TAG, "[Widevine] Using Master-ID fallback")
-        return "10179c6bcba352dbd5ce5c88fec8e098"
+        // KEIN FALLBACK
+        Log.e(TAG, "[Widevine] Java API failed - no fallback!")
+        return ""
     }
 
     /** Java MediaDrm für Widevine Device Unique ID (LSPosed hookt diese!). */

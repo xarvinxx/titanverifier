@@ -67,38 +67,57 @@ std::string bytesToHex(const uint8_t* data, size_t len) {
     return out;
 }
 
+// Phase 9.0: Typdefinitionen für dynamische Auflösung (damit Dobby-Hooks greifen)
+typedef AMediaDrm* (*AMediaDrm_createByUUID_t)(const uint8_t uuid[16]);
+typedef media_status_t (*AMediaDrm_getPropertyByteArray_t)(AMediaDrm*, const char*, AMediaDrmByteArray*);
+typedef void (*AMediaDrm_release_t)(AMediaDrm*);
+
 std::string getWidevineIdImpl() {
-    // Prüfen ob libmediadrm.so bzw. libmediandk.so für die App zugänglich ist
-    void* handle = dlopen("libmediadrm.so", RTLD_NOW);
-    if (!handle) {
-        handle = dlopen("libmediandk.so", RTLD_NOW);
-    }
+    // Phase 9.0: Dynamische Auflösung via dlsym - so greifen Dobby-Hooks!
+    void* handle = dlopen("libmediandk.so", RTLD_NOW);
     if (!handle) {
         const char* err = dlerror();
-        LOGI("Widevine: dlopen failed, dlerror=%s", err ? err : "unknown");
+        LOGI("Widevine: dlopen(libmediandk.so) failed, dlerror=%s", err ? err : "unknown");
         return "ERROR: LIBRARY_UNAVAILABLE(dlopen)";
     }
-    dlclose(handle);  // Nur Verfügbarkeitsprüfung; eigentliche Calls nutzen Link-Zeit-Bindung
-
+    
+    // Funktionen dynamisch auflösen
+    auto createByUUID = (AMediaDrm_createByUUID_t)dlsym(handle, "AMediaDrm_createByUUID");
+    auto getPropertyByteArray = (AMediaDrm_getPropertyByteArray_t)dlsym(handle, "AMediaDrm_getPropertyByteArray");
+    auto releaseDrm = (AMediaDrm_release_t)dlsym(handle, "AMediaDrm_release");
+    
+    if (!createByUUID || !getPropertyByteArray || !releaseDrm) {
+        LOGI("Widevine: dlsym failed for AMediaDrm functions");
+        dlclose(handle);
+        return "ERROR: DLSYM_FAILED";
+    }
+    
+    LOGI("Widevine: Functions resolved via dlsym (Dobby hooks should intercept)");
+    
     // Widevine UUID: ED282E16-FDD2-47C7-8D6D-09946462F367 (16 bytes, big-endian)
-    AMediaDrm* drm = AMediaDrm_createByUUID(kWidevineUuid);
+    AMediaDrm* drm = createByUUID(kWidevineUuid);
     if (drm == nullptr) {
         const int err = errno;
         LOGI("AMediaDrm_createByUUID failed (null), UUID=ED282E16-FDD2-47C7-8D6D-09946462F367, errno=%d", err);
+        dlclose(handle);
         return "ERROR: CREATE_FAILED(errno=" + std::to_string(err) + ")";
     }
+    
+    LOGI("Widevine: AMediaDrm object created at %p", drm);
 
     AMediaDrmByteArray value = {};
-    media_status_t status = AMediaDrm_getPropertyByteArray(
-            drm, PROPERTY_DEVICE_UNIQUE_ID, &value);
+    media_status_t status = getPropertyByteArray(drm, PROPERTY_DEVICE_UNIQUE_ID, &value);
     std::string result;
     if (status == AMEDIA_OK && value.ptr != nullptr && value.length > 0) {
         result = bytesToHex(value.ptr, value.length);
+        LOGI("Widevine: Got property, length=%zu, hex=%s", value.length, result.c_str());
     } else {
         LOGI("AMediaDrm_getPropertyByteArray failed, status=%d (AMEDIA_OK=0)", static_cast<int>(status));
         result = "ERROR: GET_PROPERTY_" + std::to_string(static_cast<int>(status));
     }
-    AMediaDrm_release(drm);
+    
+    releaseDrm(drm);
+    dlclose(handle);
     return result;
 }
 

@@ -447,7 +447,7 @@ class TitanXposedModule : IXposedHookLoadPackage {
     private fun hookMediaDrm() {
         // Master Widevine ID (Phase 7.8 - Fixed Pixel 6 Identity)
         val MASTER_WIDEVINE_ID = "10179c6bcba352dbd5ce5c88fec8e098"
-        // Hook MediaDrm Konstruktor - Exception abfangen und durchlassen
+        // Phase 9.5: Konstruktor-Exception UNTERDRÜCKEN
         try {
             XposedHelpers.findAndHookConstructor(
                 MediaDrm::class.java,
@@ -455,35 +455,31 @@ class TitanXposedModule : IXposedHookLoadPackage {
                 object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         if (param.throwable != null) {
-                            log("MediaDrm constructor threw: ${param.throwable.message}")
-                            // Wir können die Exception nicht unterdrücken bei Konstruktoren
-                        } else {
-                            log("MediaDrm constructor succeeded")
+                            log("MediaDrm constructor: SUPPRESSING ${param.throwable.javaClass.simpleName}")
+                            param.throwable = null // Exception unterdrücken!
                         }
                     }
                 }
             )
+            log("MediaDrm constructor hook: Exception suppression ACTIVE")
         } catch (e: Throwable) {
             log("MediaDrm constructor hook failed: ${e.message}")
         }
         
-        // getPropertyByteArray - Widevine Device ID
+        // getPropertyByteArray - MUSS im beforeHookedMethod greifen (vor Original!)
         XposedHelpers.findAndHookMethod(MediaDrm::class.java, "getPropertyByteArray", String::class.java,
             object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     val prop = param.args[0] as? String ?: return
                     
                     if (prop == MediaDrm.PROPERTY_DEVICE_UNIQUE_ID || 
-                        prop.equals("deviceUniqueId", ignoreCase = true) ||
-                        prop.contains("unique", ignoreCase = true) ||
-                        prop.contains("device", ignoreCase = true)) {
+                        prop.equals("deviceUniqueId", ignoreCase = true)) {
                         
                         ensureBridgeLoaded()
-                        // Nutze Bridge-Wert oder Master-ID
-                        val widevinHex = cachedWidevine ?: MASTER_WIDEVINE_ID
-                        hexToBytes(widevinHex)?.let { bytes ->
+                        val widevineHex = cachedWidevine ?: MASTER_WIDEVINE_ID
+                        hexToBytes(widevineHex)?.let { bytes ->
                             param.result = bytes
-                            log("MediaDrm.getPropertyByteArray($prop) -> ${bytes.size} bytes (spoofed)")
+                            log("MediaDrm.getPropertyByteArray($prop) -> ${bytes.size} bytes SPOOFED")
                         }
                     }
                 }
@@ -495,28 +491,131 @@ class TitanXposedModule : IXposedHookLoadPackage {
             object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     val prop = param.args[0] as? String ?: return
-                    
                     if (prop.contains("device", ignoreCase = true) || prop.contains("unique", ignoreCase = true)) {
                         ensureBridgeLoaded()
-                        val widevinHex = cachedWidevine ?: MASTER_WIDEVINE_ID
-                        param.result = widevinHex
-                        log("MediaDrm.getPropertyString($prop) -> spoofed")
+                        param.result = cachedWidevine ?: MASTER_WIDEVINE_ID
                     }
                 }
             }
         )
+        
+        // close() + release() - Fehler bei leerem DRM-Objekt unterdrücken
+        try {
+            XposedHelpers.findAndHookMethod(MediaDrm::class.java, "close",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        if (param.throwable != null) {
+                            param.throwable = null
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        try {
+            XposedHelpers.findAndHookMethod(MediaDrm::class.java, "release",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        if (param.throwable != null) {
+                            param.throwable = null
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
     }
     
     // =========================================================================
-    // InputManager (Stealth)
+    // InputManager (Stealth) - Phase 9.5: Echte Mock-InputDevices via Reflection
     // =========================================================================
     
     private fun hookInputManager() {
+        // getInputDeviceIds - Gib echte Pixel 6 Device-IDs zurück
         XposedHelpers.findAndHookMethod(InputManager::class.java, "getInputDeviceIds", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                param.result = IntArray(0)
+            override fun afterHookedMethod(param: MethodHookParam) {
+                val result = param.result as? IntArray
+                if (result == null || result.isEmpty()) {
+                    param.result = intArrayOf(1, 2, 3)
+                    log("InputManager.getInputDeviceIds() -> [1, 2, 3]")
+                }
             }
         })
+        
+        // getInputDevice(id) - Echtes Mock-InputDevice via Reflection
+        try {
+            XposedHelpers.findAndHookMethod(InputManager::class.java, "getInputDevice", Int::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        if (param.result != null) return // Echtes Gerät existiert
+                        
+                        val id = param.args[0] as Int
+                        try {
+                            val mockDevice = createMockInputDevice(id)
+                            if (mockDevice != null) {
+                                param.result = mockDevice
+                                log("InputManager.getInputDevice($id) -> Mock created")
+                            }
+                        } catch (e: Throwable) {
+                            log("InputDevice mock failed for id=$id: ${e.message}")
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+    }
+    
+    /**
+     * Erstellt ein Mock-InputDevice via Reflection.
+     * Pixel 6 Geräte: Touchscreen (ID 1), GPIO-Keys (ID 2), Power Button (ID 3)
+     */
+    private fun createMockInputDevice(id: Int): android.view.InputDevice? {
+        return try {
+            // InputDevice hat keinen öffentlichen Konstruktor - nutze Reflection
+            val clazz = android.view.InputDevice::class.java
+            
+            // Versuche den privaten Konstruktor
+            val constructor = clazz.getDeclaredConstructor()
+            constructor.isAccessible = true
+            val device = constructor.newInstance()
+            
+            // Setze ID
+            try {
+                val idField = clazz.getDeclaredField("mId")
+                idField.isAccessible = true
+                idField.setInt(device, id)
+            } catch (_: Throwable) {}
+            
+            // Setze Name basierend auf ID
+            val name = when (id) {
+                1 -> "sec_touchscreen"
+                2 -> "gpio-keys"
+                3 -> "Power Button"
+                else -> "input$id"
+            }
+            try {
+                val nameField = clazz.getDeclaredField("mName")
+                nameField.isAccessible = true
+                nameField.set(device, name)
+            } catch (_: Throwable) {}
+            
+            // Setze Sources
+            val sources = when (id) {
+                1 -> 4098  // SOURCE_TOUCHSCREEN
+                2 -> 257   // SOURCE_KEYBOARD
+                3 -> 257   // SOURCE_KEYBOARD
+                else -> 0
+            }
+            try {
+                val sourcesField = clazz.getDeclaredField("mSources")
+                sourcesField.isAccessible = true
+                sourcesField.setInt(device, sources)
+            } catch (_: Throwable) {}
+            
+            device
+        } catch (e: Throwable) {
+            log("createMockInputDevice failed: ${e.message}")
+            null
+        }
     }
     
     // =========================================================================

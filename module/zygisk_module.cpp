@@ -90,11 +90,23 @@ using FopenFn = FILE* (*)(const char* pathname, const char* mode);
 using FreadFn = size_t (*)(void* ptr, size_t size, size_t nmemb, FILE* stream);
 using FgetsFn = char* (*)(char* s, int size, FILE* stream);
 
-// Widevine NDK API Types
+// Widevine NDK API Types (Phase 9.5 - Korrekte Signaturen!)
 struct AMediaDrm;
 typedef int media_status_t;
 #define AMEDIA_OK 0
-using AMediaDrmGetPropertyByteArrayFn = media_status_t (*)(AMediaDrm*, const char*, uint8_t**, size_t*);
+#define AMEDIA_DRM_NOT_PROVISIONED -10003
+
+// AMediaDrmByteArray - MUSS identisch mit NDK <media/NdkMediaDrm.h> sein!
+typedef struct {
+    const uint8_t* ptr;
+    size_t length;
+} TitanDrmByteArray;
+
+// Korrekte Funktionssignaturen (exakt wie in der NDK-API)
+using AMediaDrmCreateByUUIDFn = AMediaDrm* (*)(const uint8_t uuid[16]);
+using AMediaDrmReleaseFn = void (*)(AMediaDrm*);
+using AMediaDrmGetPropertyByteArrayFn = media_status_t (*)(AMediaDrm*, const char*, TitanDrmByteArray*);
+using AMediaDrmGetPropertyStringFn = media_status_t (*)(AMediaDrm*, const char*, const char**);
 using AMediaDrmIsCryptoSchemeSupportedFn = bool (*)(const uint8_t uuid[16], const char* mimeType);
 
 static SystemPropertyGetFn g_origSystemPropertyGet = nullptr;
@@ -106,8 +118,14 @@ static ReadFn g_origRead = nullptr;
 static FopenFn g_origFopen = nullptr;
 static FreadFn g_origFread = nullptr;
 static FgetsFn g_origFgets = nullptr;
+static AMediaDrmCreateByUUIDFn g_origAMediaDrmCreateByUUID = nullptr;
+static AMediaDrmReleaseFn g_origAMediaDrmRelease = nullptr;
 static AMediaDrmGetPropertyByteArrayFn g_origAMediaDrmGetPropertyByteArray = nullptr;
+static AMediaDrmGetPropertyStringFn g_origAMediaDrmGetPropertyString = nullptr;
 static AMediaDrmIsCryptoSchemeSupportedFn g_origAMediaDrmIsCryptoSchemeSupported = nullptr;
+
+// Track unsere Fake-DRM-Objekte
+static std::unordered_set<AMediaDrm*> g_fakeDrmObjects;
 
 // Widevine UUID (ed282e16-fdd2-47c7-8d6d-09946462f367)
 static const uint8_t WIDEVINE_UUID[16] = {
@@ -255,6 +273,45 @@ static bool isMacPath(const char* path) {
            strcmp(path, "/sys/class/net/eth0/address") == 0 ||
            strstr(path, "/proc/net/arp") != nullptr;
 }
+
+static bool isInputDevicesPath(const char* path) {
+    if (!path) return false;
+    return strcmp(path, "/proc/bus/input/devices") == 0;
+}
+
+// Pixel 6 Input-Device-Datei (realistisch)
+static const char* FAKE_INPUT_DEVICES = 
+    "I: Bus=0018 Vendor=0000 Product=0000 Version=0000\n"
+    "N: Name=\"sec_touchscreen\"\n"
+    "P: Phys=\n"
+    "S: Sysfs=/devices/virtual/input/input0\n"
+    "U: Uniq=\n"
+    "H: Handlers=event0\n"
+    "B: PROP=2\n"
+    "B: EV=b\n"
+    "B: KEY=420 0 0 0 0 0 0 0 0 0 0\n"
+    "B: ABS=6e18000 0\n"
+    "\n"
+    "I: Bus=0019 Vendor=0001 Product=0001 Version=0100\n"
+    "N: Name=\"gpio-keys\"\n"
+    "P: Phys=gpio-keys/input0\n"
+    "S: Sysfs=/devices/platform/gpio-keys/input/input1\n"
+    "U: Uniq=\n"
+    "H: Handlers=event1\n"
+    "B: PROP=0\n"
+    "B: EV=3\n"
+    "B: KEY=8000 100000 0 0 0\n"
+    "\n"
+    "I: Bus=0019 Vendor=0001 Product=0001 Version=0100\n"
+    "N: Name=\"Power Button\"\n"
+    "P: Phys=LNXPWRBN/button/input0\n"
+    "S: Sysfs=/devices/LNXSYSTM:00/LNXPWRBN:00/input/input2\n"
+    "U: Uniq=\n"
+    "H: Handlers=event2\n"
+    "B: PROP=0\n"
+    "B: EV=3\n"
+    "B: KEY=10000000000000 0\n"
+    "\n";
 
 // ==============================================================================
 // Hook: __system_property_get
@@ -476,38 +533,52 @@ static ssize_t titan_hooked_read(int fd, void* buf, size_t count) {
 // Hook: fopen (für std::ifstream) - Direct MAC Spoofing
 // ==============================================================================
 
+// Helper: Erstellt eine temporäre Datei mit beliebigem Inhalt
+static FILE* createFakeFopen(const char* origPath, const char* mode, 
+                              const char* content, const char* tag) {
+    if (!g_origFopen) return nullptr;
+    
+    char tempPath[128];
+    snprintf(tempPath, sizeof(tempPath), "/data/local/tmp/.titan_%s_%d", tag, getpid());
+    
+    FILE* tempFp = g_origFopen(tempPath, "w");
+    if (tempFp) {
+        fputs(content, tempFp);
+        fclose(tempFp);
+        
+        FILE* fakeFp = g_origFopen(tempPath, mode);
+        if (fakeFp) {
+            LOGI("[TITAN] fopen redirect: %s -> %s [%s]", origPath, tempPath, tag);
+            return fakeFp;
+        }
+    }
+    return nullptr;
+}
+
 static FILE* titan_hooked_fopen(const char* pathname, const char* mode) {
     if (!g_origFopen) return nullptr;
     
-    // Wenn MAC-Pfad, erstelle Fake-Datei mit gespoofter MAC
+    // MAC-Pfad -> Fake-MAC-Datei
     if (pathname && g_macParsed && isMacPath(pathname)) {
         TitanHardware& hw = TitanHardware::getInstance();
         char macStr[24] = {};
         hw.getWifiMac(macStr, sizeof(macStr));
         
         if (macStr[0]) {
-            // Erstelle temporäre Datei mit gespoofter MAC
-            char tempPath[128];
-            snprintf(tempPath, sizeof(tempPath), "/data/local/tmp/.titan_mac_%d", getpid());
-            
-            // Schreibe MAC in temporäre Datei
-            FILE* tempFp = g_origFopen(tempPath, "w");
-            if (tempFp) {
-                fprintf(tempFp, "%s\n", macStr);
-                fclose(tempFp);
-                
-                // Öffne die temporäre Datei zum Lesen
-                FILE* fakeFp = g_origFopen(tempPath, mode);
-                if (fakeFp) {
-                    LOGI("[TITAN] fopen MAC redirect: %s -> %s (MAC=%s)", pathname, tempPath, macStr);
-                    return fakeFp;
-                }
-            }
+            char macContent[32];
+            snprintf(macContent, sizeof(macContent), "%s\n", macStr);
+            FILE* fake = createFakeFopen(pathname, mode, macContent, "mac");
+            if (fake) return fake;
         }
     }
     
-    FILE* fp = g_origFopen(pathname, mode);
-    return fp;
+    // Input Devices -> Fake Pixel 6 Device-Liste
+    if (pathname && isInputDevicesPath(pathname)) {
+        FILE* fake = createFakeFopen(pathname, mode, FAKE_INPUT_DEVICES, "input");
+        if (fake) return fake;
+    }
+    
+    return g_origFopen(pathname, mode);
 }
 
 // ==============================================================================
@@ -546,7 +617,7 @@ static char* titan_hooked_fgets(char* s, int size, FILE* stream) {
 }
 
 // ==============================================================================
-// Hook: Widevine NDK API (AMediaDrm)
+// Hook: Widevine NDK API (AMediaDrm) - Phase 9.0 Full HAL Mocking
 // ==============================================================================
 
 static void parseWidevineHex() {
@@ -569,39 +640,139 @@ static void parseWidevineHex() {
          g_widevineBytes[0], g_widevineBytes[1], g_widevineBytes[2], g_widevineBytes[3]);
 }
 
-static media_status_t titan_hooked_AMediaDrm_getPropertyByteArray(
-    AMediaDrm* drm, const char* propertyName, uint8_t** propertyValue, size_t* propertyValueSize) {
-    
-    if (!propertyName) {
-        return g_origAMediaDrmGetPropertyByteArray ? 
-               g_origAMediaDrmGetPropertyByteArray(drm, propertyName, propertyValue, propertyValueSize) : -1;
-    }
-    
-    // Prüfe ob deviceUniqueId oder ähnliche Properties
-    if (strcmp(propertyName, "deviceUniqueId") == 0 ||
-        strstr(propertyName, "unique") || strstr(propertyName, "device")) {
-        
-        parseWidevineHex();
-        
-        // Allokiere Speicher für das Ergebnis
-        *propertyValueSize = 16;
-        *propertyValue = (uint8_t*)malloc(16);
-        if (*propertyValue) {
-            memcpy(*propertyValue, g_widevineBytes, 16);
-            LOGI("[TITAN] AMediaDrm_getPropertyByteArray(%s) -> Spoofed 16 bytes", propertyName);
-            return AMEDIA_OK;
-        }
-    }
-    
-    // Fallback zum Original
-    return g_origAMediaDrmGetPropertyByteArray ? 
-           g_origAMediaDrmGetPropertyByteArray(drm, propertyName, propertyValue, propertyValueSize) : -1;
+static bool isFakeDrm(AMediaDrm* drm) {
+    std::lock_guard<std::mutex> lock(g_fdMapMutex);
+    return g_fakeDrmObjects.find(drm) != g_fakeDrmObjects.end();
 }
 
-static bool titan_hooked_AMediaDrm_isCryptoSchemeSupported(const uint8_t uuid[16], const char* mimeType) {
-    // Widevine UUID immer unterstützen
+// Hook: AMediaDrm_createByUUID - Das Herzstück des HAL-Mockings
+static AMediaDrm* titan_hooked_AMediaDrm_createByUUID(const uint8_t uuid[16]) {
+    // Versuche erst Original
+    AMediaDrm* drm = nullptr;
+    if (g_origAMediaDrmCreateByUUID) {
+        drm = g_origAMediaDrmCreateByUUID(uuid);
+    }
+    
+    // Wenn Original erfolgreich, nutze es
+    if (drm != nullptr) {
+        LOGI("[TITAN] AMediaDrm_createByUUID -> Real DRM object");
+        return drm;
+    }
+    
+    // HAL defekt? Erstelle Fake-Objekt für Widevine
     if (memcmp(uuid, WIDEVINE_UUID, 16) == 0) {
-        LOGI("[TITAN] AMediaDrm_isCryptoSchemeSupported(Widevine) -> true");
+        // Allokiere echten Speicher (calloc = Nullen) statt 0xDEAD Pointer
+        // So crasht die echte getPropertyByteArray nicht, sondern gibt INVALID_OBJECT zurück
+        AMediaDrm* fakeDrm = reinterpret_cast<AMediaDrm*>(calloc(1, 256));
+        
+        {
+            std::lock_guard<std::mutex> lock(g_fdMapMutex);
+            g_fakeDrmObjects.insert(fakeDrm);
+        }
+        
+        LOGI("[TITAN] AMediaDrm_createByUUID(Widevine) -> Fake DRM object %p (HAL mocked)", fakeDrm);
+        return fakeDrm;
+    }
+    
+    LOGW("[TITAN] AMediaDrm_createByUUID -> Failed (non-Widevine UUID)");
+    return nullptr;
+}
+
+// Hook: AMediaDrm_release
+static void titan_hooked_AMediaDrm_release(AMediaDrm* drm) {
+    if (isFakeDrm(drm)) {
+        {
+            std::lock_guard<std::mutex> lock(g_fdMapMutex);
+            g_fakeDrmObjects.erase(drm);
+        }
+        free(drm); // calloc'd Speicher freigeben
+        LOGI("[TITAN] AMediaDrm_release(Fake) -> freed");
+        return;
+    }
+    
+    if (g_origAMediaDrmRelease) {
+        g_origAMediaDrmRelease(drm);
+    }
+}
+
+// Hook: AMediaDrm_getPropertyByteArray (Phase 9.5 - KORREKTE Signatur!)
+// Die NDK-API nutzt AMediaDrmByteArray* (struct mit ptr + length), NICHT uint8_t** + size_t*!
+static media_status_t titan_hooked_AMediaDrm_getPropertyByteArray(
+    AMediaDrm* drm, const char* propertyName, TitanDrmByteArray* propertyValue) {
+    
+    if (!propertyName || !propertyValue) {
+        return AMEDIA_DRM_NOT_PROVISIONED;
+    }
+    
+    bool isFake = isFakeDrm(drm);
+    bool isDeviceId = (strcmp(propertyName, "deviceUniqueId") == 0);
+    
+    if (isFake || isDeviceId) {
+        parseWidevineHex();
+        
+        // Statischer Buffer - kein malloc nötig, NDK managed den Speicher
+        static uint8_t s_widevineResult[16];
+        memcpy(s_widevineResult, g_widevineBytes, 16);
+        
+        propertyValue->ptr = s_widevineResult;
+        propertyValue->length = 16;
+        
+        LOGI("[TITAN] AMediaDrm_getPropertyByteArray(%s) -> Spoofed 16 bytes [%s DRM]", 
+             propertyName, isFake ? "Fake" : "Real");
+        return AMEDIA_OK;
+    }
+    
+    // Echtes DRM-Objekt mit nicht-device Property -> Original aufrufen
+    if (!isFake && g_origAMediaDrmGetPropertyByteArray) {
+        return g_origAMediaDrmGetPropertyByteArray(drm, propertyName, propertyValue);
+    }
+    
+    return AMEDIA_DRM_NOT_PROVISIONED;
+}
+
+// Hook: AMediaDrm_getPropertyString
+static media_status_t titan_hooked_AMediaDrm_getPropertyString(
+    AMediaDrm* drm, const char* propertyName, const char** propertyValue) {
+    
+    if (!propertyName || !propertyValue) {
+        return AMEDIA_DRM_NOT_PROVISIONED;
+    }
+    
+    bool isFake = isFakeDrm(drm);
+    
+    // Standard-Properties für Fake-DRM
+    if (isFake) {
+        if (strcmp(propertyName, "vendor") == 0) {
+            *propertyValue = strdup("Google");
+            return AMEDIA_OK;
+        }
+        if (strcmp(propertyName, "version") == 0) {
+            *propertyValue = strdup("16.0.0");
+            return AMEDIA_OK;
+        }
+        if (strcmp(propertyName, "algorithms") == 0) {
+            *propertyValue = strdup("AES/CBC/NoPadding");
+            return AMEDIA_OK;
+        }
+        
+        LOGI("[TITAN] AMediaDrm_getPropertyString(%s) -> Fake default", propertyName);
+        *propertyValue = strdup("");
+        return AMEDIA_OK;
+    }
+    
+    // Echtes DRM
+    if (g_origAMediaDrmGetPropertyString) {
+        return g_origAMediaDrmGetPropertyString(drm, propertyName, propertyValue);
+    }
+    
+    return AMEDIA_DRM_NOT_PROVISIONED;
+}
+
+// Hook: AMediaDrm_isCryptoSchemeSupported
+static bool titan_hooked_AMediaDrm_isCryptoSchemeSupported(const uint8_t uuid[16], const char* mimeType) {
+    // Widevine UUID IMMER unterstützen
+    if (memcmp(uuid, WIDEVINE_UUID, 16) == 0) {
+        LOGI("[TITAN] AMediaDrm_isCryptoSchemeSupported(Widevine) -> true (forced)");
         return true;
     }
     
@@ -687,34 +858,50 @@ static void installAllHooks() {
         LOGI("[TITAN] fgets hook OK");
     }
     
-    // Widevine NDK Hooks (libmediandk.so)
+    // Widevine NDK Hooks - Phase 9.5 SAFE
+    // WICHTIG: getPropertyByteArray und getPropertyString NICHT hooken!
+    // Dobby's Trampolin korrumpiert diese Funktionen (SIGILL).
+    // Stattdessen: createByUUID gibt calloc-Fake zurück → echte getPropertyByteArray
+    // sieht mDrm==NULL → gibt INVALID_OBJECT zurück (kein Crash).
+    // Widevine Spoofing erfolgt über LSPosed (Java-Layer).
     void* mediandk = dlopen("libmediandk.so", RTLD_NOW | RTLD_NOLOAD);
     if (!mediandk) {
         mediandk = dlopen("libmediandk.so", RTLD_NOW);
     }
     
     if (mediandk) {
-        // AMediaDrm_getPropertyByteArray
-        void* getPropAddr = dlsym(mediandk, "AMediaDrm_getPropertyByteArray");
-        if (getPropAddr && DobbyHook(getPropAddr, (dobby_dummy_func_t)titan_hooked_AMediaDrm_getPropertyByteArray,
-                                     (dobby_dummy_func_t*)&g_origAMediaDrmGetPropertyByteArray) == 0) {
+        // SAFE: createByUUID - gibt Fake-Objekt zurück wenn HAL defekt
+        void* createAddr = dlsym(mediandk, "AMediaDrm_createByUUID");
+        if (createAddr && DobbyHook(createAddr, (dobby_dummy_func_t)titan_hooked_AMediaDrm_createByUUID,
+                                    (dobby_dummy_func_t*)&g_origAMediaDrmCreateByUUID) == 0) {
             installed++;
-            LOGI("[TITAN] AMediaDrm_getPropertyByteArray hook OK");
+            LOGI("[TITAN] AMediaDrm_createByUUID hook OK");
         }
         
-        // AMediaDrm_isCryptoSchemeSupported
+        // SAFE: release - Fake-Objekte korrekt freigeben
+        void* releaseAddr = dlsym(mediandk, "AMediaDrm_release");
+        if (releaseAddr && DobbyHook(releaseAddr, (dobby_dummy_func_t)titan_hooked_AMediaDrm_release,
+                                     (dobby_dummy_func_t*)&g_origAMediaDrmRelease) == 0) {
+            installed++;
+            LOGI("[TITAN] AMediaDrm_release hook OK");
+        }
+        
+        // SAFE: isCryptoSchemeSupported - Widevine immer true
         void* isSupportedAddr = dlsym(mediandk, "AMediaDrm_isCryptoSchemeSupported");
         if (isSupportedAddr && DobbyHook(isSupportedAddr, (dobby_dummy_func_t)titan_hooked_AMediaDrm_isCryptoSchemeSupported,
                                          (dobby_dummy_func_t*)&g_origAMediaDrmIsCryptoSchemeSupported) == 0) {
             installed++;
             LOGI("[TITAN] AMediaDrm_isCryptoSchemeSupported hook OK");
         }
+        
+        // NICHT GEHOOKED (Dobby SIGILL): getPropertyByteArray, getPropertyString
+        LOGI("[TITAN] Widevine: 3/3 safe hooks installed (getProperty via LSPosed)");
     } else {
-        LOGW("[TITAN] libmediandk.so not loaded (Widevine hooks skipped)");
+        LOGW("[TITAN] libmediandk.so not available");
     }
 #endif
     
-    LOGI("[TITAN] Total hooks installed: %d/10", installed);
+    LOGI("[TITAN] Total hooks installed: %d/11", installed);
 }
 
 // ==============================================================================

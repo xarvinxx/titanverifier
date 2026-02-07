@@ -1,0 +1,22 @@
+# Build-Artefakte
+build/
+build_native/
+app/build/
+.gradle/
+*.apk
+*.so
+
+# Identitäten (sensibel!)
+identities.json
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Lokale Configs
+local.properties
+
+# OS
+.DS_Store
+Thumbs.db

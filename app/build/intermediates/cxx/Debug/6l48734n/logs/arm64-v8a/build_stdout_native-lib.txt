@@ -1,2 +1,0 @@
-ninja: Entering directory `/Users/arvin/Downloads/Custom Hook Module/app/.cxx/Debug/6l48734n/arm64-v8a'
-ninja: no work to do.

@@ -12,7 +12,9 @@ SQL-Schema: Siehe database.py
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
+
+from host.config import LOCAL_TZ
 from enum import Enum
 from typing import Optional
 
@@ -56,7 +58,7 @@ class FlowHistoryCreate(BaseModel):
     profile_id: Optional[int] = None
     flow_type: FlowType
     started_at: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        default_factory=lambda: datetime.now(LOCAL_TZ).strftime("%Y-%m-%dT%H:%M:%SZ")
     )
 
 

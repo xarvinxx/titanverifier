@@ -27,7 +27,9 @@ import logging
 import os
 import random
 import secrets
-from datetime import datetime, timezone
+from datetime import datetime
+
+from host.config import LOCAL_TZ
 from typing import Optional
 
 from host.config import (
@@ -132,7 +134,7 @@ class IdentityGenerator:
         )
 
         # 7. In IdentityRead wrappen (id=0 → noch nicht persistiert)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(LOCAL_TZ)
         identity = IdentityRead(
             id=0,
             name=name,

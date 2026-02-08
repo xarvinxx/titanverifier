@@ -15,7 +15,9 @@ SQL-Schema: Siehe database.py → CREATE TABLE identities
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
+from datetime import datetime
+
+from host.config import LOCAL_TZ
 from enum import Enum
 from typing import Optional
 
@@ -201,7 +203,7 @@ class IdentityBridge(BaseModel):
         """
         lines = [
             f"# Titan Identity Bridge — {label or self.serial}",
-            f"# Generated: {datetime.now(timezone.utc).isoformat()}",
+            f"# Generated: {datetime.now(LOCAL_TZ).isoformat()}",
             f"# Carrier: O2-DE ({O2_DE.MCC_MNC})",
             "",
         ]
@@ -264,7 +266,7 @@ class IdentityRead(IdentityBridge):
                               description="Gesamtanzahl durchgeführter Audits")
 
     # --- Timestamps & Counters ---
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(LOCAL_TZ))
     updated_at: Optional[datetime] = Field(default=None)
     last_used_at: Optional[datetime] = Field(default=None)
     usage_count: int = Field(default=0,

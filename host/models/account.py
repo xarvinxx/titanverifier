@@ -16,7 +16,9 @@ SQL-Schema: Siehe database.py → CREATE TABLE profiles
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
+
+from host.config import LOCAL_TZ
 from enum import Enum
 from typing import Optional
 
@@ -133,7 +135,7 @@ class ProfileRead(BaseModel):
 
     # --- Metadata ---
     notes: Optional[str] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(LOCAL_TZ))
     updated_at: Optional[datetime] = None
 
     # --- Activity Tracking ---

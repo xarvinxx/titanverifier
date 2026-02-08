@@ -22,7 +22,9 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import datetime
+
+from host.config import LOCAL_TZ
 from pathlib import Path
 from typing import Optional
 
@@ -139,7 +141,7 @@ class TitanShifter:
             )
 
         # Ziel-Pfad auf dem Host
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(LOCAL_TZ).strftime("%Y%m%d_%H%M%S")
         tar_filename = f"{profile_name}_{timestamp}.tar"
         tar_path = self._backup_dir / tar_filename
 
@@ -653,7 +655,7 @@ class TitanShifter:
                 pass
 
         # Multi-Verzeichnis tar
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(LOCAL_TZ).strftime("%Y%m%d_%H%M%S")
         tar_filename = f"gms_{timestamp}.tar"
         tar_path = target_dir / tar_filename
 
@@ -784,7 +786,7 @@ class TitanShifter:
             raise ADBError("Keine Account-Datenbanken gefunden!")
 
         # tar erstellen
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(LOCAL_TZ).strftime("%Y%m%d_%H%M%S")
         tar_filename = f"accounts_{timestamp}.tar"
         tar_path = target_dir / tar_filename
 
@@ -839,7 +841,7 @@ class TitanShifter:
                 f"exit {restore_result.returncode}"
             )
 
-        # Permissions fixen für alle DB-Dateien
+        # Permissions fixen für alle DB-Dateien (einzeln)
         for db_path in SYSTEM_ACCOUNT_DBS:
             try:
                 check = await self._adb.shell(
@@ -858,7 +860,7 @@ class TitanShifter:
                     f"chmod {ACCOUNTS_DB_MODE} {db_path}",
                     root=True,
                 )
-                # SELinux Context
+                # SELinux Context (einzeln pro Datei)
                 await self._adb.shell(
                     f"chcon {ACCOUNTS_DB_SELINUX} {db_path}",
                     root=True,
@@ -868,6 +870,56 @@ class TitanShifter:
             except ADBError as e:
                 logger.warning("Account-DB Permission Fix für %s: %s", db_path, e)
 
+        # ---------------------------------------------------------------
+        # CRITICAL FIX: Force SELinux Context via Glob + restorecon
+        # ---------------------------------------------------------------
+        # Diagnose: accounts_ce.db hatte u:object_r:system_data_file:s0
+        # statt dem korrekten u:object_r:accounts_data_file:s0.
+        # SELinux blockiert den Zugriff beim Booten → Accounts weg.
+        # Glob-chcon fängt alle Varianten (.db, .db-journal, .db-wal, .db-shm)
+        # auch wenn SYSTEM_ACCOUNT_DBS nicht komplett ist.
+        # ---------------------------------------------------------------
+        try:
+            result = await self._adb.shell(
+                f"chcon {ACCOUNTS_DB_SELINUX} /data/system_ce/0/accounts_ce.db*",
+                root=True,
+            )
+            if result.success:
+                logger.info("SELinux Glob-Fix: accounts_ce.db* → %s", ACCOUNTS_DB_SELINUX)
+            else:
+                logger.warning("SELinux Glob-Fix exit=%d", result.returncode)
+        except ADBError as e:
+            logger.warning("SELinux Glob-Fix fehlgeschlagen: %s", e)
+
+        # Fallback: restorecon (liest die SELinux file_contexts Policy)
+        try:
+            result = await self._adb.shell(
+                "restorecon -Rv /data/system_ce/0/accounts_ce.db",
+                root=True,
+            )
+            if result.success:
+                logger.info("restorecon Fallback: OK (%s)", result.output.strip()[:100])
+            else:
+                logger.debug("restorecon Fallback: exit=%d (nicht kritisch)", result.returncode)
+        except ADBError as e:
+            logger.debug("restorecon nicht verfügbar: %s", e)
+
+        # Verifizierung: Prüfe den tatsächlichen SELinux Context
+        try:
+            result = await self._adb.shell(
+                "ls -Z /data/system_ce/0/accounts_ce.db",
+                root=True,
+            )
+            if result.success:
+                logger.info("SELinux Verify: %s", result.output.strip())
+                if "accounts_data_file" not in result.output:
+                    logger.error(
+                        "WARNUNG: SELinux Context ist NICHT accounts_data_file! "
+                        "Accounts werden beim nächsten Boot möglicherweise gelöscht!"
+                    )
+        except ADBError:
+            pass
+
         # Auch den übergeordneten Ordner prüfen
         await self._adb.shell(
             f"chown {ACCOUNTS_DB_OWNER}:{ACCOUNTS_DB_GROUP} "
@@ -875,7 +927,7 @@ class TitanShifter:
             root=True,
         )
 
-        logger.info("Account-DBs Restore komplett (Permissions gesetzt)")
+        logger.info("Account-DBs Restore komplett (Permissions + SELinux gesetzt)")
 
     # =========================================================================
     # Einzelnes Paket Backup (generisch)
@@ -904,7 +956,7 @@ class TitanShifter:
         except ADBError:
             pass
 
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(LOCAL_TZ).strftime("%Y%m%d_%H%M%S")
         tar_filename = f"{package.split('.')[-1]}_{timestamp}.tar"
         tar_path = target_dir / tar_filename
 
@@ -1005,7 +1057,7 @@ class TitanShifter:
                 "filename": tar_path.name,
                 "size_bytes": stat.st_size,
                 "size_mb": round(stat.st_size / (1024 * 1024), 1),
-                "modified": datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc).isoformat(),
+                "modified": datetime.fromtimestamp(stat.st_mtime, tz=LOCAL_TZ).isoformat(),
             })
 
         return backups

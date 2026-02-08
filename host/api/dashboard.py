@@ -21,12 +21,13 @@ import asyncio
 import json
 import logging
 from collections import deque
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
 from host.adb.client import ADBClient, ADBError
+from host.config import LOCAL_TZ
 from host.database import db
 from host.engine.db_ops import (
     get_audit_history,
@@ -58,7 +59,7 @@ class WebSocketLogHandler(logging.Handler):
 
     def emit(self, record: logging.LogRecord) -> None:
         entry = {
-            "ts": datetime.fromtimestamp(record.created, tz=timezone.utc).strftime("%H:%M:%S"),
+            "ts": datetime.fromtimestamp(record.created, tz=LOCAL_TZ).strftime("%H:%M:%S"),
             "level": record.levelname,
             "name": record.name,
             "msg": self.format(record),

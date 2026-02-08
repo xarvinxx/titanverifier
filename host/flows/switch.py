@@ -27,12 +27,12 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
 from host.adb.client import ADBClient, ADBError
-from host.config import GMS_BACKUP_PACKAGES, TIMING
+from host.config import GMS_BACKUP_PACKAGES, LOCAL_TZ, TIMING
 from host.database import db
 from host.engine.auditor import TitanAuditor
 from host.engine.db_ops import (
@@ -66,7 +66,7 @@ class SwitchResult:
     audit_passed: Optional[bool] = None
     error: Optional[str] = None
     started_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+        default_factory=lambda: datetime.now(LOCAL_TZ).isoformat()
     )
     finished_at: Optional[str] = None
     duration_ms: int = 0
@@ -440,7 +440,7 @@ class SwitchFlow:
                     step.status = FlowStepStatus.SKIPPED
 
         finally:
-            result.finished_at = datetime.now(timezone.utc).isoformat()
+            result.finished_at = datetime.now(LOCAL_TZ).isoformat()
             result.duration_ms = _now_ms() - flow_start
 
             # Flow-History: Finalize
@@ -493,7 +493,7 @@ class SwitchFlow:
         """
         Setzt die Ziel-Identität auf 'active' und alle anderen auf 'ready'.
         """
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(LOCAL_TZ).isoformat()
         async with db.transaction() as conn:
             # Alle anderen deaktivieren
             await conn.execute(
@@ -510,7 +510,7 @@ class SwitchFlow:
 
     async def _mark_profile_corrupted(self, profile_id: int) -> None:
         """Markiert ein Profil-Backup als corrupted."""
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(LOCAL_TZ).isoformat()
         async with db.transaction() as conn:
             await conn.execute(
                 "UPDATE profiles SET backup_status = 'corrupted', updated_at = ? "
@@ -526,4 +526,4 @@ class SwitchFlow:
 
 def _now_ms() -> int:
     """Aktuelle Zeit in Millisekunden."""
-    return int(datetime.now(timezone.utc).timestamp() * 1000)
+    return int(datetime.now(LOCAL_TZ).timestamp() * 1000)

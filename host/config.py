@@ -9,6 +9,13 @@ KEINE Zufallswerte hier — nur deterministische Regeln und Constraints.
 """
 
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+# =============================================================================
+# 0. Zeitzone (Europe/Berlin — CET/CEST)
+# =============================================================================
+
+LOCAL_TZ = ZoneInfo("Europe/Berlin")
 
 # =============================================================================
 # 1. Projekt-Pfade (Host-Seite)
@@ -257,6 +264,11 @@ class TIMING:
     ZYGOTE_RESTART_WAIT = 5             # Wartezeit nach killall zygote
     ADB_COMMAND_TIMEOUT = 30            # Timeout für einzelne ADB-Befehle
     IP_AUDIT_WAIT_SECONDS = 15          # Wartezeit nach Flugmodus-AUS bevor IP-Check
+
+    # --- GMS Smart Wait (Passive GSF Polling) ---
+    GSF_READY_TIMEOUT_SECONDS = 300     # Max 5 Min auf GSF-ID warten
+    GSF_POLL_INTERVAL_SECONDS = 5       # Alle 5s Content Provider prüfen
+    GMS_KICKSTART_SETTLE_SECONDS = 3    # Nach Kickstart kurz warten bevor Polling
 
 
 # =============================================================================

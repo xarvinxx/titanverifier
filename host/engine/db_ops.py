@@ -19,7 +19,9 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
+
+from host.config import LOCAL_TZ
 from pathlib import Path
 from typing import Any, Optional
 
@@ -29,8 +31,8 @@ logger = logging.getLogger("titan.db_ops")
 
 
 def _now() -> str:
-    """ISO-Timestamp in UTC."""
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    """ISO-Timestamp in Europe/Berlin (CET/CEST)."""
+    return datetime.now(LOCAL_TZ).strftime("%Y-%m-%dT%H:%M:%S")
 
 
 # =============================================================================

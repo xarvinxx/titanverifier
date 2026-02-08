@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
+from datetime import datetime
 from pathlib import Path
 from typing import AsyncGenerator
 
@@ -27,18 +28,35 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from host.config import API_HOST, API_PORT, API_TITLE, API_VERSION, DATABASE_PATH
+from host.config import API_HOST, API_PORT, API_TITLE, API_VERSION, DATABASE_PATH, LOCAL_TZ
 from host.database import db
 
 # =============================================================================
 # Logging Setup — MUSS vor allen anderen Modul-Imports passieren
+# Explizit Europe/Berlin für korrekte deutsche Uhrzeiten in Logs
 # =============================================================================
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
-    datefmt="%H:%M:%S",
+
+class _BerlinFormatter(logging.Formatter):
+    """Log-Formatter mit expliziter Europe/Berlin Zeitzone (CET/CEST)."""
+
+    def formatTime(self, record: logging.LogRecord, datefmt: str | None = None) -> str:
+        ct = datetime.fromtimestamp(record.created, tz=LOCAL_TZ)
+        if datefmt:
+            return ct.strftime(datefmt)
+        return ct.strftime("%Y-%m-%d %H:%M:%S")
+
+
+_console_handler = logging.StreamHandler()
+_console_handler.setFormatter(
+    _BerlinFormatter(
+        fmt="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+        datefmt="%H:%M:%S",
+    )
 )
+logging.root.addHandler(_console_handler)
+logging.root.setLevel(logging.INFO)
+
 logger = logging.getLogger("titan.main")
 
 # =============================================================================

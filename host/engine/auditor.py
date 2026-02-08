@@ -27,7 +27,9 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
+
+from host.config import LOCAL_TZ
 from enum import Enum
 from typing import Optional
 
@@ -77,7 +79,7 @@ class AuditResult:
     identity_serial: str
     checks: list[AuditCheck] = field(default_factory=list)
     timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+        default_factory=lambda: datetime.now(LOCAL_TZ).isoformat()
     )
     error: Optional[str] = None  # Globaler Fehler (z.B. Gerät nicht erreichbar)
 

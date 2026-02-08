@@ -22,7 +22,9 @@ import asyncio
 import logging
 import os
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
+
+from host.config import LOCAL_TZ
 from typing import Any, Optional
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
@@ -131,7 +133,7 @@ async def start_genesis(
         running=True,
         flow_type="genesis",
         flow_name=req.name,
-        started_at=datetime.now(timezone.utc).isoformat(),
+        started_at=datetime.now(LOCAL_TZ).isoformat(),
     )
 
     background_tasks.add_task(_run_genesis, req.name, req.notes)
@@ -164,7 +166,7 @@ async def _run_genesis(name: str, notes: Optional[str]) -> None:
 
         finally:
             _state.running = False
-            _state.finished_at = datetime.now(timezone.utc).isoformat()
+            _state.finished_at = datetime.now(LOCAL_TZ).isoformat()
 
 
 # =============================================================================
@@ -194,7 +196,7 @@ async def start_switch(
         running=True,
         flow_type="switch",
         flow_name=f"switch-{identity_id}",
-        started_at=datetime.now(timezone.utc).isoformat(),
+        started_at=datetime.now(LOCAL_TZ).isoformat(),
     )
 
     background_tasks.add_task(
@@ -244,7 +246,7 @@ async def _run_switch(
 
         finally:
             _state.running = False
-            _state.finished_at = datetime.now(timezone.utc).isoformat()
+            _state.finished_at = datetime.now(LOCAL_TZ).isoformat()
 
 
 # =============================================================================
@@ -276,7 +278,7 @@ async def start_backup(
         running=True,
         flow_type="backup",
         flow_name=f"backup-{req.profile_name}",
-        started_at=datetime.now(timezone.utc).isoformat(),
+        started_at=datetime.now(LOCAL_TZ).isoformat(),
     )
 
     background_tasks.add_task(_run_backup, req.profile_name)
@@ -375,7 +377,7 @@ async def _run_backup(profile_name: str) -> None:
                     flow_history_id,
                     status="success" if success_count > 0 else "failed",
                     duration_ms=int(
-                        (datetime.now(timezone.utc).timestamp() -
+                        (datetime.now(LOCAL_TZ).timestamp() -
                          datetime.fromisoformat(_state.started_at).timestamp()) * 1000
                     ) if _state.started_at else 0,
                 )
@@ -397,7 +399,7 @@ async def _run_backup(profile_name: str) -> None:
 
         finally:
             _state.running = False
-            _state.finished_at = datetime.now(timezone.utc).isoformat()
+            _state.finished_at = datetime.now(LOCAL_TZ).isoformat()
 
 
 # =============================================================================
@@ -440,7 +442,7 @@ async def abort_flow():
     global _state
     was_running = _state.running
     _state.running = False
-    _state.finished_at = datetime.now(timezone.utc).isoformat()
+    _state.finished_at = datetime.now(LOCAL_TZ).isoformat()
     _state.error = "Manuell abgebrochen" if was_running else None
 
     logger.warning("Flow-Lock manuell zurückgesetzt (war_aktiv=%s)", was_running)

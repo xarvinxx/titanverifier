@@ -17,7 +17,9 @@ Endpoints:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
+
+from host.config import LOCAL_TZ
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
@@ -167,7 +169,7 @@ async def create_profile(req: VaultCreateRequest):
                 detail=f"Identität #{req.identity_id} nicht gefunden",
             )
 
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(LOCAL_TZ).isoformat()
 
     async with db.transaction() as conn:
         cursor = await conn.execute(
@@ -257,7 +259,7 @@ async def update_profile(profile_id: int, req: VaultUpdateRequest):
                 detail=f"Ungültiger Proxy-Typ: '{updates['proxy_type']}'. Erlaubt: {valid_types}",
             )
 
-    updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+    updates["updated_at"] = datetime.now(LOCAL_TZ).isoformat()
 
     set_clause = ", ".join(f"{k} = ?" for k in updates)
     values = list(updates.values()) + [profile_id]
@@ -283,7 +285,7 @@ async def update_credentials(profile_id: int, req: VaultCredentialsRequest):
     """
     Aktualisiert die TikTok- und Google-Zugangsdaten eines Profils.
     """
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(LOCAL_TZ).isoformat()
 
     async with db.transaction() as conn:
         cursor = await conn.execute(
@@ -319,7 +321,7 @@ async def update_status(profile_id: int, req: VaultStatusRequest):
             detail=f"Ungültiger Status: '{req.status}'. Erlaubt: {valid}",
         )
 
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(LOCAL_TZ).isoformat()
 
     async with db.transaction() as conn:
         cursor = await conn.execute(
@@ -364,7 +366,7 @@ async def delete_profile(profile_id: int):
         )
         other_count = (await cursor.fetchone())[0]
 
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(LOCAL_TZ).isoformat()
 
     async with db.transaction() as conn:
         # Profil löschen

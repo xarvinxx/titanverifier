@@ -1,0 +1,396 @@
+"""
+Project Titan — Control API ("The Trigger")
+=============================================
+
+REST-Endpoints zum Starten und Überwachen der Orchestrator-Flows.
+
+Endpoints:
+  POST /api/control/genesis          — Startet GenesisFlow als BackgroundTask
+  POST /api/control/switch/{id}      — Startet SwitchFlow als BackgroundTask (Full-State!)
+  POST /api/control/backup           — Full-State Backup (GMS + TikTok + Account-DBs)
+  GET  /api/control/status           — Gibt aktuellen Flow-Status zurück
+  POST /api/control/abort            — Setzt den Flow-Lock zurück (Emergency)
+
+Locking:
+  Es darf zu jedem Zeitpunkt nur EIN Flow gleichzeitig laufen.
+  Ein asyncio.Lock verhindert Race-Conditions.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
+from typing import Any, Optional
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+from pydantic import BaseModel, Field
+
+from host.adb.client import ADBClient
+from host.engine.shifter import TitanShifter
+from host.flows.genesis import GenesisFlow, GenesisResult
+from host.flows.switch import SwitchFlow, SwitchResult
+
+logger = logging.getLogger("titan.api.control")
+
+router = APIRouter(prefix="/api/control", tags=["Control"])
+
+
+# =============================================================================
+# Flow State (Singleton — Global Lock + Ergebnis-Cache)
+# =============================================================================
+
+@dataclass
+class FlowState:
+    """Globaler State für den aktuell laufenden Flow."""
+    running: bool = False
+    flow_type: str = ""           # "genesis" | "switch" | ""
+    flow_name: str = ""           # Name/Label des Flows
+    started_at: Optional[str] = None
+    finished_at: Optional[str] = None
+    result: Optional[dict] = None  # Letztes Ergebnis als dict
+    error: Optional[str] = None
+
+
+_state = FlowState()
+_lock = asyncio.Lock()
+
+
+# =============================================================================
+# Request Models
+# =============================================================================
+
+class GenesisRequest(BaseModel):
+    """Request-Body für den Genesis-Flow."""
+    name: str = Field(
+        ..., min_length=1, max_length=64,
+        description="Anzeigename für die neue Identität",
+        json_schema_extra={"example": "DE_Berlin_001"},
+    )
+    notes: Optional[str] = Field(
+        default=None, max_length=500,
+        description="Optionale Notizen",
+    )
+
+
+class SwitchRequest(BaseModel):
+    """Request-Body für den Switch-Flow."""
+    profile_name: Optional[str] = Field(
+        default=None,
+        description="Profil-Name für Full-State Restore (GMS + TikTok + Accounts)",
+    )
+    backup_path: Optional[str] = Field(
+        default=None,
+        description="Legacy: Pfad zum TikTok tar-Backup (nur wenn kein profile_name)",
+    )
+
+
+class BackupRequest(BaseModel):
+    """Request-Body für Full-State Backup."""
+    profile_name: str = Field(
+        ..., min_length=1, max_length=64,
+        description="Name des Profils das gesichert werden soll",
+        json_schema_extra={"example": "DE_Berlin_001"},
+    )
+
+
+# =============================================================================
+# POST /api/control/genesis
+# =============================================================================
+
+@router.post("/genesis")
+async def start_genesis(
+    req: GenesisRequest,
+    background_tasks: BackgroundTasks,
+):
+    """
+    Startet den Genesis-Flow (Cold Start — neue Identität).
+
+    Der Flow läuft im Hintergrund. Status abrufbar via GET /api/control/status.
+    """
+    global _state
+
+    if _state.running:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Flow '{_state.flow_type}' läuft bereits seit {_state.started_at}",
+        )
+
+    # Lock setzen BEVOR der Background-Task startet
+    _state = FlowState(
+        running=True,
+        flow_type="genesis",
+        flow_name=req.name,
+        started_at=datetime.now(timezone.utc).isoformat(),
+    )
+
+    background_tasks.add_task(_run_genesis, req.name, req.notes)
+
+    logger.info("Genesis-Flow gestartet: %s", req.name)
+    return {
+        "status": "started",
+        "flow": "genesis",
+        "name": req.name,
+        "message": f"Genesis-Flow '{req.name}' wurde gestartet.",
+    }
+
+
+async def _run_genesis(name: str, notes: Optional[str]) -> None:
+    """Background-Task: Führt den GenesisFlow aus."""
+    global _state
+    async with _lock:
+        try:
+            adb = ADBClient()
+            flow = GenesisFlow(adb)
+            result = await flow.execute(name, notes=notes)
+
+            _state.result = _safe_dict(result)
+            _state.error = result.error
+
+        except Exception as e:
+            logger.error("Genesis Background-Task Fehler: %s", e, exc_info=True)
+            _state.error = str(e)
+            _state.result = {"success": False, "error": str(e)}
+
+        finally:
+            _state.running = False
+            _state.finished_at = datetime.now(timezone.utc).isoformat()
+
+
+# =============================================================================
+# POST /api/control/switch/{identity_id}
+# =============================================================================
+
+@router.post("/switch/{identity_id}")
+async def start_switch(
+    identity_id: int,
+    req: SwitchRequest,
+    background_tasks: BackgroundTasks,
+):
+    """
+    Startet den Switch-Flow (Warm Switch — existierendes Profil).
+
+    Der Flow läuft im Hintergrund. Status abrufbar via GET /api/control/status.
+    """
+    global _state
+
+    if _state.running:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Flow '{_state.flow_type}' läuft bereits seit {_state.started_at}",
+        )
+
+    _state = FlowState(
+        running=True,
+        flow_type="switch",
+        flow_name=f"switch-{identity_id}",
+        started_at=datetime.now(timezone.utc).isoformat(),
+    )
+
+    background_tasks.add_task(
+        _run_switch, identity_id, req.profile_name, req.backup_path,
+    )
+
+    mode = "Full-State" if req.profile_name else "Legacy"
+    logger.info(
+        "Switch-Flow gestartet: identity_id=%d [%s]", identity_id, mode,
+    )
+    return {
+        "status": "started",
+        "flow": "switch",
+        "identity_id": identity_id,
+        "mode": mode,
+        "message": (
+            f"Switch-Flow für Identity #{identity_id} wurde gestartet "
+            f"({mode}: {req.profile_name or req.backup_path or 'no restore'})."
+        ),
+    }
+
+
+async def _run_switch(
+    identity_id: int,
+    profile_name: Optional[str],
+    backup_path: Optional[str],
+) -> None:
+    """Background-Task: Führt den SwitchFlow aus."""
+    global _state
+    async with _lock:
+        try:
+            adb = ADBClient()
+            flow = SwitchFlow(adb)
+            result = await flow.execute(
+                identity_id=identity_id,
+                profile_name=profile_name,
+                backup_path=backup_path,
+            )
+
+            _state.result = _safe_dict(result)
+            _state.error = result.error
+
+        except Exception as e:
+            logger.error("Switch Background-Task Fehler: %s", e, exc_info=True)
+            _state.error = str(e)
+            _state.result = {"success": False, "error": str(e)}
+
+        finally:
+            _state.running = False
+            _state.finished_at = datetime.now(timezone.utc).isoformat()
+
+
+# =============================================================================
+# POST /api/control/backup (Full-State Backup)
+# =============================================================================
+
+@router.post("/backup")
+async def start_backup(
+    req: BackupRequest,
+    background_tasks: BackgroundTasks,
+):
+    """
+    Startet ein Full-State Backup (GMS + TikTok + Account-DBs).
+
+    Sichert den kompletten Session-State eines Profils, damit beim
+    nächsten Switch der Google-Login erhalten bleibt.
+
+    WICHTIG: Erst nach manuellem Google- und TikTok-Login ausführen!
+    """
+    global _state
+
+    if _state.running:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Flow '{_state.flow_type}' läuft bereits seit {_state.started_at}",
+        )
+
+    _state = FlowState(
+        running=True,
+        flow_type="backup",
+        flow_name=f"backup-{req.profile_name}",
+        started_at=datetime.now(timezone.utc).isoformat(),
+    )
+
+    background_tasks.add_task(_run_backup, req.profile_name)
+
+    logger.info("Full-State Backup gestartet: %s", req.profile_name)
+    return {
+        "status": "started",
+        "flow": "backup",
+        "profile_name": req.profile_name,
+        "message": (
+            f"Full-State Backup für '{req.profile_name}' wurde gestartet. "
+            f"Sichert GMS + TikTok + Account-DBs."
+        ),
+    }
+
+
+async def _run_backup(profile_name: str) -> None:
+    """Background-Task: Führt Full-State Backup aus."""
+    global _state
+    async with _lock:
+        try:
+            adb = ADBClient()
+            shifter = TitanShifter(adb)
+            results = await shifter.backup_full_state(profile_name)
+
+            # Ergebnis für API
+            backup_summary = {
+                component: str(path) if path else None
+                for component, path in results.items()
+            }
+            success_count = sum(1 for v in results.values() if v is not None)
+
+            _state.result = {
+                "success": success_count > 0,
+                "profile_name": profile_name,
+                "components": backup_summary,
+                "components_saved": success_count,
+                "components_total": len(results),
+            }
+
+        except Exception as e:
+            logger.error("Backup Background-Task Fehler: %s", e, exc_info=True)
+            _state.error = str(e)
+            _state.result = {"success": False, "error": str(e)}
+
+        finally:
+            _state.running = False
+            _state.finished_at = datetime.now(timezone.utc).isoformat()
+
+
+# =============================================================================
+# GET /api/control/status
+# =============================================================================
+
+@router.get("/status")
+async def flow_status():
+    """
+    Gibt den aktuellen Flow-Status zurück.
+
+    Returns:
+        running: bool — Läuft gerade ein Flow?
+        flow_type: str — "genesis" | "switch" | ""
+        result: dict — Letztes Ergebnis (wenn fertig)
+    """
+    return {
+        "running": _state.running,
+        "flow_type": _state.flow_type,
+        "flow_name": _state.flow_name,
+        "started_at": _state.started_at,
+        "finished_at": _state.finished_at,
+        "error": _state.error,
+        "result": _state.result,
+    }
+
+
+# =============================================================================
+# POST /api/control/abort (Emergency Reset)
+# =============================================================================
+
+@router.post("/abort")
+async def abort_flow():
+    """
+    Emergency: Setzt den Flow-Lock zurück.
+
+    ACHTUNG: Dies stoppt den laufenden Flow NICHT sofort —
+    es gibt nur den Lock frei, damit ein neuer Flow gestartet werden kann.
+    """
+    global _state
+    was_running = _state.running
+    _state.running = False
+    _state.finished_at = datetime.now(timezone.utc).isoformat()
+    _state.error = "Manuell abgebrochen" if was_running else None
+
+    logger.warning("Flow-Lock manuell zurückgesetzt (war_aktiv=%s)", was_running)
+    return {
+        "status": "aborted" if was_running else "no_flow_running",
+        "message": "Flow-Lock zurückgesetzt.",
+    }
+
+
+# =============================================================================
+# Hilfsfunktionen
+# =============================================================================
+
+def _safe_dict(obj: Any) -> dict:
+    """Konvertiert ein dataclass-Objekt in ein JSON-serialisierbares dict."""
+    try:
+        d = asdict(obj)
+        # Entferne nicht-serialisierbare Audit-Objekte (AuditCheck hat CheckStatus Enum)
+        return _make_serializable(d)
+    except Exception:
+        return {"raw": str(obj)}
+
+
+def _make_serializable(obj: Any) -> Any:
+    """Rekursive Konvertierung zu JSON-serialisierbaren Typen."""
+    if isinstance(obj, dict):
+        return {k: _make_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_make_serializable(i) for i in obj]
+    elif hasattr(obj, "value"):  # Enum
+        return obj.value
+    elif isinstance(obj, (str, int, float, bool, type(None))):
+        return obj
+    else:
+        return str(obj)

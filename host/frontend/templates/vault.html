@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full bg-gray-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Titan — Vault</title>
+
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        titan: {
+                            50:  '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0',
+                            300: '#86efac', 400: '#4ade80', 500: '#22c55e',
+                            600: '#16a34a', 700: '#15803d', 800: '#166534',
+                            900: '#14532d', 950: '#052e16',
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+
+        /* Modal backdrop */
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Row highlight on hover */
+        .vault-row:hover { background: rgba(31, 41, 55, 0.5); }
+    </style>
+</head>
+<body class="h-full text-gray-100 antialiased">
+
+<div class="min-h-full flex flex-col">
+
+    <!-- =============================================================== -->
+    <!-- HEADER (Navigation) -->
+    <!-- =============================================================== -->
+    <header class="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-14">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <a href="/" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-titan-400 to-emerald-600 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-sm font-semibold text-white tracking-wide">PROJECT TITAN</h1>
+                            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Command Center v1.0</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="flex items-center gap-1">
+                    <a href="/"
+                       class="px-3 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition-all">
+                        Dashboard
+                    </a>
+                    <a href="/vault"
+                       class="px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-gray-800 border border-gray-700">
+                        Vault
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- =============================================================== -->
+    <!-- MAIN CONTENT -->
+    <!-- =============================================================== -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Title + Create Button -->
+        <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+                </svg>
+                <h2 class="text-lg font-semibold text-white">Profile Vault</h2>
+                <span id="profile-count" class="text-xs text-gray-600">(0)</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="openCreateModal()"
+                        class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-titan-600 hover:bg-titan-500
+                               text-white text-xs font-semibold transition-all shadow-lg shadow-titan-600/20">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Neues Profil
+                </button>
+                <button onclick="loadProfiles()"
+                        class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700
+                               border border-gray-700 text-gray-300 text-xs font-medium transition-all">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div id="vault-toast" class="hidden mb-4 p-3 rounded-lg text-sm"></div>
+
+        <!-- =============================================================== -->
+        <!-- DATA GRID -->
+        <!-- =============================================================== -->
+        <div class="bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-xs text-gray-500 uppercase tracking-wider bg-gray-900/60">
+                            <th class="px-4 py-3 font-medium w-12">ID</th>
+                            <th class="px-4 py-3 font-medium">Name</th>
+                            <th class="px-4 py-3 font-medium">Identity</th>
+                            <th class="px-4 py-3 font-medium">Status</th>
+                            <th class="px-4 py-3 font-medium">TikTok User</th>
+                            <th class="px-4 py-3 font-medium">Proxy</th>
+                            <th class="px-4 py-3 font-medium">Backup</th>
+                            <th class="px-4 py-3 font-medium">Switches</th>
+                            <th class="px-4 py-3 font-medium">Notes</th>
+                            <th class="px-4 py-3 font-medium text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="vault-grid" class="divide-y divide-gray-800/50">
+                        <tr>
+                            <td colspan="10" class="px-4 py-12 text-center text-gray-600">
+                                <svg class="w-8 h-8 mx-auto mb-2 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                          d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                                </svg>
+                                <p class="text-sm">Keine Profile im Vault</p>
+                                <p class="text-xs mt-1">Erstelle ein Profil oder starte einen Genesis-Flow</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- =============================================================== -->
+    <!-- FOOTER -->
+    <!-- =============================================================== -->
+    <footer class="border-t border-gray-800/50 py-3">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+            <p class="text-[10px] text-gray-700">Project Titan v1.0.0 &mdash; O2-DE / Pixel 6 / KernelSU</p>
+            <p class="text-[10px] text-gray-700" id="footer-clock"></p>
+        </div>
+    </footer>
+</div>
+
+<!-- =============================================================== -->
+<!-- MODAL: Create Profile -->
+<!-- =============================================================== -->
+<div id="create-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
+    <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-base font-semibold text-white">Neues Profil erstellen</h3>
+            <button onclick="closeCreateModal()" class="text-gray-500 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="space-y-3">
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Name *</label>
+                <input id="create-name" type="text" placeholder="z.B. TikTok_DE_001"
+                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
+                              placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Identity ID *</label>
+                <input id="create-identity-id" type="number" placeholder="ID der verknüpften Identität"
+                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
+                              placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">TikTok User</label>
+                    <input id="create-tt-user" type="text" placeholder="@username"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
+                                  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Proxy IP</label>
+                    <input id="create-proxy" type="text" placeholder="ip:port"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
+                                  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Notes</label>
+                <input id="create-notes" type="text" placeholder="Optionale Notizen"
+                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
+                              placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
+            </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-5">
+            <button onclick="closeCreateModal()"
+                    class="px-4 py-2 rounded-lg text-xs font-medium text-gray-400 bg-gray-800 hover:bg-gray-700 transition-all">
+                Abbrechen
+            </button>
+            <button onclick="submitCreate()"
+                    class="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-titan-600 hover:bg-titan-500 transition-all shadow-lg shadow-titan-600/20">
+                Erstellen
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- =============================================================== -->
+<!-- MODAL: Edit Profile -->
+<!-- =============================================================== -->
+<div id="edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
+    <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-base font-semibold text-white">Profil bearbeiten <span id="edit-title" class="text-titan-400"></span></h3>
+            <button onclick="closeEditModal()" class="text-gray-500 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <input type="hidden" id="edit-id">
+
+        <div class="space-y-3">
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Name</label>
+                <input id="edit-name" type="text"
+                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
+                              focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Status</label>
+                <select id="edit-status"
+                        class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
+                               focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                    <option value="warmup">Warmup</option>
+                    <option value="active">Active</option>
+                    <option value="cooldown">Cooldown</option>
+                    <option value="banned">Banned</option>
+                    <option value="suspended">Suspended</option>
+                    <option value="archived">Archived</option>
+                </select>
+            </div>
+
+            <div class="pt-2 border-t border-gray-800">
+                <p class="text-xs font-medium text-gray-500 mb-2">TikTok Credentials</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Username</label>
+                    <input id="edit-tt-user" type="text" placeholder="@username"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
+                                  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Email</label>
+                    <input id="edit-tt-email" type="email" placeholder="user@mail.de"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
+                                  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Password</label>
+                <input id="edit-tt-pass" type="text" placeholder="Passwort"
+                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
+                              placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Proxy IP</label>
+                <input id="edit-proxy" type="text" placeholder="ip:port"
+                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
+                              placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Notes</label>
+                <input id="edit-notes" type="text" placeholder="Optionale Notizen"
+                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
+                              placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-2 mt-5">
+            <button onclick="closeEditModal()"
+                    class="px-4 py-2 rounded-lg text-xs font-medium text-gray-400 bg-gray-800 hover:bg-gray-700 transition-all">
+                Abbrechen
+            </button>
+            <button onclick="submitEdit()"
+                    class="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20">
+                Speichern
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<!-- =============================================================== -->
+<!-- JAVASCRIPT -->
+<!-- =============================================================== -->
+<script>
+    // ===================================================================
+    // Load Profiles
+    // ===================================================================
+    async function loadProfiles() {
+        try {
+            const res = await fetch('/api/vault');
+            const data = await res.json();
+            const profiles = data.profiles || [];
+            const grid = document.getElementById('vault-grid');
+            const count = document.getElementById('profile-count');
+
+            count.textContent = `(${profiles.length})`;
+
+            if (profiles.length === 0) {
+                grid.innerHTML = `<tr>
+                    <td colspan="10" class="px-4 py-12 text-center text-gray-600">
+                        <svg class="w-8 h-8 mx-auto mb-2 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                        </svg>
+                        <p class="text-sm">Keine Profile im Vault</p>
+                        <p class="text-xs mt-1">Erstelle ein Profil oder starte einen Genesis-Flow</p>
+                    </td>
+                </tr>`;
+                return;
+            }
+
+            grid.innerHTML = profiles.map(p => `
+                <tr class="vault-row transition-colors group" data-id="${p.id}">
+                    <td class="px-4 py-2.5 font-mono text-xs text-gray-500">#${p.id}</td>
+                    <td class="px-4 py-2.5">
+                        <div class="font-medium text-gray-200 text-sm">${esc(p.name)}</div>
+                        <div class="text-[10px] text-gray-600 font-mono">${esc(p.identity_serial || '—')}</div>
+                    </td>
+                    <td class="px-4 py-2.5">
+                        <div class="text-xs text-gray-400">${esc(p.identity_name || '—')}</div>
+                        <div class="text-[10px] text-gray-600 font-mono">#${p.identity_id}</div>
+                    </td>
+                    <td class="px-4 py-2.5">${statusBadge(p.status)}</td>
+                    <td class="px-4 py-2.5 font-mono text-xs text-gray-400">${esc(p.tiktok_username || '—')}</td>
+                    <td class="px-4 py-2.5 font-mono text-xs text-gray-500">${esc(p.proxy_ip || '—')}</td>
+                    <td class="px-4 py-2.5">${backupBadge(p.backup_status)}</td>
+                    <td class="px-4 py-2.5 text-center">
+                        <span class="text-xs font-mono text-gray-500">${p.switch_count || 0}</span>
+                    </td>
+                    <td class="px-4 py-2.5 text-xs text-gray-600 max-w-[120px] truncate">${esc(p.notes || '')}</td>
+                    <td class="px-4 py-2.5">
+                        <div class="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="openEditModal(${p.id})" title="Bearbeiten"
+                                    class="p-1.5 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-blue-400 transition-all border border-gray-700">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                            </button>
+                            <button onclick="loadProfile(${p.identity_id})" title="Switch laden"
+                                    class="p-1.5 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-titan-400 transition-all border border-gray-700">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                </svg>
+                            </button>
+                            <button onclick="deleteProfile(${p.id}, '${esc(p.name)}')" title="Löschen"
+                                    class="p-1.5 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-red-400 transition-all border border-gray-700">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+        } catch (e) {
+            console.error('Load profiles error:', e);
+            showToast('Fehler beim Laden der Profile: ' + e.message, 'error');
+        }
+    }
+
+    // ===================================================================
+    // Create Profile
+    // ===================================================================
+    function openCreateModal() {
+        document.getElementById('create-modal').classList.remove('hidden');
+        document.getElementById('create-name').focus();
+    }
+
+    function closeCreateModal() {
+        document.getElementById('create-modal').classList.add('hidden');
+        document.getElementById('create-name').value = '';
+        document.getElementById('create-identity-id').value = '';
+        document.getElementById('create-tt-user').value = '';
+        document.getElementById('create-proxy').value = '';
+        document.getElementById('create-notes').value = '';
+    }
+
+    async function submitCreate() {
+        const name = document.getElementById('create-name').value.trim();
+        const identityId = parseInt(document.getElementById('create-identity-id').value);
+
+        if (!name) { showToast('Name ist erforderlich.', 'warn'); return; }
+        if (!identityId) { showToast('Identity ID ist erforderlich.', 'warn'); return; }
+
+        try {
+            const res = await fetch('/api/vault', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    name,
+                    identity_id: identityId,
+                    tiktok_username: document.getElementById('create-tt-user').value || null,
+                    proxy_ip: document.getElementById('create-proxy').value || null,
+                    notes: document.getElementById('create-notes').value || null,
+                }),
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                showToast(data.message, 'success');
+                closeCreateModal();
+                loadProfiles();
+            } else {
+                showToast(data.detail || 'Fehler beim Erstellen', 'error');
+            }
+        } catch (e) {
+            showToast('Netzwerkfehler: ' + e.message, 'error');
+        }
+    }
+
+    // ===================================================================
+    // Edit Profile
+    // ===================================================================
+    async function openEditModal(id) {
+        try {
+            const res = await fetch(`/api/vault/${id}`);
+            if (!res.ok) { showToast('Profil nicht gefunden', 'error'); return; }
+            const p = await res.json();
+
+            document.getElementById('edit-id').value = p.id;
+            document.getElementById('edit-title').textContent = `#${p.id}`;
+            document.getElementById('edit-name').value = p.name || '';
+            document.getElementById('edit-status').value = p.status || 'warmup';
+            document.getElementById('edit-tt-user').value = p.tiktok_username || '';
+            document.getElementById('edit-tt-email').value = p.tiktok_email || '';
+            document.getElementById('edit-tt-pass').value = p.tiktok_password || '';
+            document.getElementById('edit-proxy').value = p.proxy_ip || '';
+            document.getElementById('edit-notes').value = p.notes || '';
+
+            document.getElementById('edit-modal').classList.remove('hidden');
+        } catch (e) {
+            showToast('Fehler: ' + e.message, 'error');
+        }
+    }
+
+    function closeEditModal() {
+        document.getElementById('edit-modal').classList.add('hidden');
+    }
+
+    async function submitEdit() {
+        const id = document.getElementById('edit-id').value;
+        const body = {};
+
+        const name = document.getElementById('edit-name').value.trim();
+        const status = document.getElementById('edit-status').value;
+        const ttUser = document.getElementById('edit-tt-user').value.trim();
+        const ttEmail = document.getElementById('edit-tt-email').value.trim();
+        const ttPass = document.getElementById('edit-tt-pass').value.trim();
+        const proxy = document.getElementById('edit-proxy').value.trim();
+        const notes = document.getElementById('edit-notes').value.trim();
+
+        if (name) body.name = name;
+        if (status) body.status = status;
+        if (ttUser) body.tiktok_username = ttUser;
+        if (ttEmail) body.tiktok_email = ttEmail;
+        if (ttPass) body.tiktok_password = ttPass;
+        if (proxy) body.proxy_ip = proxy;
+        if (notes) body.notes = notes;
+
+        try {
+            const res = await fetch(`/api/vault/${id}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body),
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                showToast(data.message || 'Profil aktualisiert.', 'success');
+                closeEditModal();
+                loadProfiles();
+            } else {
+                showToast(data.detail || 'Fehler', 'error');
+            }
+        } catch (e) {
+            showToast('Netzwerkfehler: ' + e.message, 'error');
+        }
+    }
+
+    // ===================================================================
+    // Delete Profile
+    // ===================================================================
+    async function deleteProfile(id, name) {
+        if (!confirm(`Profil "${name}" (#${id}) wirklich löschen?\n\nDies löscht auch die zugehörige Identität, falls keine anderen Profile sie nutzen.`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/vault/${id}`, {method: 'DELETE'});
+            const data = await res.json();
+
+            if (res.ok) {
+                showToast(data.message, 'success');
+                loadProfiles();
+            } else {
+                showToast(data.detail || 'Fehler beim Löschen', 'error');
+            }
+        } catch (e) {
+            showToast('Netzwerkfehler: ' + e.message, 'error');
+        }
+    }
+
+    // ===================================================================
+    // Load Profile (Switch Flow)
+    // ===================================================================
+    async function loadProfile(identityId) {
+        if (!confirm(`Switch-Flow für Identity #${identityId} starten?`)) return;
+
+        try {
+            const res = await fetch(`/api/control/switch/${identityId}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({}),
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                showToast(data.message + ' Wechsle zum Dashboard...', 'success');
+                setTimeout(() => window.location.href = '/', 1500);
+            } else {
+                showToast(data.detail || 'Fehler beim Starten des Switch-Flows', 'error');
+            }
+        } catch (e) {
+            showToast('Netzwerkfehler: ' + e.message, 'error');
+        }
+    }
+
+    // ===================================================================
+    // Helpers
+    // ===================================================================
+    function statusBadge(status) {
+        const c = {
+            warmup:    'bg-amber-500/10 text-amber-400 border-amber-500/30',
+            active:    'bg-green-500/10 text-green-400 border-green-500/30',
+            cooldown:  'bg-blue-500/10 text-blue-400 border-blue-500/30',
+            banned:    'bg-red-500/10 text-red-400 border-red-500/30',
+            suspended: 'bg-orange-500/10 text-orange-400 border-orange-500/30',
+            archived:  'bg-gray-500/10 text-gray-400 border-gray-500/30',
+        }[status] || 'bg-gray-500/10 text-gray-400 border-gray-500/30';
+        return `<span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider border ${c}">${status}</span>`;
+    }
+
+    function backupBadge(status) {
+        const c = {
+            none:      'text-gray-600',
+            valid:     'text-green-400',
+            corrupted: 'text-red-400',
+            restoring: 'text-amber-400',
+        }[status] || 'text-gray-600';
+        const icon = {
+            none:      '—',
+            valid:     'OK',
+            corrupted: 'ERR',
+            restoring: '...',
+        }[status] || '—';
+        return `<span class="text-[10px] font-mono font-semibold ${c}">${icon}</span>`;
+    }
+
+    function showToast(msg, type) {
+        const el = document.getElementById('vault-toast');
+        el.classList.remove('hidden');
+        const colors = {
+            success: 'bg-green-500/10 border border-green-500/30 text-green-400',
+            error:   'bg-red-500/10 border border-red-500/30 text-red-400',
+            warn:    'bg-amber-500/10 border border-amber-500/30 text-amber-400',
+        };
+        el.className = `mb-4 p-3 rounded-lg text-sm ${colors[type] || colors.warn}`;
+        el.textContent = msg;
+        setTimeout(() => el.classList.add('hidden'), 6000);
+    }
+
+    function esc(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Footer Clock
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('footer-clock').textContent =
+            now.toLocaleTimeString('de-DE') + ' UTC' + (now.getTimezoneOffset() > 0 ? '-' : '+') + Math.abs(now.getTimezoneOffset() / 60);
+    }
+
+    // ===================================================================
+    // Init
+    // ===================================================================
+    document.addEventListener('DOMContentLoaded', () => {
+        loadProfiles();
+        updateClock();
+        setInterval(updateClock, 1000);
+    });
+
+    // Escape-Taste schliesst Modals
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeCreateModal();
+            closeEditModal();
+        }
+    });
+</script>
+</body>
+</html>

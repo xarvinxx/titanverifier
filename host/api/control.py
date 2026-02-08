@@ -1,6 +1,6 @@
 """
-Project Titan — Control API ("The Trigger")
-=============================================
+Project Titan — Control API ("The Trigger") v2.0
+==================================================
 
 REST-Endpoints zum Starten und Überwachen der Orchestrator-Flows.
 
@@ -11,15 +11,16 @@ Endpoints:
   GET  /api/control/status           — Gibt aktuellen Flow-Status zurück
   POST /api/control/abort            — Setzt den Flow-Lock zurück (Emergency)
 
-Locking:
-  Es darf zu jedem Zeitpunkt nur EIN Flow gleichzeitig laufen.
-  Ein asyncio.Lock verhindert Race-Conditions.
+DB-Tracking (v2.0):
+  - Backup-Flow: Aktualisiert profiles-Tabelle mit Backup-Status/Pfad/Size
+  - Flow-History: Backup-Flow wird in flow_history protokolliert
 """
 
 from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Optional
@@ -28,6 +29,14 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel, Field
 
 from host.adb.client import ADBClient
+from host.engine.db_ops import (
+    create_flow_history,
+    find_profile_by_name,
+    update_flow_history,
+    update_profile_accounts_backup,
+    update_profile_gms_backup,
+    update_profile_tiktok_backup,
+)
 from host.engine.shifter import TitanShifter
 from host.flows.genesis import GenesisFlow, GenesisResult
 from host.flows.switch import SwitchFlow, SwitchResult
@@ -45,7 +54,7 @@ router = APIRouter(prefix="/api/control", tags=["Control"])
 class FlowState:
     """Globaler State für den aktuell laufenden Flow."""
     running: bool = False
-    flow_type: str = ""           # "genesis" | "switch" | ""
+    flow_type: str = ""           # "genesis" | "switch" | "backup" | ""
     flow_name: str = ""           # Name/Label des Flows
     started_at: Optional[str] = None
     finished_at: Optional[str] = None
@@ -239,7 +248,7 @@ async def _run_switch(
 
 
 # =============================================================================
-# POST /api/control/backup (Full-State Backup)
+# POST /api/control/backup (Full-State Backup mit DB-Tracking)
 # =============================================================================
 
 @router.post("/backup")
@@ -285,10 +294,29 @@ async def start_backup(
 
 
 async def _run_backup(profile_name: str) -> None:
-    """Background-Task: Führt Full-State Backup aus."""
+    """Background-Task: Führt Full-State Backup aus + aktualisiert profiles-Tabelle."""
     global _state
     async with _lock:
+        flow_history_id: Optional[int] = None
+
         try:
+            # Flow-History: Eintrag erstellen
+            try:
+                # Profil finden
+                profile_data = await find_profile_by_name(profile_name)
+                profile_id = profile_data["id"] if profile_data else None
+                identity_id = profile_data["identity_id"] if profile_data else None
+
+                flow_history_id = await create_flow_history(
+                    flow_type="backup",
+                    identity_id=identity_id,
+                    profile_id=profile_id,
+                )
+            except Exception as e:
+                profile_id = None
+                identity_id = None
+                logger.warning("Flow-History für Backup fehlgeschlagen: %s", e)
+
             adb = ADBClient()
             shifter = TitanShifter(adb)
             results = await shifter.backup_full_state(profile_name)
@@ -308,10 +336,64 @@ async def _run_backup(profile_name: str) -> None:
                 "components_total": len(results),
             }
 
+            # DB: Profile Backup-Status aktualisieren
+            if profile_id:
+                try:
+                    # TikTok Backup
+                    tiktok_path = results.get("tiktok")
+                    if tiktok_path:
+                        tiktok_size = os.path.getsize(tiktok_path) if tiktok_path.exists() else 0
+                        await update_profile_tiktok_backup(
+                            profile_id, str(tiktok_path), tiktok_size,
+                        )
+
+                    # GMS Backup
+                    gms_path = results.get("gms")
+                    if gms_path:
+                        gms_size = os.path.getsize(gms_path) if gms_path.exists() else 0
+                        await update_profile_gms_backup(
+                            profile_id, str(gms_path), gms_size,
+                        )
+
+                    # Account-DBs Backup
+                    accounts_path = results.get("accounts")
+                    if accounts_path:
+                        await update_profile_accounts_backup(
+                            profile_id, str(accounts_path),
+                        )
+
+                    logger.info(
+                        "Profile %d Backup-Status aktualisiert: %d/%d Komponenten",
+                        profile_id, success_count, len(results),
+                    )
+                except Exception as e:
+                    logger.warning("Profile Backup-Status Update fehlgeschlagen: %s", e)
+
+            # Flow-History: Finalize
+            if flow_history_id:
+                await update_flow_history(
+                    flow_history_id,
+                    status="success" if success_count > 0 else "failed",
+                    duration_ms=int(
+                        (datetime.now(timezone.utc).timestamp() -
+                         datetime.fromisoformat(_state.started_at).timestamp()) * 1000
+                    ) if _state.started_at else 0,
+                )
+
         except Exception as e:
             logger.error("Backup Background-Task Fehler: %s", e, exc_info=True)
             _state.error = str(e)
             _state.result = {"success": False, "error": str(e)}
+
+            if flow_history_id:
+                try:
+                    await update_flow_history(
+                        flow_history_id,
+                        status="failed",
+                        error=str(e),
+                    )
+                except Exception:
+                    pass
 
         finally:
             _state.running = False
@@ -329,7 +411,7 @@ async def flow_status():
 
     Returns:
         running: bool — Läuft gerade ein Flow?
-        flow_type: str — "genesis" | "switch" | ""
+        flow_type: str — "genesis" | "switch" | "backup" | ""
         result: dict — Letztes Ergebnis (wenn fertig)
     """
     return {

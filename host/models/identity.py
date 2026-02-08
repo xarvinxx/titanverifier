@@ -232,7 +232,8 @@ class IdentityCreate(BaseModel):
 class IdentityRead(IdentityBridge):
     """
     Vollständige Identität inkl. DB-Metadaten.
-    Extends IdentityBridge um id, name, status, timestamps.
+    Extends IdentityBridge um id, name, status, timestamps,
+    Netzwerk-Tracking, Audit-Tracking und Usage-Counter.
     """
     id: int = Field(..., description="Auto-increment DB Primary Key")
     name: str = Field(..., description="Anzeigename")
@@ -244,10 +245,30 @@ class IdentityRead(IdentityBridge):
     build_fingerprint: Optional[str] = Field(default=None)
     security_patch: Optional[str] = Field(default=None)
 
-    # Timestamps
+    # --- Netzwerk-Tracking ---
+    last_public_ip: Optional[str] = Field(default=None,
+                                          description="Letzte erkannte öffentliche IP")
+    last_ip_service: Optional[str] = Field(default=None,
+                                           description="IP-Service der letzten Erkennung")
+    last_ip_at: Optional[str] = Field(default=None,
+                                      description="Zeitpunkt der letzten IP-Erkennung")
+
+    # --- Audit-Tracking ---
+    last_audit_score: Optional[int] = Field(default=None,
+                                            description="Letzter Audit-Score (0-100%)")
+    last_audit_at: Optional[str] = Field(default=None,
+                                         description="Zeitpunkt des letzten Audits")
+    last_audit_detail: Optional[str] = Field(default=None,
+                                             description="JSON-Detail des letzten Audits")
+    total_audits: int = Field(default=0,
+                              description="Gesamtanzahl durchgeführter Audits")
+
+    # --- Timestamps & Counters ---
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[datetime] = Field(default=None)
     last_used_at: Optional[datetime] = Field(default=None)
+    usage_count: int = Field(default=0,
+                             description="Wie oft diese Identität geladen wurde")
 
     model_config = {"from_attributes": True}
 

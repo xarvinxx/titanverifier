@@ -1,15 +1,15 @@
 """
-Project Titan — Vault API (Account Manager CRUD)
-===================================================
+Project Titan — Vault API (Account Manager CRUD) v2.0
+======================================================
 
 REST-Endpoints für die Verwaltung der Profiles-Tabelle.
 
 Endpoints:
-  GET    /api/vault                      — Alle Profile (mit Identity-Join)
-  POST   /api/vault                      — Neues Profil erstellen
+  GET    /api/vault                      — Alle Profile (mit Identity-Join + alle Felder)
+  POST   /api/vault                      — Neues Profil erstellen (erweitert)
   GET    /api/vault/{id}                 — Einzelnes Profil laden
-  PUT    /api/vault/{id}                 — Profil komplett aktualisieren
-  PUT    /api/vault/{id}/credentials     — TikTok Credentials updaten
+  PUT    /api/vault/{id}                 — Profil komplett aktualisieren (erweitert)
+  PUT    /api/vault/{id}/credentials     — TikTok + Google Credentials updaten
   PUT    /api/vault/{id}/status          — Status ändern (warmup/active/banned/...)
   DELETE /api/vault/{id}                 — Profil + zugehörige Identität löschen
 """
@@ -31,36 +31,65 @@ router = APIRouter(prefix="/api/vault", tags=["Vault"])
 
 
 # =============================================================================
-# Request Models
+# Request Models (Erweitert für v2.0)
 # =============================================================================
 
 class VaultCreateRequest(BaseModel):
     """Neues Profil anlegen."""
     name: str = Field(..., min_length=1, max_length=64)
     identity_id: int = Field(..., description="FK → identities.id")
+
+    # TikTok
     tiktok_username: Optional[str] = Field(default=None, max_length=128)
     tiktok_email: Optional[str] = Field(default=None, max_length=256)
     tiktok_password: Optional[str] = Field(default=None, max_length=256)
+
+    # Google Account
+    google_email: Optional[str] = Field(default=None, max_length=256)
+    google_password: Optional[str] = Field(default=None, max_length=256)
+
+    # Proxy
     proxy_ip: Optional[str] = Field(default=None, max_length=256)
+    proxy_type: str = Field(default="none")
+    proxy_username: Optional[str] = Field(default=None, max_length=128)
+    proxy_password: Optional[str] = Field(default=None, max_length=256)
+
     notes: Optional[str] = Field(default=None, max_length=1000)
 
 
 class VaultCredentialsRequest(BaseModel):
-    """TikTok Credentials aktualisieren."""
+    """TikTok + Google Credentials aktualisieren."""
     tiktok_username: Optional[str] = Field(default=None, max_length=128)
     tiktok_email: Optional[str] = Field(default=None, max_length=256)
     tiktok_password: Optional[str] = Field(default=None, max_length=256)
+    google_email: Optional[str] = Field(default=None, max_length=256)
+    google_password: Optional[str] = Field(default=None, max_length=256)
 
 
 class VaultUpdateRequest(BaseModel):
     """Profil-Felder aktualisieren (partial)."""
     name: Optional[str] = Field(default=None, min_length=1, max_length=64)
+    status: Optional[str] = Field(default=None)
+
+    # TikTok
     tiktok_username: Optional[str] = Field(default=None, max_length=128)
     tiktok_email: Optional[str] = Field(default=None, max_length=256)
     tiktok_password: Optional[str] = Field(default=None, max_length=256)
+    tiktok_followers: Optional[int] = None
+    tiktok_following: Optional[int] = None
+    tiktok_likes: Optional[int] = None
+
+    # Google
+    google_email: Optional[str] = Field(default=None, max_length=256)
+    google_password: Optional[str] = Field(default=None, max_length=256)
+
+    # Proxy
     proxy_ip: Optional[str] = Field(default=None, max_length=256)
+    proxy_type: Optional[str] = None
+    proxy_username: Optional[str] = Field(default=None, max_length=128)
+    proxy_password: Optional[str] = Field(default=None, max_length=256)
+
     notes: Optional[str] = Field(default=None, max_length=1000)
-    status: Optional[str] = Field(default=None)
 
 
 class VaultStatusRequest(BaseModel):
@@ -72,7 +101,7 @@ class VaultStatusRequest(BaseModel):
 
 
 # =============================================================================
-# GET /api/vault — Alle Profile
+# GET /api/vault — Alle Profile (Erweitert)
 # =============================================================================
 
 @router.get("")
@@ -80,7 +109,8 @@ async def list_profiles():
     """
     Liefert alle Profile mit verknüpfter Identity-Info.
 
-    Sortiert nach ID absteigend (neueste zuerst).
+    Enthält jetzt: TikTok Stats, Google-Info, Proxy-Details,
+    GMS/Accounts Backup-Status und Activity-Tracking.
     """
     try:
         async with db.connection() as conn:
@@ -88,15 +118,23 @@ async def list_profiles():
                 SELECT
                     p.id, p.name, p.identity_id, p.status,
                     p.tiktok_username, p.tiktok_email, p.tiktok_password,
-                    p.proxy_ip, p.notes,
-                    p.backup_status, p.backup_path, p.backup_size_bytes,
-                    p.created_at, p.updated_at, p.last_switch_at, p.switch_count,
-                    i.name        AS identity_name,
-                    i.serial      AS identity_serial,
-                    i.imei1       AS identity_imei1,
-                    i.phone_number AS identity_phone,
-                    i.wifi_mac    AS identity_mac,
-                    i.status      AS identity_status
+                    p.tiktok_followers, p.tiktok_following, p.tiktok_likes,
+                    p.google_email, p.google_password,
+                    p.proxy_ip, p.proxy_type, p.proxy_username, p.proxy_password,
+                    p.backup_status, p.backup_path, p.backup_size_bytes, p.backup_created_at,
+                    p.gms_backup_status, p.gms_backup_path, p.gms_backup_size, p.gms_backup_at,
+                    p.accounts_backup_status, p.accounts_backup_path, p.accounts_backup_at,
+                    p.notes, p.created_at, p.updated_at,
+                    p.last_switch_at, p.switch_count, p.last_active_at,
+                    i.name          AS identity_name,
+                    i.serial        AS identity_serial,
+                    i.imei1         AS identity_imei1,
+                    i.phone_number  AS identity_phone,
+                    i.wifi_mac      AS identity_mac,
+                    i.status        AS identity_status,
+                    i.last_public_ip    AS identity_last_ip,
+                    i.last_audit_score  AS identity_audit_score,
+                    i.usage_count       AS identity_usage_count
                 FROM profiles p
                 LEFT JOIN identities i ON p.identity_id = i.id
                 ORDER BY p.id DESC
@@ -109,7 +147,7 @@ async def list_profiles():
 
 
 # =============================================================================
-# POST /api/vault — Neues Profil
+# POST /api/vault — Neues Profil (Erweitert)
 # =============================================================================
 
 @router.post("", status_code=201)
@@ -136,12 +174,16 @@ async def create_profile(req: VaultCreateRequest):
             """INSERT INTO profiles (
                 name, identity_id, status,
                 tiktok_username, tiktok_email, tiktok_password,
-                proxy_ip, notes, created_at
-            ) VALUES (?, ?, 'warmup', ?, ?, ?, ?, ?, ?)""",
+                google_email, google_password,
+                proxy_ip, proxy_type, proxy_username, proxy_password,
+                notes, created_at
+            ) VALUES (?, ?, 'warmup', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 req.name, req.identity_id,
                 req.tiktok_username, req.tiktok_email, req.tiktok_password,
-                req.proxy_ip, req.notes, now,
+                req.google_email, req.google_password,
+                req.proxy_ip, req.proxy_type, req.proxy_username, req.proxy_password,
+                req.notes, now,
             ),
         )
         profile_id = cursor.lastrowid
@@ -167,7 +209,13 @@ async def get_profile(profile_id: int):
             """SELECT
                 p.*,
                 i.name AS identity_name, i.serial AS identity_serial,
-                i.imei1 AS identity_imei1, i.phone_number AS identity_phone
+                i.imei1 AS identity_imei1, i.phone_number AS identity_phone,
+                i.wifi_mac AS identity_mac, i.status AS identity_status,
+                i.last_public_ip AS identity_last_ip,
+                i.last_audit_score AS identity_audit_score,
+                i.last_audit_at AS identity_audit_at,
+                i.total_audits AS identity_total_audits,
+                i.usage_count AS identity_usage_count
             FROM profiles p
             LEFT JOIN identities i ON p.identity_id = i.id
             WHERE p.id = ?""",
@@ -180,7 +228,7 @@ async def get_profile(profile_id: int):
 
 
 # =============================================================================
-# PUT /api/vault/{id} — Profil aktualisieren
+# PUT /api/vault/{id} — Profil aktualisieren (Erweitert)
 # =============================================================================
 
 @router.put("/{profile_id}")
@@ -198,6 +246,15 @@ async def update_profile(profile_id: int, req: VaultUpdateRequest):
             raise HTTPException(
                 status_code=400,
                 detail=f"Ungültiger Status: '{updates['status']}'. Erlaubt: {valid}",
+            )
+
+    # Proxy-Type validieren
+    if "proxy_type" in updates:
+        valid_types = {"none", "socks5", "http", "socks4"}
+        if updates["proxy_type"] not in valid_types:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Ungültiger Proxy-Typ: '{updates['proxy_type']}'. Erlaubt: {valid_types}",
             )
 
     updates["updated_at"] = datetime.now(timezone.utc).isoformat()
@@ -218,15 +275,13 @@ async def update_profile(profile_id: int, req: VaultUpdateRequest):
 
 
 # =============================================================================
-# PUT /api/vault/{id}/credentials — TikTok Credentials
+# PUT /api/vault/{id}/credentials — TikTok + Google Credentials
 # =============================================================================
 
 @router.put("/{profile_id}/credentials")
 async def update_credentials(profile_id: int, req: VaultCredentialsRequest):
     """
-    Aktualisiert die TikTok-Zugangsdaten eines Profils.
-
-    Felder: tiktok_username, tiktok_email, tiktok_password
+    Aktualisiert die TikTok- und Google-Zugangsdaten eines Profils.
     """
     now = datetime.now(timezone.utc).isoformat()
 
@@ -236,9 +291,12 @@ async def update_credentials(profile_id: int, req: VaultCredentialsRequest):
                 tiktok_username = COALESCE(?, tiktok_username),
                 tiktok_email    = COALESCE(?, tiktok_email),
                 tiktok_password = COALESCE(?, tiktok_password),
+                google_email    = COALESCE(?, google_email),
+                google_password = COALESCE(?, google_password),
                 updated_at      = ?
             WHERE id = ?""",
-            (req.tiktok_username, req.tiktok_email, req.tiktok_password, now, profile_id),
+            (req.tiktok_username, req.tiktok_email, req.tiktok_password,
+             req.google_email, req.google_password, now, profile_id),
         )
         if cursor.rowcount == 0:
             raise HTTPException(status_code=404, detail=f"Profil #{profile_id} nicht gefunden")

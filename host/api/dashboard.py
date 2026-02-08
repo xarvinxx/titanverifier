@@ -1,18 +1,18 @@
 """
-Project Titan — Dashboard API ("The Monitor")
-================================================
+Project Titan — Dashboard API ("The Monitor") v2.0
+====================================================
 
-Live-Daten und Echtzeit-Logs für das Web-Dashboard.
+Live-Daten, Echtzeit-Logs und History-Endpoints.
 
 Endpoints:
-  GET  /api/dashboard/stats       — Device-Info, ADB-Status, letzte Identität
-  GET  /api/dashboard/identities  — Alle Identitäten (Vault)
+  GET  /api/dashboard/stats       — Device-Info, ADB-Status, erweiterte DB-Stats
+  GET  /api/dashboard/identities  — Alle Identitäten (mit IP/Audit Tracking)
   GET  /api/dashboard/profiles    — Alle Profile
+  GET  /api/dashboard/flow-history — Flow-History (letzte 50)
+  GET  /api/dashboard/ip-history  — IP-History (letzte 50)
+  GET  /api/dashboard/audit-history — Audit-History (letzte 50)
+  GET  /api/dashboard/farm-stats  — Aggregierte Farm-Statistiken
   WS   /ws/logs                   — Echtzeit Log-Stream via WebSocket
-
-WebSocket-Protokoll:
-  Jede Nachricht ist ein JSON-Objekt:
-    {"ts": "HH:MM:SS", "level": "INFO", "name": "titan.flows.genesis", "msg": "..."}
 """
 
 from __future__ import annotations
@@ -24,10 +24,16 @@ from collections import deque
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
 from host.adb.client import ADBClient, ADBError
 from host.database import db
+from host.engine.db_ops import (
+    get_audit_history,
+    get_dashboard_stats,
+    get_flow_history,
+    get_ip_history,
+)
 
 logger = logging.getLogger("titan.api.dashboard")
 
@@ -130,7 +136,7 @@ async def websocket_logs(ws: WebSocket) -> None:
 
 
 # =============================================================================
-# GET /api/dashboard/stats
+# GET /api/dashboard/stats (Erweitert)
 # =============================================================================
 
 @router.get("/stats")
@@ -143,7 +149,7 @@ async def dashboard_stats():
         device_serial: str (aktuell auf dem Gerät)
         device_ip: str (WiFi IP)
         active_identity: dict (aktuell aktive Identität aus DB)
-        counts: dict (Anzahl Identitäten, Profile)
+        counts: dict (Identitäten, Profile, Flows, IPs)
     """
     adb = ADBClient()
     stats: dict = {
@@ -152,7 +158,13 @@ async def dashboard_stats():
         "device_ip": None,
         "root_access": False,
         "active_identity": None,
-        "counts": {"identities": 0, "profiles": 0},
+        "counts": {
+            "identities": 0,
+            "profiles": 0,
+            "flows_total": 0,
+            "flows_success": 0,
+            "unique_ips": 0,
+        },
     }
 
     # --- ADB Status ---
@@ -166,7 +178,6 @@ async def dashboard_stats():
                 stats["device_serial"] = result.output.strip()
 
             # Mobilfunk-IP (rmnet) oder WiFi-IP (wlan0)
-            # Prüfe zuerst Mobilfunk (O2), dann WiFi als Fallback
             for iface in ("rmnet_data0", "rmnet0", "wlan0"):
                 try:
                     result = await adb.shell(
@@ -191,7 +202,7 @@ async def dashboard_stats():
     except (ADBError, Exception) as e:
         logger.debug("ADB Stats Fehler: %s", e)
 
-    # --- DB Counts ---
+    # --- DB Counts (erweitert) ---
     try:
         async with db.connection() as conn:
             cursor = await conn.execute("SELECT COUNT(*) FROM identities")
@@ -200,11 +211,26 @@ async def dashboard_stats():
             cursor = await conn.execute("SELECT COUNT(*) FROM profiles")
             stats["counts"]["profiles"] = (await cursor.fetchone())[0]
 
-            # Aktive Identität
+            cursor = await conn.execute("SELECT COUNT(*) FROM flow_history")
+            stats["counts"]["flows_total"] = (await cursor.fetchone())[0]
+
             cursor = await conn.execute(
-                "SELECT id, name, serial, imei1, phone_number, operator_name, "
-                "sim_operator, wifi_mac, status, created_at, last_used_at "
-                "FROM identities WHERE status = 'active' LIMIT 1"
+                "SELECT COUNT(*) FROM flow_history WHERE status = 'success'"
+            )
+            stats["counts"]["flows_success"] = (await cursor.fetchone())[0]
+
+            cursor = await conn.execute(
+                "SELECT COUNT(DISTINCT public_ip) FROM ip_history"
+            )
+            stats["counts"]["unique_ips"] = (await cursor.fetchone())[0]
+
+            # Aktive Identität (erweitert mit IP/Audit)
+            cursor = await conn.execute(
+                """SELECT id, name, serial, imei1, phone_number, operator_name,
+                   sim_operator, wifi_mac, status, created_at, last_used_at,
+                   last_public_ip, last_ip_service, last_ip_at,
+                   last_audit_score, last_audit_at, total_audits, usage_count
+                FROM identities WHERE status = 'active' LIMIT 1"""
             )
             row = await cursor.fetchone()
             if row:
@@ -217,19 +243,21 @@ async def dashboard_stats():
 
 
 # =============================================================================
-# GET /api/dashboard/identities
+# GET /api/dashboard/identities (Erweitert)
 # =============================================================================
 
 @router.get("/identities")
 async def list_identities():
-    """Alle Identitäten aus dem Vault."""
+    """Alle Identitäten aus dem Vault mit IP/Audit-Tracking."""
     try:
         async with db.connection() as conn:
             cursor = await conn.execute(
-                "SELECT id, name, serial, imei1, phone_number, wifi_mac, "
-                "operator_name, sim_operator, status, build_id, "
-                "created_at, last_used_at "
-                "FROM identities ORDER BY id DESC"
+                """SELECT id, name, serial, imei1, phone_number, wifi_mac,
+                   operator_name, sim_operator, status, build_id,
+                   created_at, last_used_at,
+                   last_public_ip, last_ip_service, last_ip_at,
+                   last_audit_score, last_audit_at, total_audits, usage_count
+                FROM identities ORDER BY id DESC"""
             )
             rows = await cursor.fetchall()
             return {"identities": [dict(r) for r in rows]}
@@ -247,12 +275,91 @@ async def list_profiles():
     try:
         async with db.connection() as conn:
             cursor = await conn.execute(
-                "SELECT p.*, i.name as identity_name, i.serial as identity_serial "
-                "FROM profiles p "
-                "LEFT JOIN identities i ON p.identity_id = i.id "
-                "ORDER BY p.id DESC"
+                """SELECT p.*, i.name as identity_name, i.serial as identity_serial,
+                   i.last_public_ip as identity_last_ip
+                FROM profiles p
+                LEFT JOIN identities i ON p.identity_id = i.id
+                ORDER BY p.id DESC"""
             )
             rows = await cursor.fetchall()
             return {"profiles": [dict(r) for r in rows]}
     except Exception as e:
         return {"profiles": [], "error": str(e)}
+
+
+# =============================================================================
+# GET /api/dashboard/flow-history — Flow-Verlauf
+# =============================================================================
+
+@router.get("/flow-history")
+async def flow_history(
+    limit: int = Query(default=50, ge=1, le=200),
+    flow_type: Optional[str] = Query(default=None),
+):
+    """Liefert die letzten Flow-History Einträge."""
+    try:
+        rows = await get_flow_history(limit=limit, flow_type=flow_type)
+        return {"flows": rows, "count": len(rows)}
+    except Exception as e:
+        logger.error("Flow-History Fehler: %s", e)
+        return {"flows": [], "error": str(e)}
+
+
+# =============================================================================
+# GET /api/dashboard/ip-history — IP-Verlauf
+# =============================================================================
+
+@router.get("/ip-history")
+async def ip_history(
+    limit: int = Query(default=50, ge=1, le=200),
+    identity_id: Optional[int] = Query(default=None),
+):
+    """Liefert die letzten IP-History Einträge."""
+    try:
+        rows = await get_ip_history(identity_id=identity_id, limit=limit)
+        return {"ips": rows, "count": len(rows)}
+    except Exception as e:
+        logger.error("IP-History Fehler: %s", e)
+        return {"ips": [], "error": str(e)}
+
+
+# =============================================================================
+# GET /api/dashboard/audit-history — Audit-Verlauf
+# =============================================================================
+
+@router.get("/audit-history")
+async def audit_history(
+    limit: int = Query(default=50, ge=1, le=200),
+    identity_id: Optional[int] = Query(default=None),
+):
+    """Liefert die letzten Audit-History Einträge."""
+    try:
+        rows = await get_audit_history(identity_id=identity_id, limit=limit)
+        return {"audits": rows, "count": len(rows)}
+    except Exception as e:
+        logger.error("Audit-History Fehler: %s", e)
+        return {"audits": [], "error": str(e)}
+
+
+# =============================================================================
+# GET /api/dashboard/farm-stats — Aggregierte Farm-Statistiken
+# =============================================================================
+
+@router.get("/farm-stats")
+async def farm_stats():
+    """
+    Liefert aggregierte Statistiken für die gesamte Farm.
+
+    Beinhaltet:
+      - Identitäten: Total, Active, Corrupted
+      - Profile: Total, Active, Banned, Backed-up
+      - Flows: Total, Success, Failed, Success-Rate
+      - Netzwerk: Unique IPs
+      - Audits: Durchschnitts-Score
+    """
+    try:
+        stats = await get_dashboard_stats()
+        return stats
+    except Exception as e:
+        logger.error("Farm-Stats Fehler: %s", e)
+        return {"error": str(e)}

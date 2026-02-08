@@ -1,6 +1,6 @@
 """
-Project Titan — Switch Flow (Warm Switch / Existing Profile)
-==============================================================
+Project Titan — Switch Flow (Warm Switch / Existing Profile) v2.0
+===================================================================
 
 TITAN_CONTEXT.md §3C — FLOW 2: SWITCH (Erweitert mit Full-State Restore)
 
@@ -15,23 +15,16 @@ Zwingender Ablauf (6 Schritte):
   5. SOFT RESET     — killall zygote (Framework Restart)
   6. QUICK AUDIT    — Bridge-Serial prüfen
 
-Reihenfolge KRITISCH:
-  GMS MUSS vor TikTok restored werden, weil TikTok beim Start
-  GMS-Tokens prüft. Account-DBs MÜSSEN vor dem Zygote-Restart
-  restored sein, damit Android den Account kennt.
-
-Fehlerbehandlung:
-  - GMS-Kill Fehler: WARNING (Flow läuft weiter)
-  - Inject Fehler: ABORT (Profil nicht wechseln)
-  - GMS/Account Restore Fehler: WARNING (Flow läuft weiter — Google Logout möglich)
-  - TikTok Restore Fehler: ABORT + Profil als corrupted markieren
-  - Zygote-Kill Fehler: WARNING (UI startet evtl. nicht sauber)
-  - Audit Fehler: WARNING (Profil bleibt aktiv)
+DB-Tracking (v2.0):
+  - Flow-History: Eintrag bei Start, Updates bei jedem Schritt, Finalize
+  - Profile: switch_count++, last_switch_at, last_active_at
+  - Identity: usage_count++, last_used_at
 """
 
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -42,6 +35,13 @@ from host.adb.client import ADBClient, ADBError
 from host.config import GMS_BACKUP_PACKAGES, TIMING
 from host.database import db
 from host.engine.auditor import TitanAuditor
+from host.engine.db_ops import (
+    create_flow_history,
+    find_profile_by_identity,
+    increment_identity_usage,
+    update_flow_history,
+    update_profile_activity,
+)
 from host.engine.injector import TitanInjector
 from host.engine.shifter import TitanShifter
 from host.flows.genesis import FlowStep, FlowStepStatus
@@ -70,6 +70,7 @@ class SwitchResult:
     )
     finished_at: Optional[str] = None
     duration_ms: int = 0
+    flow_history_id: Optional[int] = None
 
     @property
     def step_summary(self) -> str:
@@ -154,6 +155,8 @@ class SwitchFlow:
         result.steps = [FlowStep(name=n) for n in self.STEP_NAMES]
         flow_start = _now_ms()
 
+        flow_history_id: Optional[int] = None
+
         # Identität aus DB laden
         identity = await self._load_identity(identity_id)
         if not identity:
@@ -165,9 +168,16 @@ class SwitchFlow:
         result.identity_name = identity.name
         result.serial = identity.serial
 
+        # Profil-ID auflösen falls nicht angegeben
+        if not profile_id:
+            try:
+                profile_id = await find_profile_by_identity(identity_id)
+                result.profile_id = profile_id
+            except Exception:
+                pass
+
         # Bestimme Restore-Modus
         use_full_state = profile_name is not None
-        total_steps = 6 if use_full_state else 6
 
         logger.info("=" * 60)
         logger.info(
@@ -176,6 +186,19 @@ class SwitchFlow:
             "Full-State" if use_full_state else "Legacy",
         )
         logger.info("=" * 60)
+
+        # ------------------------------------------------------------------
+        # Flow-History: Eintrag erstellen
+        # ------------------------------------------------------------------
+        try:
+            flow_history_id = await create_flow_history(
+                flow_type="switch",
+                identity_id=identity_id,
+                profile_id=profile_id,
+            )
+            result.flow_history_id = flow_history_id
+        except Exception as e:
+            logger.warning("Flow-History Eintrag konnte nicht erstellt werden: %s", e)
 
         try:
             # =================================================================
@@ -213,8 +236,12 @@ class SwitchFlow:
                 identity, label=identity.name, distribute=True,
             )
 
-            # Aktive Identität in DB umschalten
+            # Aktive Identität in DB umschalten + usage_count++
             await self._activate_identity(identity_id)
+            try:
+                await increment_identity_usage(identity_id)
+            except Exception as e:
+                logger.warning("Usage-Counter Update fehlgeschlagen: %s", e)
 
             step.status = FlowStepStatus.SUCCESS
             step.detail = f"serial={identity.serial}"
@@ -372,7 +399,10 @@ class SwitchFlow:
 
             # Update Profile switch_count + last_switch_at
             if profile_id:
-                await self._update_profile_switch(profile_id)
+                try:
+                    await update_profile_activity(profile_id)
+                except Exception as e:
+                    logger.warning("Profile Activity Update fehlgeschlagen: %s", e)
 
             # =================================================================
             # Ergebnis
@@ -412,6 +442,25 @@ class SwitchFlow:
         finally:
             result.finished_at = datetime.now(timezone.utc).isoformat()
             result.duration_ms = _now_ms() - flow_start
+
+            # Flow-History: Finalize
+            if flow_history_id:
+                try:
+                    steps_json = json.dumps(
+                        [{"name": s.name, "status": s.status.value,
+                          "detail": s.detail, "duration_ms": s.duration_ms}
+                         for s in result.steps],
+                        ensure_ascii=False,
+                    )
+                    await update_flow_history(
+                        flow_history_id,
+                        status="success" if result.success else "failed",
+                        duration_ms=result.duration_ms,
+                        steps_json=steps_json,
+                        error=result.error,
+                    )
+                except Exception as e:
+                    logger.warning("Flow-History Finalize fehlgeschlagen: %s", e)
 
             logger.info("=" * 60)
             logger.info(
@@ -457,19 +506,6 @@ class SwitchFlow:
                 "UPDATE identities SET status = 'active', "
                 "updated_at = ?, last_used_at = ? WHERE id = ?",
                 (now, now, identity_id),
-            )
-
-    async def _update_profile_switch(self, profile_id: int) -> None:
-        """Aktualisiert switch_count und last_switch_at eines Profils."""
-        now = datetime.now(timezone.utc).isoformat()
-        async with db.transaction() as conn:
-            await conn.execute(
-                "UPDATE profiles SET "
-                "switch_count = switch_count + 1, "
-                "last_switch_at = ?, "
-                "updated_at = ? "
-                "WHERE id = ?",
-                (now, now, profile_id),
             )
 
     async def _mark_profile_corrupted(self, profile_id: int) -> None:

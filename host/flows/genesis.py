@@ -1,6 +1,6 @@
 """
-Project Titan — Genesis Flow (Cold Start / New Account)
-=========================================================
+Project Titan — Genesis Flow (Cold Start / New Account) v2.0
+==============================================================
 
 TITAN_CONTEXT.md §3C — FLOW 1: GENESIS
 
@@ -11,21 +11,23 @@ oder die Identität wird als 'corrupted' markiert.
 Zwingender Ablauf (7 Schritte):
   1. STERILIZE — Deep Clean (pm clear TikTok + GMS)
   2. GENERATE  — Neue O2-DE Identität generieren
-  3. PERSIST   — In DB speichern (Status: 'active')
+  3. PERSIST   — In DB speichern (Status: 'active') + Auto-Profil
   4. INJECT    — Bridge-Datei auf Gerät schreiben
   5. HARD RESET — adb reboot + warten auf sys.boot_completed
-  6. NETWORK   — Flugmodus AN → 12s Lease-Wait → Flugmodus AUS
+  6. NETWORK   — Flugmodus AN → 12s Lease-Wait → Flugmodus AUS + IP-Check
   7. AUDIT     — Device-Audit. Bei Score < 100% → Status 'corrupted'
 
-Fehlerbehandlung:
-  - Bei ADB-Fehler in Schritt 1-4: Rollback (Identity löschen)
-  - Bei Fehler in Schritt 5-7: Identity bleibt, wird als corrupted markiert
-  - Der Flow loggt jeden Schritt detailliert
+DB-Tracking (v2.0):
+  - Flow-History: Eintrag bei Start, Updates bei jedem Schritt
+  - IP-History: Erkannte IP in ip_history + identities.last_public_ip
+  - Audit-History: Audit-Ergebnis in audit_history + identities.last_audit_*
+  - Auto-Profil: Nach Persist automatisch Profil in profiles erstellen
 """
 
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -36,6 +38,15 @@ from host.adb.client import ADBClient, ADBError
 from host.config import TIMING
 from host.database import db
 from host.engine.auditor import AuditResult, TitanAuditor
+from host.engine.db_ops import (
+    create_flow_history,
+    create_profile_auto,
+    record_audit,
+    record_ip,
+    update_flow_history,
+    update_identity_audit,
+    update_identity_network,
+)
 from host.engine.identity_engine import IdentityGenerator
 from host.engine.injector import TitanInjector
 from host.engine.network import NetworkChecker
@@ -71,16 +82,20 @@ class GenesisResult:
     """Ergebnis des Genesis-Flows."""
     success: bool = False
     identity_id: Optional[int] = None
+    profile_id: Optional[int] = None
     identity_name: str = ""
     serial: str = ""
     steps: list[FlowStep] = field(default_factory=list)
     audit: Optional[AuditResult] = None
+    public_ip: Optional[str] = None
+    ip_service: Optional[str] = None
     error: Optional[str] = None
     started_at: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
     finished_at: Optional[str] = None
     duration_ms: int = 0
+    flow_history_id: Optional[int] = None
 
     @property
     def step_summary(self) -> str:
@@ -145,10 +160,22 @@ class GenesisFlow:
 
         identity: Optional[IdentityRead] = None
         db_identity_id: Optional[int] = None
+        flow_history_id: Optional[int] = None
 
         logger.info("=" * 60)
         logger.info("  GENESIS FLOW: %s", name)
         logger.info("=" * 60)
+
+        # ------------------------------------------------------------------
+        # Flow-History: Eintrag erstellen
+        # ------------------------------------------------------------------
+        try:
+            flow_history_id = await create_flow_history(
+                flow_type="genesis",
+            )
+            result.flow_history_id = flow_history_id
+        except Exception as e:
+            logger.warning("Flow-History Eintrag konnte nicht erstellt werden: %s", e)
 
         try:
             # =================================================================
@@ -183,8 +210,16 @@ class GenesisFlow:
             step.duration_ms = _now_ms() - step_start
             logger.info("[2/7] Generate: OK (serial=%s)", identity.serial)
 
+            # Flow-History: Serial + IMEI speichern
+            if flow_history_id:
+                await update_flow_history(
+                    flow_history_id,
+                    generated_serial=identity.serial,
+                    generated_imei=identity.imei1,
+                )
+
             # =================================================================
-            # Schritt 3: PERSIST
+            # Schritt 3: PERSIST + AUTO-PROFIL
             # =================================================================
             step = result.steps[2]
             step.status = FlowStepStatus.RUNNING
@@ -194,10 +229,37 @@ class GenesisFlow:
             db_identity_id = await self._persist_identity(identity)
             result.identity_id = db_identity_id
 
+            # Flow-History: Identity-ID setzen
+            if flow_history_id:
+                async with db.transaction() as conn:
+                    await conn.execute(
+                        "UPDATE flow_history SET identity_id = ? WHERE id = ?",
+                        (db_identity_id, flow_history_id),
+                    )
+
+            # Auto-Profil erstellen
+            try:
+                profile_id = await create_profile_auto(
+                    identity_id=db_identity_id,
+                    name=name,
+                )
+                result.profile_id = profile_id
+                logger.info("[3/7] Auto-Profil erstellt: id=%d", profile_id)
+
+                # Flow-History: Profile-ID setzen
+                if flow_history_id:
+                    async with db.transaction() as conn:
+                        await conn.execute(
+                            "UPDATE flow_history SET profile_id = ? WHERE id = ?",
+                            (profile_id, flow_history_id),
+                        )
+            except Exception as e:
+                logger.warning("[3/7] Auto-Profil Fehler (nicht-kritisch): %s", e)
+
             step.status = FlowStepStatus.SUCCESS
-            step.detail = f"id={db_identity_id}"
+            step.detail = f"identity_id={db_identity_id}, profile_id={result.profile_id}"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[3/7] Persist: OK (id=%d)", db_identity_id)
+            logger.info("[3/7] Persist: OK (%s)", step.detail)
 
             # =================================================================
             # Schritt 4: INJECT
@@ -254,7 +316,7 @@ class GenesisFlow:
             logger.info("[5/7] Hard Reset: OK (%s)", step.detail)
 
             # =================================================================
-            # Schritt 6: NETWORK INIT
+            # Schritt 6: NETWORK INIT + IP-TRACKING
             # =================================================================
             step = result.steps[5]
             step.status = FlowStepStatus.RUNNING
@@ -273,12 +335,39 @@ class GenesisFlow:
             # IP-Check via ares_curl (DNS-Bypass)
             ip_result = await self._network.get_public_ip()
             if ip_result.success:
+                result.public_ip = ip_result.ip
+                result.ip_service = ip_result.service
+
                 step.status = FlowStepStatus.SUCCESS
                 step.detail = (
                     f"Flugmodus-Cycle OK | "
                     f"Öffentliche IP: {ip_result.ip} (via {ip_result.service})"
                 )
                 logger.info("[6/7] Network Init: IP = %s (via %s)", ip_result.ip, ip_result.service)
+
+                # DB: IP in identities + ip_history speichern
+                try:
+                    if db_identity_id:
+                        await update_identity_network(
+                            db_identity_id, ip_result.ip, ip_result.service,
+                        )
+                        await record_ip(
+                            public_ip=ip_result.ip,
+                            identity_id=db_identity_id,
+                            profile_id=result.profile_id,
+                            ip_service=ip_result.service,
+                            connection_type="mobile_o2",
+                            flow_type="genesis",
+                        )
+                    # Flow-History: IP
+                    if flow_history_id:
+                        await update_flow_history(
+                            flow_history_id,
+                            public_ip=ip_result.ip,
+                            ip_service=ip_result.service,
+                        )
+                except Exception as e:
+                    logger.warning("IP-DB-Update fehlgeschlagen: %s", e)
             else:
                 step.status = FlowStepStatus.SUCCESS  # Nicht-kritisch
                 step.detail = (
@@ -290,7 +379,7 @@ class GenesisFlow:
             step.duration_ms = _now_ms() - step_start
 
             # =================================================================
-            # Schritt 7: AUDIT
+            # Schritt 7: AUDIT + AUDIT-TRACKING
             # =================================================================
             step = result.steps[6]
             step.status = FlowStepStatus.RUNNING
@@ -299,6 +388,40 @@ class GenesisFlow:
             logger.info("[7/7] Audit: Device prüfen...")
             audit = await self._auditor.audit_device(identity)
             result.audit = audit
+
+            # DB: Audit in audit_history + identities speichern
+            audit_detail_json = json.dumps(
+                [{"name": c.name, "status": c.status.value, "expected": c.expected,
+                  "actual": c.actual, "detail": c.detail}
+                 for c in audit.checks],
+                ensure_ascii=False,
+            )
+
+            try:
+                if db_identity_id:
+                    await update_identity_audit(
+                        db_identity_id,
+                        score=audit.score_percent,
+                        detail=audit_detail_json,
+                    )
+                    await record_audit(
+                        identity_id=db_identity_id,
+                        flow_id=flow_history_id,
+                        score_percent=audit.score_percent,
+                        total_checks=audit.total_checks,
+                        passed_checks=audit.passed_count,
+                        failed_checks=audit.failed_checks,
+                        checks_json=audit_detail_json,
+                    )
+                # Flow-History: Audit
+                if flow_history_id:
+                    await update_flow_history(
+                        flow_history_id,
+                        audit_score=audit.score_percent,
+                        audit_detail=audit_detail_json,
+                    )
+            except Exception as e:
+                logger.warning("Audit-DB-Update fehlgeschlagen: %s", e)
 
             if audit.passed:
                 step.status = FlowStepStatus.SUCCESS
@@ -372,6 +495,25 @@ class GenesisFlow:
             result.finished_at = datetime.now(timezone.utc).isoformat()
             result.duration_ms = _now_ms() - flow_start
 
+            # Flow-History: Finalize
+            if flow_history_id:
+                try:
+                    steps_json = json.dumps(
+                        [{"name": s.name, "status": s.status.value,
+                          "detail": s.detail, "duration_ms": s.duration_ms}
+                         for s in result.steps],
+                        ensure_ascii=False,
+                    )
+                    await update_flow_history(
+                        flow_history_id,
+                        status="success" if result.success else "failed",
+                        duration_ms=result.duration_ms,
+                        steps_json=steps_json,
+                        error=result.error,
+                    )
+                except Exception as e:
+                    logger.warning("Flow-History Finalize fehlgeschlagen: %s", e)
+
             logger.info("=" * 60)
             logger.info(
                 "  GENESIS %s: %s (%d ms)",
@@ -415,7 +557,7 @@ class GenesisFlow:
                     imsi, sim_serial, operator_name, phone_number,
                     sim_operator, sim_operator_name, voicemail_number,
                     build_id, build_fingerprint, security_patch,
-                    created_at, last_used_at
+                    created_at, last_used_at, usage_count
                 ) VALUES (
                     ?, 'active', ?,
                     ?, ?, ?, ?,
@@ -423,7 +565,7 @@ class GenesisFlow:
                     ?, ?, ?, ?,
                     ?, ?, ?,
                     ?, ?, ?,
-                    ?, ?
+                    ?, ?, 1
                 )""",
                 (
                     identity.name, identity.notes,

@@ -70,7 +70,7 @@
                         </div>
                         <div>
                             <h1 class="text-sm font-semibold text-white tracking-wide">PROJECT TITAN</h1>
-                            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Command Center v1.0</p>
+                            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Command Center v2.0</p>
                         </div>
                     </a>
                 </div>
@@ -93,7 +93,7 @@
     <!-- =============================================================== -->
     <!-- MAIN CONTENT -->
     <!-- =============================================================== -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <main class="flex-1 max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
         <!-- Title + Create Button -->
         <div class="flex items-center justify-between mb-5">
@@ -130,28 +130,30 @@
         <div id="vault-toast" class="hidden mb-4 p-3 rounded-lg text-sm"></div>
 
         <!-- =============================================================== -->
-        <!-- DATA GRID -->
+        <!-- DATA GRID (Erweitert) -->
         <!-- =============================================================== -->
         <div class="bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="text-left text-xs text-gray-500 uppercase tracking-wider bg-gray-900/60">
-                            <th class="px-4 py-3 font-medium w-12">ID</th>
-                            <th class="px-4 py-3 font-medium">Name</th>
-                            <th class="px-4 py-3 font-medium">Identity</th>
-                            <th class="px-4 py-3 font-medium">Status</th>
-                            <th class="px-4 py-3 font-medium">TikTok User</th>
-                            <th class="px-4 py-3 font-medium">Proxy</th>
-                            <th class="px-4 py-3 font-medium">Backup</th>
-                            <th class="px-4 py-3 font-medium">Switches</th>
-                            <th class="px-4 py-3 font-medium">Notes</th>
-                            <th class="px-4 py-3 font-medium text-right">Actions</th>
+                            <th class="px-3 py-3 font-medium w-10">ID</th>
+                            <th class="px-3 py-3 font-medium">Name</th>
+                            <th class="px-3 py-3 font-medium">Identity</th>
+                            <th class="px-3 py-3 font-medium">Status</th>
+                            <th class="px-3 py-3 font-medium">TikTok</th>
+                            <th class="px-3 py-3 font-medium">Google</th>
+                            <th class="px-3 py-3 font-medium">Proxy</th>
+                            <th class="px-3 py-3 font-medium">IP</th>
+                            <th class="px-3 py-3 font-medium">Audit</th>
+                            <th class="px-3 py-3 font-medium">Backups</th>
+                            <th class="px-3 py-3 font-medium">Switches</th>
+                            <th class="px-3 py-3 font-medium text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="vault-grid" class="divide-y divide-gray-800/50">
                         <tr>
-                            <td colspan="10" class="px-4 py-12 text-center text-gray-600">
+                            <td colspan="12" class="px-4 py-12 text-center text-gray-600">
                                 <svg class="w-8 h-8 mx-auto mb-2 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                           d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
@@ -170,18 +172,18 @@
     <!-- FOOTER -->
     <!-- =============================================================== -->
     <footer class="border-t border-gray-800/50 py-3">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-            <p class="text-[10px] text-gray-700">Project Titan v1.0.0 &mdash; O2-DE / Pixel 6 / KernelSU</p>
+        <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+            <p class="text-[10px] text-gray-700">Project Titan v2.0.0 &mdash; O2-DE / Pixel 6 / KernelSU</p>
             <p class="text-[10px] text-gray-700" id="footer-clock"></p>
         </div>
     </footer>
 </div>
 
 <!-- =============================================================== -->
-<!-- MODAL: Create Profile -->
+<!-- MODAL: Create Profile (Erweitert) -->
 <!-- =============================================================== -->
 <div id="create-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
-    <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6">
+    <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-5">
             <h3 class="text-base font-semibold text-white">Neues Profil erstellen</h3>
             <button onclick="closeCreateModal()" class="text-gray-500 hover:text-white transition-colors">
@@ -191,37 +193,82 @@
             </button>
         </div>
         <div class="space-y-3">
-            <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1">Name *</label>
-                <input id="create-name" type="text" placeholder="z.B. TikTok_DE_001"
-                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
-                              placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1">Identity ID *</label>
-                <input id="create-identity-id" type="number" placeholder="ID der verknüpften Identität"
-                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
-                              placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
-            </div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1">TikTok User</label>
-                    <input id="create-tt-user" type="text" placeholder="@username"
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Name *</label>
+                    <input id="create-name" type="text" placeholder="z.B. TikTok_DE_001"
                            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
                                   placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1">Proxy IP</label>
-                    <input id="create-proxy" type="text" placeholder="ip:port"
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Identity ID *</label>
+                    <input id="create-identity-id" type="number" placeholder="ID"
                            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
                                   placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
                 </div>
             </div>
+
+            <div class="pt-2 border-t border-gray-800"><p class="text-[10px] text-gray-600 uppercase tracking-wider">TikTok</p></div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Username</label>
+                    <input id="create-tt-user" type="text" placeholder="@username"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Email</label>
+                    <input id="create-tt-email" type="email" placeholder="user@mail.de"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">TikTok Password</label>
+                <input id="create-tt-pass" type="text" placeholder="Passwort"
+                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
+            </div>
+
+            <div class="pt-2 border-t border-gray-800"><p class="text-[10px] text-gray-600 uppercase tracking-wider">Google Account</p></div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Google Email</label>
+                    <input id="create-google-email" type="email" placeholder="user@gmail.com"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Google Password</label>
+                    <input id="create-google-pass" type="text" placeholder="Passwort"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
+                </div>
+            </div>
+
+            <div class="pt-2 border-t border-gray-800"><p class="text-[10px] text-gray-600 uppercase tracking-wider">Proxy</p></div>
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">IP:Port</label>
+                    <input id="create-proxy" type="text" placeholder="ip:port"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Type</label>
+                    <select id="create-proxy-type"
+                            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
+                        <option value="none">None</option>
+                        <option value="socks5">SOCKS5</option>
+                        <option value="http">HTTP</option>
+                        <option value="socks4">SOCKS4</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">User:Pass</label>
+                    <input id="create-proxy-auth" type="text" placeholder="user:pass"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
+                </div>
+            </div>
+
             <div>
                 <label class="block text-xs font-medium text-gray-400 mb-1">Notes</label>
                 <input id="create-notes" type="text" placeholder="Optionale Notizen"
-                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
-                              placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
+                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50">
             </div>
         </div>
         <div class="flex justify-end gap-2 mt-5">
@@ -238,10 +285,10 @@
 </div>
 
 <!-- =============================================================== -->
-<!-- MODAL: Edit Profile -->
+<!-- MODAL: Edit Profile (Erweitert) -->
 <!-- =============================================================== -->
 <div id="edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
-    <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6">
+    <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
         <div class="flex items-center justify-between mb-5">
             <h3 class="text-base font-semibold text-white">Profil bearbeiten <span id="edit-title" class="text-titan-400"></span></h3>
             <button onclick="closeEditModal()" class="text-gray-500 hover:text-white transition-colors">
@@ -253,61 +300,99 @@
         <input type="hidden" id="edit-id">
 
         <div class="space-y-3">
-            <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1">Name</label>
-                <input id="edit-name" type="text"
-                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
-                              focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1">Status</label>
-                <select id="edit-status"
-                        class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
-                               focus:outline-none focus:ring-2 focus:ring-blue-500/50">
-                    <option value="warmup">Warmup</option>
-                    <option value="active">Active</option>
-                    <option value="cooldown">Cooldown</option>
-                    <option value="banned">Banned</option>
-                    <option value="suspended">Suspended</option>
-                    <option value="archived">Archived</option>
-                </select>
-            </div>
-
-            <div class="pt-2 border-t border-gray-800">
-                <p class="text-xs font-medium text-gray-500 mb-2">TikTok Credentials</p>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Name</label>
+                    <input id="edit-name" type="text"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Status</label>
+                    <select id="edit-status"
+                            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                        <option value="warmup">Warmup</option>
+                        <option value="active">Active</option>
+                        <option value="cooldown">Cooldown</option>
+                        <option value="banned">Banned</option>
+                        <option value="suspended">Suspended</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                </div>
             </div>
 
+            <div class="pt-2 border-t border-gray-800"><p class="text-[10px] text-gray-600 uppercase tracking-wider">TikTok Credentials</p></div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1">Username</label>
                     <input id="edit-tt-user" type="text" placeholder="@username"
-                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
-                                  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1">Email</label>
                     <input id="edit-tt-email" type="email" placeholder="user@mail.de"
-                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
-                                  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                 </div>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1">Password</label>
-                <input id="edit-tt-pass" type="text" placeholder="Passwort"
-                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
-                              placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">TT Password</label>
+                    <input id="edit-tt-pass" type="text" placeholder="Passwort"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Followers</label>
+                    <input id="edit-tt-followers" type="number" placeholder="0"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Likes</label>
+                    <input id="edit-tt-likes" type="number" placeholder="0"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                </div>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-400 mb-1">Proxy IP</label>
-                <input id="edit-proxy" type="text" placeholder="ip:port"
-                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
-                              placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+
+            <div class="pt-2 border-t border-gray-800"><p class="text-[10px] text-gray-600 uppercase tracking-wider">Google Account</p></div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Google Email</label>
+                    <input id="edit-google-email" type="email" placeholder="user@gmail.com"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Google Password</label>
+                    <input id="edit-google-pass" type="text" placeholder="Passwort"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                </div>
             </div>
+
+            <div class="pt-2 border-t border-gray-800"><p class="text-[10px] text-gray-600 uppercase tracking-wider">Proxy</p></div>
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">IP:Port</label>
+                    <input id="edit-proxy" type="text" placeholder="ip:port"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Type</label>
+                    <select id="edit-proxy-type"
+                            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                        <option value="none">None</option>
+                        <option value="socks5">SOCKS5</option>
+                        <option value="http">HTTP</option>
+                        <option value="socks4">SOCKS4</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">User:Pass</label>
+                    <input id="edit-proxy-auth" type="text" placeholder="user:pass"
+                           class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                </div>
+            </div>
+
             <div>
                 <label class="block text-xs font-medium text-gray-400 mb-1">Notes</label>
                 <input id="edit-notes" type="text" placeholder="Optionale Notizen"
-                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
-                              placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                       class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
             </div>
         </div>
 
@@ -330,7 +415,7 @@
 <!-- =============================================================== -->
 <script>
     // ===================================================================
-    // Load Profiles
+    // Load Profiles (Erweitert)
     // ===================================================================
     async function loadProfiles() {
         try {
@@ -344,7 +429,7 @@
 
             if (profiles.length === 0) {
                 grid.innerHTML = `<tr>
-                    <td colspan="10" class="px-4 py-12 text-center text-gray-600">
+                    <td colspan="12" class="px-4 py-12 text-center text-gray-600">
                         <svg class="w-8 h-8 mx-auto mb-2 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                   d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
@@ -356,26 +441,54 @@
                 return;
             }
 
-            grid.innerHTML = profiles.map(p => `
+            grid.innerHTML = profiles.map(p => {
+                // Backup Status zusammenfassen
+                const backups = [];
+                if (p.backup_status === 'valid') backups.push('TT');
+                if (p.gms_backup_status === 'valid') backups.push('GMS');
+                if (p.accounts_backup_status === 'valid') backups.push('ACC');
+                const backupStr = backups.length > 0
+                    ? `<span class="text-green-400">${backups.join('+')}</span>`
+                    : '<span class="text-gray-600">none</span>';
+
+                // TikTok Stats
+                const ttStats = (p.tiktok_followers || p.tiktok_likes)
+                    ? `<div class="text-[10px] text-gray-600">${fmtNum(p.tiktok_followers)}F / ${fmtNum(p.tiktok_likes)}L</div>`
+                    : '';
+
+                return `
                 <tr class="vault-row transition-colors group" data-id="${p.id}">
-                    <td class="px-4 py-2.5 font-mono text-xs text-gray-500">#${p.id}</td>
-                    <td class="px-4 py-2.5">
+                    <td class="px-3 py-2.5 font-mono text-xs text-gray-500">#${p.id}</td>
+                    <td class="px-3 py-2.5">
                         <div class="font-medium text-gray-200 text-sm">${esc(p.name)}</div>
                         <div class="text-[10px] text-gray-600 font-mono">${esc(p.identity_serial || '—')}</div>
                     </td>
-                    <td class="px-4 py-2.5">
+                    <td class="px-3 py-2.5">
                         <div class="text-xs text-gray-400">${esc(p.identity_name || '—')}</div>
                         <div class="text-[10px] text-gray-600 font-mono">#${p.identity_id}</div>
                     </td>
-                    <td class="px-4 py-2.5">${statusBadge(p.status)}</td>
-                    <td class="px-4 py-2.5 font-mono text-xs text-gray-400">${esc(p.tiktok_username || '—')}</td>
-                    <td class="px-4 py-2.5 font-mono text-xs text-gray-500">${esc(p.proxy_ip || '—')}</td>
-                    <td class="px-4 py-2.5">${backupBadge(p.backup_status)}</td>
-                    <td class="px-4 py-2.5 text-center">
+                    <td class="px-3 py-2.5">${statusBadge(p.status)}</td>
+                    <td class="px-3 py-2.5">
+                        <div class="font-mono text-xs text-gray-400">${esc(p.tiktok_username || '—')}</div>
+                        ${ttStats}
+                    </td>
+                    <td class="px-3 py-2.5 text-xs text-gray-500">${esc(p.google_email || '—')}</td>
+                    <td class="px-3 py-2.5">
+                        <div class="font-mono text-xs text-gray-500">${esc(p.proxy_ip || '—')}</div>
+                        ${p.proxy_type !== 'none' && p.proxy_type ? `<div class="text-[10px] text-gray-600">${p.proxy_type}</div>` : ''}
+                    </td>
+                    <td class="px-3 py-2.5 font-mono text-xs text-gray-500">${esc(p.identity_last_ip || '—')}</td>
+                    <td class="px-3 py-2.5 text-xs">
+                        ${p.identity_audit_score != null
+                            ? `<span class="${p.identity_audit_score >= 100 ? 'text-green-400' : p.identity_audit_score >= 50 ? 'text-amber-400' : 'text-red-400'} font-semibold">${p.identity_audit_score}%</span>`
+                            : '<span class="text-gray-600">—</span>'
+                        }
+                    </td>
+                    <td class="px-3 py-2.5 text-[10px] font-mono">${backupStr}</td>
+                    <td class="px-3 py-2.5 text-center">
                         <span class="text-xs font-mono text-gray-500">${p.switch_count || 0}</span>
                     </td>
-                    <td class="px-4 py-2.5 text-xs text-gray-600 max-w-[120px] truncate">${esc(p.notes || '')}</td>
-                    <td class="px-4 py-2.5">
+                    <td class="px-3 py-2.5">
                         <div class="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onclick="openEditModal(${p.id})" title="Bearbeiten"
                                     class="p-1.5 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-blue-400 transition-all border border-gray-700">
@@ -384,14 +497,14 @@
                                           d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                 </svg>
                             </button>
-                            <button onclick="loadProfile(${p.identity_id})" title="Switch laden"
+                            <button onclick="loadProfile(${p.identity_id}, '${esc(p.name)}')" title="Switch laden"
                                     class="p-1.5 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-titan-400 transition-all border border-gray-700">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                                 </svg>
                             </button>
-                            <button onclick="deleteProfile(${p.id}, '${esc(p.name)}')" title="Löschen"
+                            <button onclick="deleteProfile(${p.id}, '${esc(p.name)}')" title="Loeschen"
                                     class="p-1.5 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-red-400 transition-all border border-gray-700">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -400,8 +513,8 @@
                             </button>
                         </div>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
 
         } catch (e) {
             console.error('Load profiles error:', e);
@@ -410,7 +523,7 @@
     }
 
     // ===================================================================
-    // Create Profile
+    // Create Profile (Erweitert)
     // ===================================================================
     function openCreateModal() {
         document.getElementById('create-modal').classList.remove('hidden');
@@ -419,11 +532,10 @@
 
     function closeCreateModal() {
         document.getElementById('create-modal').classList.add('hidden');
-        document.getElementById('create-name').value = '';
-        document.getElementById('create-identity-id').value = '';
-        document.getElementById('create-tt-user').value = '';
-        document.getElementById('create-proxy').value = '';
-        document.getElementById('create-notes').value = '';
+        ['create-name','create-identity-id','create-tt-user','create-tt-email','create-tt-pass',
+         'create-google-email','create-google-pass','create-proxy','create-proxy-auth','create-notes'
+        ].forEach(id => { document.getElementById(id).value = ''; });
+        document.getElementById('create-proxy-type').value = 'none';
     }
 
     async function submitCreate() {
@@ -433,6 +545,9 @@
         if (!name) { showToast('Name ist erforderlich.', 'warn'); return; }
         if (!identityId) { showToast('Identity ID ist erforderlich.', 'warn'); return; }
 
+        const proxyAuth = document.getElementById('create-proxy-auth').value.trim();
+        const [proxyUser, proxyPass] = proxyAuth.includes(':') ? proxyAuth.split(':') : [null, null];
+
         try {
             const res = await fetch('/api/vault', {
                 method: 'POST',
@@ -441,7 +556,14 @@
                     name,
                     identity_id: identityId,
                     tiktok_username: document.getElementById('create-tt-user').value || null,
+                    tiktok_email: document.getElementById('create-tt-email').value || null,
+                    tiktok_password: document.getElementById('create-tt-pass').value || null,
+                    google_email: document.getElementById('create-google-email').value || null,
+                    google_password: document.getElementById('create-google-pass').value || null,
                     proxy_ip: document.getElementById('create-proxy').value || null,
+                    proxy_type: document.getElementById('create-proxy-type').value,
+                    proxy_username: proxyUser,
+                    proxy_password: proxyPass,
                     notes: document.getElementById('create-notes').value || null,
                 }),
             });
@@ -460,7 +582,7 @@
     }
 
     // ===================================================================
-    // Edit Profile
+    // Edit Profile (Erweitert)
     // ===================================================================
     async function openEditModal(id) {
         try {
@@ -475,7 +597,14 @@
             document.getElementById('edit-tt-user').value = p.tiktok_username || '';
             document.getElementById('edit-tt-email').value = p.tiktok_email || '';
             document.getElementById('edit-tt-pass').value = p.tiktok_password || '';
+            document.getElementById('edit-tt-followers').value = p.tiktok_followers || '';
+            document.getElementById('edit-tt-likes').value = p.tiktok_likes || '';
+            document.getElementById('edit-google-email').value = p.google_email || '';
+            document.getElementById('edit-google-pass').value = p.google_password || '';
             document.getElementById('edit-proxy').value = p.proxy_ip || '';
+            document.getElementById('edit-proxy-type').value = p.proxy_type || 'none';
+            document.getElementById('edit-proxy-auth').value =
+                (p.proxy_username && p.proxy_password) ? `${p.proxy_username}:${p.proxy_password}` : '';
             document.getElementById('edit-notes').value = p.notes || '';
 
             document.getElementById('edit-modal').classList.remove('hidden');
@@ -492,21 +621,32 @@
         const id = document.getElementById('edit-id').value;
         const body = {};
 
-        const name = document.getElementById('edit-name').value.trim();
-        const status = document.getElementById('edit-status').value;
-        const ttUser = document.getElementById('edit-tt-user').value.trim();
-        const ttEmail = document.getElementById('edit-tt-email').value.trim();
-        const ttPass = document.getElementById('edit-tt-pass').value.trim();
-        const proxy = document.getElementById('edit-proxy').value.trim();
-        const notes = document.getElementById('edit-notes').value.trim();
+        const fields = {
+            name: 'edit-name', status: 'edit-status',
+            tiktok_username: 'edit-tt-user', tiktok_email: 'edit-tt-email', tiktok_password: 'edit-tt-pass',
+            google_email: 'edit-google-email', google_password: 'edit-google-pass',
+            proxy_ip: 'edit-proxy', proxy_type: 'edit-proxy-type',
+            notes: 'edit-notes',
+        };
 
-        if (name) body.name = name;
-        if (status) body.status = status;
-        if (ttUser) body.tiktok_username = ttUser;
-        if (ttEmail) body.tiktok_email = ttEmail;
-        if (ttPass) body.tiktok_password = ttPass;
-        if (proxy) body.proxy_ip = proxy;
-        if (notes) body.notes = notes;
+        for (const [key, elId] of Object.entries(fields)) {
+            const val = document.getElementById(elId).value.trim();
+            if (val) body[key] = val;
+        }
+
+        // Numerische Felder
+        const followers = document.getElementById('edit-tt-followers').value;
+        if (followers) body.tiktok_followers = parseInt(followers);
+        const likes = document.getElementById('edit-tt-likes').value;
+        if (likes) body.tiktok_likes = parseInt(likes);
+
+        // Proxy Auth
+        const proxyAuth = document.getElementById('edit-proxy-auth').value.trim();
+        if (proxyAuth.includes(':')) {
+            const [u, p] = proxyAuth.split(':');
+            body.proxy_username = u;
+            body.proxy_password = p;
+        }
 
         try {
             const res = await fetch(`/api/vault/${id}`, {
@@ -532,7 +672,7 @@
     // Delete Profile
     // ===================================================================
     async function deleteProfile(id, name) {
-        if (!confirm(`Profil "${name}" (#${id}) wirklich löschen?\n\nDies löscht auch die zugehörige Identität, falls keine anderen Profile sie nutzen.`)) {
+        if (!confirm(`Profil "${name}" (#${id}) wirklich loeschen?\n\nDies loescht auch die zugehoerige Identitaet, falls keine anderen Profile sie nutzen.`)) {
             return;
         }
 
@@ -544,7 +684,7 @@
                 showToast(data.message, 'success');
                 loadProfiles();
             } else {
-                showToast(data.detail || 'Fehler beim Löschen', 'error');
+                showToast(data.detail || 'Fehler beim Loeschen', 'error');
             }
         } catch (e) {
             showToast('Netzwerkfehler: ' + e.message, 'error');
@@ -552,16 +692,17 @@
     }
 
     // ===================================================================
-    // Load Profile (Switch Flow)
+    // Load Profile (Switch Flow mit Full-State)
     // ===================================================================
-    async function loadProfile(identityId) {
-        if (!confirm(`Switch-Flow für Identity #${identityId} starten?`)) return;
+    async function loadProfile(identityId, profileName) {
+        if (!confirm(`Switch-Flow fuer Identity #${identityId} starten?\n\n(Full-State Restore: ${profileName})`)) return;
 
         try {
+            const body = profileName ? { profile_name: profileName } : {};
             const res = await fetch(`/api/control/switch/${identityId}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({}),
+                body: JSON.stringify(body),
             });
             const data = await res.json();
 
@@ -591,20 +732,11 @@
         return `<span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider border ${c}">${status}</span>`;
     }
 
-    function backupBadge(status) {
-        const c = {
-            none:      'text-gray-600',
-            valid:     'text-green-400',
-            corrupted: 'text-red-400',
-            restoring: 'text-amber-400',
-        }[status] || 'text-gray-600';
-        const icon = {
-            none:      '—',
-            valid:     'OK',
-            corrupted: 'ERR',
-            restoring: '...',
-        }[status] || '—';
-        return `<span class="text-[10px] font-mono font-semibold ${c}">${icon}</span>`;
+    function fmtNum(n) {
+        if (!n) return '0';
+        if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+        if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+        return n.toString();
     }
 
     function showToast(msg, type) {

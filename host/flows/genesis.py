@@ -1,5 +1,5 @@
 """
-Project Titan — Genesis Flow (Cold Start / New Account) v2.1
+Project Titan — Genesis Flow (Cold Start / New Account) v3.0
 ==============================================================
 
 TITAN_CONTEXT.md §3C — FLOW 1: GENESIS
@@ -8,22 +8,25 @@ Erzeugt eine komplett neue Identität von Grund auf.
 Dieser Flow ist stateless und atomar: Entweder alles klappt,
 oder die Identität wird als 'corrupted' markiert.
 
-Zwingender Ablauf (8 Schritte):
-  1. STERILIZE  — Deep Clean (pm clear TikTok + GMS)
-  2. GENERATE   — Neue O2-DE Identität generieren
-  3. PERSIST    — In DB speichern (Status: 'active') + Auto-Profil
-  4. INJECT     — Bridge-Datei auf Gerät schreiben
-  5. HARD RESET — adb reboot + warten auf sys.boot_completed
-  6. NETWORK    — Flugmodus AN → 12s Lease-Wait → Flugmodus AUS + IP-Check
-  7. GMS READY  — Kickstart GMS-Checkin + Passive GSF-ID Wait (Smart Wait)
-  8. AUDIT      — Device-Audit. Bei Score < 100% → Status 'corrupted'
+Zwingender Ablauf (9 Schritte):
+  1. STERILIZE      — Deep Clean (pm clear TikTok + GMS)
+  2. GENERATE       — Neue O2-DE Identität generieren
+  3. PERSIST        — In DB speichern (Status: 'active') + Auto-Profil
+  4. INJECT         — Bridge-Datei auf Gerät schreiben
+  5. HARD RESET     — adb reboot + warten auf sys.boot_completed
+  6. NETWORK        — Flugmodus AN → 12s Lease-Wait → Flugmodus AUS + IP-Check
+  7. GMS READY      — Kickstart GMS-Checkin + Passive GSF-ID Wait (Smart Wait)
+  8. CAPTURE STATE  — *** NEU v3.0 *** Golden Baseline sichern + GSF-ID Sync
+  9. AUDIT          — Device-Audit. Bei Score < 100% → Status 'corrupted'
 
-v2.1 — GMS "Smart Wait" (Anti-Rate-Limit):
-  Nach `pm clear com.google.android.gms` braucht GMS 10-30 Min für Re-Checkin.
-  Anstatt blind die Play Integrity API zu pingen (Rate Limit Abuse Risiko),
-  warten wir rein lokal ("Silent") via Content Provider auf die GSF-ID.
-  Erst wenn die GSF-ID da ist, kann ein Integrity Check funktionieren.
-  → Schritt 7 "GMS Ready" = Kickstart + Passive Sensor
+v3.0 — "Golden Baseline" (State-Layering):
+  Nach pm clear GMS braucht GMS 10-30 Min für Re-Checkin.
+  Sobald die GSF-ID da ist:
+    1. Echte GSF-ID in titan.db + Bridge-Datei zurückschreiben (Hardware=Software)
+    2. GMS-State als "Golden Baseline" sichern (capture_gms_state)
+  Beim Switch: Kein pm clear GMS mehr nötig → sofort Play Integrity bereit.
+
+  pm clear GMS wird NUR im Genesis ausgeführt (Initial Seed), NICHT im Switch.
 
 DB-Tracking (v2.0):
   - Flow-History: Eintrag bei Start, Updates bei jedem Schritt
@@ -138,6 +141,7 @@ class GenesisFlow:
         "Hard Reset",
         "Network Init",
         "GMS Ready",
+        "Capture State",        # *** NEU v3.0 *** Golden Baseline
         "Audit",
     ]
 
@@ -190,20 +194,22 @@ class GenesisFlow:
 
         try:
             # =================================================================
-            # Schritt 1: STERILIZE
+            # Schritt 1: STERILIZE (pm clear GMS nur bei Genesis!)
             # =================================================================
             step = result.steps[0]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[1/8] Sterilize: Deep Clean...")
-            clean_results = await self._shifter.deep_clean()
+            logger.info("[1/9] Sterilize: Deep Clean (inkl. GMS — Initial Seed)...")
+            # v3.0: include_gms=True weil Genesis = Erstinitialisierung
+            # Beim Switch wird include_gms=False verwendet (Golden Baseline schützen)
+            clean_results = await self._shifter.deep_clean(include_gms=True)
             success_count = sum(1 for v in clean_results.values() if v)
 
             step.status = FlowStepStatus.SUCCESS
-            step.detail = f"{success_count}/{len(clean_results)} Operationen"
+            step.detail = f"{success_count}/{len(clean_results)} Operationen (inkl. GMS)"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[1/8] Sterilize: OK (%s)", step.detail)
+            logger.info("[1/9] Sterilize: OK (%s)", step.detail)
 
             # =================================================================
             # Schritt 2: GENERATE
@@ -212,14 +218,14 @@ class GenesisFlow:
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[2/8] Generate: Neue O2-DE Identität...")
+            logger.info("[2/9] Generate: Neue O2-DE Identität...")
             identity = self._generator.generate_new(name, notes=notes)
             result.serial = identity.serial
 
             step.status = FlowStepStatus.SUCCESS
             step.detail = f"serial={identity.serial} imei1={identity.imei1[:8]}..."
             step.duration_ms = _now_ms() - step_start
-            logger.info("[2/8] Generate: OK (serial=%s)", identity.serial)
+            logger.info("[2/9] Generate: OK (serial=%s)", identity.serial)
 
             # Flow-History: Serial + IMEI speichern
             if flow_history_id:
@@ -236,7 +242,7 @@ class GenesisFlow:
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[3/8] Persist: In DB speichern (Status: active)...")
+            logger.info("[3/9] Persist: In DB speichern (Status: active)...")
             db_identity_id = await self._persist_identity(identity)
             result.identity_id = db_identity_id
 
@@ -255,7 +261,7 @@ class GenesisFlow:
                     name=name,
                 )
                 result.profile_id = profile_id
-                logger.info("[3/8] Auto-Profil erstellt: id=%d", profile_id)
+                logger.info("[3/9] Auto-Profil erstellt: id=%d", profile_id)
 
                 # Flow-History: Profile-ID setzen
                 if flow_history_id:
@@ -265,12 +271,12 @@ class GenesisFlow:
                             (profile_id, flow_history_id),
                         )
             except Exception as e:
-                logger.warning("[3/8] Auto-Profil Fehler (nicht-kritisch): %s", e)
+                logger.warning("[3/9] Auto-Profil Fehler (nicht-kritisch): %s", e)
 
             step.status = FlowStepStatus.SUCCESS
             step.detail = f"identity_id={db_identity_id}, profile_id={result.profile_id}"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[3/8] Persist: OK (%s)", step.detail)
+            logger.info("[3/9] Persist: OK (%s)", step.detail)
 
             # =================================================================
             # Schritt 4: INJECT
@@ -279,14 +285,14 @@ class GenesisFlow:
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[4/8] Inject: Bridge-Datei schreiben...")
+            logger.info("[4/9] Inject: Bridge-Datei schreiben...")
             await self._injector.inject(identity, label=name, distribute=True)
             await self._injector.remove_kill_switch()
 
             step.status = FlowStepStatus.SUCCESS
             step.detail = "Bridge + Distribution + Kill-Switch entfernt"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[4/8] Inject: OK")
+            logger.info("[4/9] Inject: OK")
 
             # =================================================================
             # Schritt 5: HARD RESET
@@ -295,10 +301,10 @@ class GenesisFlow:
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[5/8] Hard Reset: adb reboot...")
+            logger.info("[5/9] Hard Reset: adb reboot...")
             await self._adb.reboot()
 
-            logger.info("[5/8] Warte auf Boot (unbegrenzt, pollt alle %ds)...", TIMING.BOOT_POLL_INTERVAL)
+            logger.info("[5/9] Warte auf Boot (unbegrenzt, pollt alle %ds)...", TIMING.BOOT_POLL_INTERVAL)
             booted = await self._adb.wait_for_device(
                 timeout=TIMING.BOOT_WAIT_SECONDS,
                 poll_interval=TIMING.BOOT_POLL_INTERVAL,
@@ -312,7 +318,7 @@ class GenesisFlow:
 
             # Post-Boot Settle: Warten bis alle Services initialisiert sind
             logger.info(
-                "[5/8] Boot erkannt — warte %ds bevor Popup-Hammer...",
+                "[5/9] Boot erkannt — warte %ds bevor Popup-Hammer...",
                 TIMING.POST_BOOT_SETTLE_SECONDS,
             )
             await asyncio.sleep(TIMING.POST_BOOT_SETTLE_SECONDS)
@@ -325,7 +331,7 @@ class GenesisFlow:
             # Swipe funktioniert nicht, solange das Popup drauf ist.
             # Deshalb: Erst Popup weg, DANN unlock.
             # =============================================================
-            logger.info("[5/8] Popup Hammer: Fehler-Dialoge unterdrücken...")
+            logger.info("[5/9] Popup Hammer: Fehler-Dialoge unterdrücken...")
 
             # 1. Settings-basierte Suppression (Versuch 1 — sofort)
             try:
@@ -351,7 +357,7 @@ class GenesisFlow:
                 except (ADBError, Exception):
                     pass  # Nicht-kritisch, weiter versuchen
 
-            logger.info("[5/8] Popup Hammer abgeschlossen — Unlock starten...")
+            logger.info("[5/9] Popup Hammer abgeschlossen — Unlock starten...")
 
             # Gerät entsperren (Swipe — jetzt ohne Popup-Blocker)
             await self._adb.unlock_device()
@@ -364,7 +370,7 @@ class GenesisFlow:
             step.status = FlowStepStatus.SUCCESS
             step.detail = f"Boot + Popup-Hammer + Unlock in {boot_secs:.1f}s"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[5/8] Hard Reset: OK (%s)", step.detail)
+            logger.info("[5/9] Hard Reset: OK (%s)", step.detail)
 
             # =================================================================
             # Schritt 6: NETWORK INIT + IP-TRACKING
@@ -373,12 +379,12 @@ class GenesisFlow:
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[6/8] Network Init: Flugmodus-Cycle + IP-Audit...")
+            logger.info("[6/9] Network Init: Flugmodus-Cycle + IP-Audit...")
             await self._airplane_mode_cycle()
 
             # Warte auf O2-Mobilfunk-Stabilisierung
             logger.info(
-                "[6/8] Warte %ds auf Mobilfunk-Stabilisierung...",
+                "[6/9] Warte %ds auf Mobilfunk-Stabilisierung...",
                 TIMING.IP_AUDIT_WAIT_SECONDS,
             )
             await asyncio.sleep(TIMING.IP_AUDIT_WAIT_SECONDS)
@@ -394,7 +400,7 @@ class GenesisFlow:
                     f"Flugmodus-Cycle OK | "
                     f"Öffentliche IP: {ip_result.ip} (via {ip_result.service})"
                 )
-                logger.info("[6/8] Network Init: IP = %s (via %s)", ip_result.ip, ip_result.service)
+                logger.info("[6/9] Network Init: IP = %s (via %s)", ip_result.ip, ip_result.service)
 
                 # DB: IP in identities + ip_history speichern
                 try:
@@ -425,7 +431,7 @@ class GenesisFlow:
                     f"Flugmodus-Cycle OK | "
                     f"IP-Check fehlgeschlagen: {ip_result.error}"
                 )
-                logger.warning("[6/8] IP-Check fehlgeschlagen: %s", ip_result.error)
+                logger.warning("[6/9] IP-Check fehlgeschlagen: %s", ip_result.error)
 
             step.duration_ms = _now_ms() - step_start
 
@@ -441,7 +447,7 @@ class GenesisFlow:
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[7/8] GMS Ready: Kickstart + Smart Wait...")
+            logger.info("[7/9] GMS Ready: Kickstart + Smart Wait...")
 
             # A) Kickstart: GMS-Checkin einmalig anstoßen
             kickstart_ok = await self._device.kickstart_gms()
@@ -452,7 +458,12 @@ class GenesisFlow:
             # B) Passive Sensor: Warte auf lokale GSF-ID (KEIN Netzwerk!)
             gsf_result = await self._device.wait_for_gsf_id()
 
+            # Variable für die echte GSF-ID als Dezimal (wird in Schritt 8 gebraucht)
+            # Die DB und Bridge speichern die GSF-ID als 17-Dezimalziffern
+            real_gsf_id: str | None = None
+
             if gsf_result.success:
+                real_gsf_id = gsf_result.gsf_id_decimal or gsf_result.gsf_id
                 step.status = FlowStepStatus.SUCCESS
                 step.detail = (
                     f"GSF-ID bereit nach {gsf_result.elapsed_seconds:.0f}s "
@@ -460,9 +471,43 @@ class GenesisFlow:
                     f"Kickstart: {'OK' if kickstart_ok else 'WARN'}"
                 )
                 logger.info(
-                    "[7/8] GMS Ready: GSF-ID nach %.0fs — Audit darf starten",
+                    "[7/9] GMS Ready: GSF-ID nach %.0fs — Capture + Audit folgen",
                     gsf_result.elapsed_seconds,
                 )
+
+                # =========================================================
+                # *** NEU v3.0 *** GSF-ID SYNC (Hardware = Software)
+                # =========================================================
+                # Die echte GSF-ID vom GMS-Checkin zurückschreiben in:
+                #   1. titan.db (identities.gsf_id)
+                #   2. Bridge-Datei auf dem Gerät
+                # Damit Zygisk exakt die ID spoofed, die GMS kennt.
+                # =========================================================
+                if real_gsf_id and db_identity_id:
+                    try:
+                        # 1. DB-Update: Echte GSF-ID in identities-Tabelle
+                        async with db.transaction() as conn:
+                            await conn.execute(
+                                "UPDATE identities SET gsf_id = ?, updated_at = ? "
+                                "WHERE id = ?",
+                                (
+                                    real_gsf_id,
+                                    datetime.now(LOCAL_TZ).isoformat(),
+                                    db_identity_id,
+                                ),
+                            )
+                        logger.info(
+                            "[7/9] GSF-ID Sync DB: %s...%s → identity_id=%d",
+                            real_gsf_id[:4], real_gsf_id[-4:], db_identity_id,
+                        )
+
+                        # 2. Bridge-Update: Auf dem Gerät patchen
+                        await self._injector.update_bridge_gsf_id(real_gsf_id)
+                        logger.info("[7/9] GSF-ID Sync Bridge: OK")
+
+                    except Exception as e:
+                        logger.warning("[7/9] GSF-ID Sync fehlgeschlagen: %s", e)
+
             else:
                 # GSF-ID Timeout — Audit trotzdem versuchen, aber warnen
                 step.status = FlowStepStatus.SUCCESS  # Nicht-kritisch (Audit entscheidet)
@@ -472,21 +517,71 @@ class GenesisFlow:
                     f"Kickstart: {'OK' if kickstart_ok else 'WARN'}"
                 )
                 logger.warning(
-                    "[7/8] GMS Ready: GSF-ID Timeout nach %.0fs — "
-                    "Audit wird trotzdem versucht (Ergebnis evtl. unzuverlässig)",
+                    "[7/9] GMS Ready: GSF-ID Timeout nach %.0fs — "
+                    "Capture State wird übersprungen, Audit trotzdem versucht",
                     gsf_result.elapsed_seconds,
                 )
 
             step.duration_ms = _now_ms() - step_start
 
             # =================================================================
-            # Schritt 8: AUDIT + AUDIT-TRACKING
+            # Schritt 8: CAPTURE STATE (Golden Baseline) *** NEU v3.0 ***
+            # =================================================================
+            # Sichert den aktuellen GMS-State als "Golden Baseline".
+            # Dieser Snapshot ist die Basis für alle Switch-Operationen.
+            # Nur möglich wenn GSF-ID erfolgreich generiert wurde.
             # =================================================================
             step = result.steps[7]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[8/8] Audit: Device prüfen...")
+            if real_gsf_id:
+                logger.info("[8/9] Capture State: Golden Baseline sichern...")
+                try:
+                    capture_result = await self._shifter.capture_gms_state(
+                        profile_name=name,
+                        gsf_id=real_gsf_id,
+                    )
+                    gms_ok = capture_result.get("gms") is not None
+                    accounts_ok = capture_result.get("accounts") is not None
+
+                    if gms_ok and accounts_ok:
+                        step.status = FlowStepStatus.SUCCESS
+                        step.detail = "Golden Baseline: GMS + Accounts gesichert"
+                        logger.info("[8/9] Capture State: Golden Baseline komplett")
+                    elif gms_ok or accounts_ok:
+                        step.status = FlowStepStatus.SUCCESS
+                        step.detail = (
+                            f"Golden Baseline teilweise: "
+                            f"GMS={'OK' if gms_ok else 'FAIL'}, "
+                            f"Accounts={'OK' if accounts_ok else 'FAIL'}"
+                        )
+                        logger.warning("[8/9] Capture State: Teilweise (%s)", step.detail)
+                    else:
+                        step.status = FlowStepStatus.FAILED
+                        step.detail = "Golden Baseline: Beide Snapshots fehlgeschlagen"
+                        logger.error("[8/9] Capture State: FEHLGESCHLAGEN")
+
+                except Exception as e:
+                    step.status = FlowStepStatus.FAILED
+                    step.detail = f"Capture Fehler: {e}"
+                    logger.error("[8/9] Capture State Fehler: %s", e)
+            else:
+                # Kein GSF-ID → kein Golden Baseline möglich
+                step.status = FlowStepStatus.SKIPPED
+                step.detail = "Übersprungen: Keine GSF-ID verfügbar"
+                logger.warning("[8/9] Capture State: Übersprungen (keine GSF-ID)")
+
+            step.duration_ms = _now_ms() - step_start
+
+            # =================================================================
+            # Schritt 9: AUDIT + AUDIT-TRACKING
+            # =================================================================
+            step = result.steps[8]
+            step.status = FlowStepStatus.RUNNING
+            step_start = _now_ms()
+
+            logger.info("[9/9] Audit: Device prüfen...")
             audit = await self._auditor.audit_device(identity)
             result.audit = audit
 
@@ -527,7 +622,7 @@ class GenesisFlow:
             if audit.passed:
                 step.status = FlowStepStatus.SUCCESS
                 step.detail = f"Score: {audit.score_percent}% — PERFEKT"
-                logger.info("[8/8] Audit: PASS (%d%%)", audit.score_percent)
+                logger.info("[9/9] Audit: PASS (%d%%)", audit.score_percent)
             else:
                 step.status = FlowStepStatus.FAILED
                 step.detail = (
@@ -535,7 +630,7 @@ class GenesisFlow:
                     f"{audit.failed_checks} Check(s) fehlgeschlagen"
                 )
                 logger.warning(
-                    "[8/8] Audit: FAIL (%d%%) — markiere als corrupted",
+                    "[9/9] Audit: FAIL (%d%%) — markiere als corrupted",
                     audit.score_percent,
                 )
                 # Identität als corrupted markieren

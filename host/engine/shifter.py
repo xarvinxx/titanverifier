@@ -1,13 +1,21 @@
 """
-Project Titan — TitanShifter
-===============================
+Project Titan — TitanShifter v3.0 ("Golden Baseline")
+=======================================================
 
-Verwaltet App-Daten (TikTok) für Profile-Switching.
+Verwaltet App-Daten (TikTok + GMS) für Profile-Switching.
 
-Drei Operationen:
-  1. Backup:     App-Daten → tar → Host-Datei
-  2. Restore:    Host-Datei → tar → Gerät + Magic Permission Fix
-  3. Deep Clean: Vollständige Sterilisierung aller Tracking-Daten
+Architektur v3.0 — State-Layering:
+  GMS wird NICHT mehr bei jedem Switch gelöscht. Stattdessen:
+  1. Genesis: pm clear GMS (einmalig) → warten auf GSF-ID → Golden Baseline sichern
+  2. Switch:  Golden Baseline restoren → sofort Play Integrity bereit
+
+Operationen:
+  - backup / restore:        TikTok App-Daten
+  - deep_clean:              Vollsterilisierung (pm clear GMS nur bei include_gms=True)
+  - capture_gms_state:       *** NEU v3.0 *** Golden Baseline Snapshot
+  - kill_all_targets:        *** NEU v3.0 *** Robuster Process Kill + sync
+  - backup_full_state:       Kompletter Session-State (TikTok + GMS + Accounts)
+  - restore_full_state:      Kompletter Session-Restore mit SQLite Safety
 
 KRITISCH — Magic Permission Fix (aus TITAN_CONTEXT.md §3B):
   Nach jedem Restore MUSS die UID der App ermittelt und
@@ -15,7 +23,8 @@ KRITISCH — Magic Permission Fix (aus TITAN_CONTEXT.md §3B):
   Ohne diesen Fix verliert die App den Zugriff auf ihre Daten
   und der Login geht verloren.
 
-  KEIN restorecon verwenden — verursacht Bootloops auf Android 14!
+  KEIN restorecon auf App-Daten verwenden — verursacht Bootloops auf Android 14!
+  (restorecon ist NUR für accounts_ce.db erlaubt)
 """
 
 from __future__ import annotations
@@ -103,6 +112,133 @@ class TitanShifter:
 
         # Backup-Verzeichnis sicherstellen
         self._backup_dir.mkdir(parents=True, exist_ok=True)
+
+    # =========================================================================
+    # *** NEU v3.0 *** Kill-All-Targets: Robuster Process Kill
+    # =========================================================================
+
+    async def kill_all_targets(self) -> list[str]:
+        """
+        Robuster Kill-Flow: Stoppt ALLE relevanten Prozesse VOR einem State-Swap.
+
+        Verhindert File-Corruption wenn tar-Restore während offener
+        DB-Handles / Socket-Connections läuft.
+
+        Ablauf:
+          1. am force-stop für alle GMS + TikTok Pakete
+          2. killall -9 für hartnäckige GMS-Prozesse + android.process.acore
+          3. sync — Filesystem-Buffer flushen
+
+        Returns:
+            Liste der gestoppten Paket-Kurznamen
+        """
+        logger.info("Kill-All-Targets: Stoppe alle relevanten Prozesse...")
+        killed: list[str] = []
+
+        # Phase 1: Sauberer force-stop (ActivityManager)
+        kill_targets = [
+            *GMS_BACKUP_PACKAGES,           # gms, gsf, vending
+            *TIKTOK_PACKAGES,               # musically, trill
+            "com.google.android.googlequicksearchbox",  # Google App
+        ]
+        for pkg in kill_targets:
+            try:
+                await self._adb.shell(f"am force-stop {pkg}", root=True, timeout=5)
+                killed.append(pkg.split(".")[-1])
+            except (ADBError, ADBTimeoutError):
+                pass
+
+        # Phase 2: Hard kill für hartnäckige Prozesse (SIGKILL)
+        hard_kill_procs = [
+            "com.google.android.gms",
+            "com.google.android.gms.persistent",
+            "com.google.process.gapps",
+            "android.process.acore",          # Contacts/Accounts Provider
+        ]
+        for proc in hard_kill_procs:
+            try:
+                await self._adb.shell(
+                    f"killall -9 {proc} 2>/dev/null", root=True, timeout=5,
+                )
+            except (ADBError, ADBTimeoutError):
+                pass  # Prozess existiert möglicherweise nicht
+
+        # Phase 3: Filesystem sync — pending writes flushen
+        try:
+            await self._adb.shell("sync", root=True, timeout=10)
+        except (ADBError, ADBTimeoutError):
+            logger.warning("sync fehlgeschlagen (nicht kritisch)")
+
+        logger.info("Kill-All-Targets: %d Apps gestoppt + sync", len(killed))
+        return killed
+
+    # =========================================================================
+    # *** NEU v3.0 *** Capture GMS State: Golden Baseline Snapshot
+    # =========================================================================
+
+    async def capture_gms_state(
+        self,
+        profile_name: str,
+        gsf_id: str | None = None,
+    ) -> dict[str, Path | None]:
+        """
+        Sichert den aktuellen GMS-State als "Golden Baseline".
+
+        Wird im GenesisFlow aufgerufen sobald wait_for_gsf_id() erfolgreich ist.
+        Der gesicherte State enthält:
+          1. GMS App-Daten (com.google.android.gms, gsf, vending)
+          2. System Account-DBs (accounts_ce.db + Journal/WAL/SHM)
+
+        Dieser Snapshot ist die kryptografische Basis für alle späteren
+        Switches mit dieser Identität. KEIN pm clear nötig beim Switch!
+
+        Args:
+            profile_name: Profil-Name für den Backup-Ordner
+            gsf_id:       Optional — die gerade generierte GSF-ID (für Logging)
+
+        Returns:
+            Dict mit Pfaden: {"gms": Path|None, "accounts": Path|None}
+        """
+        logger.info("=" * 60)
+        logger.info("  GOLDEN BASELINE CAPTURE: %s", profile_name)
+        if gsf_id:
+            logger.info("  GSF-ID: %s...%s", gsf_id[:4], gsf_id[-4:])
+        logger.info("=" * 60)
+
+        results: dict[str, Path | None] = {"gms": None, "accounts": None}
+
+        profile_dir = self._backup_dir / profile_name
+        profile_dir.mkdir(parents=True, exist_ok=True)
+
+        # Stoppe alle Prozesse für konsistenten Snapshot
+        await self.kill_all_targets()
+
+        # --- 1. GMS Snapshot ---
+        try:
+            gms_dir = profile_dir / BACKUP_GMS_SUBDIR
+            gms_dir.mkdir(parents=True, exist_ok=True)
+            gms_path = await self._backup_gms_packages(gms_dir)
+            results["gms"] = gms_path
+            logger.info("Golden Baseline GMS: OK (%s)", gms_path.name)
+        except (ADBError, Exception) as e:
+            logger.error("Golden Baseline GMS fehlgeschlagen: %s", e)
+
+        # --- 2. Account-DBs Snapshot ---
+        try:
+            accounts_dir = profile_dir / BACKUP_ACCOUNTS_SUBDIR
+            accounts_dir.mkdir(parents=True, exist_ok=True)
+            accounts_path = await self._backup_account_dbs(accounts_dir)
+            results["accounts"] = accounts_path
+            logger.info("Golden Baseline Accounts: OK (%s)", accounts_path.name)
+        except (ADBError, Exception) as e:
+            logger.error("Golden Baseline Accounts fehlgeschlagen: %s", e)
+
+        success = sum(1 for v in results.values() if v is not None)
+        logger.info(
+            "Golden Baseline: %d/2 Komponenten gesichert",
+            success,
+        )
+        return results
 
     # =========================================================================
     # Backup: App-Daten → tar → Host
@@ -359,20 +495,28 @@ class TitanShifter:
     # Deep Clean: Vollständige Sterilisierung
     # =========================================================================
 
-    async def deep_clean(self) -> dict[str, bool]:
+    async def deep_clean(self, include_gms: bool = True) -> dict[str, bool]:
         """
         Führt eine vollständige Sterilisierung durch.
 
         TITAN_CONTEXT.md §3C — FLOW 1 (GENESIS), Schritt 1:
           1. pm clear TikTok (beide Pakete)
-          2. pm clear com.google.android.gms (GMS — tötet Tracking-Tokens)
+          2. pm clear GMS — NUR wenn include_gms=True (Standard)
           3. Lösche /sdcard/Android/data/<tiktok>/
           4. Lösche /sdcard/.tt* Tracking-Dateien
+
+        v3.0: `include_gms` Parameter erlaubt es, GMS beim Switch
+        zu schonen (Golden Baseline bleibt erhalten).
+
+        Args:
+            include_gms: True = pm clear GMS (Genesis/Erstinitialisierung)
+                         False = GMS State schonen (Switch mit Golden Baseline)
 
         Returns:
             Dict mit Ergebnis pro Operation
         """
-        logger.info("Deep Clean starten — Vollsterilisierung")
+        mode = "VOLLSTERILISIERUNG (inkl. GMS)" if include_gms else "LEICHTE STERILISIERUNG (ohne GMS)"
+        logger.info("Deep Clean starten — %s", mode)
         results: dict[str, bool] = {}
 
         # 1. pm clear TikTok (alle Pakete)
@@ -389,17 +533,20 @@ class TitanShifter:
                 results[f"pm_clear_{pkg}"] = False
                 logger.warning("pm clear %s fehlgeschlagen: %s", pkg, e)
 
-        # 2. pm clear GMS (KRITISCH — tötet Tracking-Tokens!)
-        for pkg in GMS_PACKAGES:
-            try:
-                result = await self._adb.shell(f"pm clear {pkg}", root=True)
-                success = "Success" in result.stdout
-                results[f"pm_clear_{pkg}"] = success
-                if success:
-                    logger.info("pm clear %s: OK", pkg)
-            except ADBError as e:
-                results[f"pm_clear_{pkg}"] = False
-                logger.warning("pm clear %s fehlgeschlagen: %s", pkg, e)
+        # 2. pm clear GMS — NUR bei include_gms=True (Genesis / Initial Seed)
+        if include_gms:
+            for pkg in GMS_PACKAGES:
+                try:
+                    result = await self._adb.shell(f"pm clear {pkg}", root=True)
+                    success = "Success" in result.stdout
+                    results[f"pm_clear_{pkg}"] = success
+                    if success:
+                        logger.info("pm clear %s: OK", pkg)
+                except ADBError as e:
+                    results[f"pm_clear_{pkg}"] = False
+                    logger.warning("pm clear %s fehlgeschlagen: %s", pkg, e)
+        else:
+            logger.info("GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)")
 
         # 3. Lösche TikTok SD-Karten-Daten
         for sd_dir in TIKTOK_SDCARD_DIRS:
@@ -554,14 +701,9 @@ class TitanShifter:
             logger.error("Profil-Backup-Verzeichnis nicht gefunden: %s", profile_dir)
             return results
 
-        # --- 0. Alle relevanten Apps stoppen ---
-        logger.info("Stoppe alle relevanten Apps...")
-        await self._force_stop()  # TikTok
-        for pkg in GMS_BACKUP_PACKAGES:
-            try:
-                await self._adb.shell(f"am force-stop {pkg}", root=True)
-            except ADBError:
-                pass
+        # --- 0. Kill-All-Targets (v3.0: Robuster Kill + sync) ---
+        logger.info("Kill-All-Targets: Alle Prozesse stoppen vor Restore...")
+        await self.kill_all_targets()
 
         # --- 1. GMS App-Daten restoren ---
         gms_dir = profile_dir / BACKUP_GMS_SUBDIR
@@ -708,6 +850,20 @@ class TitanShifter:
                 f"rm -rf /data/data/{pkg}/*", root=True,
             )
 
+        # *** SQLite Safety v3.0 ***
+        # Lösche WAL/SHM Dateien in GMS-Verzeichnissen VOR dem Restore
+        # um Datenbank-Korruption durch inkonsistente Journal-States zu vermeiden
+        for pkg in GMS_BACKUP_PACKAGES:
+            for suffix in ["-wal", "-shm"]:
+                try:
+                    await self._adb.shell(
+                        f"find /data/data/{pkg} -name '*{suffix}' -delete 2>/dev/null",
+                        root=True, timeout=10,
+                    )
+                except (ADBError, ADBTimeoutError):
+                    pass
+        logger.debug("SQLite Safety: WAL/SHM Dateien in GMS-Verzeichnissen gelöscht")
+
         # tar-Restore (alle Pakete auf einmal — tar enthält data/data/pkg/...)
         restore_result = await self._adb.exec_in_from_file(
             "tar -xf - -C /",
@@ -827,6 +983,19 @@ class TitanShifter:
             "Account-DBs Restore: %s (%d Bytes)",
             tar_path.name, tar_path.stat().st_size,
         )
+
+        # *** SQLite Safety v3.0 ***
+        # Lösche bestehende WAL/SHM Dateien VOR dem Entpacken
+        # um Datenbank-Korruption durch alte Journal-States zu vermeiden
+        for suffix in ["-wal", "-shm", "-journal"]:
+            try:
+                await self._adb.shell(
+                    f"rm -f /data/system_ce/0/accounts_ce.db{suffix}",
+                    root=True, timeout=5,
+                )
+            except (ADBError, ADBTimeoutError):
+                pass
+        logger.debug("SQLite Safety: Alte WAL/SHM/Journal für accounts_ce.db gelöscht")
 
         # tar entpacken
         restore_result = await self._adb.exec_in_from_file(

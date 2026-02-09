@@ -225,6 +225,61 @@ class TitanInjector:
         logger.info("Bridge verteilt an %d/%d Apps", distributed, len(BRIDGE_TARGET_APPS))
 
     # =========================================================================
+    # *** NEU v3.0 *** GSF-ID Sync: Bridge-Datei auf dem Gerät patchen
+    # =========================================================================
+
+    async def update_bridge_gsf_id(self, real_gsf_id: str) -> None:
+        """
+        Aktualisiert die gsf_id in der Bridge-Datei auf dem Gerät.
+
+        v3.0 "Golden Baseline" — GSF-ID Sync:
+          Nach dem GMS-Checkin hat Google eine echte GSF-ID zugewiesen.
+          Diese MUSS in die Bridge-Datei geschrieben werden, damit das
+          Zygisk-Modul beim nächsten Start exakt diese ID spoofed.
+          Hardware (GMS-DB) und Software (Bridge-File) müssen identisch sein.
+
+        Methode: sed in-place Replacement auf dem Gerät.
+
+        Args:
+            real_gsf_id: Die echte GSF-ID vom GMS-Checkin (17 Dezimalziffern)
+
+        Raises:
+            ADBError: bei Schreibfehler
+        """
+        logger.info(
+            "GSF-ID Sync: Bridge aktualisieren → %s...%s",
+            real_gsf_id[:4], real_gsf_id[-4:],
+        )
+
+        # 1. Patch im primären Bridge-File
+        sed_cmd = f"sed -i 's/^gsf_id=.*/gsf_id={real_gsf_id}/' {BRIDGE_FILE_PATH}"
+        await self._adb.shell(sed_cmd, root=True, check=True)
+
+        # 2. Patch auch im sdcard Backup
+        sed_cmd_sd = f"sed -i 's/^gsf_id=.*/gsf_id={real_gsf_id}/' {BRIDGE_SDCARD_PATH}"
+        try:
+            await self._adb.shell(sed_cmd_sd, root=True)
+        except ADBError:
+            pass  # sdcard Backup ist nicht kritisch
+
+        # 3. Patch in allen App-Datenordnern
+        for package in BRIDGE_TARGET_APPS:
+            target_path = BRIDGE_APP_TEMPLATE.format(package=package)
+            try:
+                check = await self._adb.shell(
+                    f"test -f {target_path}", root=True,
+                )
+                if check.success:
+                    await self._adb.shell(
+                        f"sed -i 's/^gsf_id=.*/gsf_id={real_gsf_id}/' {target_path}",
+                        root=True,
+                    )
+            except ADBError:
+                pass
+
+        logger.info("GSF-ID Sync: Bridge-Datei(en) aktualisiert")
+
+    # =========================================================================
     # Kill-Switch Management
     # =========================================================================
 

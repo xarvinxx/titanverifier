@@ -43,9 +43,16 @@ logger = logging.getLogger("titan.adb.device")
 
 @dataclass
 class GSFReadyResult:
-    """Ergebnis des GSF-ID Wait."""
+    """
+    Ergebnis des GSF-ID Wait.
+
+    gsf_id:         Hex-String der GSF-ID (z.B. "3a4b5c6d7e8f9a0b")
+    gsf_id_decimal: Dezimal-String der GSF-ID (z.B. "42068372154961xxxx")
+                    → Das Format das in der titan.db / Bridge-Datei steht.
+    """
     success: bool
     gsf_id: Optional[str] = None
+    gsf_id_decimal: Optional[str] = None
     elapsed_seconds: float = 0.0
     polls: int = 0
     error: Optional[str] = None
@@ -295,14 +302,18 @@ class DeviceHelper:
             gsf_id = await self._query_gsf_id()
 
             if gsf_id:
+                # Hex → Dezimal Konvertierung für DB/Bridge Kompatibilität
+                gsf_decimal = str(int(gsf_id, 16))
                 logger.info(
-                    "GSF-ID bereit nach %.1fs (%d Polls): %s...%s",
+                    "GSF-ID bereit nach %.1fs (%d Polls): hex=%s...%s → dec=%s...%s",
                     elapsed, polls,
                     gsf_id[:4], gsf_id[-4:],
+                    gsf_decimal[:4], gsf_decimal[-4:],
                 )
                 return GSFReadyResult(
                     success=True,
                     gsf_id=gsf_id,
+                    gsf_id_decimal=gsf_decimal,
                     elapsed_seconds=elapsed,
                     polls=polls,
                 )

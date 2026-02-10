@@ -565,6 +565,52 @@ class TitanShifter:
             except ADBError:
                 results[f"rm_{glob_pattern}"] = False
 
+        # 5. Lösche System Account-Datenbanken (KRITISCH bei include_gms)
+        # Verhindert "Kontoaktion erforderlich" nach Identity-Switch.
+        # Ohne diesen Schritt erkennt Android beim nächsten Boot, dass die
+        # gespeicherten Accounts nicht zum neuen GMS-State passen → Login-Zwang.
+        if include_gms:
+            account_db_globs = [
+                "/data/system/users/0/accounts.db*",        # Legacy Account-DB
+                "/data/system_ce/0/accounts_ce.db*",        # CE Account-DB (Android 7+)
+            ]
+            for db_glob in account_db_globs:
+                try:
+                    result = await self._adb.shell(
+                        f"rm -f {db_glob}", root=True,
+                    )
+                    results[f"rm_{db_glob}"] = result.success
+                    if result.success:
+                        logger.info("Account-DB gelöscht: %s", db_glob)
+                except ADBError as e:
+                    results[f"rm_{db_glob}"] = False
+                    logger.debug("Account-DB Löschung fehlgeschlagen: %s — %s", db_glob, e)
+
+            # 5b. chmod 777 auf BEIDE Account-DB Verzeichnisse
+            # Damit Android beim nächsten Boot die accounts.db und
+            # accounts_ce.db sicher neu anlegen kann.
+            # Ohne write-Berechtigung auf den Verzeichnissen schlägt
+            # die automatische DB-Erstellung fehl (Permission denied).
+            for dir_path, dir_key in [
+                ("/data/system_ce/0/", "chmod_system_ce_0"),
+                ("/data/system/users/0/", "chmod_system_users_0"),
+            ]:
+                try:
+                    result = await self._adb.shell(
+                        f"chmod 777 {dir_path}", root=True,
+                    )
+                    results[dir_key] = result.success
+                    if result.success:
+                        logger.info(
+                            "chmod 777 %s — Verzeichnis für "
+                            "DB-Neuerstellung freigegeben", dir_path,
+                        )
+                except ADBError as e:
+                    results[dir_key] = False
+                    logger.warning(
+                        "chmod 777 %s fehlgeschlagen: %s", dir_path, e,
+                    )
+
         # Zusammenfassung
         success_count = sum(1 for v in results.values() if v)
         total_count = len(results)

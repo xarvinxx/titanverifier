@@ -183,6 +183,85 @@ PIXEL6_BUILDS = [
 
 
 # =============================================================================
+# 7b. PIF (Play Integrity Fix) Fingerprint Pool
+#     Für /data/adb/pif.json — Software-Integrität (MEETS_BASIC_INTEGRITY)
+#
+#     TrickyStore liefert MEETS_DEVICE_INTEGRITY (Hardware-Ebene),
+#     aber MEETS_BASIC_INTEGRITY erfordert einen gültigen Software-Fingerprint.
+#     Ohne pif.json auf Android 14 = BASIC_INTEGRITY schlägt IMMER fehl.
+#
+#     Format: Exakt wie von Google signierte Build-Fingerprints.
+#     Jeder Eintrag muss intern konsistent sein (build_id ↔ patch ↔ fingerprint).
+# =============================================================================
+
+PIF_JSON_PATH = "/data/adb/pif.json"    # Ziel auf dem Gerät
+
+PIXEL6_PIF_POOL: list[dict[str, str]] = [
+    {
+        "MANUFACTURER": "Google",
+        "MODEL": "Pixel 6",
+        "DEVICE": "oriole",
+        "PRODUCT": "oriole",
+        "BRAND": "google",
+        "FINGERPRINT": "google/oriole/oriole:14/AP2A.241005.015/12298734:user/release-keys",
+        "SECURITY_PATCH": "2024-10-05",
+        "DEVICE_INITIAL_SDK_INT": "31",
+        "BUILD_ID": "AP2A.241005.015",
+        "INCREMENTAL": "12298734",
+        "TYPE": "user",
+        "TAGS": "release-keys",
+    },
+    {
+        "MANUFACTURER": "Google",
+        "MODEL": "Pixel 6",
+        "DEVICE": "oriole",
+        "PRODUCT": "oriole",
+        "BRAND": "google",
+        "FINGERPRINT": "google/oriole/oriole:14/AP2A.240805.005/12025142:user/release-keys",
+        "SECURITY_PATCH": "2024-08-05",
+        "DEVICE_INITIAL_SDK_INT": "31",
+        "BUILD_ID": "AP2A.240805.005",
+        "INCREMENTAL": "12025142",
+        "TYPE": "user",
+        "TAGS": "release-keys",
+    },
+    {
+        "MANUFACTURER": "Google",
+        "MODEL": "Pixel 6",
+        "DEVICE": "oriole",
+        "PRODUCT": "oriole",
+        "BRAND": "google",
+        "FINGERPRINT": "google/oriole/oriole:14/AP1A.240505.004/11583682:user/release-keys",
+        "SECURITY_PATCH": "2024-05-05",
+        "DEVICE_INITIAL_SDK_INT": "31",
+        "BUILD_ID": "AP1A.240505.004",
+        "INCREMENTAL": "11583682",
+        "TYPE": "user",
+        "TAGS": "release-keys",
+    },
+    {
+        "MANUFACTURER": "Google",
+        "MODEL": "Pixel 6",
+        "DEVICE": "oriole",
+        "PRODUCT": "oriole",
+        "BRAND": "google",
+        "FINGERPRINT": "google/oriole/oriole:14/AP1A.240305.019.A1/11473478:user/release-keys",
+        "SECURITY_PATCH": "2024-03-05",
+        "DEVICE_INITIAL_SDK_INT": "31",
+        "BUILD_ID": "AP1A.240305.019.A1",
+        "INCREMENTAL": "11473478",
+        "TYPE": "user",
+        "TAGS": "release-keys",
+    },
+]
+
+# GMS-Datenbank-Pfade (für Namespace-Nuke + SQL-Cleanup)
+GMS_AUTH_DB = "/data/data/com.google.android.gms/databases/auth.db"
+GMS_DG_CACHE = "/data/data/com.google.android.gms/app_dg_cache"
+GSF_GSERVICES_DB = "/data/data/com.google.android.gsf/databases/gservices.db"
+
+
+# =============================================================================
 # 8. Google OUIs für WiFi MAC-Adressen
 #    Quelle: IEEE OUI Database (MA-L assignments to Google Inc.)
 # =============================================================================
@@ -266,9 +345,11 @@ class TIMING:
     IP_AUDIT_WAIT_SECONDS = 15          # Wartezeit nach Flugmodus-AUS bevor IP-Check
 
     # --- GMS Smart Wait (Passive GSF Polling) ---
-    GSF_READY_TIMEOUT_SECONDS = 300     # Max 5 Min auf GSF-ID warten
+    GSF_READY_TIMEOUT_SECONDS = 600     # Max 10 Min auf GSF-ID warten (v3.0: von 300 auf 600)
     GSF_POLL_INTERVAL_SECONDS = 5       # Alle 5s Content Provider prüfen
     GMS_KICKSTART_SETTLE_SECONDS = 3    # Nach Kickstart kurz warten bevor Polling
+    GSF_RETRY_KICKSTART_SECONDS = 180   # v3.0: Nach 180s ohne GSF-ID → zweiter Kickstart
+    NETWORK_CONNECTIVITY_WAIT = 30      # v3.0: Wartezeit bei fehlender Konnektivität
 
 
 # =============================================================================

@@ -178,24 +178,38 @@ async def dashboard_stats():
             if result.success:
                 stats["device_serial"] = result.output.strip()
 
-            # Mobilfunk-IP (rmnet) oder WiFi-IP (wlan0)
-            for iface in ("rmnet_data0", "rmnet0", "wlan0"):
+            # Geräte-IP generisch ermitteln (v3.0: kein Interface-Hardcoding mehr)
+            # `ip route get 1.1.1.1` fragt den Kernel nach der Route →
+            # gibt automatisch das korrekte Interface und die Quell-IP zurück.
+            # Eliminiert rmnet_data0/rmnet0/wlan0 Spam bei fehlendem Interface.
+            try:
+                result = await adb.shell(
+                    "ip -4 route get 1.1.1.1 2>/dev/null | head -1",
+                    timeout=5,
+                )
+                if result.success and "src " in result.stdout:
+                    # Format: "1.1.1.1 via 10.x.x.x dev rmnet0 src 10.y.y.y uid 0"
+                    src_part = result.stdout.split("src ")[1]
+                    ip_candidate = src_part.split()[0].strip()
+                    if ip_candidate and ip_candidate != "127.0.0.1":
+                        stats["device_ip"] = ip_candidate
+            except (ADBError, Exception):
+                pass  # Lautlos ignorieren — Dashboard zeigt einfach keine IP
+
+            # Fallback: Wenn route-get fehlschlägt, versuche generisches ip addr
+            if not stats["device_ip"]:
                 try:
                     result = await adb.shell(
-                        f"ip -4 addr show {iface} 2>/dev/null",
-                        timeout=3,
+                        "ip -4 addr show 2>/dev/null | grep 'inet ' | grep -v '127.0.0.1' | head -1",
+                        timeout=5,
                     )
                     if result.success and "inet " in result.stdout:
-                        for line in result.stdout.split("\n"):
-                            line = line.strip()
-                            if line.startswith("inet "):
-                                ip = line.split()[1].split("/")[0]
-                                stats["device_ip"] = ip
-                                break
-                    if stats["device_ip"]:
-                        break
-                except ADBError:
-                    continue
+                        line = result.stdout.strip()
+                        ip_candidate = line.split()[1].split("/")[0]
+                        if ip_candidate:
+                            stats["device_ip"] = ip_candidate
+                except (ADBError, Exception):
+                    pass  # Lautlos ignorieren
 
             # Root-Check
             stats["root_access"] = await adb.has_root()

@@ -513,6 +513,115 @@ class TitanInjector:
                     pass
 
     # =========================================================================
+    # *** NEU v3.2 *** sqlite3 Dependency-Check
+    # =========================================================================
+
+    # Statisches sqlite3-Binary (arm64), wird nach /data/local/tmp/ gepusht
+    # falls das Stock-ROM keines mitliefert.
+    _SQLITE3_REMOTE_PATH = "/data/local/tmp/sqlite3"
+    _SQLITE3_LOCAL_FALLBACK = Path(__file__).resolve().parent.parent.parent / "libs" / "sqlite3"
+
+    async def ensure_sqlite_binary(self) -> bool:
+        """
+        Prüft, ob ``sqlite3`` auf dem Gerät verfügbar ist.
+
+        Das Pixel 6 Stock-ROM (Android 14) liefert standardmäßig KEIN
+        ``sqlite3``-Binary im PATH. Ohne dieses Binary scheitert der
+        "Safe Cleanup" in ``namespace_nuke()`` (Phase 3: GServices DB)
+        und das System fällt auf das riskantere ``rm`` zurück, was zu
+        Boot-Hängern am Google-Logo führen kann.
+
+        Ablauf:
+          1. ``which sqlite3`` — ist es bereits im System-PATH?
+          2. Prüfe ``/data/local/tmp/sqlite3`` — wurde es schon gepusht?
+          3. Falls ``libs/sqlite3`` lokal existiert → Push + chmod 755
+          4. Falls nichts hilft → Warning (Flow läuft weiter mit Fallback)
+
+        Returns:
+            True  wenn sqlite3 auf dem Gerät verfügbar ist
+            False wenn nicht — der Caller sollte mit ``rm``-Fallback rechnen
+        """
+        # --- Check 1: System-PATH ---
+        try:
+            which_result = await self._adb.shell(
+                "which sqlite3 2>/dev/null", timeout=5,
+            )
+            if which_result.success and which_result.output.strip():
+                path = which_result.output.strip()
+                logger.debug("sqlite3 im System-PATH gefunden: %s", path)
+                return True
+        except (ADBError, ADBTimeoutError):
+            pass
+
+        # --- Check 2: Bereits gepushtes Binary ---
+        try:
+            test_result = await self._adb.shell(
+                f"test -x {self._SQLITE3_REMOTE_PATH} && "
+                f"{self._SQLITE3_REMOTE_PATH} --version 2>/dev/null",
+                timeout=5,
+            )
+            if test_result.success and test_result.output.strip():
+                logger.info(
+                    "sqlite3 bereits auf Gerät: %s (Version: %s)",
+                    self._SQLITE3_REMOTE_PATH,
+                    test_result.output.strip().split()[0],
+                )
+                return True
+        except (ADBError, ADBTimeoutError):
+            pass
+
+        # --- Check 3: Lokales Binary pushen ---
+        if self._SQLITE3_LOCAL_FALLBACK.is_file():
+            logger.info(
+                "sqlite3 nicht auf Gerät — pushe lokales Binary: %s",
+                self._SQLITE3_LOCAL_FALLBACK,
+            )
+            try:
+                await self._adb.push(
+                    str(self._SQLITE3_LOCAL_FALLBACK),
+                    self._SQLITE3_REMOTE_PATH,
+                )
+                await self._adb.shell(
+                    f"chmod 755 {self._SQLITE3_REMOTE_PATH}",
+                    root=True, timeout=5,
+                )
+                # Verifiziere, dass es funktioniert
+                verify = await self._adb.shell(
+                    f"{self._SQLITE3_REMOTE_PATH} --version 2>/dev/null",
+                    timeout=5,
+                )
+                if verify.success and verify.output.strip():
+                    logger.info(
+                        "sqlite3 erfolgreich gepusht und verifiziert: %s",
+                        verify.output.strip().split()[0],
+                    )
+                    return True
+                else:
+                    logger.warning(
+                        "sqlite3 wurde gepusht, aber Verifikation fehlgeschlagen "
+                        "(exit=%d). Binary möglicherweise inkompatibel (ABI-Mismatch?).",
+                        verify.returncode,
+                    )
+                    return False
+            except (ADBError, ADBTimeoutError) as e:
+                logger.warning(
+                    "sqlite3 Push fehlgeschlagen: %s — "
+                    "namespace_nuke wird auf rm-Fallback zurückfallen.",
+                    e,
+                )
+                return False
+        else:
+            logger.warning(
+                "sqlite3 NICHT auf dem Gerät verfügbar und kein lokales "
+                "Binary unter '%s' gefunden! "
+                "namespace_nuke Phase 3 (GServices Safe Cleanup) wird auf "
+                "das riskantere 'rm' zurückfallen. "
+                "→ Empfehlung: Statisches sqlite3 arm64-Binary in libs/ ablegen.",
+                self._SQLITE3_LOCAL_FALLBACK,
+            )
+            return False
+
+    # =========================================================================
     # *** NEU v3.2 *** KernelSU Namespace-Nuke (GMS Auth-Token vernichten)
     # =========================================================================
 
@@ -557,6 +666,17 @@ class TitanInjector:
         logger.info("=" * 50)
 
         results: dict[str, bool] = {}
+
+        # Pre-Flight: sqlite3 Dependency-Check
+        # Phase 3 braucht sqlite3 für den Safe-Cleanup der GServices-DB.
+        # Falls nicht vorhanden, wird der rm-Fallback verwendet.
+        sqlite3_available = await self.ensure_sqlite_binary()
+        results["sqlite3_available"] = sqlite3_available
+        if not sqlite3_available:
+            logger.warning(
+                "sqlite3 nicht verfügbar — Phase 3 wird auf rm-Fallback "
+                "zurückfallen (Boot-Hänger-Risiko erhöht)."
+            )
 
         # Phase 1: Force-Stop GMS + GSF (normales su -c reicht hier)
         for pkg in ["com.google.android.gms", "com.google.android.gsf"]:
@@ -614,9 +734,17 @@ class TitanInjector:
         # rm auf gservices.db führt zum Boot-Hänger am Google-Logo.
         # DELETE FROM main leert die Tabelle, behält aber die DB-Struktur.
         # Auch hier su -M -c für SELinux-Bypass auf GSF-Datenordner.
+        #
+        # v3.2: sqlite3 Binary-Resolution — Nutze den gepushten Pfad als
+        # Fallback, falls sqlite3 nicht im System-PATH ist.
+        sqlite3_bin = "sqlite3"
+        if not sqlite3_available:
+            # Trotzdem versuchen — vielleicht wurde es manuell installiert
+            logger.debug("sqlite3 nicht im PATH, versuche gepushten Pfad...")
+            sqlite3_bin = self._SQLITE3_REMOTE_PATH
+
         try:
-            sql_cmd = f'sqlite3 {GSF_GSERVICES_DB} "DELETE FROM main;"'
-            escaped_sql = sql_cmd.replace("\\", "\\\\").replace('"', '\\"')
+            sql_cmd = f'{sqlite3_bin} {GSF_GSERVICES_DB} "DELETE FROM main;"'
             result = await self._adb.shell(
                 f"su -M -c '{sql_cmd}'", root=False, timeout=10,
             )
@@ -624,21 +752,22 @@ class TitanInjector:
             if result.success:
                 logger.info("  [OK] GServices DB: main-Tabelle geleert (SQL, su -M -c)")
             else:
-                # Fallback 1: Normales su -c + sqlite3
+                # Fallback 1: Normales su -c + sqlite3 (gepushter Pfad)
                 logger.warning(
                     "  [WARN] GServices SQL (su -M -c) exit=%d — Fallback: su -c",
                     result.returncode,
                 )
                 result = await self._adb.shell(
-                    f'sqlite3 {GSF_GSERVICES_DB} "DELETE FROM main;"',
+                    f'{sqlite3_bin} {GSF_GSERVICES_DB} "DELETE FROM main;"',
                     root=True, timeout=10,
                 )
                 results["gservices_sql_clean"] = result.success
                 if not result.success:
                     # Fallback 2: rm (LETZTER Ausweg — kann Boot-Hänger verursachen!)
                     logger.error(
-                        "  [WARN] GServices SQL auch mit su -c fehlgeschlagen — "
+                        "  [CRITICAL] GServices SQL mit %s fehlgeschlagen — "
                         "Fallback: rm (Boot-Hänger möglich!)",
+                        sqlite3_bin,
                     )
                     result = await self._adb.shell(
                         f"rm -rf {GSF_GSERVICES_DB}*", root=True, timeout=10,

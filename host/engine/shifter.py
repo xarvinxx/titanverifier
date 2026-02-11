@@ -29,6 +29,7 @@ KRITISCH — Magic Permission Fix (aus TITAN_CONTEXT.md §3B):
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from datetime import datetime
@@ -896,7 +897,7 @@ class TitanShifter:
                 f"rm -rf /data/data/{pkg}/*", root=True,
             )
 
-        # *** SQLite Safety v3.0 ***
+        # *** SQLite Safety v3.2 ***
         # Lösche WAL/SHM Dateien in GMS-Verzeichnissen VOR dem Restore
         # um Datenbank-Korruption durch inkonsistente Journal-States zu vermeiden
         for pkg in GMS_BACKUP_PACKAGES:
@@ -908,7 +909,16 @@ class TitanShifter:
                     )
                 except (ADBError, ADBTimeoutError):
                     pass
-        logger.debug("SQLite Safety: WAL/SHM Dateien in GMS-Verzeichnissen gelöscht")
+
+        # v3.2: Filesystem-Settle — Warte 2s damit das Kernel die File-Handles
+        # der gelöschten WAL/SHM Dateien vollständig freigibt. Ohne diese Pause
+        # kann tar auf ext4 in eine Race-Condition laufen: Das Journal-File ist
+        # im VFS noch als "pending delete" markiert, aber tar erstellt eine neue
+        # Datei mit demselben Inode → Korruption beim nächsten SQLite-Open.
+        await asyncio.sleep(2)
+        logger.debug(
+            "SQLite Safety v3.2: WAL/SHM gelöscht + 2s Filesystem-Settle"
+        )
 
         # tar-Restore (alle Pakete auf einmal — tar enthält data/data/pkg/...)
         restore_result = await self._adb.exec_in_from_file(
@@ -1030,7 +1040,7 @@ class TitanShifter:
             tar_path.name, tar_path.stat().st_size,
         )
 
-        # *** SQLite Safety v3.0 ***
+        # *** SQLite Safety v3.2 ***
         # Lösche bestehende WAL/SHM Dateien VOR dem Entpacken
         # um Datenbank-Korruption durch alte Journal-States zu vermeiden
         for suffix in ["-wal", "-shm", "-journal"]:
@@ -1041,7 +1051,14 @@ class TitanShifter:
                 )
             except (ADBError, ADBTimeoutError):
                 pass
-        logger.debug("SQLite Safety: Alte WAL/SHM/Journal für accounts_ce.db gelöscht")
+
+        # v3.2: Filesystem-Settle — Warte 2s damit File-Handles freigegeben werden.
+        # accounts_ce.db ist SYSTEM-kritisch (UID 1000) — Race-Conditions hier
+        # führen direkt zum Bootloop wegen korrupter Account-Registry.
+        await asyncio.sleep(2)
+        logger.debug(
+            "SQLite Safety v3.2: Alte WAL/SHM/Journal gelöscht + 2s Settle"
+        )
 
         # tar entpacken
         restore_result = await self._adb.exec_in_from_file(

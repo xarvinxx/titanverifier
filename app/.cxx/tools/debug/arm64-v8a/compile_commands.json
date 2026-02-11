@@ -1,12 +1,12 @@
 [
 {
-  "directory": "/Users/arvin/Downloads/Custom Hook Module/app/.cxx/Debug/6l48734n/arm64-v8a",
-  "command": "/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android31 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dnative_lib_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles/native-lib.dir/native-lib.cpp.o -c \"/Users/arvin/Downloads/Custom Hook Module/app/src/main/cpp/native-lib.cpp\"",
-  "file": "/Users/arvin/Downloads/Custom Hook Module/app/src/main/cpp/native-lib.cpp"
+  "directory": "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/.cxx/Debug/6l48734n/arm64-v8a",
+  "command": "/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android31 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dnative_lib_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles/native-lib.dir/native-lib.cpp.o -c /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/src/main/cpp/native-lib.cpp",
+  "file": "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/src/main/cpp/native-lib.cpp"
 },
 {
-  "directory": "/Users/arvin/Downloads/Custom Hook Module/app/.cxx/Debug/6l48734n/arm64-v8a",
-  "command": "/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android31 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dnative_lib_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles/native-lib.dir/audit_engine.cpp.o -c \"/Users/arvin/Downloads/Custom Hook Module/app/src/main/cpp/audit_engine.cpp\"",
-  "file": "/Users/arvin/Downloads/Custom Hook Module/app/src/main/cpp/audit_engine.cpp"
+  "directory": "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/.cxx/Debug/6l48734n/arm64-v8a",
+  "command": "/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android31 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dnative_lib_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -o CMakeFiles/native-lib.dir/audit_engine.cpp.o -c /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/src/main/cpp/audit_engine.cpp",
+  "file": "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/src/main/cpp/audit_engine.cpp"
 }
 ]

@@ -568,11 +568,49 @@ class GenesisFlow:
             await asyncio.sleep(TIMING.GMS_KICKSTART_SETTLE_SECONDS)
 
             # D) Passive Sensor: Warte auf lokale GSF-ID (KEIN Netzwerk!)
+            # wait_for_gsf_id hat intern bereits einen Retry-Kickstart nach 180s.
             gsf_result = await self._device.wait_for_gsf_id()
 
             # Variable für die echte GSF-ID als Dezimal (wird in Schritt 8 gebraucht)
             # Die DB und Bridge speichern die GSF-ID als 17-Dezimalziffern
             real_gsf_id: str | None = None
+
+            # =================================================================
+            # v3.2 SECOND CHANCE: Wenn erster Wait scheitert → Nuclear Recovery
+            # =================================================================
+            # Der erste wait_for_gsf_id hat 600s + 1 Retry-Kickstart intern.
+            # Wenn das nicht reicht, liegt es meist an GMS-Lockdown oder
+            # korruptem DroidGuard-State. Nuclear Recovery:
+            #   1. Namespace-Nuke nochmal (frische Auth-Kette)
+            #   2. Erneuter Kickstart
+            #   3. Zweiter Wait (kürzeres Timeout: 300s)
+            # =================================================================
+            if not gsf_result.success:
+                logger.warning(
+                    "[7/9] GSF-ID SECOND CHANCE: Erster Wait gescheitert nach %.0fs — "
+                    "Nuclear Recovery starten...",
+                    gsf_result.elapsed_seconds,
+                )
+                try:
+                    # Nuclear: Namespace-Nuke wiederholen (su -M -c)
+                    await self._injector.namespace_nuke()
+                    await asyncio.sleep(3)
+
+                    # Erneut: Finsky Kill → MinuteMaid → Kickstart
+                    await self._device.kill_finsky()
+                    await self._device.reset_gms_internal()
+                    await asyncio.sleep(3)
+                    await self._device.kickstart_gms()
+                    await asyncio.sleep(TIMING.GMS_KICKSTART_SETTLE_SECONDS)
+
+                    # Zweiter Wait mit halbem Timeout
+                    logger.info("[7/9] SECOND CHANCE: Zweiter GSF-Wait (max 300s)...")
+                    gsf_result = await self._device.wait_for_gsf_id(
+                        timeout=300,
+                        retry_kickstart_after=0,  # Kein interner Retry mehr
+                    )
+                except Exception as e:
+                    logger.error("[7/9] SECOND CHANCE fehlgeschlagen: %s", e)
 
             if gsf_result.success:
                 real_gsf_id = gsf_result.gsf_id_decimal or gsf_result.gsf_id
@@ -588,7 +626,7 @@ class GenesisFlow:
                 )
 
                 # =========================================================
-                # *** NEU v3.0 *** GSF-ID SYNC (Hardware = Software)
+                # GSF-ID SYNC v3.0 (Hardware = Software)
                 # =========================================================
                 # Die echte GSF-ID vom GMS-Checkin zurückschreiben in:
                 #   1. titan.db (identities.gsf_id)
@@ -621,15 +659,16 @@ class GenesisFlow:
                         logger.warning("[7/9] GSF-ID Sync fehlgeschlagen: %s", e)
 
             else:
-                # GSF-ID Timeout — Audit trotzdem versuchen, aber warnen
+                # GSF-ID Timeout (auch nach Second Chance) — Audit trotzdem versuchen
                 step.status = FlowStepStatus.SUCCESS  # Nicht-kritisch (Audit entscheidet)
                 step.detail = (
-                    f"GSF-ID Timeout nach {gsf_result.elapsed_seconds:.0f}s — "
+                    f"GSF-ID Timeout nach {gsf_result.elapsed_seconds:.0f}s "
+                    f"(inkl. Second Chance) — "
                     f"Audit wird trotzdem versucht | "
                     f"Kickstart: {'OK' if kickstart_ok else 'WARN'}"
                 )
                 logger.warning(
-                    "[7/9] GMS Ready: GSF-ID Timeout nach %.0fs — "
+                    "[7/9] GMS Ready: GSF-ID Timeout nach %.0fs (inkl. Second Chance) — "
                     "Capture State wird übersprungen, Audit trotzdem versucht",
                     gsf_result.elapsed_seconds,
                 )

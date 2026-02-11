@@ -261,6 +261,19 @@ class ADBClient:
         Raises:
             ADBError: wenn check=True und exit != 0
         """
+        # v3.2 ANTI-DOUBLE-SU:
+        # Wenn der Command bereits mit 'su ' beginnt (z.B. 'su -M -c "..."'),
+        # darf root=True NICHT nochmal su -c wrappen. Das würde zu
+        # su -c "su -M -c ..." führen → Permission Error / Hänger.
+        # Automatische Korrektur: root intern auf False setzen.
+        if root and command.lstrip().startswith("su "):
+            logger.debug(
+                "Anti-Double-SU: Command beginnt mit 'su', "
+                "root=True → False korrigiert: %s",
+                command[:60],
+            )
+            root = False
+
         if root:
             # Escaping für su -c (doppelte Anführungszeichen im Befehl)
             escaped = command.replace("\\", "\\\\").replace('"', '\\"')

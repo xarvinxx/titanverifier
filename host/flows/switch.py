@@ -1,22 +1,29 @@
 """
-Project Titan — Switch Flow (Warm Switch / Existing Profile) v2.0
+Project Titan — Switch Flow (Warm Switch / Existing Profile) v3.2
 ===================================================================
 
-TITAN_CONTEXT.md §3C — FLOW 2: SWITCH (Erweitert mit Full-State Restore)
+TITAN_CONTEXT.md §3C — FLOW 2: SWITCH (State-Layering + PIF Sync)
 
 Wechselt zu einem existierenden Profil, ohne das Gerät
 vollständig neu zu starten. Schneller als Genesis.
 
 Zwingender Ablauf (6 Schritte):
   1. SAFETY KILL    — force-stop GMS + GSF + TikTok (alles tot)
-  2. INJECT         — Ziel-Identität in Bridge-Datei schreiben
-  3. RESTORE STATE  — Full-State Restore: GMS + Account-DBs + TikTok
+  2. INJECT         — Bridge + PIF-Fingerprint aktualisieren (v3.2: PIF-Re-Injection!)
+  3. RESTORE STATE  — Full-State Restore: GMS + Account-DBs + TikTok (Golden Baseline)
   4. RESTORE TIKTOK — TikTok App-Daten (Legacy-Fallback wenn kein Full-State)
   5. SOFT RESET     — killall zygote (Framework Restart)
-  6. QUICK AUDIT    — Bridge-Serial prüfen
+  6. QUICK AUDIT    — Bridge-Serial prüfen + Audit-Score in DB tracken
 
-DB-Tracking (v2.0):
-  - Flow-History: Eintrag bei Start, Updates bei jedem Schritt, Finalize
+v3.2 Änderungen:
+  - PIF-Re-Injection: pif.json wird bei jedem Switch aktualisiert,
+    damit der Software-Fingerprint konsistent bleibt. Ohne PIF-Refresh
+    kann ein stale Fingerprint BASIC_INTEGRITY FAIL verursachen.
+  - Audit-Score Tracking: Quick-Audit schreibt Ergebnis in flow_history.
+  - KEIN pm clear GMS: Golden Baseline wird restored, nicht gelöscht.
+
+DB-Tracking:
+  - Flow-History: Eintrag bei Start, Updates bei jedem Schritt, Finalize + Audit-Score
   - Profile: switch_count++, last_switch_at, last_active_at
   - Identity: usage_count++, last_used_at
 """
@@ -40,6 +47,7 @@ from host.engine.db_ops import (
     find_profile_by_identity,
     increment_identity_usage,
     update_flow_history,
+    update_identity_audit,
     update_profile_activity,
 )
 from host.engine.injector import TitanInjector
@@ -225,18 +233,34 @@ class SwitchFlow:
             logger.info("[1/6] Safety Kill: OK (%s)", step.detail)
 
             # =================================================================
-            # Schritt 2: INJECT
+            # Schritt 2: INJECT (Bridge + PIF v3.2)
+            # =================================================================
+            # v3.2: Neben der Bridge-Datei wird auch pif.json aktualisiert.
+            # Beim Identity-Wechsel MUSS der Software-Fingerprint konsistent
+            # bleiben. Ein stale PIF-Fingerprint aus dem vorherigen Profil
+            # kann zu BASIC_INTEGRITY FAIL führen.
             # =================================================================
             step = result.steps[1]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
+            # 2a. Hardware-IDs: Bridge-Datei schreiben + verteilen
             logger.info("[2/6] Inject: Bridge-Datei aktualisieren...")
             await self._injector.inject(
                 identity, label=identity.name, distribute=True,
             )
 
-            # Aktive Identität in DB umschalten + usage_count++
+            # 2b. PIF-Re-Injection: Software-Fingerprint aktualisieren
+            # Stellt sicher, dass pif.json konsistent ist (älteres Modell,
+            # NICHT das echte Pixel 6 — Safety Constraint v3.2).
+            logger.info("[2/6] PIF: Software-Fingerprint aktualisieren...")
+            pif_ok = await self._injector.inject_pif_fingerprint()
+            if pif_ok:
+                logger.info("[2/6] PIF: OK → MEETS_BASIC_INTEGRITY vorbereitet")
+            else:
+                logger.warning("[2/6] PIF: WARN — pif.json konnte nicht aktualisiert werden")
+
+            # 2c. Aktive Identität in DB umschalten + usage_count++
             await self._activate_identity(identity_id)
             try:
                 await increment_identity_usage(identity_id)
@@ -244,9 +268,9 @@ class SwitchFlow:
                 logger.warning("Usage-Counter Update fehlgeschlagen: %s", e)
 
             step.status = FlowStepStatus.SUCCESS
-            step.detail = f"serial={identity.serial}"
+            step.detail = f"serial={identity.serial} | PIF={'OK' if pif_ok else 'WARN'}"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[2/6] Inject: OK")
+            logger.info("[2/6] Inject: OK (%s)", step.detail)
 
             # =================================================================
             # Schritt 3: RESTORE STATE (GMS + Account-DBs)
@@ -377,7 +401,46 @@ class SwitchFlow:
             logger.info("[5/6] Soft Reset: %s", step.status.value)
 
             # =================================================================
-            # Schritt 6: QUICK AUDIT
+            # v3.2 SAFETY GATE: Boot-Readiness-Check vor dem Audit
+            # =================================================================
+            # Nach dem Zygote-Kill braucht das Android-Framework Zeit, um alle
+            # System-Services (incl. PackageManager, AccountManager, GMS) neu zu
+            # starten. Ein zu frühes Audit liest noch alte Werte oder scheitert
+            # an "service not available". Daher:
+            #   1) 5 Sekunden Basis-Pause (Framework-Services Startup)
+            #   2) Aktiver Poll auf sys.boot_completed=1 (max 60s)
+            # =================================================================
+            logger.info(
+                "[5→6] Safety Gate: 5s Pause + boot_completed Check..."
+            )
+            await asyncio.sleep(5)
+
+            boot_ready = False
+            for _poll in range(30):  # 30 × 2s = 60s max
+                try:
+                    bc_result = await self._adb.shell(
+                        "getprop sys.boot_completed", timeout=5,
+                    )
+                    if bc_result.success and bc_result.output.strip() == "1":
+                        boot_ready = True
+                        break
+                except (ADBError, Exception):
+                    pass
+                await asyncio.sleep(2)
+
+            if not boot_ready:
+                logger.warning(
+                    "[5→6] WARNUNG: sys.boot_completed != 1 nach 65s! "
+                    "Audit wird trotzdem versucht..."
+                )
+            else:
+                logger.info("[5→6] Boot-Readiness bestätigt — Audit startet")
+
+            # =================================================================
+            # Schritt 6: QUICK AUDIT + AUDIT-TRACKING (v3.2)
+            # =================================================================
+            # v3.2: Quick-Audit prüft Bridge-Serial UND schreibt das
+            # Ergebnis in flow_history + identities für Audit-Tracking.
             # =================================================================
             step = result.steps[5]
             step.status = FlowStepStatus.RUNNING
@@ -387,12 +450,35 @@ class SwitchFlow:
             audit_ok = await self._auditor.quick_audit(identity.serial)
             result.audit_passed = audit_ok
 
+            # v3.2: Audit-Score in DB tracken
+            audit_score = 100 if audit_ok else 0
+            try:
+                if identity_id:
+                    await update_identity_audit(
+                        identity_id,
+                        score=audit_score,
+                        detail=json.dumps(
+                            [{"name": "bridge_serial", "status": "pass" if audit_ok else "fail",
+                              "expected": identity.serial,
+                              "actual": identity.serial if audit_ok else "MISMATCH",
+                              "detail": "Quick Audit (Switch Flow v3.2)"}],
+                            ensure_ascii=False,
+                        ),
+                    )
+                if flow_history_id:
+                    await update_flow_history(
+                        flow_history_id,
+                        audit_score=audit_score,
+                    )
+            except Exception as e:
+                logger.warning("Audit-Score DB-Update fehlgeschlagen: %s", e)
+
             if audit_ok:
                 step.status = FlowStepStatus.SUCCESS
-                step.detail = f"Bridge serial={identity.serial} bestätigt"
+                step.detail = f"Bridge serial={identity.serial} bestätigt (Score: {audit_score}%)"
             else:
                 step.status = FlowStepStatus.FAILED
-                step.detail = "Bridge-Serial stimmt nicht überein!"
+                step.detail = "Bridge-Serial stimmt nicht überein! (Score: 0%)"
                 logger.warning("[6/6] Quick Audit FAIL — Serial mismatch!")
 
             step.duration_ms = _now_ms() - step_start

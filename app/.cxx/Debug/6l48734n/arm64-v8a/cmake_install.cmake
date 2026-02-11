@@ -1,4 +1,4 @@
-# Install script for directory: /Users/arvin/Downloads/Custom Hook Module/app/src/main/cpp
+# Install script for directory: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/src/main/cpp
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Users/arvin/Downloads/Custom Hook Module/app/.cxx/Debug/6l48734n/arm64-v8a/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/.cxx/Debug/6l48734n/arm64-v8a/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

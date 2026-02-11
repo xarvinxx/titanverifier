@@ -8,6 +8,8 @@ Abgeleitet aus TITAN_CONTEXT.md (Abschnitt 3A: Identity Engine).
 KEINE Zufallswerte hier — nur deterministische Regeln und Constraints.
 """
 
+import logging
+from datetime import date, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -183,12 +185,20 @@ PIXEL6_BUILDS = [
 
 
 # =============================================================================
-# 7b. PIF (Play Integrity Fix) Fingerprint Pool
+# 7b. PIF (Play Integrity Fix) Fingerprint Spoof-Pool
 #     Für /data/adb/pif.json — Software-Integrität (MEETS_BASIC_INTEGRITY)
 #
 #     TrickyStore liefert MEETS_DEVICE_INTEGRITY (Hardware-Ebene),
 #     aber MEETS_BASIC_INTEGRITY erfordert einen gültigen Software-Fingerprint.
 #     Ohne pif.json auf Android 14 = BASIC_INTEGRITY schlägt IMMER fehl.
+#
+#     SAFETY CONSTRAINT (v3.2):
+#       Die pif.json darf NIEMALS die echten Pixel 6 (oriole) Daten enthalten!
+#       Stattdessen simulieren wir ein ÄLTERES Pixel-Modell (Pixel 5, 5a, 4a 5G).
+#       Grund: Wenn Hardware-Attestation (Tensor G1) und Software-Fingerprint
+#       dasselbe Gerät beschreiben, kann Google die Diskrepanz zwischen echtem
+#       TEE-Zertifikat und gespooftem Build erkennen → FAIL.
+#       Mit einem älteren Modell ist die Software-Ebene plausibel entkoppelt.
 #
 #     Format: Exakt wie von Google signierte Build-Fingerprints.
 #     Jeder Eintrag muss intern konsistent sein (build_id ↔ patch ↔ fingerprint).
@@ -196,16 +206,20 @@ PIXEL6_BUILDS = [
 
 PIF_JSON_PATH = "/data/adb/pif.json"    # Ziel auf dem Gerät
 
-PIXEL6_PIF_POOL: list[dict[str, str]] = [
+PIF_SPOOF_POOL: list[dict[str, str]] = [
+    # -----------------------------------------------------------------
+    # Pixel 5 (redfin) — Android 14, letzte Updates Okt 2024
+    # DEVICE_INITIAL_SDK_INT=30 (Android 11 ab Werk)
+    # -----------------------------------------------------------------
     {
         "MANUFACTURER": "Google",
-        "MODEL": "Pixel 6",
-        "DEVICE": "oriole",
-        "PRODUCT": "oriole",
+        "MODEL": "Pixel 5",
+        "DEVICE": "redfin",
+        "PRODUCT": "redfin",
         "BRAND": "google",
-        "FINGERPRINT": "google/oriole/oriole:14/AP2A.241005.015/12298734:user/release-keys",
+        "FINGERPRINT": "google/redfin/redfin:14/AP2A.241005.015/12298734:user/release-keys",
         "SECURITY_PATCH": "2024-10-05",
-        "DEVICE_INITIAL_SDK_INT": "31",
+        "DEVICE_INITIAL_SDK_INT": "30",
         "BUILD_ID": "AP2A.241005.015",
         "INCREMENTAL": "12298734",
         "TYPE": "user",
@@ -213,13 +227,31 @@ PIXEL6_PIF_POOL: list[dict[str, str]] = [
     },
     {
         "MANUFACTURER": "Google",
-        "MODEL": "Pixel 6",
-        "DEVICE": "oriole",
-        "PRODUCT": "oriole",
+        "MODEL": "Pixel 5",
+        "DEVICE": "redfin",
+        "PRODUCT": "redfin",
         "BRAND": "google",
-        "FINGERPRINT": "google/oriole/oriole:14/AP2A.240805.005/12025142:user/release-keys",
+        "FINGERPRINT": "google/redfin/redfin:14/AP2A.240805.005/12025142:user/release-keys",
         "SECURITY_PATCH": "2024-08-05",
-        "DEVICE_INITIAL_SDK_INT": "31",
+        "DEVICE_INITIAL_SDK_INT": "30",
+        "BUILD_ID": "AP2A.240805.005",
+        "INCREMENTAL": "12025142",
+        "TYPE": "user",
+        "TAGS": "release-keys",
+    },
+    # -----------------------------------------------------------------
+    # Pixel 5a (barbet) — Android 14, letzte Updates Aug 2024
+    # DEVICE_INITIAL_SDK_INT=30 (Android 11 ab Werk)
+    # -----------------------------------------------------------------
+    {
+        "MANUFACTURER": "Google",
+        "MODEL": "Pixel 5a",
+        "DEVICE": "barbet",
+        "PRODUCT": "barbet",
+        "BRAND": "google",
+        "FINGERPRINT": "google/barbet/barbet:14/AP2A.240805.005/12025142:user/release-keys",
+        "SECURITY_PATCH": "2024-08-05",
+        "DEVICE_INITIAL_SDK_INT": "30",
         "BUILD_ID": "AP2A.240805.005",
         "INCREMENTAL": "12025142",
         "TYPE": "user",
@@ -227,33 +259,152 @@ PIXEL6_PIF_POOL: list[dict[str, str]] = [
     },
     {
         "MANUFACTURER": "Google",
-        "MODEL": "Pixel 6",
-        "DEVICE": "oriole",
-        "PRODUCT": "oriole",
+        "MODEL": "Pixel 5a",
+        "DEVICE": "barbet",
+        "PRODUCT": "barbet",
         "BRAND": "google",
-        "FINGERPRINT": "google/oriole/oriole:14/AP1A.240505.004/11583682:user/release-keys",
+        "FINGERPRINT": "google/barbet/barbet:14/AP1A.240505.004/11583682:user/release-keys",
         "SECURITY_PATCH": "2024-05-05",
-        "DEVICE_INITIAL_SDK_INT": "31",
+        "DEVICE_INITIAL_SDK_INT": "30",
         "BUILD_ID": "AP1A.240505.004",
         "INCREMENTAL": "11583682",
         "TYPE": "user",
         "TAGS": "release-keys",
     },
+    # -----------------------------------------------------------------
+    # Pixel 4a 5G (bramble) — Android 14, EoL Aug 2024
+    # DEVICE_INITIAL_SDK_INT=30 (Android 11 ab Werk)
+    # -----------------------------------------------------------------
     {
         "MANUFACTURER": "Google",
-        "MODEL": "Pixel 6",
-        "DEVICE": "oriole",
-        "PRODUCT": "oriole",
+        "MODEL": "Pixel 4a (5G)",
+        "DEVICE": "bramble",
+        "PRODUCT": "bramble",
         "BRAND": "google",
-        "FINGERPRINT": "google/oriole/oriole:14/AP1A.240305.019.A1/11473478:user/release-keys",
+        "FINGERPRINT": "google/bramble/bramble:14/AP1A.240305.019.A1/11473478:user/release-keys",
         "SECURITY_PATCH": "2024-03-05",
-        "DEVICE_INITIAL_SDK_INT": "31",
+        "DEVICE_INITIAL_SDK_INT": "30",
         "BUILD_ID": "AP1A.240305.019.A1",
         "INCREMENTAL": "11473478",
         "TYPE": "user",
         "TAGS": "release-keys",
     },
 ]
+
+# Legacy-Alias für Abwärtskompatibilität (wird in v4.0 entfernt)
+PIXEL6_PIF_POOL = PIF_SPOOF_POOL
+
+
+# =============================================================================
+# 7c. Time-Travel Prevention — PIF Pool Integrity Validator
+#
+#     Verhindert logisch unmögliche Fingerprint-Konstellationen:
+#       - SECURITY_PATCH in der Zukunft → technisch unmöglich (Instant-Fail)
+#       - SECURITY_PATCH > 2 Jahre alt  → verdächtig, heuristisches Flag
+#
+#     Wird beim Import und explizit vom Injector aufgerufen.
+#     Gibt die Liste der validen Einträge zurück.
+# =============================================================================
+
+_config_logger = logging.getLogger("titan.config")
+
+# Pflichtfelder für einen gültigen PIF-Eintrag
+PIF_REQUIRED_KEYS = frozenset({
+    "DEVICE", "MODEL", "FINGERPRINT", "BUILD_ID", "SECURITY_PATCH",
+})
+
+# Maximales Alter eines PIF-Patch-Datums relativ zum heutigen Tag
+PIF_MAX_AGE_DAYS = 730  # ~2 Jahre
+
+
+def validate_pif_pool_integrity(
+    pool: list[dict[str, str]] | None = None,
+    *,
+    reference_date: date | None = None,
+    max_age_days: int = PIF_MAX_AGE_DAYS,
+) -> list[dict[str, str]]:
+    """
+    Validiert den PIF_SPOOF_POOL auf zeitliche Konsistenz.
+
+    Prüfungen pro Eintrag:
+      1. Alle Pflichtfelder vorhanden und nicht leer
+      2. SECURITY_PATCH ist ein gültiges ISO-Datum (YYYY-MM-DD)
+      3. SECURITY_PATCH liegt NICHT in der Zukunft (Time-Travel)
+      4. SECURITY_PATCH ist nicht älter als ``max_age_days``
+
+    Args:
+        pool:           Pool zum Validieren (Default: PIF_SPOOF_POOL)
+        reference_date: Referenz-Datum (Default: heute). Nützlich für Tests.
+        max_age_days:   Maximales Alter in Tagen (Default: 730 = ~2 Jahre)
+
+    Returns:
+        Liste der validen Pool-Einträge (kann leer sein!).
+        Ungültige Einträge werden geloggt und übersprungen.
+    """
+    if pool is None:
+        pool = PIF_SPOOF_POOL
+
+    if reference_date is None:
+        reference_date = date.today()
+
+    oldest_allowed = reference_date - timedelta(days=max_age_days)
+    valid: list[dict[str, str]] = []
+
+    for idx, entry in enumerate(pool):
+        model = entry.get("MODEL", "?")
+        device = entry.get("DEVICE", "?")
+        label = f"Pool[{idx}] {model}/{device}"
+
+        # --- Pflichtfelder-Check ---
+        missing = PIF_REQUIRED_KEYS - {
+            k for k, v in entry.items() if v and v.strip()
+        }
+        if missing:
+            _config_logger.error(
+                "PIF INVALID: %s — Fehlende Felder: %s", label, missing,
+            )
+            continue
+
+        # --- Datum parsen ---
+        patch_str = entry["SECURITY_PATCH"].strip()
+        try:
+            patch_date = date.fromisoformat(patch_str)
+        except ValueError:
+            _config_logger.error(
+                "PIF INVALID: %s — SECURITY_PATCH '%s' ist kein gültiges "
+                "ISO-Datum (YYYY-MM-DD)", label, patch_str,
+            )
+            continue
+
+        # --- Zukunfts-Check (Time-Travel) ---
+        if patch_date > reference_date:
+            _config_logger.error(
+                "PIF TIME-TRAVEL: %s — SECURITY_PATCH %s liegt IN DER ZUKUNFT "
+                "(heute: %s)! Eintrag wird ignoriert.",
+                label, patch_str, reference_date.isoformat(),
+            )
+            continue
+
+        # --- Alters-Check ---
+        if patch_date < oldest_allowed:
+            _config_logger.warning(
+                "PIF STALE: %s — SECURITY_PATCH %s ist älter als %d Tage "
+                "(Grenze: %s). Eintrag wird als verdächtig markiert, "
+                "aber NICHT entfernt.",
+                label, patch_str, max_age_days, oldest_allowed.isoformat(),
+            )
+            # Stale Einträge werden NICHT gefiltert — nur gewarnt.
+            # Ein 2 Jahre alter Patch ist ungewöhnlich, aber nicht unmöglich.
+            # Der Injector kann sie bei Bedarf weiter filtern.
+
+        valid.append(entry)
+
+    _config_logger.info(
+        "PIF Pool Integrity: %d/%d Einträge valide (Ref: %s, MaxAge: %dd)",
+        len(valid), len(pool), reference_date.isoformat(), max_age_days,
+    )
+    return valid
+
 
 # GMS-Datenbank-Pfade (für Namespace-Nuke + SQL-Cleanup)
 GMS_AUTH_DB = "/data/data/com.google.android.gms/databases/auth.db"

@@ -28,20 +28,24 @@ from pathlib import Path
 from typing import Optional
 
 from host.adb.client import ADBClient, ADBError, ADBTimeoutError
+from datetime import date
+
 from host.config import (
     BRIDGE_APP_TEMPLATE,
     BRIDGE_FILE_PATH,
     BRIDGE_MODULE_PATH,
     BRIDGE_SDCARD_PATH,
     BRIDGE_TARGET_APPS,
+    DEVICE_CODENAME,
     GMS_AUTH_DB,
     GMS_BACKUP_PACKAGES,
     GMS_DG_CACHE,
     GSF_GSERVICES_DB,
     KILL_SWITCH_PATH,
     PIF_JSON_PATH,
-    PIXEL6_PIF_POOL,
+    PIF_SPOOF_POOL,
     SELINUX_CONTEXT,
+    validate_pif_pool_integrity,
 )
 from host.models.identity import IdentityBridge
 
@@ -305,26 +309,149 @@ class TitanInjector:
           aber MEETS_BASIC_INTEGRITY erfordert einen gültigen
           Software-Fingerprint. Ohne pif.json = BASIC_INTEGRITY FAIL.
 
-        Die pif.json wird aus dem PIXEL6_PIF_POOL generiert.
-        Wenn build_index angegeben, wird der spezifische Build gewählt,
-        ansonsten wird zufällig einer aus dem Pool ausgewählt.
+        v3.2 SAFETY CONSTRAINT:
+          Die pif.json darf NIEMALS echte Pixel 6 (oriole) Daten enthalten!
+          Stattdessen wird ein ÄLTERES Pixel-Modell simuliert (Pixel 5, 5a, 4a 5G).
+          Der PIF_SPOOF_POOL enthält nur verifizierte ältere Builds.
+
+          Grund: Wenn Hardware-Attestation (Tensor G1 / oriole) und
+          Software-Fingerprint dasselbe Gerät beschreiben, kann Google
+          die Diskrepanz erkennen → FAIL. Mit einem älteren Modell ist
+          die Software-Ebene plausibel entkoppelt vom TEE-Zertifikat.
+
+        Schützt gegen: Säule 6 (Software-Integrität)
 
         Args:
-            build_index: Optional — Index in PIXEL6_PIF_POOL (für Konsistenz
+            build_index: Optional — Index in PIF_SPOOF_POOL (für Konsistenz
                          mit dem gewählten Build in der Identity)
 
         Returns:
             True wenn erfolgreich gepusht
         """
-        # Build wählen
-        if build_index is not None and 0 <= build_index < len(PIXEL6_PIF_POOL):
-            pif_data = PIXEL6_PIF_POOL[build_index]
+        # =====================================================================
+        # v3.2 TIME-TRAVEL PREVENTION — Dreistufige Pool-Validierung
+        # =====================================================================
+        #
+        # Stufe 1: Statische Integrität (Pflichtfelder, Datums-Format,
+        #          Zukunfts-Check, Alters-Warnung)
+        # Stufe 2: Dynamischer Host-Patch-Filter (ADB getprop)
+        #          → Pool-Einträge mit SECURITY_PATCH > Host-Patch = FAIL
+        # Stufe 3: Oriole Safety Guard (kein echtes Gerät im Spoof)
+        # =====================================================================
+
+        # --- Stufe 1: Statische Pool-Validierung ---
+        valid_pool = validate_pif_pool_integrity()
+
+        if not valid_pool:
+            logger.error(
+                "PIF SAFETY CRITICAL: PIF_SPOOF_POOL ist leer oder alle "
+                "Einträge ungültig — Abbruch. "
+                "Prüfe host/config.py PIF_SPOOF_POOL auf korrekte Daten."
+            )
+            return False
+
+        logger.debug(
+            "PIF Stufe 1 (Statisch): %d/%d Einträge valide",
+            len(valid_pool), len(PIF_SPOOF_POOL),
+        )
+
+        # --- Stufe 2: Dynamischer Host-Patch-Filter ---
+        # Lies den echten Security-Patch-Level des Geräts.
+        # Ein PIF mit SECURITY_PATCH > Host-Patch ist ein logischer Bruch:
+        #   "Wie kann ein Gerät mit Kernel von 2024-10 einen Build
+        #    von 2025-03 laufen haben?" → Instant Play Integrity FAIL.
+        host_patch_str: str | None = None
+        host_patch_date: date | None = None
+
+        try:
+            patch_result = await self._adb.shell(
+                "getprop ro.build.version.security_patch", timeout=10,
+            )
+            if patch_result.success:
+                raw = patch_result.output.strip()
+                if raw:
+                    host_patch_date = date.fromisoformat(raw)
+                    host_patch_str = raw
+                    logger.info(
+                        "PIF Host-Patch gelesen: %s", host_patch_str,
+                    )
+        except (ValueError, ADBError, ADBTimeoutError) as e:
+            logger.warning(
+                "PIF Host-Patch konnte nicht gelesen werden: %s — "
+                "Time-Travel-Filter wird übersprungen (Fallback: "
+                "nur statische Validierung).",
+                e,
+            )
+
+        if host_patch_date is not None:
+            # Nur Einträge behalten, deren Patch <= Host-Patch.
+            # "Downgrade" (alter Fingerprint auf neuem Kernel) ist plausibel,
+            # "Upgrade" (neuer Fingerprint auf altem Kernel) ist unmöglich.
+            time_safe_pool = [
+                p for p in valid_pool
+                if date.fromisoformat(p["SECURITY_PATCH"].strip())
+                <= host_patch_date
+            ]
+
+            if not time_safe_pool:
+                # Alle Pool-Einträge sind neuer als der Host-Patch.
+                # Das sollte nicht passieren, aber wir brechen nicht ab —
+                # wir warnen und fallen auf den statisch validierten Pool zurück.
+                logger.warning(
+                    "PIF TIME-TRAVEL WARNING: Alle %d validen Pool-Einträge "
+                    "haben SECURITY_PATCH > Host-Patch %s! "
+                    "Fallback auf statischen Pool.",
+                    len(valid_pool), host_patch_str,
+                )
+            else:
+                dropped = len(valid_pool) - len(time_safe_pool)
+                if dropped > 0:
+                    logger.info(
+                        "PIF Stufe 2 (Time-Travel): %d Einträge gefiltert "
+                        "(Patch > Host %s), %d verbleiben",
+                        dropped, host_patch_str, len(time_safe_pool),
+                    )
+                valid_pool = time_safe_pool
         else:
-            pif_data = random.choice(PIXEL6_PIF_POOL)
+            logger.debug(
+                "PIF Stufe 2 (Time-Travel): Übersprungen (kein Host-Patch)"
+            )
+
+        # --- Stufe 3: Oriole Safety Guard ---
+        # Filtere das echte Gerät (oriole) aus dem Pool.
+        safe_pool = [
+            p for p in valid_pool
+            if p.get("DEVICE", "").lower() != DEVICE_CODENAME
+        ]
+
+        if not safe_pool:
+            logger.error(
+                "PIF SAFETY CRITICAL: Nach allen Filtern (Time-Travel + "
+                "Oriole-Guard) sind 0 Einträge übrig! Abbruch."
+            )
+            return False
+
+        if len(safe_pool) < len(valid_pool):
+            logger.warning(
+                "PIF Stufe 3 (Oriole Guard): %d Einträge mit echtem Gerät "
+                "'%s' entfernt",
+                len(valid_pool) - len(safe_pool), DEVICE_CODENAME,
+            )
+
+        valid_pool = safe_pool
+
+        # --- Build-Auswahl ---
+        if build_index is not None and 0 <= build_index < len(valid_pool):
+            pif_data = valid_pool[build_index]
+        else:
+            pif_data = random.choice(valid_pool)
 
         logger.info(
-            "PIF Injection: %s (Patch: %s)",
-            pif_data["BUILD_ID"], pif_data["SECURITY_PATCH"],
+            "PIF Injection v3.2: %s %s (Patch: %s) — Spoof-Gerät: %s",
+            pif_data.get("MODEL", "?"),
+            pif_data["BUILD_ID"],
+            pif_data["SECURITY_PATCH"],
+            pif_data.get("DEVICE", "?"),
         )
 
         # JSON generieren
@@ -401,29 +528,37 @@ class TitanInjector:
             - GMS-Lockdown (Zertifikats-Mismatch)
             - BASIC_INTEGRITY Fail trotz korrektem Fingerprint
 
-        Lösung:
+        Lösung (v3.2):
           `su -M -c` nutzt den Mount-Master-Namespace von KernelSU,
           der SELinux-Sperren auf /data/data/com.google.android.gms
-          umgeht. Normale `su -c` Befehle scheitern oft an SELinux
-          auch mit Root, weil der Kontext nicht passt.
+          umgeht. Normale `su -c` (root=True) scheitern oft an SELinux
+          Domain-Transitions, weil der Kontext (u:r:su:s0) keinen
+          Zugriff auf app_data_file hat. Mount-Master (-M) operiert
+          im globalen Namespace — alle Mounts sichtbar, kein Domain-Wechsel.
+
+          WICHTIG: Die Nuke-Befehle werden OHNE root=True gesendet,
+          weil wir `su -M -c` manuell in den Command einbauen.
+          root=True würde nochmal `su -c` darum wrappen → doppeltes su → Fehler.
 
         Ablauf:
           1. force-stop GMS + GSF (sauberer Zustand)
-          2. rm auth.db* (veraltete Auth-Token)
-          3. rm app_dg_cache/* (DroidGuard-Module → erzwingt Neudownload)
-          4. sqlite3 gservices.db "DELETE FROM main;" (DB-Struktur erhalten!)
-          5. chown auf GSF-Ordner (verhindert "stuck" Services)
+          2. rm auth.db* (veraltete Auth-Token) — via su -M -c
+          3. rm app_dg_cache/* (DroidGuard-Module → erzwingt Neudownload) — via su -M -c
+          4. sqlite3 gservices.db "DELETE FROM main;" (DB-Struktur erhalten!) — via su -M -c
+          5. chown auf GSF-Ordner (verhindert "stuck" Services) — via su -M -c
+
+        Schützt gegen: Säule 6 (Play Integrity), Login-Stabilität
 
         Returns:
             Dict mit Ergebnis pro Schritt
         """
         logger.info("=" * 50)
-        logger.info("  NAMESPACE NUKE (su -M -c): GMS Auth-Reset")
+        logger.info("  NAMESPACE NUKE v3.2 (su -M -c): GMS Auth-Reset")
         logger.info("=" * 50)
 
         results: dict[str, bool] = {}
 
-        # Phase 1: Force-Stop GMS + GSF
+        # Phase 1: Force-Stop GMS + GSF (normales su -c reicht hier)
         for pkg in ["com.google.android.gms", "com.google.android.gsf"]:
             try:
                 await self._adb.shell(
@@ -432,7 +567,10 @@ class TitanInjector:
             except (ADBError, ADBTimeoutError):
                 pass
 
-        # Phase 2: Auth-DB vernichten (su -M -c für SELinux-Bypass)
+        # Phase 2: Auth-DB + DroidGuard-Cache vernichten
+        # KRITISCH: su -M -c (Mount-Master) statt su -c (root=True)!
+        # root=True wird hier NICHT verwendet, weil wir su -M -c
+        # manuell in den Command einbauen. Doppeltes su → Fehler.
         nuke_cmds = [
             (
                 "auth_db_nuke",
@@ -449,17 +587,25 @@ class TitanInjector:
         for key, cmd, desc in nuke_cmds:
             try:
                 # su -M -c = Mount-Master Namespace (KernelSU spezifisch)
-                # Umgeht SELinux Domain-Transitions die normale su -c blockieren
+                # -M: Globaler Mount-Namespace → voller Zugriff auf /data/data/*
+                # Ohne -M: SELinux blockiert Zugriff auf app_data_file Domains
+                escaped = cmd.replace("\\", "\\\\").replace('"', '\\"')
                 result = await self._adb.shell(
-                    cmd, root=True, timeout=10,
+                    f'su -M -c "{escaped}"', root=False, timeout=10,
                 )
                 results[key] = result.success
                 if result.success:
-                    logger.info("  [OK] %s", desc)
+                    logger.info("  [OK] %s (su -M -c)", desc)
                 else:
+                    # Fallback: Normales su -c (falls KernelSU -M nicht unterstützt)
                     logger.warning(
-                        "  [WARN] %s: exit=%d", desc, result.returncode,
+                        "  [WARN] %s via su -M -c exit=%d — Fallback: su -c",
+                        desc, result.returncode,
                     )
+                    result = await self._adb.shell(cmd, root=True, timeout=10)
+                    results[key] = result.success
+                    if result.success:
+                        logger.info("  [OK] %s (Fallback su -c)", desc)
             except (ADBError, ADBTimeoutError) as e:
                 results[key] = False
                 logger.warning("  [FAIL] %s: %s", desc, e)
@@ -467,29 +613,42 @@ class TitanInjector:
         # Phase 3: GServices DB — SQL statt rm!
         # rm auf gservices.db führt zum Boot-Hänger am Google-Logo.
         # DELETE FROM main leert die Tabelle, behält aber die DB-Struktur.
+        # Auch hier su -M -c für SELinux-Bypass auf GSF-Datenordner.
         try:
+            sql_cmd = f'sqlite3 {GSF_GSERVICES_DB} "DELETE FROM main;"'
+            escaped_sql = sql_cmd.replace("\\", "\\\\").replace('"', '\\"')
             result = await self._adb.shell(
-                f'sqlite3 {GSF_GSERVICES_DB} "DELETE FROM main;"',
-                root=True, timeout=10,
+                f"su -M -c '{sql_cmd}'", root=False, timeout=10,
             )
             results["gservices_sql_clean"] = result.success
             if result.success:
-                logger.info("  [OK] GServices DB: main-Tabelle geleert (SQL)")
+                logger.info("  [OK] GServices DB: main-Tabelle geleert (SQL, su -M -c)")
             else:
-                # Fallback: Wenn sqlite3 nicht verfügbar oder Tabelle anders heißt
+                # Fallback 1: Normales su -c + sqlite3
                 logger.warning(
-                    "  [WARN] GServices SQL exit=%d — Fallback: rm",
+                    "  [WARN] GServices SQL (su -M -c) exit=%d — Fallback: su -c",
                     result.returncode,
                 )
                 result = await self._adb.shell(
-                    f"rm -rf {GSF_GSERVICES_DB}*", root=True, timeout=10,
+                    f'sqlite3 {GSF_GSERVICES_DB} "DELETE FROM main;"',
+                    root=True, timeout=10,
                 )
                 results["gservices_sql_clean"] = result.success
+                if not result.success:
+                    # Fallback 2: rm (LETZTER Ausweg — kann Boot-Hänger verursachen!)
+                    logger.error(
+                        "  [WARN] GServices SQL auch mit su -c fehlgeschlagen — "
+                        "Fallback: rm (Boot-Hänger möglich!)",
+                    )
+                    result = await self._adb.shell(
+                        f"rm -rf {GSF_GSERVICES_DB}*", root=True, timeout=10,
+                    )
+                    results["gservices_sql_clean"] = result.success
         except (ADBError, ADBTimeoutError) as e:
             results["gservices_sql_clean"] = False
             logger.warning("  [FAIL] GServices DB: %s", e)
 
-        # Phase 4: Permissions-Fix auf GSF-Ordner
+        # Phase 4: Permissions-Fix auf GSF-Ordner (su -M -c)
         # Nach dem Nuke müssen die Ordner-Permissions stimmen,
         # damit GMS-Services nicht "stuck" sind.
         gsf_packages = [
@@ -499,33 +658,51 @@ class TitanInjector:
         for pkg, short in gsf_packages:
             try:
                 data_path = f"/data/data/{pkg}"
-                # UID ermitteln
+                # UID ermitteln (su -M -c für konsistenten Namespace)
                 uid_result = await self._adb.shell(
-                    f"stat -c '%u' {data_path} 2>/dev/null",
-                    root=True, timeout=5,
+                    f"su -M -c \"stat -c '%u' {data_path} 2>/dev/null\"",
+                    root=False, timeout=5,
                 )
                 uid = uid_result.output.strip("'").strip()
 
                 if uid.isdigit() and int(uid) >= 1000:
                     await self._adb.shell(
-                        f"chown -R {uid}:{uid} {data_path}",
-                        root=True, timeout=15,
+                        f'su -M -c "chown -R {uid}:{uid} {data_path}"',
+                        root=False, timeout=15,
                     )
                     await self._adb.shell(
-                        f"chmod 700 {data_path}", root=True,
+                        f'su -M -c "chmod 700 {data_path}"',
+                        root=False, timeout=5,
                     )
                     results[f"chown_{short}"] = True
-                    logger.info("  [OK] chown %s → UID %s", short, uid)
+                    logger.info("  [OK] chown %s → UID %s (su -M -c)", short, uid)
                 else:
-                    results[f"chown_{short}"] = False
-                    logger.warning("  [WARN] UID für %s nicht ermittelbar: %r", pkg, uid)
+                    # Fallback: Normales root=True
+                    uid_result = await self._adb.shell(
+                        f"stat -c '%u' {data_path} 2>/dev/null",
+                        root=True, timeout=5,
+                    )
+                    uid = uid_result.output.strip("'").strip()
+                    if uid.isdigit() and int(uid) >= 1000:
+                        await self._adb.shell(
+                            f"chown -R {uid}:{uid} {data_path}",
+                            root=True, timeout=15,
+                        )
+                        await self._adb.shell(
+                            f"chmod 700 {data_path}", root=True,
+                        )
+                        results[f"chown_{short}"] = True
+                        logger.info("  [OK] chown %s → UID %s (Fallback su -c)", short, uid)
+                    else:
+                        results[f"chown_{short}"] = False
+                        logger.warning("  [WARN] UID für %s nicht ermittelbar: %r", pkg, uid)
             except (ADBError, ADBTimeoutError) as e:
                 results[f"chown_{short}"] = False
                 logger.warning("  [FAIL] chown %s: %s", pkg, e)
 
         success = sum(1 for v in results.values() if v)
         logger.info(
-            "Namespace Nuke: %d/%d Operationen erfolgreich",
+            "Namespace Nuke v3.2: %d/%d Operationen erfolgreich",
             success, len(results),
         )
         return results

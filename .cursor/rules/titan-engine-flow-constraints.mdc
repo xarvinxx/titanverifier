@@ -1,0 +1,80 @@
+---
+description: Strikte technische Constraints für host/engine/ und host/flows/ — PIF-Konsistenz, su-Handling, Safety Guards, SELinux-Bypass
+globs: host/engine/**/*.py,host/flows/**/*.py
+alwaysApply: false
+---
+
+# Titan v3.2 — Engine & Flow Constraints (Pixel 6 / oriole)
+
+## PIF_CONSISTENCY
+Software-Fingerprints in `pif.json` müssen **herstellerkonsistent** sein.
+- NUR Google-Geräte als Spoof-Ziel (Pixel 5 `redfin`, Pixel 5a `barbet`, Pixel 4a 5G `bramble`).
+- **NIEMALS** Xiaomi, Samsung oder andere Marken — die Diskrepanz zum Google Tensor G1 TEE-Zertifikat führt zu sofortiger Detection.
+- `DEVICE_INITIAL_SDK_INT` muss ≥ 30 sein (Android 11+), weil ältere SDKs auf Android 14 unplausibel sind.
+- Security Patches müssen aus 2024+ stammen (keine veralteten 2019er Patches).
+
+```python
+# ❌ FALSCH — Hersteller-Mismatch + uralter Patch
+{"MANUFACTURER": "Xiaomi", "MODEL": "Mi A2 Lite", "SECURITY_PATCH": "2019-08-05"}
+
+# ✅ KORREKT — Google-Gerät, aktueller Patch, plausibles SDK
+{"MANUFACTURER": "Google", "MODEL": "Pixel 5", "DEVICE": "redfin",
+ "SECURITY_PATCH": "2024-10-05", "DEVICE_INITIAL_SDK_INT": "30"}
+```
+
+## NO_DOUBLE_SU
+Vermeide doppeltes `su`-Wrapping. Der ADB-Client wrappt bei `root=True` automatisch mit `su -c "..."`.
+- Wenn ein Command bereits `su -M -c` enthält → **`root=False`** übergeben.
+- `root=True` + `su -M -c` im Command = `su -c "su -M -c ..."` → Permission Error.
+
+```python
+# ❌ FALSCH — doppeltes su
+await adb.shell('su -M -c "rm -rf /data/..."', root=True)
+
+# ✅ KORREKT — su -M -c manuell, root=False
+await adb.shell('su -M -c "rm -rf /data/..."', root=False)
+
+# ✅ KORREKT — normales Root ohne Mount-Master
+await adb.shell("rm -rf /data/...", root=True)
+```
+
+## SAFETY_GUARD_ORIOLE
+Jede Injektions-Methode die einen Fingerprint/Modell-Pool nutzt, MUSS einen Runtime-Guard haben:
+- Prüfe ob `DEVICE` im gewählten Eintrag == `DEVICE_CODENAME` (`oriole`).
+- Falls ja → Fallback auf anderen Eintrag. Falls kein sicherer Eintrag → Abbruch (return False).
+
+```python
+if pif_data.get("DEVICE", "").lower() == DEVICE_CODENAME:
+    safe = [p for p in pool if p["DEVICE"].lower() != DEVICE_CODENAME]
+    if not safe:
+        return False  # Abbruch statt unsafe injection
+    pif_data = random.choice(safe)
+```
+
+## SQL_OVER_RM
+Für GServices-Cleanup **immer** `sqlite3 DELETE` statt `rm`:
+- `rm -rf gservices.db*` → Boot-Hänger am Google-Logo (DB-Struktur fehlt).
+- `sqlite3 gservices.db "DELETE FROM main;"` → Tabelle geleert, Struktur erhalten.
+- `rm` nur als **letzter Fallback** mit expliziter Warnung im Log.
+
+```python
+# ❌ FALSCH — verursacht Boot-Hänger
+await adb.shell("rm -rf /data/.../gservices.db*", root=True)
+
+# ✅ KORREKT — Struktur bleibt erhalten
+await adb.shell('sqlite3 /data/.../gservices.db "DELETE FROM main;"', root=True)
+```
+
+## MOUNT_MASTER_NAMESPACE
+Schreib-/Löschoperationen in `/data/data/` und `/data/adb/` müssen den KernelSU Mount-Master Namespace nutzen:
+- `su -M -c "..."` (mit `root=False`!) umgeht SELinux-Domain-Blockaden.
+- Normales `su -c` (via `root=True`) scheitert oft an `app_data_file` Domain-Transitions.
+- **Immer Fallback** auf `root=True` implementieren, falls `-M` nicht unterstützt wird.
+
+```python
+# Primär: Mount-Master
+result = await adb.shell(f'su -M -c "rm -rf {path}"', root=False)
+if not result.success:
+    # Fallback: normales su -c
+    result = await adb.shell(f"rm -rf {path}", root=True)
+```

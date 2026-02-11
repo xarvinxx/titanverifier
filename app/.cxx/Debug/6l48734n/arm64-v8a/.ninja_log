@@ -1,9 +1,4 @@
 # ninja log v5
-436	586	1770396318006334104	/Users/arvin/Downloads/Custom Hook Module/app/build/intermediates/cxx/Debug/6l48734n/obj/arm64-v8a/libnative-lib.so	8f589245c370113a
-1	436	1770396317885706707	CMakeFiles/native-lib.dir/audit_engine.cpp.o	e72ddee68e3325f2
-0	419	1770386630580022511	CMakeFiles/native-lib.dir/native-lib.cpp.o	c29685ffc8aca30f
-0	14	0	clean	b1bf5084722b0618
-1	402	1770423160445941500	CMakeFiles/native-lib.dir/audit_engine.cpp.o	e72ddee68e3325f2
-402	498	1770423160519657098	/Users/arvin/Downloads/Custom Hook Module/app/build/intermediates/cxx/Debug/6l48734n/obj/arm64-v8a/libnative-lib.so	8f589245c370113a
-0	634	1770425918746171575	CMakeFiles/native-lib.dir/audit_engine.cpp.o	e72ddee68e3325f2
-634	775	1770425918870087082	/Users/arvin/Downloads/Custom Hook Module/app/build/intermediates/cxx/Debug/6l48734n/obj/arm64-v8a/libnative-lib.so	8f589245c370113a
+0	53	1770775041332943428	CMakeFiles/native-lib.dir/native-lib.cpp.o	405811bd93ce9532
+1	483	1770775041759440256	CMakeFiles/native-lib.dir/audit_engine.cpp.o	999db90195bbfa43
+483	571	1770775041824234195	/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/build/intermediates/cxx/Debug/6l48734n/obj/arm64-v8a/libnative-lib.so	498fa4cc3414609d

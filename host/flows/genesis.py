@@ -883,7 +883,7 @@ class GenesisFlow:
             # Ergebnis
             # =================================================================
             all_critical_passed = all(
-                s.status == FlowStepStatus.SUCCESS
+                s.status in (FlowStepStatus.SUCCESS, FlowStepStatus.SKIPPED)
                 for s in result.steps
             )
             result.success = all_critical_passed

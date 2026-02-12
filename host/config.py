@@ -34,9 +34,16 @@ DATABASE_URL = f"sqlite+aiosqlite:///{DATABASE_PATH}"
 BACKUP_DIR = PROJECT_ROOT / "backups"
 
 # Unterverzeichnisse für Full-State-Backups
-BACKUP_TIKTOK_SUBDIR = "tiktok"            # TikTok App-Daten
+BACKUP_TIKTOK_SUBDIR = "tiktok"            # TikTok App-Daten (/data/data/<pkg>/)
+BACKUP_SANDBOX_SUBDIR = "sandbox"          # TikTok Sandbox (/sdcard/Android/data/<pkg>/)
 BACKUP_GMS_SUBDIR = "gms"                  # GMS/GSF/Vending App-Daten
 BACKUP_ACCOUNTS_SUBDIR = "accounts"        # System Account-Datenbanken
+
+# TikTok Sandbox-Pfade (Scoped Storage — enthält SDK-Fingerprints, Cache, Medien)
+TIKTOK_SANDBOX_PATHS = [
+    "/storage/emulated/0/Android/data/com.zhiliaoapp.musically",
+    "/storage/emulated/0/Android/data/com.ss.android.ugc.trill",
+]
 
 # =============================================================================
 # 2. Device Bridge Pfade (Android-Seite, via ADB)
@@ -204,7 +211,11 @@ PIXEL6_BUILDS = [
 #     Jeder Eintrag muss intern konsistent sein (build_id ↔ patch ↔ fingerprint).
 # =============================================================================
 
-PIF_JSON_PATH = "/data/adb/pif.json"    # Ziel auf dem Gerät
+# v4.1: PlayIntegrityFix nutzt custom.pif.prop (Key=Value), NICHT pif.json (JSON)!
+# Der Pfad liegt im Modul-Ordner des PIF-Moduls.
+PIF_PROP_PATH = "/data/adb/modules/playintegrityfix/custom.pif.prop"
+# Legacy-Alias (wird noch in inject_pif_fingerprint referenziert)
+PIF_JSON_PATH = PIF_PROP_PATH
 
 PIF_SPOOF_POOL: list[dict[str, str]] = [
     # -----------------------------------------------------------------

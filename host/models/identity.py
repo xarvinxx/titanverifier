@@ -192,6 +192,17 @@ class IdentityBridge(BaseModel):
     # Serialisierung → Bridge-Datei
     # -------------------------------------------------------------------------
 
+    # Felder die NICHT in die Bridge-Datei geschrieben werden dürfen.
+    # Diese existieren nur in IdentityRead (DB-Metadaten) und würden
+    # die C++/Kotlin Parser verwirren.
+    _BRIDGE_EXCLUDE_FIELDS: set[str] = {
+        "id", "name", "status", "notes",
+        "last_public_ip", "last_ip_service", "last_ip_at",
+        "last_audit_score", "last_audit_at", "last_audit_detail",
+        "total_audits",
+        "created_at", "updated_at", "last_used_at", "usage_count",
+    }
+
     def to_bridge_string(self, label: str = "") -> str:
         """
         Erzeugt den Inhalt der Bridge-Datei im Key=Value Format.
@@ -200,6 +211,13 @@ class IdentityBridge(BaseModel):
             - Kommentarzeilen beginnen mit #
             - Leerzeilen werden ignoriert
             - Format: key=value (kein Whitespace um =)
+
+        WICHTIG: Nur Hardware-Identitäts-Felder + Build-Info werden
+        geschrieben. DB-Metadaten (id, name, status, timestamps, etc.)
+        werden EXPLIZIT ausgeschlossen, da sie:
+          1. Die C++/Kotlin Parser verwirren können
+          2. Forensische Spuren hinterlassen (Timestamps, Audit-Daten)
+          3. Nicht von den Hooks benötigt werden
         """
         lines = [
             f"# Titan Identity Bridge — {label or self.serial}",
@@ -208,6 +226,15 @@ class IdentityBridge(BaseModel):
             "",
         ]
         for key, value in self.model_dump().items():
+            # Metadaten-Felder ausschließen
+            if key in self._BRIDGE_EXCLUDE_FIELDS:
+                continue
+            # None-Werte nicht schreiben (sauberer Output)
+            if value is None:
+                continue
+            # Enum-Werte als .value serialisieren
+            if hasattr(value, "value"):
+                value = value.value
             lines.append(f"{key}={value}")
         return "\n".join(lines) + "\n"
 

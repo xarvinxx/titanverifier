@@ -54,10 +54,10 @@ RM = /opt/homebrew/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/Users/arvin/Downloads/Custom Hook Module/module"
+CMAKE_SOURCE_DIR = /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/Users/arvin/Downloads/Custom Hook Module/build_native"
+CMAKE_BINARY_DIR = /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -89,14 +89,14 @@ clean: CMakeFiles/build_dobby.dir/clean
 CMakeFiles/titan_zygisk.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" --progress-num=4,5,6 "Built target titan_zygisk"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=4,5,6 "Built target titan_zygisk"
 .PHONY : CMakeFiles/titan_zygisk.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/titan_zygisk.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" 3
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles 3
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/titan_zygisk.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start "/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles 0
 .PHONY : CMakeFiles/titan_zygisk.dir/rule
 
 # Convenience name for target.
@@ -106,7 +106,7 @@ titan_zygisk: CMakeFiles/titan_zygisk.dir/rule
 # codegen rule for target.
 CMakeFiles/titan_zygisk.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" --progress-num=4,5,6 "Finished codegen for target titan_zygisk"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=4,5,6 "Finished codegen for target titan_zygisk"
 .PHONY : CMakeFiles/titan_zygisk.dir/codegen
 
 # clean rule for target.
@@ -121,14 +121,14 @@ CMakeFiles/titan_zygisk.dir/clean:
 CMakeFiles/titan.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan.dir/build.make CMakeFiles/titan.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan.dir/build.make CMakeFiles/titan.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" --progress-num=2,3 "Built target titan"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=2,3 "Built target titan"
 .PHONY : CMakeFiles/titan.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/titan.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/titan.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start "/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles 0
 .PHONY : CMakeFiles/titan.dir/rule
 
 # Convenience name for target.
@@ -138,7 +138,7 @@ titan: CMakeFiles/titan.dir/rule
 # codegen rule for target.
 CMakeFiles/titan.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan.dir/build.make CMakeFiles/titan.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" --progress-num=2,3 "Finished codegen for target titan"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=2,3 "Finished codegen for target titan"
 .PHONY : CMakeFiles/titan.dir/codegen
 
 # clean rule for target.
@@ -153,14 +153,14 @@ CMakeFiles/titan.dir/clean:
 CMakeFiles/build_dobby.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/build_dobby.dir/build.make CMakeFiles/build_dobby.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/build_dobby.dir/build.make CMakeFiles/build_dobby.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" --progress-num=1 "Built target build_dobby"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=1 "Built target build_dobby"
 .PHONY : CMakeFiles/build_dobby.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/build_dobby.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" 1
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles 1
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/build_dobby.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start "/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles 0
 .PHONY : CMakeFiles/build_dobby.dir/rule
 
 # Convenience name for target.
@@ -170,7 +170,7 @@ build_dobby: CMakeFiles/build_dobby.dir/rule
 # codegen rule for target.
 CMakeFiles/build_dobby.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/build_dobby.dir/build.make CMakeFiles/build_dobby.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" --progress-num=1 "Finished codegen for target build_dobby"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=1 "Finished codegen for target build_dobby"
 .PHONY : CMakeFiles/build_dobby.dir/codegen
 
 # clean rule for target.

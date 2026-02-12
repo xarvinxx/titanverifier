@@ -29,14 +29,54 @@ from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from host.adb.client import ADBClient, ADBError
 from host.config import LOCAL_TZ
 from host.database import db
+from host.config import BRIDGE_FILE_PATH
 from host.engine.db_ops import (
+    detect_identity_by_dna,
     get_audit_history,
     get_dashboard_stats,
     get_flow_history,
     get_ip_history,
+    parse_bridge_file,
 )
 
 logger = logging.getLogger("titan.api.dashboard")
+
+
+# =============================================================================
+# ADB Stats Cache — Verhindert ADB-Spam wenn kein Flow läuft
+# =============================================================================
+# Bei jedem Poll (~3s) werden sonst 6-7 ADB-Befehle gefeuert.
+# Cache hält die Ergebnisse für IDLE_CACHE_TTL Sekunden, solange
+# kein Flow aktiv ist. Während eines Flows wird NICHT gecacht.
+# =============================================================================
+
+_IDLE_CACHE_TTL = 30  # Sekunden — ADB-Daten cachen wenn kein Flow läuft
+
+_adb_cache: dict = {
+    "data": None,          # Gecachte ADB-Ergebnisse
+    "timestamp": 0.0,      # Wann zuletzt gefetcht
+    "bridge_values": {},   # Gecachte Bridge-Werte
+}
+
+
+def _is_flow_running() -> bool:
+    """Prüft ob gerade ein Flow läuft (Zugriff auf den Flow-Controller)."""
+    try:
+        from host.api.control import _state
+        return _state.running
+    except (ImportError, AttributeError):
+        return False
+
+
+def _cache_valid() -> bool:
+    """Prüft ob der ADB-Cache noch gültig ist."""
+    import time
+    if _adb_cache["data"] is None:
+        return False
+    if _is_flow_running():
+        return False  # Während Flow: immer frisch fetchen
+    age = time.time() - _adb_cache["timestamp"]
+    return age < _IDLE_CACHE_TTL
 
 router = APIRouter(prefix="/api/dashboard", tags=["Dashboard"])
 
@@ -145,20 +185,42 @@ async def dashboard_stats():
     """
     Liefert den aktuellen Systemstatus für das Dashboard.
 
-    Returns:
-        adb_connected: bool
-        device_serial: str (aktuell auf dem Gerät)
-        device_ip: str (WiFi IP)
-        active_identity: dict (aktuell aktive Identität aus DB)
-        counts: dict (Identitäten, Profile, Flows, IPs)
+    v5.0 ANTI-SPAM:
+      - ADB-Daten (Serial, Bridge, Root, interne IP) werden für 30s gecacht
+        wenn KEIN Flow läuft. Bei laufendem Flow: immer frisch.
+      - Public IP wird NICHT mehr gepollt! Die letzte bekannte IP kommt
+        aus der DB (identities.last_public_ip). Frische IP-Checks passieren
+        NUR innerhalb der Flows (Genesis/Switch).
+      - Das reduziert ADB-Befehle von ~7 pro Poll auf 1 (is_connected).
     """
+    import time as _time
+
+    flow_active = _is_flow_running()
+
+    # ── Cache Check: Wenn idle + Cache gültig → sofort zurückgeben ──
+    if _cache_valid():
+        cached = _adb_cache["data"]
+        # Nur DB-Counts + active_identity frisch holen (kein ADB nötig)
+        await _refresh_db_stats(cached, _adb_cache["bridge_values"])
+        cached["flow_active"] = flow_active
+        return cached
+
+    # ── Frische ADB-Daten holen ──
     adb = ADBClient()
     stats: dict = {
         "adb_connected": False,
         "device_serial": None,
         "device_ip": None,
+        "public_ip": None,
+        "public_ip_service": None,
         "root_access": False,
         "active_identity": None,
+        "dna_match": None,
+        "dna_synced": False,
+        "dna_matched_fields": [],
+        "bridge_loaded": False,
+        "bridge_values": {},
+        "flow_active": flow_active,
         "counts": {
             "identities": 0,
             "profiles": 0,
@@ -168,56 +230,85 @@ async def dashboard_stats():
         },
     }
 
-    # --- ADB Status ---
+    bridge_values: dict[str, str] = {}
     try:
+        # 1 ADB-Befehl: Verbindungscheck (leichtgewichtig)
         stats["adb_connected"] = await adb.is_connected()
 
         if stats["adb_connected"]:
-            # Serial vom Gerät lesen
+            # Serial vom Gerät (1 Befehl)
             result = await adb.shell("getprop ro.serialno", timeout=5)
             if result.success:
                 stats["device_serial"] = result.output.strip()
 
-            # Geräte-IP generisch ermitteln (v3.0: kein Interface-Hardcoding mehr)
-            # `ip route get 1.1.1.1` fragt den Kernel nach der Route →
-            # gibt automatisch das korrekte Interface und die Quell-IP zurück.
-            # Eliminiert rmnet_data0/rmnet0/wlan0 Spam bei fehlendem Interface.
+            # Bridge-Datei lesen (1 Befehl mit root)
             try:
                 result = await adb.shell(
-                    "ip -4 route get 1.1.1.1 2>/dev/null | head -1",
-                    timeout=5,
+                    f"cat {BRIDGE_FILE_PATH}", root=True, timeout=5,
                 )
-                if result.success and "src " in result.stdout:
-                    # Format: "1.1.1.1 via 10.x.x.x dev rmnet0 src 10.y.y.y uid 0"
-                    src_part = result.stdout.split("src ")[1]
-                    ip_candidate = src_part.split()[0].strip()
-                    if ip_candidate and ip_candidate != "127.0.0.1":
-                        stats["device_ip"] = ip_candidate
-            except (ADBError, Exception):
-                pass  # Lautlos ignorieren — Dashboard zeigt einfach keine IP
+                if result.success and result.output.strip():
+                    bridge_values = parse_bridge_file(result.output)
+                    stats["bridge_loaded"] = bool(bridge_values)
+                    stats["bridge_values"] = {
+                        k: bridge_values.get(k, "")
+                        for k in ("serial", "imei1", "android_id",
+                                  "wifi_mac", "gsf_id", "phone_number",
+                                  "operator_name")
+                        if bridge_values.get(k)
+                    }
+            except Exception as e:
+                logger.debug("Bridge-Datei nicht lesbar: %s", e)
 
-            # Fallback: Wenn route-get fehlschlägt, versuche generisches ip addr
-            if not stats["device_ip"]:
+            # Root-Check (1 Befehl)
+            stats["root_access"] = await adb.has_root()
+
+            # Interne IP: NUR wenn Flow aktiv (sonst unnötig)
+            if flow_active:
                 try:
                     result = await adb.shell(
-                        "ip -4 addr show 2>/dev/null | grep 'inet ' | grep -v '127.0.0.1' | head -1",
+                        "ip -4 route get 1.1.1.1 2>/dev/null | head -1",
                         timeout=5,
                     )
-                    if result.success and "inet " in result.stdout:
-                        line = result.stdout.strip()
-                        ip_candidate = line.split()[1].split("/")[0]
-                        if ip_candidate:
+                    if result.success and "src " in result.stdout:
+                        src_part = result.stdout.split("src ")[1]
+                        ip_candidate = src_part.split()[0].strip()
+                        if ip_candidate and ip_candidate != "127.0.0.1":
                             stats["device_ip"] = ip_candidate
                 except (ADBError, Exception):
-                    pass  # Lautlos ignorieren
+                    pass
 
-            # Root-Check
-            stats["root_access"] = await adb.has_root()
+            # ═══════════════════════════════════════════════════════════
+            # PUBLIC IP: NICHT MEHR VIA ADB GEPOLLT!
+            # ═══════════════════════════════════════════════════════════
+            # Die öffentliche IP wird NUR innerhalb der Flows ermittelt
+            # (Genesis Schritt 6, nach dem Flugmodus-Cycle).
+            # Hier zeigen wir die letzte bekannte IP aus der DB.
+            # Das spart ~1 ADB-Befehl + 1 HTTP-Request pro Poll.
+            # ═══════════════════════════════════════════════════════════
 
     except (ADBError, Exception) as e:
         logger.debug("ADB Stats Fehler: %s", e)
 
-    # --- DB Counts (erweitert) ---
+    # ── DB Stats + DNA Matching ──
+    await _refresh_db_stats(stats, bridge_values)
+
+    # ── Cache aktualisieren (nur im Idle-Modus) ──
+    if not flow_active:
+        _adb_cache["data"] = stats.copy()
+        _adb_cache["timestamp"] = _time.time()
+        _adb_cache["bridge_values"] = bridge_values
+
+    return stats
+
+
+async def _refresh_db_stats(
+    stats: dict,
+    bridge_values: dict[str, str],
+) -> None:
+    """
+    Holt DB-Counts, DNS-Match und die letzte bekannte Public IP.
+    Wird sowohl frisch als auch für Cache-Refreshes aufgerufen.
+    """
     try:
         async with db.connection() as conn:
             cursor = await conn.execute("SELECT COUNT(*) FROM identities")
@@ -239,22 +330,45 @@ async def dashboard_stats():
             )
             stats["counts"]["unique_ips"] = (await cursor.fetchone())[0]
 
-            # Aktive Identität (erweitert mit IP/Audit)
-            cursor = await conn.execute(
-                """SELECT id, name, serial, imei1, phone_number, operator_name,
-                   sim_operator, wifi_mac, status, created_at, last_used_at,
-                   last_public_ip, last_ip_service, last_ip_at,
-                   last_audit_score, last_audit_at, total_audits, usage_count
-                FROM identities WHERE status = 'active' LIMIT 1"""
-            )
-            row = await cursor.fetchone()
-            if row:
-                stats["active_identity"] = dict(row)
+            # ── DNA-Fingerprint: Identity-Erkennung via Bridge ──
+            if bridge_values:
+                dna_result = await detect_identity_by_dna(
+                    bridge_values=bridge_values,
+                )
+                if dna_result:
+                    stats["active_identity"] = dna_result
+                    stats["dna_match"] = dna_result.pop("dna_confidence", None)
+                    stats["dna_synced"] = dna_result.pop("dna_synced", False)
+                    stats["dna_matched_fields"] = dna_result.pop("dna_matched_fields", [])
+                    dna_result.pop("dna_score", None)
+
+            # Fallback: DB-Status wenn kein Bridge-Match
+            if not stats["active_identity"]:
+                cursor = await conn.execute(
+                    """SELECT id, name, serial, android_id, imei1, imei2,
+                       phone_number, operator_name, sim_operator,
+                       wifi_mac, gsf_id, widevine_id,
+                       status, created_at, last_used_at,
+                       last_public_ip, last_ip_service, last_ip_at,
+                       last_audit_score, last_audit_at, total_audits, usage_count
+                    FROM identities WHERE status = 'active' LIMIT 1"""
+                )
+                row = await cursor.fetchone()
+                if row:
+                    stats["active_identity"] = dict(row)
+                    stats["dna_match"] = "db_only"
+
+            # ── Public IP aus der DB (letzte bekannte) ──
+            # Kein ADB-Call nötig! Die IP wurde beim letzten Flow gespeichert.
+            if stats["active_identity"] and not stats["public_ip"]:
+                ip = stats["active_identity"].get("last_public_ip")
+                svc = stats["active_identity"].get("last_ip_service")
+                if ip:
+                    stats["public_ip"] = ip
+                    stats["public_ip_service"] = svc
 
     except Exception as e:
         logger.debug("DB Stats Fehler: %s", e)
-
-    return stats
 
 
 # =============================================================================
@@ -263,19 +377,43 @@ async def dashboard_stats():
 
 @router.get("/identities")
 async def list_identities():
-    """Alle Identitäten aus dem Vault mit IP/Audit-Tracking."""
+    """Alle Identitäten aus dem Vault mit IP/Audit-Tracking + Profil-Status."""
     try:
         async with db.connection() as conn:
             cursor = await conn.execute(
-                """SELECT id, name, serial, imei1, phone_number, wifi_mac,
-                   operator_name, sim_operator, status, build_id,
-                   created_at, last_used_at,
-                   last_public_ip, last_ip_service, last_ip_at,
-                   last_audit_score, last_audit_at, total_audits, usage_count
-                FROM identities ORDER BY id DESC"""
+                """SELECT
+                       i.id, i.name, i.serial, i.boot_serial,
+                       i.imei1, i.imei2, i.android_id, i.gsf_id,
+                       i.wifi_mac, i.widevine_id,
+                       i.imsi, i.sim_serial,
+                       i.phone_number, i.operator_name,
+                       i.sim_operator, i.sim_operator_name, i.voicemail_number,
+                       i.build_id, i.build_fingerprint, i.security_patch,
+                       i.status, i.created_at, i.last_used_at,
+                       i.last_public_ip, i.last_ip_service, i.last_ip_at,
+                       i.last_audit_score, i.last_audit_at, i.total_audits, i.usage_count,
+                       p.id          AS profile_id,
+                       p.status      AS profile_status,
+                       p.name        AS profile_name
+                   FROM identities i
+                   INNER JOIN profiles p ON p.identity_id = i.id
+                       AND p.status != 'archived'
+                   ORDER BY i.id DESC"""
             )
             rows = await cursor.fetchall()
-            return {"identities": [dict(r) for r in rows]}
+
+            # Deduplizieren: Falls mehrere Profile pro Identity existieren,
+            # bevorzuge das aktive Profil (oder das erste nicht-archivierte)
+            seen: dict[int, dict] = {}
+            for row in rows:
+                r = dict(row)
+                iid = r["id"]
+                if iid not in seen:
+                    seen[iid] = r
+                elif r.get("profile_status") == "active":
+                    seen[iid] = r
+
+            return {"identities": list(seen.values())}
     except Exception as e:
         return {"identities": [], "error": str(e)}
 

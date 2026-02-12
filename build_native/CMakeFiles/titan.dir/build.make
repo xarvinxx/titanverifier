@@ -53,10 +53,10 @@ RM = /opt/homebrew/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/Users/arvin/Downloads/Custom Hook Module/module"
+CMAKE_SOURCE_DIR = /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/Users/arvin/Downloads/Custom Hook Module/build_native"
+CMAKE_BINARY_DIR = /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native
 
 # Include any dependencies generated for this target.
 include CMakeFiles/titan.dir/depend.make
@@ -73,18 +73,18 @@ CMakeFiles/titan.dir/codegen:
 .PHONY : CMakeFiles/titan.dir/codegen
 
 CMakeFiles/titan.dir/main.cpp.o: CMakeFiles/titan.dir/flags.make
-CMakeFiles/titan.dir/main.cpp.o: /Users/arvin/Downloads/Custom\ Hook\ Module/module/main.cpp
+CMakeFiles/titan.dir/main.cpp.o: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/main.cpp
 CMakeFiles/titan.dir/main.cpp.o: CMakeFiles/titan.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/titan.dir/main.cpp.o"
-	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android30 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/titan.dir/main.cpp.o -MF CMakeFiles/titan.dir/main.cpp.o.d -o CMakeFiles/titan.dir/main.cpp.o -c "/Users/arvin/Downloads/Custom Hook Module/module/main.cpp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/titan.dir/main.cpp.o"
+	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android33 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/titan.dir/main.cpp.o -MF CMakeFiles/titan.dir/main.cpp.o.d -o CMakeFiles/titan.dir/main.cpp.o -c /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/main.cpp
 
 CMakeFiles/titan.dir/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/titan.dir/main.cpp.i"
-	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android30 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/Users/arvin/Downloads/Custom Hook Module/module/main.cpp" > CMakeFiles/titan.dir/main.cpp.i
+	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android33 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/main.cpp > CMakeFiles/titan.dir/main.cpp.i
 
 CMakeFiles/titan.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/titan.dir/main.cpp.s"
-	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android30 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/Users/arvin/Downloads/Custom Hook Module/module/main.cpp" -o CMakeFiles/titan.dir/main.cpp.s
+	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android33 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/main.cpp -o CMakeFiles/titan.dir/main.cpp.s
 
 # Object files for target titan
 titan_OBJECTS = \
@@ -97,7 +97,7 @@ lib/arm64-v8a/libtitan.so: CMakeFiles/titan.dir/main.cpp.o
 lib/arm64-v8a/libtitan.so: CMakeFiles/titan.dir/build.make
 lib/arm64-v8a/libtitan.so: CMakeFiles/titan.dir/compiler_depend.ts
 lib/arm64-v8a/libtitan.so: CMakeFiles/titan.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX shared library lib/arm64-v8a/libtitan.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX shared library lib/arm64-v8a/libtitan.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/titan.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -109,6 +109,6 @@ CMakeFiles/titan.dir/clean:
 .PHONY : CMakeFiles/titan.dir/clean
 
 CMakeFiles/titan.dir/depend:
-	cd "/Users/arvin/Downloads/Custom Hook Module/build_native" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/Users/arvin/Downloads/Custom Hook Module/module" "/Users/arvin/Downloads/Custom Hook Module/module" "/Users/arvin/Downloads/Custom Hook Module/build_native" "/Users/arvin/Downloads/Custom Hook Module/build_native" "/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles/titan.dir/DependInfo.cmake" "--color=$(COLOR)" titan
+	cd /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles/titan.dir/DependInfo.cmake "--color=$(COLOR)" titan
 .PHONY : CMakeFiles/titan.dir/depend
 

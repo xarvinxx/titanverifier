@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/Users/arvin/Downloads/Custom Hook Module/module/main.cpp" "CMakeFiles/titan.dir/main.cpp.o" "gcc" "CMakeFiles/titan.dir/main.cpp.o.d"
+  "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/main.cpp" "CMakeFiles/titan.dir/main.cpp.o" "gcc" "CMakeFiles/titan.dir/main.cpp.o.d"
   "" "lib/arm64-v8a/libtitan.so" "gcc" "CMakeFiles/titan.dir/link.d"
   )
 

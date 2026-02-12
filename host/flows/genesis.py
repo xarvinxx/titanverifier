@@ -8,25 +8,31 @@ Erzeugt eine komplett neue Identität von Grund auf.
 Dieser Flow ist stateless und atomar: Entweder alles klappt,
 oder die Identität wird als 'corrupted' markiert.
 
-Zwingender Ablauf (9 Schritte):
-  1. STERILIZE      — Deep Clean (pm clear TikTok + GMS + Account-DBs + chmod 777)
-  2. GENERATE       — Neue O2-DE Identität (GSF-ID = Platzhalter!)
-  3. PERSIST        — In DB speichern (Status: 'active') + Auto-Profil
-  4. INJECT         — Bridge + PIF + Namespace-Nuke + Kill-Switch (2080-konform)
-  5. HARD RESET     — Robust Reboot (ADBError tolerant) + 15s Pre-Wait + Boot-Poll
-  6. NETWORK        — Flugmodus AN → 12s Lease-Wait → Flugmodus AUS + IP-Check
-  7. GMS READY      — Finsky Kill + MinuteMaid + Kickstart + GSF-ID Wait → Sync
-  8. CAPTURE STATE  — Baseline-Trigger: Quick-Audit → 60s Retry → Golden Baseline
-  9. AUDIT          — Full Device-Audit. Bei Score < 100% → Status 'corrupted'
+Zwingender Ablauf (11 Schritte — v5.1):
+   1. AIRPLANE MODE  — Flugmodus AN (Netz sofort trennen, ganz am Anfang!)
+   2. AUTO-BACKUP    — Optionales Dual-Path Backup des aktiven Profils
+   3. STERILIZE      — Deep Clean (pm clear NUR Target-Apps, GMS UNANGETASTET!)
+   4. GENERATE       — Neue O2-DE Identität (GSF-ID = final, kein Platzhalter!)
+   5. PERSIST        — In DB speichern (Status: 'active') + Auto-Profil
+   6. INJECT         — Bridge + Kill-Switch (Flugmodus bereits AN seit Schritt 1)
+   7. HARD RESET     — Robust Reboot + 15s Pre-Wait + Boot-Poll + Bridge-Verifikation
+   8. NETWORK INIT   — 20s Post-Boot → Flugmodus AUS → Neue IP
+   9. GMS READY      — Finsky Kill + MinuteMaid + Kickstart
+  10. CAPTURE STATE  — Baseline-Trigger: Quick-Audit → 60s Retry → Golden Baseline
+  11. AUDIT          — Full Device-Audit. Bei Score < 100% → Status 'corrupted'
 
-v3.0 — "Golden Baseline" (State-Layering):
-  Nach pm clear GMS braucht GMS 10-30 Min für Re-Checkin.
-  Sobald die GSF-ID da ist:
-    1. Echte GSF-ID in titan.db + Bridge-Datei zurückschreiben (Hardware=Software)
-    2. GMS-State als "Golden Baseline" sichern (capture_gms_state)
-  Beim Switch: Kein pm clear GMS mehr nötig → sofort Play Integrity bereit.
-
-  pm clear GMS wird NUR im Genesis ausgeführt (Initial Seed), NICHT im Switch.
+v4.0 — "GMS-Schutz" Architektur:
+  GMS/GSF/Vending werden NIEMALS angerührt (kein pm clear, kein namespace_nuke).
+  Grund: Das Löschen von GMS-Daten zerstört die Google Trust-Chain:
+    - Play Integrity verliert BASIC (nur noch DEVICE)
+    - Google-Login bricht ab
+    - DroidGuard muss komplett neu attestieren (30-50 Min)
+  
+  Stattdessen:
+    - Hooks spoofen Device-IDs NUR für Target-Apps (TikTok, Instagram, etc.)
+    - GMS sieht immer die echten Werte → Trust-Chain bleibt intakt
+    - Play Integrity bleibt BASIC + DEVICE durchgehend stabil
+    - Google-Account bleibt eingeloggt
 
 DB-Tracking (v2.0):
   - Flow-History: Eintrag bei Start, Updates bei jedem Schritt
@@ -134,6 +140,8 @@ class GenesisFlow:
     """
 
     STEP_NAMES = [
+        "Airplane Mode",        # v5.1: Flugmodus AN (separat, ganz am Anfang)
+        "Auto-Backup",          # v5.1: Optionales Backup des aktiven Profils
         "Sterilize",
         "Generate",
         "Persist",
@@ -158,13 +166,16 @@ class GenesisFlow:
         self,
         name: str,
         notes: Optional[str] = None,
+        backup_before: bool = False,
     ) -> GenesisResult:
         """
         Führt den vollständigen Genesis-Flow aus.
 
         Args:
-            name:  Anzeigename für die neue Identität
-            notes: Optionale Notizen
+            name:           Anzeigename für die neue Identität
+            notes:          Optionale Notizen
+            backup_before:  Wenn True, wird das aktive Profil vor dem
+                            Genesis-Flow gesichert (Dual-Path Backup)
 
         Returns:
             GenesisResult mit Schritt-Details und Audit-Ergebnis
@@ -194,47 +205,115 @@ class GenesisFlow:
 
         try:
             # =================================================================
-            # Schritt 1: STERILIZE (pm clear GMS nur bei Genesis!)
+            # Schritt 1: AIRPLANE MODE ON (v5.1 — ganz am Anfang!)
+            # =================================================================
+            # Flugmodus SOFORT an — vor Backup, vor Deep Clean, vor allem.
+            # Das verhindert jede Netzwerkkommunikation der alten Identität
+            # während wir backuppen und sterilisieren.
             # =================================================================
             step = result.steps[0]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[1/9] Sterilize: Deep Clean (inkl. GMS — Initial Seed)...")
-            # v3.0: include_gms=True weil Genesis = Erstinitialisierung
-            # Beim Switch wird include_gms=False verwendet (Golden Baseline schützen)
-            clean_results = await self._shifter.deep_clean(include_gms=True)
-            success_count = sum(1 for v in clean_results.values() if v)
+            logger.info("[1/11] Flugmodus AN (Netz sofort trennen)...")
+            await self._adb.shell(
+                "settings put global airplane_mode_on 1", root=True,
+            )
+            await self._adb.shell(
+                "am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true",
+                root=True,
+            )
 
             step.status = FlowStepStatus.SUCCESS
-            step.detail = f"{success_count}/{len(clean_results)} Operationen (inkl. GMS)"
+            step.detail = "Flugmodus AN — Modem getrennt"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[1/9] Sterilize: OK (%s)", step.detail)
+            logger.info("[1/11] Flugmodus: AN")
 
             # =================================================================
-            # Schritt 2: GENERATE
+            # Schritt 2: AUTO-BACKUP (optional — nur wenn backup_before=True)
+            # =================================================================
+            # v5.1: Sichert das aktive Profil BEVOR wir sterilisieren.
+            # Wird nur ausgeführt wenn der User die Checkbox gesetzt hat.
+            # Flugmodus ist bereits AN → keine Netzwerk-Leaks während Backup.
             # =================================================================
             step = result.steps[1]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[2/9] Generate: Neue O2-DE Identität...")
+            if backup_before:
+                logger.info("[2/11] Auto-Backup: Aktives Profil sichern...")
+                try:
+                    active_profile = await self._find_active_profile()
+                    if active_profile:
+                        active_name = active_profile["name"]
+                        logger.info(
+                            "[2/11] Auto-Backup: Profil '%s' (ID %d) wird gesichert...",
+                            active_name, active_profile["id"],
+                        )
+                        backup_result = await self._shifter.backup_tiktok_dual(
+                            active_name, timeout=300,
+                        )
+                        saved = sum(1 for v in backup_result.values() if v is not None)
+                        step.status = FlowStepStatus.SUCCESS
+                        step.detail = f"Profil '{active_name}': {saved}/2 Komponenten gesichert"
+                        logger.info("[2/11] Auto-Backup: %s", step.detail)
+                    else:
+                        step.status = FlowStepStatus.SKIPPED
+                        step.detail = "Kein aktives Profil gefunden (erster Lauf?)"
+                        logger.info("[2/11] Auto-Backup: %s", step.detail)
+                except Exception as e:
+                    # Backup-Fehler ist NICHT kritisch — Genesis fortsetzen!
+                    step.status = FlowStepStatus.SUCCESS
+                    step.detail = f"Backup-Warnung: {e} (Genesis wird fortgesetzt)"
+                    logger.warning("[2/11] Auto-Backup fehlgeschlagen (nicht kritisch): %s", e)
+            else:
+                step.status = FlowStepStatus.SKIPPED
+                step.detail = "Backup-Option nicht aktiviert"
+                logger.info("[2/11] Auto-Backup: Übersprungen (nicht aktiviert)")
+
+            step.duration_ms = _now_ms() - step_start
+
+            # =================================================================
+            # Schritt 3: STERILIZE (pm clear NUR Target-Apps!)
+            # =================================================================
+            step = result.steps[2]
+            step.status = FlowStepStatus.RUNNING
+            step_start = _now_ms()
+
+            logger.info("[3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...")
+            # v4.0: include_gms=False — GMS/GSF/Vending NIEMALS anrühren!
+            clean_results = await self._shifter.deep_clean(include_gms=False)
+            success_count = sum(1 for v in clean_results.values() if v)
+
+            step.status = FlowStepStatus.SUCCESS
+            step.detail = f"{success_count}/{len(clean_results)} Operationen (GMS geschützt)"
+            step.duration_ms = _now_ms() - step_start
+            logger.info("[3/11] Sterilize: OK (%s)", step.detail)
+
+            # =================================================================
+            # Schritt 4: GENERATE
+            # =================================================================
+            step = result.steps[3]
+            step.status = FlowStepStatus.RUNNING
+            step_start = _now_ms()
+
+            logger.info("[4/11] Generate: Neue O2-DE Identität...")
             identity = self._generator.generate_new(name, notes=notes)
             result.serial = identity.serial
 
-            # PASSIVE SEEDING: Die generierte GSF-ID ist ein Platzhalter.
-            # In Schritt 7 (GMS Ready) wartet das Gerät auf eine echte GSF-ID
-            # vom Google-Checkin. Erst dann wird die Bridge-Datei gepatcht,
-            # damit Hardware (GMS-DB) und Software (Bridge) identisch sind.
+            # v5.0: Die generierte GSF-ID ist FINAL — kein Platzhalter mehr!
+            # Da wir GMS nicht clearen (GMS-Schutz), bleibt die echte GMS
+            # GSF-ID immer gleich. Die Hooks spoofen die generierte GSF-ID
+            # NUR für Target-Apps → jede Identity hat eine einzigartige GSF-ID.
             logger.info(
-                "[2/9] Generate: GSF-ID Platzhalter: %s...%s (wird in Schritt 7 durch echte ID ersetzt)",
+                "[4/11] Generate: GSF-ID generiert: %s...%s (v5.0 — FINAL, kein Platzhalter)",
                 identity.gsf_id[:4], identity.gsf_id[-4:],
             )
 
             step.status = FlowStepStatus.SUCCESS
-            step.detail = f"serial={identity.serial} imei1={identity.imei1[:8]}... (gsf_id=PLACEHOLDER)"
+            step.detail = f"serial={identity.serial} imei1={identity.imei1[:8]}... gsf_id={identity.gsf_id[:6]}..."
             step.duration_ms = _now_ms() - step_start
-            logger.info("[2/9] Generate: OK (serial=%s)", identity.serial)
+            logger.info("[4/11] Generate: OK (serial=%s)", identity.serial)
 
             # Flow-History: Serial + IMEI speichern
             if flow_history_id:
@@ -245,13 +324,13 @@ class GenesisFlow:
                 )
 
             # =================================================================
-            # Schritt 3: PERSIST + AUTO-PROFIL
+            # Schritt 5: PERSIST + AUTO-PROFIL
             # =================================================================
-            step = result.steps[2]
+            step = result.steps[4]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[3/9] Persist: In DB speichern (Status: active)...")
+            logger.info("[5/11] Persist: In DB speichern (Status: active)...")
             db_identity_id = await self._persist_identity(identity)
             result.identity_id = db_identity_id
 
@@ -270,7 +349,7 @@ class GenesisFlow:
                     name=name,
                 )
                 result.profile_id = profile_id
-                logger.info("[3/9] Auto-Profil erstellt: id=%d", profile_id)
+                logger.info("[5/11] Auto-Profil erstellt: id=%d", profile_id)
 
                 # Flow-History: Profile-ID setzen
                 if flow_history_id:
@@ -280,87 +359,83 @@ class GenesisFlow:
                             (profile_id, flow_history_id),
                         )
             except Exception as e:
-                logger.warning("[3/9] Auto-Profil Fehler (nicht-kritisch): %s", e)
+                logger.warning("[5/11] Auto-Profil Fehler (nicht-kritisch): %s", e)
 
             step.status = FlowStepStatus.SUCCESS
             step.detail = f"identity_id={db_identity_id}, profile_id={result.profile_id}"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[3/9] Persist: OK (%s)", step.detail)
+            logger.info("[5/11] Persist: OK (%s)", step.detail)
 
             # =================================================================
-            # Schritt 4: INJECT (2080-konform: Bridge → PIF → Nuke → Fix)
+            # Schritt 6: INJECT (v5.1: Flugmodus bereits AN seit Schritt 1)
             # =================================================================
-            # v3.2 Reihenfolge:
-            #   4a. Hardware-IDs via TitanBridge setzen
-            #   4b. pif.json (Software-Fingerprint) injizieren
-            #   4c. Namespace-Nuke: alte Auth-Token vernichten
-            #   4d. Kill-Switch entfernen
-            #
-            # PIF MUSS vor dem Reboot gesetzt sein, damit beim Boot
-            # der Fingerprint sofort greift. Der Nuke räumt veraltete
-            # GMS-States auf, damit der frische Checkin sauber läuft.
+            # v5.1: Flugmodus ist seit Schritt 1 aktiv. Hier nur Bridge
+            # schreiben + Kill-Switch entfernen.
             # =================================================================
-            step = result.steps[3]
+            step = result.steps[5]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            # 4a. Hardware-IDs: Bridge-Datei schreiben + verteilen
-            logger.info("[4/9] Inject: Bridge-Datei schreiben...")
+            # Flugmodus ist seit Schritt 1 AN — kein erneutes Setzen nötig
+
+            # 6a. Hardware-IDs: Bridge-Datei schreiben + verteilen
+            logger.info("[6/11] Inject: Bridge-Datei schreiben...")
             await self._injector.inject(identity, label=name, distribute=True)
 
-            # 4b. PIF Fingerprint: /data/adb/pif.json pushen
-            # Wähle den Build-Index passend zum gewählten Build-Fingerprint
-            logger.info("[4/9] PIF: Software-Fingerprint injizieren...")
-            pif_ok = await self._injector.inject_pif_fingerprint()
-            if pif_ok:
-                logger.info("[4/9] PIF: OK → MEETS_BASIC_INTEGRITY vorbereitet")
-            else:
-                logger.warning("[4/9] PIF: WARN — pif.json konnte nicht geschrieben werden")
+            # 6b. PIF: von KSU-Modul verwaltet
+            logger.info("[6/11] PIF: Übersprungen (v4.1 — von KSU PlayIntegrityFix verwaltet)")
 
-            # 4c. Namespace-Nuke: Alte Auth-Token + DroidGuard-Cache vernichten
-            # Verwendet su -M -c (KernelSU Mount-Master) für SELinux-Bypass
-            logger.info("[4/9] Namespace-Nuke: GMS Auth-Reset...")
-            nuke_results = await self._injector.namespace_nuke()
-            nuke_success = sum(1 for v in nuke_results.values() if v)
-            logger.info("[4/9] Namespace-Nuke: %d/%d OK", nuke_success, len(nuke_results))
+            # 6c. Namespace-Nuke: DEAKTIVIERT (v4.0 — GMS-Schutz)
+            logger.info("[6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)")
 
-            # 4d. Kill-Switch entfernen (aktiviert Hooks)
+            # 6d. Kill-Switch entfernen (aktiviert Hooks)
             await self._injector.remove_kill_switch()
 
             step.status = FlowStepStatus.SUCCESS
-            step.detail = (
-                f"Bridge + PIF({'OK' if pif_ok else 'WARN'}) + "
-                f"Nuke({nuke_success}/{len(nuke_results)}) + Kill-Switch entfernt"
-            )
+            step.detail = "Bridge + Kill-Switch entfernt (PIF=KSU, Nuke=SKIP)"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[4/9] Inject: OK (%s)", step.detail)
+            logger.info("[6/11] Inject: OK (%s)", step.detail)
 
             # =================================================================
-            # Schritt 5: HARD RESET
+            # Schritt 7: HARD RESET
             # =================================================================
-            step = result.steps[4]
+            step = result.steps[6]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[5/9] Hard Reset: adb reboot...")
+            logger.info("[7/11] Hard Reset: adb reboot...")
 
             # Robust Reboot: ADB-Verbindung trennt sich beim Reboot sofort —
-            # das ist erwartetes Verhalten, kein Fehler. Timeout auf 30s setzen
-            # und ADBError lautlos abfangen.
+            # das ist erwartetes Verhalten, kein Fehler.
             try:
                 await self._adb.reboot()
             except ADBError as e:
                 # Erwarteter Verbindungsabbruch beim Reboot — kein Fehler
-                logger.info("[5/9] Reboot gesendet (ADB-Trennung erwartet: %s)", e)
+                logger.info("[7/11] Reboot gesendet (ADB-Trennung erwartet: %s)", e)
 
             # Pre-Wait: 15s warten bevor wir anfangen zu pollen.
             # Das Gerät braucht Zeit um den Bootloader zu passieren und
-            # den ADB-Daemon neu zu starten. Ohne diese Pause pollt
-            # wait_for_device sinnlos gegen ein offline Gerät.
-            logger.info("[5/9] Pre-Wait: 15s bevor Boot-Polling startet...")
+            # den ADB-Daemon neu zu starten.
+            logger.info("[7/11] Pre-Wait: 15s bevor ADB-Reconnect...")
             await asyncio.sleep(15)
 
-            logger.info("[5/9] Warte auf Boot (unbegrenzt, pollt alle %ds)...", TIMING.BOOT_POLL_INTERVAL)
+            # =============================================================
+            # v4.0 ADB AUTO-RECONNECT
+            # =============================================================
+            # Nach dem Reboot muss ADB sich neu verbinden. Statt blind zu
+            # pollen, verwenden wir ensure_connection() das den ADB-Daemon
+            # neu startet und `adb wait-for-device` ausführt.
+            # Das überbrückt USB-Reconnects und Auth-Dialoge zuverlässig.
+            # =============================================================
+            logger.info("[7/11] ADB Reconnect: Warte auf Gerät (max 120s)...")
+            reconnected = await self._adb.ensure_connection(timeout=120)
+            if not reconnected:
+                logger.warning(
+                    "[7/11] ADB Reconnect fehlgeschlagen — "
+                    "versuche trotzdem wait_for_device..."
+                )
+
+            logger.info("[7/11] Warte auf Boot (unbegrenzt, pollt alle %ds)...", TIMING.BOOT_POLL_INTERVAL)
             booted = await self._adb.wait_for_device(
                 timeout=TIMING.BOOT_WAIT_SECONDS,
                 poll_interval=TIMING.BOOT_POLL_INTERVAL,
@@ -374,10 +449,16 @@ class GenesisFlow:
 
             # Post-Boot Settle: Warten bis alle Services initialisiert sind
             logger.info(
-                "[5/9] Boot erkannt — warte %ds bevor Popup-Hammer...",
+                "[7/11] Boot erkannt — warte %ds bevor Popup-Hammer...",
                 TIMING.POST_BOOT_SETTLE_SECONDS,
             )
             await asyncio.sleep(TIMING.POST_BOOT_SETTLE_SECONDS)
+
+            # v4.0: Nochmal sicherstellen dass ADB stabil verbunden ist
+            # (verhindert Race-Conditions wo ADB kurz da war aber wieder weggeht)
+            if not await self._adb.is_connected():
+                logger.warning("[7/11] ADB nach Boot-Settle weg — Reconnect...")
+                await self._adb.ensure_connection(timeout=60)
 
             # =============================================================
             # POPUP HAMMER — VOR dem Unlock!
@@ -387,7 +468,7 @@ class GenesisFlow:
             # Swipe funktioniert nicht, solange das Popup drauf ist.
             # Deshalb: Erst Popup weg, DANN unlock.
             # =============================================================
-            logger.info("[5/9] Popup Hammer: Fehler-Dialoge unterdrücken...")
+            logger.info("[7/11] Popup Hammer: Fehler-Dialoge unterdrücken...")
 
             # 1. Settings-basierte Suppression (Versuch 1 — sofort)
             try:
@@ -413,7 +494,7 @@ class GenesisFlow:
                 except (ADBError, Exception):
                     pass  # Nicht-kritisch, weiter versuchen
 
-            logger.info("[5/9] Popup Hammer abgeschlossen — Unlock starten...")
+            logger.info("[7/11] Popup Hammer abgeschlossen — Unlock starten...")
 
             # Gerät entsperren (Swipe — jetzt ohne Popup-Blocker)
             await self._adb.unlock_device()
@@ -422,41 +503,100 @@ class GenesisFlow:
             # (setzt auch device_provisioned + user_setup_complete)
             await self._device.suppress_system_dialogs()
 
+            # =============================================================
+            # POST-REBOOT BRIDGE VERIFICATION
+            # =============================================================
+            # Nach dem Reboot muss die Bridge-Datei noch vorhanden sein.
+            # Bei manchen Geräten wird /data/local/tmp/ beim Boot geleert,
+            # aber /data/adb/modules/ und /data/data/ überleben den Reboot.
+            # Hier prüfen wir, ob der Serial in der Bridge noch korrekt ist.
+            # =============================================================
+            logger.info("[7/11] Post-Reboot Bridge-Verifikation...")
+            try:
+                from host.config import BRIDGE_FILE_PATH as _BFP
+                verify_result = await self._adb.shell(
+                    f"grep '^serial=' {_BFP}", root=True, timeout=5,
+                )
+                if verify_result.success and verify_result.output.strip():
+                    on_device_serial = verify_result.output.strip().split("=", 1)[-1]
+                    if on_device_serial == identity.serial:
+                        logger.info(
+                            "[7/11] Bridge-Verifikation: OK (serial=%s nach Reboot korrekt)",
+                            on_device_serial,
+                        )
+                    else:
+                        logger.error(
+                            "[7/11] BRIDGE MISMATCH NACH REBOOT! "
+                            "Auf Gerät: serial=%s, Erwartet: serial=%s — "
+                            "Die Bridge-Datei wurde beim Reboot überschrieben/gelöscht!",
+                            on_device_serial, identity.serial,
+                        )
+                else:
+                    logger.warning(
+                        "[7/11] Bridge-Datei nach Reboot nicht lesbar! "
+                        "Pfad %s existiert möglicherweise nicht mehr.", _BFP,
+                    )
+            except Exception as e:
+                logger.warning("[7/11] Bridge-Verifikation fehlgeschlagen: %s", e)
+
             boot_secs = (_now_ms() - step_start) / 1000
             step.status = FlowStepStatus.SUCCESS
             step.detail = f"Boot + Popup-Hammer + Unlock in {boot_secs:.1f}s"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[5/9] Hard Reset: OK (%s)", step.detail)
+            logger.info("[7/11] Hard Reset: OK (%s)", step.detail)
 
             # =================================================================
-            # Schritt 6: NETWORK INIT + IP-TRACKING
+            # Schritt 8: NETWORK INIT (Flugmodus AUS + neue IP)
             # =================================================================
-            step = result.steps[5]
+            # Flugmodus war seit Schritt 1 AN. Das Gerät hat mit
+            # Flugmodus gerebootet → Modem war die ganze Zeit offline.
+            # Jetzt: 20s warten → Flugmodus AUS → neue IP.
+            # =================================================================
+            step = result.steps[7]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[6/9] Network Init: Flugmodus-Cycle + IP-Audit...")
-            await self._airplane_mode_cycle()
+            logger.info(
+                "[8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS..."
+            )
+
+            # 20 Sekunden warten nach Boot (Modem + RIL brauchen Zeit)
+            await asyncio.sleep(20)
+
+            # Flugmodus AUS → Modem verbindet sich FRISCH
+            await self._adb.shell(
+                "settings put global airplane_mode_on 0", root=True,
+            )
+            await self._adb.shell(
+                "am broadcast -a android.intent.action.AIRPLANE_MODE --ez state false",
+                root=True,
+            )
+            logger.info("[8/11] Flugmodus: AUS — Modem verbindet sich neu")
+
+            # IP-Cache invalidieren (neue IP erwartet)
+            NetworkChecker.invalidate_ip_cache()
 
             # Warte auf O2-Mobilfunk-Stabilisierung
             logger.info(
-                "[6/9] Warte %ds auf Mobilfunk-Stabilisierung...",
+                "[8/11] Warte %ds auf neue Mobilfunk-Verbindung...",
                 TIMING.IP_AUDIT_WAIT_SECONDS,
             )
             await asyncio.sleep(TIMING.IP_AUDIT_WAIT_SECONDS)
 
-            # IP-Check via ares_curl (DNS-Bypass)
-            ip_result = await self._network.get_public_ip()
+            # IP-Check (EINMALIG — die einzige Stelle wo die IP ermittelt wird)
+            ip_result = await self._network.get_public_ip(skip_cache=True)
             if ip_result.success:
                 result.public_ip = ip_result.ip
                 result.ip_service = ip_result.service
 
                 step.status = FlowStepStatus.SUCCESS
                 step.detail = (
-                    f"Flugmodus-Cycle OK | "
-                    f"Öffentliche IP: {ip_result.ip} (via {ip_result.service})"
+                    f"Neue IP: {ip_result.ip} (via {ip_result.service})"
                 )
-                logger.info("[6/9] Network Init: IP = %s (via %s)", ip_result.ip, ip_result.service)
+                logger.info(
+                    "[8/11] Network Init: Neue IP = %s (via %s)",
+                    ip_result.ip, ip_result.service,
+                )
 
                 # DB: IP in identities + ip_history speichern
                 try:
@@ -483,197 +623,102 @@ class GenesisFlow:
                     logger.warning("IP-DB-Update fehlgeschlagen: %s", e)
             else:
                 step.status = FlowStepStatus.SUCCESS  # Nicht-kritisch
-                step.detail = (
-                    f"Flugmodus-Cycle OK | "
-                    f"IP-Check fehlgeschlagen: {ip_result.error}"
-                )
-                logger.warning("[6/9] IP-Check fehlgeschlagen: %s", ip_result.error)
+                step.detail = f"IP-Check fehlgeschlagen: {ip_result.error}"
+                logger.warning("[8/11] IP-Check fehlgeschlagen: %s", ip_result.error)
 
             step.duration_ms = _now_ms() - step_start
 
             # =================================================================
-            # Schritt 7: GMS READY (Network-First + Kickstart + Smart Wait)
+            # Schritt 9: GMS READY
             # =================================================================
-            # v3.0 NETWORK-FIRST: GMS-Kickstart darf ERST starten, wenn
-            # eine aktive Internetverbindung bestätigt ist. Ohne Netz kann
-            # GMS keinen Checkin durchführen → GSF-ID wird nie generiert.
-            #
-            # ANTI-RATE-LIMIT: Nach pm clear GMS fehlen DroidGuard-Module,
-            # GSF-ID und Integrity-Token-Keys. Anstatt blind die Play
-            # Integrity API zu pingen (→ Bot-Detection Risiko), warten
-            # wir lokal bis die GSF-ID regeneriert wurde.
-            # =================================================================
-            step = result.steps[6]
+            step = result.steps[8]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[7/9] GMS Ready: Network-First Gate + Kickstart + Smart Wait...")
+            # =================================================================
+            # v5.0 GMS-Schutz Architektur — GSF-ID NICHT mehr synchronisieren
+            # =================================================================
+            #
+            # WARUM DIE ALTE LOGIK FALSCH WAR:
+            #   Alte Versionen (<v5.0) warteten auf die echte GSF-ID vom
+            #   GMS-Checkin und schrieben sie in Bridge + DB zurück.
+            #   Problem: Da wir GMS NICHT clearen (GMS-Schutz), hat das
+            #   Gerät IMMER dieselbe echte GSF-ID. Alle Identitäten bekamen
+            #   dadurch dieselbe GSF-ID → keine echte Identity-Trennung!
+            #
+            # v5.0 KORREKTE LOGIK:
+            #   - Die Bridge enthält bereits eine zufällig generierte GSF-ID
+            #     (aus Schritt 2: GENERATE, via secrets CSPRNG)
+            #   - Die Hooks spoofen diese GSF-ID NUR für Target-Apps
+            #     (TikTok, Instagram, etc.)
+            #   - GMS sieht immer die ECHTE GSF-ID → Trust-Chain bleibt intakt
+            #   - Jede Identity hat ihre EIGENE einzigartige GSF-ID
+            #
+            # → KEIN GSF-ID Wait, KEIN GSF-ID Sync, KEIN Bridge-Patch!
+            #
+            # Was wir noch tun:
+            #   1. Konnektivität prüfen (für Play Integrity)
+            #   2. GMS Kickstart (Checkin triggern für DroidGuard)
+            #   3. Finsky Kill (hängende Prozesse beenden)
+            # =================================================================
 
-            # =========================================================
-            # v3.0 NETWORK-FIRST GATE
-            # =========================================================
-            # Prüfe Konnektivität BEVOR wir GMS kickstarten.
-            # Wenn kein Netz: warten + erneut prüfen, max 2 Versuche.
-            # =========================================================
+            logger.info("[9/11] GMS Ready: Konnektivität + Kickstart (v5.0 — GSF-ID bleibt generiert)...")
+
+            # --- Konnektivitäts-Check ---
             connectivity_ok = False
             if result.public_ip:
-                # IP wurde in Schritt 6 bestätigt → Netz steht sicher
                 connectivity_ok = True
-                logger.info("[7/9] Network-First: IP bereits bestätigt (%s)", result.public_ip)
+                logger.info("[9/11] Network: IP bereits bestätigt (%s)", result.public_ip)
             else:
-                # IP-Check in Schritt 6 fehlgeschlagen → explizite Prüfung
-                logger.info("[7/9] Network-First: Keine IP — prüfe Konnektivität...")
+                logger.info("[9/11] Network: Keine IP — prüfe Konnektivität...")
                 for attempt in range(3):
                     connectivity_ok = await self._device.check_connectivity()
                     if connectivity_ok:
-                        logger.info("[7/9] Network-First: Konnektivität bestätigt (Versuch %d)", attempt + 1)
+                        logger.info("[9/11] Network: Konnektivität bestätigt (Versuch %d)", attempt + 1)
                         break
                     logger.warning(
-                        "[7/9] Network-First: Kein Netz (Versuch %d/3) — warte %ds...",
+                        "[9/11] Network: Kein Netz (Versuch %d/3) — warte %ds...",
                         attempt + 1, TIMING.NETWORK_CONNECTIVITY_WAIT,
                     )
                     await asyncio.sleep(TIMING.NETWORK_CONNECTIVITY_WAIT)
 
                 if not connectivity_ok:
-                    logger.error("[7/9] Network-First: Kein Netzwerk nach 3 Versuchen — Kickstart trotzdem versuchen")
+                    logger.error("[9/11] Network: Kein Netzwerk nach 3 Versuchen")
 
-            # =========================================================
-            # GMS RECOVERY LAYER v3.1
-            # Reihenfolge: Finsky Kill → MinuteMaid Repair → Kickstart
-            #
-            # 1. kill_finsky():          Hängende TLS-Handshakes beenden
-            # 2. reset_gms_internal():   Auth-Lockdown aufheben (MinuteMaid)
-            # 3. kickstart_gms():        8-Stufen-Checkin-Trigger
-            # =========================================================
-
-            # A) Finsky Kill: Play Store hart beenden (am kill + killall -9)
-            # Verhindert, dass alte Zertifikats-Abfragen den GSF-Wait blockieren
-            logger.info("[7/9] Finsky Kill: Play Store hart beenden...")
+            # --- GMS Kickstart (für DroidGuard + Play Integrity) ---
+            logger.info("[9/11] Finsky Kill: Play Store hart beenden...")
             await self._device.kill_finsky()
 
-            # B) GMS Core Repair: MinuteMaid Auth-Reparatur starten
-            # Hebt den GMS-Lockdown auf, der Play-Store-Login unmöglich macht
-            logger.info("[7/9] GMS Core Repair: MinuteMaid starten...")
+            logger.info("[9/11] GMS Core Repair: MinuteMaid starten...")
             repair_ok = await self._device.reset_gms_internal()
             if repair_ok:
-                # MinuteMaid 3s arbeiten lassen bevor Kickstart
                 await asyncio.sleep(3)
             else:
-                logger.info("[7/9] MinuteMaid nicht verfügbar — Kickstart trotzdem fortsetzen")
+                logger.info("[9/11] MinuteMaid nicht verfügbar")
 
-            # C) Kickstart: 8-Stufen GMS-Checkin anstoßen (mit reparierter Auth-Kette)
             kickstart_ok = await self._device.kickstart_gms()
-
-            # Kurz warten nach Kickstart damit GMS den Intent verarbeitet
             await asyncio.sleep(TIMING.GMS_KICKSTART_SETTLE_SECONDS)
 
-            # D) Passive Sensor: Warte auf lokale GSF-ID (KEIN Netzwerk!)
-            # wait_for_gsf_id hat intern bereits einen Retry-Kickstart nach 180s.
-            gsf_result = await self._device.wait_for_gsf_id()
+            # --- GSF-ID: Bridge-Wert beibehalten (v5.0) ---
+            # Die generierte GSF-ID aus Schritt 2 bleibt UNVERÄNDERT in
+            # Bridge und DB. KEINE Synchronisierung mit der echten GMS GSF-ID!
+            logger.info(
+                "[9/11] GSF-ID: Generierte ID beibehalten (v5.0 — KEIN Sync mit GMS). "
+                "Bridge-GSF-ID: %s...%s",
+                identity.gsf_id[:4], identity.gsf_id[-4:],
+            )
 
-            # Variable für die echte GSF-ID als Dezimal (wird in Schritt 8 gebraucht)
-            # Die DB und Bridge speichern die GSF-ID als 17-Dezimalziffern
-            real_gsf_id: str | None = None
+            # real_gsf_id = die generierte (nicht die echte GMS-ID!)
+            real_gsf_id = identity.gsf_id
 
-            # =================================================================
-            # v3.2 SECOND CHANCE: Wenn erster Wait scheitert → Nuclear Recovery
-            # =================================================================
-            # Der erste wait_for_gsf_id hat 600s + 1 Retry-Kickstart intern.
-            # Wenn das nicht reicht, liegt es meist an GMS-Lockdown oder
-            # korruptem DroidGuard-State. Nuclear Recovery:
-            #   1. Namespace-Nuke nochmal (frische Auth-Kette)
-            #   2. Erneuter Kickstart
-            #   3. Zweiter Wait (kürzeres Timeout: 300s)
-            # =================================================================
-            if not gsf_result.success:
-                logger.warning(
-                    "[7/9] GSF-ID SECOND CHANCE: Erster Wait gescheitert nach %.0fs — "
-                    "Nuclear Recovery starten...",
-                    gsf_result.elapsed_seconds,
-                )
-                try:
-                    # Nuclear: Namespace-Nuke wiederholen (su -M -c)
-                    await self._injector.namespace_nuke()
-                    await asyncio.sleep(3)
-
-                    # Erneut: Finsky Kill → MinuteMaid → Kickstart
-                    await self._device.kill_finsky()
-                    await self._device.reset_gms_internal()
-                    await asyncio.sleep(3)
-                    await self._device.kickstart_gms()
-                    await asyncio.sleep(TIMING.GMS_KICKSTART_SETTLE_SECONDS)
-
-                    # Zweiter Wait mit halbem Timeout
-                    logger.info("[7/9] SECOND CHANCE: Zweiter GSF-Wait (max 300s)...")
-                    gsf_result = await self._device.wait_for_gsf_id(
-                        timeout=300,
-                        retry_kickstart_after=0,  # Kein interner Retry mehr
-                    )
-                except Exception as e:
-                    logger.error("[7/9] SECOND CHANCE fehlgeschlagen: %s", e)
-
-            if gsf_result.success:
-                real_gsf_id = gsf_result.gsf_id_decimal or gsf_result.gsf_id
-                step.status = FlowStepStatus.SUCCESS
-                step.detail = (
-                    f"GSF-ID bereit nach {gsf_result.elapsed_seconds:.0f}s "
-                    f"({gsf_result.polls} Polls) | "
-                    f"Kickstart: {'OK' if kickstart_ok else 'WARN'}"
-                )
-                logger.info(
-                    "[7/9] GMS Ready: GSF-ID nach %.0fs — Capture + Audit folgen",
-                    gsf_result.elapsed_seconds,
-                )
-
-                # =========================================================
-                # GSF-ID SYNC v3.0 (Hardware = Software)
-                # =========================================================
-                # Die echte GSF-ID vom GMS-Checkin zurückschreiben in:
-                #   1. titan.db (identities.gsf_id)
-                #   2. Bridge-Datei auf dem Gerät
-                # Damit Zygisk exakt die ID spoofed, die GMS kennt.
-                # =========================================================
-                if real_gsf_id and db_identity_id:
-                    try:
-                        # 1. DB-Update: Echte GSF-ID in identities-Tabelle
-                        async with db.transaction() as conn:
-                            await conn.execute(
-                                "UPDATE identities SET gsf_id = ?, updated_at = ? "
-                                "WHERE id = ?",
-                                (
-                                    real_gsf_id,
-                                    datetime.now(LOCAL_TZ).isoformat(),
-                                    db_identity_id,
-                                ),
-                            )
-                        logger.info(
-                            "[7/9] GSF-ID Sync DB: %s...%s → identity_id=%d",
-                            real_gsf_id[:4], real_gsf_id[-4:], db_identity_id,
-                        )
-
-                        # 2. Bridge-Update: Auf dem Gerät patchen
-                        await self._injector.update_bridge_gsf_id(real_gsf_id)
-                        logger.info("[7/9] GSF-ID Sync Bridge: OK")
-
-                    except Exception as e:
-                        logger.warning("[7/9] GSF-ID Sync fehlgeschlagen: %s", e)
-
-            else:
-                # GSF-ID Timeout (auch nach Second Chance) — Audit trotzdem versuchen
-                step.status = FlowStepStatus.SUCCESS  # Nicht-kritisch (Audit entscheidet)
-                step.detail = (
-                    f"GSF-ID Timeout nach {gsf_result.elapsed_seconds:.0f}s "
-                    f"(inkl. Second Chance) — "
-                    f"Audit wird trotzdem versucht | "
-                    f"Kickstart: {'OK' if kickstart_ok else 'WARN'}"
-                )
-                logger.warning(
-                    "[7/9] GMS Ready: GSF-ID Timeout nach %.0fs (inkl. Second Chance) — "
-                    "Capture State wird übersprungen, Audit trotzdem versucht",
-                    gsf_result.elapsed_seconds,
-                )
-
+            step.status = FlowStepStatus.SUCCESS
+            step.detail = (
+                f"GMS Kickstart {'OK' if kickstart_ok else 'WARN'} | "
+                f"GSF-ID: generiert beibehalten (v5.0) | "
+                f"Netz: {'OK' if connectivity_ok else 'WARN'}"
+            )
             step.duration_ms = _now_ms() - step_start
+            logger.info("[9/11] GMS Ready: OK (%s)", step.detail)
 
             # =================================================================
             # Schritt 8: CAPTURE STATE (Golden Baseline) *** NEU v3.0 ***
@@ -686,7 +731,7 @@ class GenesisFlow:
             # Wenn der Quick-Audit fehlschlägt, warten wir 60s damit GMS
             # seine Initialisierung abschließen kann, und prüfen erneut.
             # =================================================================
-            step = result.steps[7]
+            step = result.steps[9]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
@@ -694,7 +739,7 @@ class GenesisFlow:
                 # =========================================================
                 # BASELINE-TRIGGER: Quick-Audit vor Capture
                 # =========================================================
-                logger.info("[8/9] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...")
+                logger.info("[10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...")
                 integrity_ok = False
                 for integrity_attempt in range(2):
                     try:
@@ -702,31 +747,31 @@ class GenesisFlow:
                         if pre_audit.passed:
                             integrity_ok = True
                             logger.info(
-                                "[8/9] Baseline-Trigger: Integrität bestätigt (%d%%)",
+                                "[10/11] Baseline-Trigger: Integrität bestätigt (%d%%)",
                                 pre_audit.score_percent,
                             )
                             break
                         else:
                             if integrity_attempt == 0:
                                 logger.warning(
-                                    "[8/9] Baseline-Trigger: Integrität NICHT bestätigt "
+                                    "[10/11] Baseline-Trigger: Integrität NICHT bestätigt "
                                     "(%d%%) — warte 60s für GMS-Stabilisierung...",
                                     pre_audit.score_percent,
                                 )
                                 await asyncio.sleep(60)
                             else:
                                 logger.warning(
-                                    "[8/9] Baseline-Trigger: Integrität weiterhin %d%% "
+                                    "[10/11] Baseline-Trigger: Integrität weiterhin %d%% "
                                     "— Capture trotzdem fortsetzen",
                                     pre_audit.score_percent,
                                 )
                     except Exception as e:
-                        logger.warning("[8/9] Baseline-Trigger Audit fehlgeschlagen: %s", e)
+                        logger.warning("[10/11] Baseline-Trigger Audit fehlgeschlagen: %s", e)
                         if integrity_attempt == 0:
                             await asyncio.sleep(60)
 
                 # Golden Baseline capturen (auch bei imperfekter Integrität)
-                logger.info("[8/9] Capture State: Golden Baseline sichern...")
+                logger.info("[10/11] Capture State: Golden Baseline sichern...")
                 try:
                     capture_result = await self._shifter.capture_gms_state(
                         profile_name=name,
@@ -741,7 +786,7 @@ class GenesisFlow:
                             f"Golden Baseline: GMS + Accounts gesichert"
                             f" | Integrität: {'OK' if integrity_ok else 'DEGRADED'}"
                         )
-                        logger.info("[8/9] Capture State: Golden Baseline komplett")
+                        logger.info("[10/11] Capture State: Golden Baseline komplett")
                     elif gms_ok or accounts_ok:
                         step.status = FlowStepStatus.SUCCESS
                         step.detail = (
@@ -749,32 +794,32 @@ class GenesisFlow:
                             f"GMS={'OK' if gms_ok else 'FAIL'}, "
                             f"Accounts={'OK' if accounts_ok else 'FAIL'}"
                         )
-                        logger.warning("[8/9] Capture State: Teilweise (%s)", step.detail)
+                        logger.warning("[10/11] Capture State: Teilweise (%s)", step.detail)
                     else:
                         step.status = FlowStepStatus.FAILED
                         step.detail = "Golden Baseline: Beide Snapshots fehlgeschlagen"
-                        logger.error("[8/9] Capture State: FEHLGESCHLAGEN")
+                        logger.error("[10/11] Capture State: FEHLGESCHLAGEN")
 
                 except Exception as e:
                     step.status = FlowStepStatus.FAILED
                     step.detail = f"Capture Fehler: {e}"
-                    logger.error("[8/9] Capture State Fehler: %s", e)
+                    logger.error("[10/11] Capture State Fehler: %s", e)
             else:
                 # Kein GSF-ID → kein Golden Baseline möglich
                 step.status = FlowStepStatus.SKIPPED
                 step.detail = "Übersprungen: Keine GSF-ID verfügbar"
-                logger.warning("[8/9] Capture State: Übersprungen (keine GSF-ID)")
+                logger.warning("[10/11] Capture State: Übersprungen (keine GSF-ID)")
 
             step.duration_ms = _now_ms() - step_start
 
             # =================================================================
-            # Schritt 9: AUDIT + AUDIT-TRACKING
+            # Schritt 11: AUDIT + AUDIT-TRACKING
             # =================================================================
-            step = result.steps[8]
+            step = result.steps[10]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[9/9] Audit: Device prüfen...")
+            logger.info("[11/11] Audit: Device prüfen...")
             audit = await self._auditor.audit_device(identity)
             result.audit = audit
 
@@ -815,7 +860,7 @@ class GenesisFlow:
             if audit.passed:
                 step.status = FlowStepStatus.SUCCESS
                 step.detail = f"Score: {audit.score_percent}% — PERFEKT"
-                logger.info("[9/9] Audit: PASS (%d%%)", audit.score_percent)
+                logger.info("[11/11] Audit: PASS (%d%%)", audit.score_percent)
             else:
                 step.status = FlowStepStatus.FAILED
                 step.detail = (
@@ -823,7 +868,7 @@ class GenesisFlow:
                     f"{audit.failed_checks} Check(s) fehlgeschlagen"
                 )
                 logger.warning(
-                    "[9/9] Audit: FAIL (%d%%) — markiere als corrupted",
+                    "[11/11] Audit: FAIL (%d%%) — markiere als corrupted",
                     audit.score_percent,
                 )
                 # Identität als corrupted markieren
@@ -918,6 +963,23 @@ class GenesisFlow:
     # =========================================================================
     # Interne Methoden
     # =========================================================================
+
+    async def _find_active_profile(self) -> Optional[dict]:
+        """
+        Findet das aktuell aktive Profil (für Auto-Backup vor Genesis).
+
+        Returns:
+            Dict mit {"id": int, "name": str, "identity_id": int} oder None
+        """
+        async with db.connection() as conn:
+            cursor = await conn.execute(
+                "SELECT p.id, p.name, p.identity_id "
+                "FROM profiles p WHERE p.status = 'active' LIMIT 1"
+            )
+            row = await cursor.fetchone()
+            if row:
+                return dict(row)
+            return None
 
     async def _persist_identity(self, identity: IdentityRead) -> int:
         """

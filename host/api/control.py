@@ -83,6 +83,10 @@ class GenesisRequest(BaseModel):
         default=None, max_length=500,
         description="Optionale Notizen",
     )
+    backup_before: bool = Field(
+        default=False,
+        description="Aktives Profil vor Genesis automatisch sichern (Dual-Path Backup)",
+    )
 
 
 class SwitchRequest(BaseModel):
@@ -136,7 +140,7 @@ async def start_genesis(
         started_at=datetime.now(LOCAL_TZ).isoformat(),
     )
 
-    background_tasks.add_task(_run_genesis, req.name, req.notes)
+    background_tasks.add_task(_run_genesis, req.name, req.notes, req.backup_before)
 
     logger.info("Genesis-Flow gestartet: %s", req.name)
     return {
@@ -147,14 +151,14 @@ async def start_genesis(
     }
 
 
-async def _run_genesis(name: str, notes: Optional[str]) -> None:
+async def _run_genesis(name: str, notes: Optional[str], backup_before: bool = False) -> None:
     """Background-Task: Führt den GenesisFlow aus."""
     global _state
     async with _lock:
         try:
             adb = ADBClient()
             flow = GenesisFlow(adb)
-            result = await flow.execute(name, notes=notes)
+            result = await flow.execute(name, notes=notes, backup_before=backup_before)
 
             _state.result = _safe_dict(result)
             _state.error = result.error

@@ -1,7 +1,7 @@
 {
 	"InstallScripts" : 
 	[
-		"/Users/arvin/Downloads/Custom Hook Module/build_native/cmake_install.cmake"
+		"/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/cmake_install.cmake"
 	],
 	"Parallel" : false
 }

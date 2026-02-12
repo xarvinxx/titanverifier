@@ -62,14 +62,20 @@
 #define TITAN_KILL_SWITCH       "/data/local/tmp/titan_stop"
 #define TITAN_BRIDGE_PATH       "/data/adb/modules/titan_verifier/titan_identity"
 
-// Target Apps (NIEMALS System-Prozesse global hooken!)
+// Target Apps — NUR Social-Media & Verifier.
+// GMS/GSF/Vending sind BEWUSST AUSGESCHLOSSEN (v4.0 GMS-Schutz):
+//   - GMS muss die ECHTEN Device-IDs sehen für Play Integrity (BASIC+DEVICE)
+//   - Hooks in GMS spoofen die GSF-ID → Google sieht "unbekanntes Gerät"
+//   - Das zerstört den Checkin und die gesamte Trust-Chain
+//   - TikTok/Instagram prüfen NICHT welche IDs GMS intern hat
 static const char* TARGET_APPS[] = {
     "com.titan.verifier",
-    "com.zhiliaoapp.musically",
-    "com.ss.android.ugc.trill",
-    "com.google.android.gms",
-    "com.androidfung.drminfo",       // DRM Info App
-    "tw.reh.deviceid",               // Device ID App
+    "com.zhiliaoapp.musically",      // TikTok International
+    "com.ss.android.ugc.trill",      // TikTok
+    "com.instagram.android",         // Instagram
+    "com.snapchat.android",          // Snapchat
+    "com.androidfung.drminfo",       // DRM Info App (Verifikation)
+    "tw.reh.deviceid",               // Device ID App (Verifikation)
     nullptr
 };
 
@@ -315,7 +321,34 @@ static bool isMacPath(const char* path) {
     return (strstr(path, "/sys/class/net/") && strstr(path, "/address")) ||
            strcmp(path, "/sys/class/net/wlan0/address") == 0 ||
            strcmp(path, "/sys/class/net/eth0/address") == 0 ||
+           strstr(path, "/sys/class/bluetooth/") != nullptr ||  // BT MAC
            strstr(path, "/proc/net/arp") != nullptr;
+}
+
+// Phase 11.0: Pfade die sensitive Netzwerk-Informationen enthalten
+static bool isNetworkInfoPath(const char* path) {
+    if (!path) return false;
+    return strcmp(path, "/proc/net/if_inet6") == 0 ||
+           strcmp(path, "/proc/net/ipv6_route") == 0 ||
+           strcmp(path, "/proc/net/tcp6") == 0 ||
+           strcmp(path, "/proc/net/udp6") == 0;
+}
+
+// Phase 11.0: Root-Detection Pfade die versteckt werden müssen
+static bool isRootDetectionPath(const char* path) {
+    if (!path) return false;
+    return strstr(path, "/sbin/su") != nullptr ||
+           strstr(path, "/system/xbin/su") != nullptr ||
+           strstr(path, "/system/bin/su") != nullptr ||
+           strstr(path, "/data/adb/modules") != nullptr ||
+           strstr(path, "/data/adb/ksu") != nullptr ||
+           strstr(path, "/data/adb/magisk") != nullptr ||
+           strstr(path, "superuser.apk") != nullptr ||
+           strstr(path, "/sbin/.magisk") != nullptr ||
+           strstr(path, "zygisk") != nullptr ||
+           strstr(path, "lsposed") != nullptr ||
+           strstr(path, "xposed") != nullptr ||
+           strstr(path, "/data/local/tmp/ksud") != nullptr;
 }
 
 static bool isInputDevicesPath(const char* path) {
@@ -332,6 +365,47 @@ static bool isKernelVersionPath(const char* path) {
     if (!path) return false;
     return strcmp(path, "/proc/version") == 0;
 }
+
+// Phase 11.0: Dynamischer /proc/net/if_inet6 mit Fake-MAC EUI-64
+// Format: <ipv6_hex_no_colons> <idx> <prefix_len> <scope> <flags> <device>
+static char g_fake_if_inet6[512] = "";
+static const char* getFakeIfInet6() {
+    if (g_fake_if_inet6[0] != '\0') return g_fake_if_inet6;
+    
+    // Hole die Fake-MAC
+    TitanHardware& hw = TitanHardware::getInstance();
+    char macStr[32] = {0};
+    hw.getWifiMac(macStr, sizeof(macStr));
+    
+    if (macStr[0] == '\0') {
+        // Fallback: nur Loopback
+        snprintf(g_fake_if_inet6, sizeof(g_fake_if_inet6),
+            "00000000000000000000000000000001 01 80 10 80       lo\n");
+        return g_fake_if_inet6;
+    }
+    
+    // Parse MAC aa:bb:cc:dd:ee:ff
+    unsigned int m[6] = {0};
+    sscanf(macStr, "%02x:%02x:%02x:%02x:%02x:%02x", &m[0], &m[1], &m[2], &m[3], &m[4], &m[5]);
+    
+    // EUI-64: Byte 0 XOR 0x02, insert FF:FE
+    unsigned int eui0 = m[0] ^ 0x02;
+    
+    // Generiere Link-Local: fe80::<eui64>
+    char ll_hex[33];
+    snprintf(ll_hex, sizeof(ll_hex), "fe80000000000000%02x%02xff%02xfe%02x%02x%02x",
+        eui0, m[1], m[2], m[3], m[4], m[5]);
+    
+    // Baue die /proc/net/if_inet6 Ausgabe
+    snprintf(g_fake_if_inet6, sizeof(g_fake_if_inet6),
+        "00000000000000000000000000000001 01 80 10 80       lo\n"
+        "%s 03 40 20 80    wlan0\n",  // Link-Local, scope=0x20(link), prefix=64
+        ll_hex);
+    
+    LOGI("[TITAN] Generated fake if_inet6 with MAC %s", macStr);
+    return g_fake_if_inet6;
+}
+#define FAKE_IF_INET6 getFakeIfInet6()
 
 // Pixel 6 Input-Device-Datei (realistisches Oriole Hardware-Layout)
 // Enthält: fts_ts (STM Touchscreen), gpio-keys (Vol+/Vol-), goodix_fp (Fingerabdruck),
@@ -825,6 +899,19 @@ static int titan_hooked_open(const char* pathname, int flags, mode_t mode) {
         if (fakeFd >= 0) return fakeFd;
     }
     
+    // Phase 11.0: /proc/net/if_inet6 -> Fake (nur Loopback)
+    if (pathname && isNetworkInfoPath(pathname)) {
+        size_t contentLen = strlen(FAKE_IF_INET6);
+        int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_IF_INET6, contentLen, "if_inet6");
+        if (fakeFd >= 0) return fakeFd;
+    }
+    
+    // Phase 11.0: Root-Detection Pfade → Fake ENOENT
+    if (pathname && isRootDetectionPath(pathname)) {
+        errno = ENOENT;
+        return -1;
+    }
+    
     // /dev/input/eventN -> Tracke FDs für EVIOCGNAME Virtualisierung
     if (pathname && strncmp(pathname, "/dev/input/event", 16) == 0) {
         int eventNum = atoi(pathname + 16);
@@ -957,6 +1044,18 @@ static FILE* titan_hooked_fopen(const char* pathname, const char* mode) {
     if (pathname && isKernelVersionPath(pathname)) {
         FILE* fake = createFakeFopen(pathname, mode, FAKE_KERNEL_VERSION, "version");
         if (fake) return fake;
+    }
+    
+    // Phase 11.0: /proc/net/if_inet6 -> Fake (nur Loopback)
+    if (pathname && isNetworkInfoPath(pathname)) {
+        FILE* fake = createFakeFopen(pathname, mode, FAKE_IF_INET6, "if_inet6");
+        if (fake) return fake;
+    }
+    
+    // Phase 11.0: Root-Detection Pfade → null + ENOENT
+    if (pathname && isRootDetectionPath(pathname)) {
+        errno = ENOENT;
+        return nullptr;
     }
     
     return g_origFopen(pathname, mode);

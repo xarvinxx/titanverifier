@@ -57,9 +57,17 @@ object AuditEngine {
         val hasJava = j.isNotEmpty()
         val hasNative = n.isNotEmpty()
         val hasRoot = r.isNotEmpty()
-        if (hasJava && hasNative && j != n) return LayeredStatus.INCONSISTENT
-        if (hasJava && hasNative && hasRoot && j == n && j != r) return LayeredStatus.SPOOFED
-        if (hasNative && hasRoot && n != r) return LayeredStatus.INCONSISTENT
+        
+        // Java und Native widersprechen sich → echtes Problem
+        if (hasJava && hasNative && !j.equals(n, ignoreCase = true)) return LayeredStatus.INCONSISTENT
+        
+        // Hooked-Wert (Java oder Native) ≠ Root → SPOOFED (Hook funktioniert!)
+        // Das ist der gewünschte Zustand: Apps sehen den Fake-Wert, Root zeigt den echten
+        val hookedValue = if (hasJava) j else if (hasNative) n else ""
+        if (hookedValue.isNotEmpty() && hasRoot && !hookedValue.equals(r, ignoreCase = true)) {
+            return LayeredStatus.SPOOFED
+        }
+        
         return LayeredStatus.CONSISTENT
     }
     
@@ -636,6 +644,43 @@ object AuditEngine {
 
     private fun orDash(s: String): String = if (norm(s).isEmpty()) "—" else s
 
+    /**
+     * Zeigt Alternativ-Format an, damit man Werte direkt mit Device ID / anderen Apps vergleichen kann.
+     * - Reiner Dezimal-String → zusätzlich Hex (GSF ID, IMEI, etc.)
+     * - Reiner Hex-String (kein MAC, keine UUID) → zusätzlich Dezimal + Uppercase (Android ID)
+     */
+    internal fun withAltFormat(value: String): String {
+        val v = value.trim()
+        if (v.isEmpty() || v == "—") return v
+
+        // Fall 1: Rein dezimal (z.B. GSF ID "51991968436349795") → Hex anzeigen
+        if (v.all { it.isDigit() } && v.length >= 6) {
+            val hex = try {
+                val num = v.toLongOrNull()
+                if (num != null) num.toString(16).uppercase()
+                else java.math.BigInteger(v).toString(16).uppercase()
+            } catch (_: Throwable) { null }
+            return if (!hex.isNullOrEmpty()) "$v\n(hex: $hex)" else v
+        }
+
+        // Fall 2: Hex-String ohne Trennzeichen (z.B. Android ID "a6790b84fe007816") → Dezimal + Uppercase
+        // Kein MAC (enthält ':' oder '-'), keine UUID (enthält '-'), kein Widevine (32 chars = md5-hash)
+        if (v.length in 8..20 && v.all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }
+            && v.any { it in 'a'..'f' || it in 'A'..'F' } // Muss Hex-Chars enthalten
+            && !v.contains(':') && !v.contains('-')
+        ) {
+            val dec = try {
+                java.lang.Long.parseUnsignedLong(v, 16).toULong().toString()
+            } catch (_: Throwable) {
+                try { java.math.BigInteger(v, 16).toString() } catch (_: Throwable) { null }
+            }
+            val upper = v.uppercase()
+            return if (!dec.isNullOrEmpty()) "$upper\n(dec: $dec)" else upper
+        }
+
+        return v
+    }
+
     /** GSF: Java + Root (Native nicht verfügbar). Root-Fallback bei fehlendem Java. */
     fun getGsfIdLayered(context: Context): LayeredAuditRow {
         var javaV = getGsfIdJava(context)
@@ -644,9 +689,9 @@ object AuditEngine {
         val status = computeLayeredStatus(javaV, "", rootV)
         return LayeredAuditRow(
             label = "GSF ID",
-            javaValue = orDash(javaV),
+            javaValue = withAltFormat(orDash(javaV)),
             nativeValue = "—",
-            rootValue = orDash(rootV),
+            rootValue = withAltFormat(orDash(rootV)),
             isCritical = true,
             status = status
         )
@@ -659,9 +704,9 @@ object AuditEngine {
         val status = computeLayeredStatus(javaV, "", rootV)
         return LayeredAuditRow(
             label = "Android ID (SSAID)",
-            javaValue = orDash(javaV),
+            javaValue = withAltFormat(orDash(javaV)),
             nativeValue = "—",
-            rootValue = orDash(rootV),
+            rootValue = withAltFormat(orDash(rootV)),
             isCritical = true,
             status = status
         )
@@ -673,13 +718,14 @@ object AuditEngine {
         val rootV = RootShell.getImeiViaRoot(0)
         val best = r.value.ifEmpty { rootV }
         if (best.isNotEmpty()) NativeEngine.setFakeImei(best)
-        val javaDisplay = r.javaStatusMessage ?: orDash(r.value)
-        val status = computeLayeredStatus(r.value, "", rootV)
+        val javaRaw = r.value
+        val javaDisplay = r.javaStatusMessage ?: withAltFormat(orDash(javaRaw))
+        val status = computeLayeredStatus(javaRaw, "", rootV)
         return LayeredAuditRow(
             label = "IMEI 1",
             javaValue = javaDisplay,
             nativeValue = "—",
-            rootValue = orDash(rootV),
+            rootValue = withAltFormat(orDash(rootV)),
             isCritical = true,
             status = status
         )
@@ -691,13 +737,14 @@ object AuditEngine {
         val rootV = RootShell.getImeiViaRoot(1)
         val best = r.value.ifEmpty { rootV }
         if (best.isNotEmpty()) NativeEngine.setFakeImei(best)
-        val javaDisplay = r.javaStatusMessage ?: orDash(r.value)
-        val status = computeLayeredStatus(r.value, "", rootV)
+        val javaRaw = r.value
+        val javaDisplay = r.javaStatusMessage ?: withAltFormat(orDash(javaRaw))
+        val status = computeLayeredStatus(javaRaw, "", rootV)
         return LayeredAuditRow(
             label = "IMEI 2",
             javaValue = javaDisplay,
             nativeValue = "—",
-            rootValue = orDash(rootV),
+            rootValue = withAltFormat(orDash(rootV)),
             isCritical = false,
             status = status
         )

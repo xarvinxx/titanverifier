@@ -53,10 +53,10 @@ RM = /opt/homebrew/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/Users/arvin/Downloads/Custom Hook Module/module"
+CMAKE_SOURCE_DIR = /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/Users/arvin/Downloads/Custom Hook Module/build_native"
+CMAKE_BINARY_DIR = /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native
 
 # Include any dependencies generated for this target.
 include CMakeFiles/titan_zygisk.dir/depend.make
@@ -73,48 +73,48 @@ CMakeFiles/titan_zygisk.dir/codegen:
 .PHONY : CMakeFiles/titan_zygisk.dir/codegen
 
 CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o: CMakeFiles/titan_zygisk.dir/flags.make
-CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o: /Users/arvin/Downloads/Custom\ Hook\ Module/module/zygisk_module.cpp
+CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/zygisk_module.cpp
 CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o: CMakeFiles/titan_zygisk.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o"
-	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android30 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o -MF CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o.d -o CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o -c "/Users/arvin/Downloads/Custom Hook Module/module/zygisk_module.cpp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o"
+	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android33 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o -MF CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o.d -o CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o -c /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/zygisk_module.cpp
 
 CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.i"
-	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android30 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/Users/arvin/Downloads/Custom Hook Module/module/zygisk_module.cpp" > CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.i
+	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android33 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/zygisk_module.cpp > CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.i
 
 CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.s"
-	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android30 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/Users/arvin/Downloads/Custom Hook Module/module/zygisk_module.cpp" -o CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.s
+	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android33 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/zygisk_module.cpp -o CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.s
 
-CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o: CMakeFiles/titan_zygisk.dir/flags.make
-CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o: /Users/arvin/Downloads/Custom\ Hook\ Module/common/titan_hardware.cpp
-CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o: CMakeFiles/titan_zygisk.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o"
-	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android30 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o -MF CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o.d -o CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o -c "/Users/arvin/Downloads/Custom Hook Module/common/titan_hardware.cpp"
+CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o: CMakeFiles/titan_zygisk.dir/flags.make
+CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp
+CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o: CMakeFiles/titan_zygisk.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o"
+	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android33 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o -MF CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o.d -o CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o -c /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp
 
-CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.i"
-	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android30 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/Users/arvin/Downloads/Custom Hook Module/common/titan_hardware.cpp" > CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.i
+CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.i"
+	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android33 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp > CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.i
 
-CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.s"
-	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android30 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/Users/arvin/Downloads/Custom Hook Module/common/titan_hardware.cpp" -o CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.s
+CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.s"
+	/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=aarch64-none-linux-android33 --sysroot=/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp -o CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.s
 
 # Object files for target titan_zygisk
 titan_zygisk_OBJECTS = \
 "CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o" \
-"CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o"
+"CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o"
 
 # External object files for target titan_zygisk
 titan_zygisk_EXTERNAL_OBJECTS =
 
 lib/arm64-v8a/libtitan_zygisk.so: CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o
-lib/arm64-v8a/libtitan_zygisk.so: CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o
+lib/arm64-v8a/libtitan_zygisk.so: CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o
 lib/arm64-v8a/libtitan_zygisk.so: CMakeFiles/titan_zygisk.dir/build.make
 lib/arm64-v8a/libtitan_zygisk.so: CMakeFiles/titan_zygisk.dir/compiler_depend.ts
-lib/arm64-v8a/libtitan_zygisk.so: /Users/arvin/Downloads/Custom\ Hook\ Module/module/../libs/dobby/arm64-v8a/libdobby.a
+lib/arm64-v8a/libtitan_zygisk.so: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/../libs/dobby/arm64-v8a/libdobby.a
 lib/arm64-v8a/libtitan_zygisk.so: CMakeFiles/titan_zygisk.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX shared library lib/arm64-v8a/libtitan_zygisk.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX shared library lib/arm64-v8a/libtitan_zygisk.so"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/titan_zygisk.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -126,6 +126,6 @@ CMakeFiles/titan_zygisk.dir/clean:
 .PHONY : CMakeFiles/titan_zygisk.dir/clean
 
 CMakeFiles/titan_zygisk.dir/depend:
-	cd "/Users/arvin/Downloads/Custom Hook Module/build_native" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/Users/arvin/Downloads/Custom Hook Module/module" "/Users/arvin/Downloads/Custom Hook Module/module" "/Users/arvin/Downloads/Custom Hook Module/build_native" "/Users/arvin/Downloads/Custom Hook Module/build_native" "/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles/titan_zygisk.dir/DependInfo.cmake" "--color=$(COLOR)" titan_zygisk
+	cd /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles/titan_zygisk.dir/DependInfo.cmake "--color=$(COLOR)" titan_zygisk
 .PHONY : CMakeFiles/titan_zygisk.dir/depend
 

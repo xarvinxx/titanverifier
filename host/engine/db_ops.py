@@ -463,6 +463,213 @@ async def get_audit_history(
         return [dict(r) for r in rows]
 
 
+# =============================================================================
+# DNA Fingerprint — Automatische Identity-Erkennung via Bridge-Datei
+# =============================================================================
+
+# Die Bridge-Datei (/data/adb/modules/titan_verifier/titan_identity) enthält
+# die aktuell auf dem Gerät gespooften Werte im Key=Value Format.
+# Diese Werte sind identisch mit dem, was die Titan Verifier App auf allen
+# Ebenen (Java/Native/Root) sieht — sie sind die "DNA" des Geräts.
+#
+# Matching-Strategie (abgestuft):
+#   1. serial + imei1 + android_id  → Exakt (3/3 Treffer)
+#   2. serial + imei1               → Stark  (2/3 Treffer)
+#   3. serial allein                → Mittel (1/3 Treffer)
+#   4. imei1 allein                 → Schwach
+#   5. android_id allein            → Schwach
+
+# Bridge-Felder die für DNA-Matching genutzt werden:
+_DNA_FIELDS = ("serial", "imei1", "android_id", "wifi_mac", "gsf_id")
+
+_IDENTITY_SELECT_COLS = """
+    id, name, serial, boot_serial, android_id, imei1, imei2, phone_number,
+    operator_name, sim_operator, sim_operator_name, voicemail_number,
+    wifi_mac, gsf_id, widevine_id, imsi, sim_serial,
+    build_id, build_fingerprint, security_patch,
+    status, created_at, last_used_at,
+    last_public_ip, last_ip_service, last_ip_at,
+    last_audit_score, last_audit_at, total_audits, usage_count
+"""
+
+
+def parse_bridge_file(content: str) -> dict[str, str]:
+    """
+    Parst den Inhalt einer Bridge-Datei (Key=Value Format).
+
+    Ignoriert Kommentare (#) und leere Zeilen.
+    Keys werden lowercase normalisiert.
+    """
+    result: dict[str, str] = {}
+    for line in content.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        result[key.strip().lower()] = value.strip()
+    return result
+
+
+async def detect_identity_by_dna(
+    bridge_values: Optional[dict[str, str]] = None,
+) -> Optional[dict]:
+    """
+    Erkennt die aktuell auf dem Gerät geladene Identität anhand der
+    Bridge-Datei-Werte (= gespooften Hardware-DNA).
+
+    Args:
+        bridge_values: Geparstes dict aus der Bridge-Datei (Key→Value).
+                       Relevante Keys: serial, imei1, android_id, wifi_mac, gsf_id.
+
+    Matching-Logik (abgestuft nach Trefferanzahl):
+      - 3+ Felder stimmen überein → 'exact'
+      - 2 Felder                  → 'strong'
+      - 1 Feld                    → 'partial'
+      - 0 Felder                  → None (kein Treffer)
+
+    Auto-Sync: Bei Treffer wird die Identity automatisch als 'active'
+    markiert, falls sie es nicht schon ist.
+
+    Returns:
+        dict mit Identity-Daten + 'dna_confidence', 'dna_synced',
+        'dna_matched_fields' Feldern, oder None.
+    """
+    if not bridge_values:
+        return None
+
+    # Relevante Felder aus der Bridge extrahieren
+    b_serial = bridge_values.get("serial", "").strip()
+    b_imei1 = bridge_values.get("imei1", "").strip()
+    b_android_id = bridge_values.get("android_id", "").strip()
+    b_wifi_mac = bridge_values.get("wifi_mac", "").strip()
+    b_gsf_id = bridge_values.get("gsf_id", "").strip()
+
+    if not any([b_serial, b_imei1, b_android_id]):
+        logger.debug("DNA: Keine relevanten Bridge-Felder vorhanden")
+        return None
+
+    async with db.connection() as conn:
+        # Alle nicht-retired Identitäten laden (in der Regel < 100 Zeilen)
+        cursor = await conn.execute(
+            f"SELECT {_IDENTITY_SELECT_COLS} FROM identities "
+            "WHERE status != 'retired' ORDER BY last_used_at DESC"
+        )
+        rows = await cursor.fetchall()
+
+        if not rows:
+            return None
+
+        # Scoring: Für jede Identity zählen wie viele Felder übereinstimmen
+        best_match: Optional[dict] = None
+        best_score: int = 0
+        matched_fields: list[str] = []
+
+        for row in rows:
+            identity = dict(row)
+            score = 0
+            fields: list[str] = []
+
+            if b_serial and identity.get("serial") == b_serial:
+                score += 3  # Serial hat höchstes Gewicht
+                fields.append("serial")
+            if b_imei1 and identity.get("imei1") == b_imei1:
+                score += 3  # IMEI ebenso hoch
+                fields.append("imei1")
+            if b_android_id and identity.get("android_id") == b_android_id:
+                score += 2
+                fields.append("android_id")
+            if b_wifi_mac and identity.get("wifi_mac") == b_wifi_mac:
+                score += 1
+                fields.append("wifi_mac")
+            if b_gsf_id and identity.get("gsf_id") == b_gsf_id:
+                score += 1
+                fields.append("gsf_id")
+
+            if score > best_score:
+                best_score = score
+                best_match = identity
+                matched_fields = fields
+
+        if not best_match or best_score == 0:
+            return None
+
+        # Confidence-Level bestimmen
+        n_fields = len(matched_fields)
+        if n_fields >= 3 or best_score >= 7:
+            confidence = "exact"
+        elif n_fields >= 2 or best_score >= 4:
+            confidence = "strong"
+        else:
+            confidence = "partial"
+
+        # --- Auto-Sync: Identity + verknüpftes Profil als 'active' markieren ---
+        dna_synced = False
+        now = _now()
+
+        if best_match["status"] != "active":
+            async with db.transaction() as tx:
+                # Alle anderen Identitäten deaktivieren
+                await tx.execute(
+                    "UPDATE identities SET status = 'ready', updated_at = ? "
+                    "WHERE status = 'active'",
+                    (now,),
+                )
+                # Erkannte Identity aktivieren
+                await tx.execute(
+                    "UPDATE identities SET status = 'active', "
+                    "last_used_at = ?, updated_at = ? WHERE id = ?",
+                    (now, now, best_match["id"]),
+                )
+            best_match["status"] = "active"
+            dna_synced = True
+            logger.info(
+                "DNA-Match: Identity #%d '%s' automatisch aktiviert "
+                "(confidence=%s, score=%d, fields=%s)",
+                best_match["id"], best_match["name"],
+                confidence, best_score, "+".join(matched_fields),
+            )
+        else:
+            logger.debug(
+                "DNA-Match: Identity #%d '%s' bereits aktiv "
+                "(confidence=%s, fields=%s)",
+                best_match["id"], best_match["name"],
+                confidence, "+".join(matched_fields),
+            )
+
+        # --- Auto-Sync: Verknüpftes Profil ebenfalls auf 'active' setzen ---
+        # Wenn ein DNA-Match besteht (partial+), muss das Profil im Vault
+        # automatisch als 'active' angezeigt werden.
+        async with db.transaction() as tx:
+            # Alle Profile die aktuell 'active' sind aber NICHT zu dieser
+            # Identity gehören → zurück auf 'ready'
+            await tx.execute(
+                "UPDATE profiles SET status = 'ready', updated_at = ? "
+                "WHERE status = 'active' AND identity_id != ?",
+                (now, best_match["id"]),
+            )
+            # Profil(e) dieser Identity auf 'active' setzen
+            # (nur wenn noch nicht active und nicht archived/banned)
+            cursor = await tx.execute(
+                "UPDATE profiles SET status = 'active', updated_at = ? "
+                "WHERE identity_id = ? AND status NOT IN ('active', 'archived', 'banned')",
+                (now, best_match["id"]),
+            )
+            if cursor.rowcount and cursor.rowcount > 0:
+                dna_synced = True
+                logger.info(
+                    "DNA-Sync: %d Profil(e) für Identity #%d auf 'active' gesetzt",
+                    cursor.rowcount, best_match["id"],
+                )
+
+        best_match["dna_confidence"] = confidence
+        best_match["dna_synced"] = dna_synced
+        best_match["dna_matched_fields"] = matched_fields
+        best_match["dna_score"] = best_score
+        return best_match
+
+
 async def get_dashboard_stats() -> dict:
     """Aggregierte Statistiken für das Dashboard."""
     async with db.connection() as conn:

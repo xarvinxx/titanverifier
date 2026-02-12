@@ -4,7 +4,7 @@
 # compile CXX with /Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++
 CXX_DEFINES = -DUSE_DOBBY=1 -Dtitan_zygisk_EXPORTS
 
-CXX_INCLUDES = -I"/Users/arvin/Downloads/Custom Hook Module/module/../common" -isystem "/Users/arvin/Downloads/Custom Hook Module/module/../include"
+CXX_INCLUDES = -I/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/../common -isystem /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/../include
 
 CXX_FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O3 -DNDEBUG  -std=gnu++20 -fPIC -Wall -Wextra -Werror=return-type -fno-exceptions -fno-rtti -fvisibility=hidden -fvisibility-inlines-hidden -ffunction-sections -fdata-sections -O3 -DNDEBUG -fomit-frame-pointer
 

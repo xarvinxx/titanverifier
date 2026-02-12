@@ -1,21 +1,29 @@
 """
-Project Titan — NetworkChecker (IP-Ermittlung via ares_curl)
-==============================================================
+Project Titan — NetworkChecker v4.1 (Cached IP-Ermittlung)
+============================================================
 
-Ermittelt die öffentliche IP des Geräts (O2 Mobilfunk) über
-einen DNS-Bypass-Trick:
+Ermittelt die öffentliche IP des Android-Geräts über O2 Mobilfunk.
 
-  1. Mac löst DNS auf (socket.gethostbyname) → IP-Adresse
-  2. Android führt ares_curl mit direkter IP + Host-Header aus
-  3. Kein DNS auf dem Gerät nötig → keine DNS-Leaks
+v4.1 — Performance-Optimierungen:
+  - Tool-Detection wird EINMALIG ausgeführt und global gecacht
+  - IP-Ergebnis wird mit 60s TTL gecacht (kein Spam bei Dashboard-Polls)
+  - Detection-Fehlschläge werden als DEBUG geloggt (kein WARNING-Spam)
+  - Erfolg wird nur einmal pro Cache-Zyklus geloggt
 
-Binary: /data/local/tmp/ares_curl (ARM64, muss vorher gepusht sein)
+v4.0 — Automatische Tool-Erkennung:
+  1. ares_curl  → /data/local/tmp/ares_curl (falls gepusht, DNS-Bypass)
+  2. curl       → System curl (falls vorhanden)
+  3. busybox    → /data/adb/ksu/bin/busybox wget (KernelSU — immer verfügbar)
 
-Fallback-Kette (4 Services):
-  1. ifconfig.me
-  2. icanhazip.com
-  3. api.ipify.org
-  4. ifconfig.co
+Fallback-Kette (5 Services):
+  1. api.ipify.org          (plain text, kein HTML)
+  2. icanhazip.com          (plain text)
+  3. ifconfig.me            (plain text)
+  4. ifconfig.co            (plain text)
+  5. checkip.amazonaws.com  (plain text)
+
+IPv4 + IPv6 werden unterstützt.
+Mobilfunk-optimierte Timeouts (15s pro Request).
 """
 
 from __future__ import annotations
@@ -23,7 +31,9 @@ from __future__ import annotations
 import logging
 import re
 import socket
+import time
 from dataclasses import dataclass
+from enum import Enum
 from typing import Optional
 
 from host.adb.client import ADBClient, ADBError
@@ -35,22 +45,45 @@ logger = logging.getLogger("titan.engine.network")
 # =============================================================================
 
 ARES_CURL_PATH = "/data/local/tmp/ares_curl"
+BUSYBOX_KSU_PATH = "/data/adb/ksu/bin/busybox"
 
-# IP-Check Services (Fallback-Kette)
+# IP-Check Services (Fallback-Kette, zuverlässigste zuerst)
 IP_SERVICES = [
-    "ifconfig.me",
-    "icanhazip.com",
     "api.ipify.org",
+    "icanhazip.com",
+    "ifconfig.me",
     "ifconfig.co",
+    "checkip.amazonaws.com",
 ]
 
 # Wartezeit nach Flugmodus-AUS bevor IP-Check (Mobilfunk braucht Zeit)
 IP_AUDIT_WAIT_SECONDS = 15
 
-# Regex für IPv4 Validierung
+# Timeout für einzelne Requests (Mobilfunk kann langsam sein)
+REQUEST_TIMEOUT_SECONDS = 15
+
+# Cache-TTL für IP-Ergebnis (Sekunden)
+IP_CACHE_TTL_SECONDS = 60
+
+# Regex für IP-Validierung
 _IPV4_RE = re.compile(
     r"^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$"
 )
+_IPV6_RE = re.compile(
+    r"^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$"
+)
+
+
+# =============================================================================
+# HTTP-Tool Enum
+# =============================================================================
+
+class HttpTool(str, Enum):
+    """Verfügbare HTTP-Tools auf dem Android-Gerät."""
+    ARES_CURL = "ares_curl"
+    CURL = "curl"
+    BUSYBOX_WGET = "busybox_wget"
+    NONE = "none"
 
 
 # =============================================================================
@@ -62,159 +95,373 @@ class IPCheckResult:
     """Ergebnis einer IP-Ermittlung."""
     success: bool
     ip: Optional[str] = None
-    service: Optional[str] = None   # Welcher Service hat geantwortet
+    service: Optional[str] = None
+    tool: Optional[str] = None
     error: Optional[str] = None
+    cached: bool = False              # True wenn aus Cache
 
 
 # =============================================================================
-# NetworkChecker
+# Globaler Cache (Modul-Level — überlebt Instanzen)
+# =============================================================================
+
+class _ToolCache:
+    """
+    Globaler Cache für Tool-Detection und IP-Ergebnis.
+
+    Wird auf Modul-Ebene gehalten, damit nicht jede NetworkChecker-Instanz
+    die Tool-Detection neu ausführt. Besonders wichtig für den Dashboard-
+    Endpoint der alle 3 Sekunden pollt.
+    """
+    tool: HttpTool = HttpTool.NONE
+    tool_path: str = ""
+    detected: bool = False
+
+    # IP-Cache
+    last_ip_result: Optional[IPCheckResult] = None
+    last_ip_time: float = 0.0         # time.monotonic()
+
+
+_cache = _ToolCache()
+
+
+# =============================================================================
+# NetworkChecker v4.1
 # =============================================================================
 
 class NetworkChecker:
     """
     Ermittelt die öffentliche IP des Android-Geräts.
 
-    Trick: DNS wird auf dem Mac aufgelöst, nicht auf Android.
-    Das vermeidet DNS-Leaks über den O2-Mobilfunk-Tunnel.
+    v4.1 Verbesserungen:
+      - Globaler Tool-Detection-Cache (einmalig pro Session)
+      - IP-Cache mit 60s TTL (kein Spam bei Dashboard-Polls)
+      - Leise Detection (DEBUG statt WARNING für fehlende Tools)
 
     Usage:
         adb = ADBClient()
         checker = NetworkChecker(adb)
-
-        # Prüfe ob ares_curl auf dem Gerät liegt
-        await checker.ensure_tool()
-
-        # IP ermitteln
         result = await checker.get_public_ip()
-        print(result.ip)  # "185.xxx.xxx.xxx"
+        print(result.ip)  # "176.x.x.x"
     """
 
     def __init__(self, adb: ADBClient):
         self._adb = adb
 
+    @property
+    def active_tool(self) -> HttpTool:
+        """Aktuell verwendetes HTTP-Tool."""
+        return _cache.tool
+
     # =========================================================================
-    # Tool-Check: ares_curl muss auf dem Gerät liegen
+    # Tool-Erkennung (einmalig, global gecacht)
+    # =========================================================================
+
+    async def detect_tool(self, force: bool = False) -> HttpTool:
+        """
+        Erkennt das beste verfügbare HTTP-Tool auf dem Gerät.
+
+        Ergebnis wird global gecacht — nachfolgende Aufrufe returnen sofort.
+        Mit force=True kann ein Re-Detect erzwungen werden.
+
+        Reihenfolge (Priorität):
+          1. ares_curl  — Custom binary mit vollem TLS + DNS-Bypass
+          2. curl       — System curl (falls vorhanden)
+          3. busybox    — KSU busybox wget (immer verfügbar bei KernelSU)
+
+        Returns:
+            Erkanntes HttpTool
+        """
+        if _cache.detected and not force:
+            return _cache.tool
+
+        # --- 1. ares_curl ---
+        try:
+            result = await self._adb.shell(
+                f"test -x {ARES_CURL_PATH} && {ARES_CURL_PATH} --version 2>&1 | head -1",
+                root=False, timeout=5,
+            )
+            if result.success and "curl" in result.stdout.lower():
+                _cache.tool = HttpTool.ARES_CURL
+                _cache.tool_path = ARES_CURL_PATH
+                _cache.detected = True
+                logger.info("HTTP-Tool erkannt: ares_curl (%s)", result.stdout.strip()[:60])
+                return _cache.tool
+        except (ADBError, Exception):
+            pass
+        logger.debug("Tool-Detection: ares_curl nicht verfügbar")
+
+        # --- 2. System curl ---
+        try:
+            result = await self._adb.shell(
+                "which curl 2>/dev/null && curl --version 2>&1 | head -1",
+                root=False, timeout=5,
+            )
+            if result.success and "curl" in result.stdout.lower():
+                curl_path = result.stdout.strip().split("\n")[0].strip()
+                _cache.tool = HttpTool.CURL
+                _cache.tool_path = curl_path
+                _cache.detected = True
+                logger.info("HTTP-Tool erkannt: system curl (%s)", curl_path)
+                return _cache.tool
+        except (ADBError, Exception):
+            pass
+        logger.debug("Tool-Detection: system curl nicht verfügbar")
+
+        # --- 3. KSU busybox wget ---
+        try:
+            result = await self._adb.shell(
+                f"test -x {BUSYBOX_KSU_PATH} && {BUSYBOX_KSU_PATH} wget 2>&1 | head -1",
+                root=True, timeout=5,
+            )
+            if result.success or "wget" in (result.output or "").lower():
+                _cache.tool = HttpTool.BUSYBOX_WGET
+                _cache.tool_path = BUSYBOX_KSU_PATH
+                _cache.detected = True
+                logger.info("HTTP-Tool erkannt: busybox wget (%s)", BUSYBOX_KSU_PATH)
+                return _cache.tool
+        except (ADBError, Exception):
+            pass
+        logger.debug("Tool-Detection: busybox wget nicht verfügbar")
+
+        # --- Kein Tool gefunden ---
+        _cache.tool = HttpTool.NONE
+        _cache.tool_path = ""
+        _cache.detected = True
+        logger.error(
+            "KEIN HTTP-Tool auf Gerät gefunden! "
+            "Benötigt: ares_curl, curl, oder busybox (KSU)."
+        )
+        return _cache.tool
+
+    # =========================================================================
+    # Legacy: ensure_tool (Kompatibilität)
     # =========================================================================
 
     async def ensure_tool(self) -> bool:
-        """
-        Prüft ob ares_curl auf dem Gerät existiert und ausführbar ist.
-
-        Returns:
-            True wenn Tool bereit
-        """
-        try:
-            result = await self._adb.shell(
-                f"test -x {ARES_CURL_PATH} && {ARES_CURL_PATH} --version",
-                root=False,
-                timeout=5,
-            )
-            if result.success and "curl" in result.stdout.lower():
-                logger.debug("ares_curl bereit: %s", result.output.split("\n")[0])
-                return True
-
-            logger.warning(
-                "ares_curl nicht funktionsfähig: exit=%d, output=%s",
-                result.returncode, result.output[:100],
-            )
-            return False
-
-        except ADBError as e:
-            logger.error("ares_curl Check fehlgeschlagen: %s", e)
-            return False
+        """Kompatibilitäts-Wrapper. Prüft ob ein HTTP-Tool verfügbar ist."""
+        if not _cache.detected:
+            await self.detect_tool()
+        return _cache.tool != HttpTool.NONE
 
     # =========================================================================
-    # IP ermitteln (Hauptmethode)
+    # Cache invalidieren (nach Flugmodus-Cycle oder Reboot)
     # =========================================================================
 
-    async def get_public_ip(self) -> IPCheckResult:
+    @staticmethod
+    def invalidate_ip_cache() -> None:
+        """
+        Invalidiert den IP-Cache.
+
+        Sollte aufgerufen werden wenn sich die IP sicher geändert hat:
+          - Nach Flugmodus-Cycle (neue Mobilfunk-IP)
+          - Nach Reboot
+          - Nach Identity-Switch
+        """
+        _cache.last_ip_result = None
+        _cache.last_ip_time = 0.0
+        logger.debug("IP-Cache invalidiert")
+
+    @staticmethod
+    def invalidate_tool_cache() -> None:
+        """Invalidiert den Tool-Cache (z.B. nach Push von ares_curl)."""
+        _cache.detected = False
+        logger.debug("Tool-Cache invalidiert")
+
+    # =========================================================================
+    # IP ermitteln (Hauptmethode, mit Cache)
+    # =========================================================================
+
+    async def get_public_ip(self, skip_cache: bool = False) -> IPCheckResult:
         """
         Ermittelt die öffentliche IP des Geräts.
 
-        Ablauf pro Service:
-          1. Mac: DNS auflösen (socket.gethostbyname)
-          2. Android: ares_curl -s --max-time 10 -H 'Host: <service>' http://<ip>/
-
-        Probiert alle Services der Fallback-Kette durch.
+        Cached das Ergebnis für IP_CACHE_TTL_SECONDS (Default: 60s).
+        Bei skip_cache=True wird immer frisch abgefragt.
 
         Returns:
             IPCheckResult mit IP oder Fehler
         """
+        # --- Cache-Check ---
+        if not skip_cache and _cache.last_ip_result and _cache.last_ip_result.success:
+            age = time.monotonic() - _cache.last_ip_time
+            if age < IP_CACHE_TTL_SECONDS:
+                return IPCheckResult(
+                    success=True,
+                    ip=_cache.last_ip_result.ip,
+                    service=_cache.last_ip_result.service,
+                    tool=_cache.last_ip_result.tool,
+                    cached=True,
+                )
+
+        # --- Tool-Detection (einmalig) ---
+        if not _cache.detected:
+            await self.detect_tool()
+
+        if _cache.tool == HttpTool.NONE:
+            return IPCheckResult(
+                success=False,
+                error="Kein HTTP-Tool auf Gerät verfügbar (ares_curl/curl/busybox fehlt)",
+            )
+
+        # --- Frische IP-Abfrage ---
+        errors: list[str] = []
         for service in IP_SERVICES:
             try:
                 result = await self._check_service(service)
                 if result.success:
+                    # In Cache speichern
+                    _cache.last_ip_result = result
+                    _cache.last_ip_time = time.monotonic()
+                    logger.info(
+                        "Öffentliche IP: %s (via %s, %s) — Cache für %ds",
+                        result.ip, result.service, _cache.tool.value,
+                        IP_CACHE_TTL_SECONDS,
+                    )
                     return result
+                if result.error:
+                    errors.append(result.error)
             except Exception as e:
-                logger.debug("Service %s fehlgeschlagen: %s", service, e)
+                logger.debug("Service %s Exception: %s", service, e)
+                errors.append(f"{service}: {e}")
                 continue
 
         return IPCheckResult(
             success=False,
-            error=f"Alle {len(IP_SERVICES)} Services fehlgeschlagen",
+            error=(
+                f"Alle {len(IP_SERVICES)} Services fehlgeschlagen "
+                f"(Tool: {_cache.tool.value}). "
+                f"Letzter Fehler: {errors[-1] if errors else 'unbekannt'}"
+            ),
         )
 
     # =========================================================================
-    # Einzelnen Service abfragen
+    # Service-Check (Dispatcher)
     # =========================================================================
 
     async def _check_service(self, hostname: str) -> IPCheckResult:
-        """
-        Fragt einen einzelnen IP-Service ab.
+        """Fragt einen einzelnen IP-Service ab."""
+        if _cache.tool == HttpTool.ARES_CURL:
+            return await self._check_via_ares_curl(hostname)
+        elif _cache.tool == HttpTool.CURL:
+            return await self._check_via_curl(hostname)
+        elif _cache.tool == HttpTool.BUSYBOX_WGET:
+            return await self._check_via_busybox_wget(hostname)
+        else:
+            return IPCheckResult(success=False, error="Kein Tool verfügbar")
 
-        Schritt A: DNS auf dem Mac auflösen (NICHT auf Android!)
-        Schritt B: ares_curl auf Android mit direkter IP + Host-Header
-        Schritt C: Antwort validieren (IPv4-Format)
-        """
-        # --- Schritt A: DNS auf dem Mac ---
+    # =========================================================================
+    # ares_curl (DNS-Bypass via Mac)
+    # =========================================================================
+
+    async def _check_via_ares_curl(self, hostname: str) -> IPCheckResult:
+        """IP-Check via ares_curl mit DNS-Bypass."""
         try:
-            ip_address = socket.gethostbyname(hostname)
-            logger.debug("DNS (Mac): %s → %s", hostname, ip_address)
+            resolved_ip = socket.gethostbyname(hostname)
         except socket.gaierror as e:
-            logger.debug("DNS Fehler für %s: %s", hostname, e)
             return IPCheckResult(success=False, error=f"DNS: {hostname} → {e}")
 
-        # --- Schritt B: ares_curl auf Android ---
         cmd = (
-            f"{ARES_CURL_PATH} -s --max-time 10 "
+            f"{_cache.tool_path} -s --max-time {REQUEST_TIMEOUT_SECONDS} "
             f"-H 'Host: {hostname}' "
-            f"http://{ip_address}/"
+            f"http://{resolved_ip}/"
         )
+        return await self._execute_and_parse(cmd, hostname, root=False)
 
+    # =========================================================================
+    # System curl (direkter HTTPS-Request)
+    # =========================================================================
+
+    async def _check_via_curl(self, hostname: str) -> IPCheckResult:
+        """IP-Check via system curl mit HTTPS."""
+        cmd = (
+            f"{_cache.tool_path} -s --max-time {REQUEST_TIMEOUT_SECONDS} "
+            f"https://{hostname}/"
+        )
+        return await self._execute_and_parse(cmd, hostname, root=False)
+
+    # =========================================================================
+    # busybox wget (KernelSU)
+    # =========================================================================
+
+    async def _check_via_busybox_wget(self, hostname: str) -> IPCheckResult:
+        """IP-Check via KSU busybox wget (HTTP, root)."""
+        cmd = (
+            f"{_cache.tool_path} wget -qO- "
+            f"-T {REQUEST_TIMEOUT_SECONDS} "
+            f"http://{hostname}/ 2>/dev/null"
+        )
+        return await self._execute_and_parse(cmd, hostname, root=True)
+
+    # =========================================================================
+    # Gemeinsame Ausführung + Parsing
+    # =========================================================================
+
+    async def _execute_and_parse(
+        self, cmd: str, hostname: str, root: bool = False,
+    ) -> IPCheckResult:
+        """Führt den HTTP-Befehl aus und parst die Antwort."""
         try:
-            result = await self._adb.shell(cmd, root=False, timeout=15)
+            result = await self._adb.shell(
+                cmd, root=root, timeout=REQUEST_TIMEOUT_SECONDS + 5,
+            )
         except ADBError as e:
-            return IPCheckResult(success=False, error=f"ADB: {e}")
+            return IPCheckResult(
+                success=False,
+                error=f"{hostname}: ADB-Fehler: {e}",
+                tool=_cache.tool.value,
+            )
 
         if not result.success:
             return IPCheckResult(
                 success=False,
-                error=f"{hostname}: exit={result.returncode}",
+                error=f"{hostname}: exit={result.returncode} ({_cache.tool.value})",
+                tool=_cache.tool.value,
             )
 
-        # --- Schritt C: Antwort parsen + validieren ---
+        # Antwort parsen
         raw = result.output.strip()
-
-        # HTML-Tags entfernen falls vorhanden
         raw = re.sub(r"<[^>]+>", "", raw).strip()
-
-        # Nur die erste Zeile (manche Services geben Extras aus)
         ip_str = raw.split("\n")[0].strip()
 
-        if self._is_valid_ipv4(ip_str):
-            logger.info("Öffentliche IP via %s: %s", hostname, ip_str)
-            return IPCheckResult(success=True, ip=ip_str, service=hostname)
+        if self._is_valid_ip(ip_str):
+            return IPCheckResult(
+                success=True,
+                ip=ip_str,
+                service=hostname,
+                tool=_cache.tool.value,
+            )
 
         return IPCheckResult(
             success=False,
-            error=f"{hostname}: Ungültige Antwort: {ip_str[:50]}",
+            error=f"{hostname}: Ungültige Antwort: '{ip_str[:80]}'",
+            tool=_cache.tool.value,
         )
 
     # =========================================================================
-    # IPv4 Validierung
+    # IP-Validierung (IPv4 + IPv6)
     # =========================================================================
 
     @staticmethod
+    def _is_valid_ip(ip: str) -> bool:
+        """Prüft ob ein String eine gültige IPv4- oder IPv6-Adresse ist."""
+        if _IPV4_RE.match(ip):
+            return True
+        if _IPV6_RE.match(ip):
+            return True
+        try:
+            socket.inet_pton(socket.AF_INET, ip)
+            return True
+        except OSError:
+            pass
+        try:
+            socket.inet_pton(socket.AF_INET6, ip)
+            return True
+        except OSError:
+            pass
+        return False
+
+    @staticmethod
     def _is_valid_ipv4(ip: str) -> bool:
-        """Prüft ob ein String eine gültige IPv4-Adresse ist."""
+        """Legacy: Prüft ob ein String eine gültige IPv4-Adresse ist."""
         return bool(_IPV4_RE.match(ip))

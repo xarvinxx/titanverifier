@@ -6,6 +6,20 @@ app/build/
 *.apk
 *.so
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Backups (zu groß für GitHub)
+backups/
+
+# Datenbanken
+*.db
+*.db-shm
+*.db-wal
+
 # Identitäten (sensibel!)
 identities.json
 

@@ -1,5 +1,5 @@
 """
-Project Titan — Device Helper (GMS Readiness) v3.0
+Project Titan — Device Helper (GMS Readiness) v4.0
 ====================================================
 
 Stellt Hilfsmethoden bereit, die den Device-State abfragen,
@@ -9,14 +9,19 @@ Funktionen:
   suppress_system_dialogs() — Unterdrückt System-Error-Popups nach Boot
   kickstart_gms()           — Mehrstufiger Anstoß des GMS-Checkin-Prozesses
   wait_for_gsf_id()         — Passives Polling auf lokale GSF-ID-Generierung
-  check_connectivity()      — *** NEU v3.0 *** Schnelle Konnektivitätsprüfung
+  check_connectivity()      — Schnelle Konnektivitätsprüfung
 
 DESIGN-PRINZIP: "Silent Wait"
   Nach einem `pm clear com.google.android.gms` braucht GMS 10-30 Minuten
   für den vollständigen Re-Checkin (DroidGuard-Module, Integrity-Tokens, etc.).
   Anstatt blind die Play Integrity API zu pingen (→ Rate Limit Abuse Risiko),
-  prüfen wir rein lokal via Content Provider, ob die GSF-ID regeneriert wurde.
-  Erst wenn die GSF-ID da ist, kann ein Integrity Check überhaupt funktionieren.
+  prüfen wir rein lokal, ob die GSF-ID regeneriert wurde.
+
+v4.0 — GSF-ID MULTI-METHODE:
+  - Primär:   grep auf gservices.db (Android 14 Pixel 6 kompatibel)
+  - Fallback: Content Provider Query (ältere GMS-Versionen)
+  - Der Content Provider Query funktioniert NICHT auf Android 14 Pixel 6
+    mit neueren GMS-Versionen ("No result found" obwohl ID vorhanden).
 
 v3.0 — TIMING FIXES:
   - GSF-Timeout auf 600s erhöht (war 300s)
@@ -80,7 +85,31 @@ class DeviceHelper:
             print(f"GSF-ID bereit: {result.gsf_id} (nach {result.elapsed_seconds:.0f}s)")
     """
 
-    # Content Provider Query für die GSF-ID (Google Services Framework)
+    # -------------------------------------------------------------------------
+    # GSF-ID Extraktion: Multi-Methode (v4.0)
+    # -------------------------------------------------------------------------
+    # Methode 1 (Primär): Direkte DB-Extraktion via grep -aoP
+    #   Liest die GSF-ID als Dezimalzahl direkt aus der SQLite-Datenbank.
+    #   Funktioniert auf Android 14 Pixel 6 wo der Content Provider Query
+    #   "No result found" zurückgibt obwohl die ID vorhanden ist.
+    #
+    # Methode 2 (Fallback): Content Provider Query
+    #   Klassischer Ansatz, funktioniert auf älteren GMS-Versionen.
+    # -------------------------------------------------------------------------
+
+    _GSF_DB_PATH = "/data/data/com.google.android.gsf/databases/gservices.db"
+
+    # strings + grep extrahiert Dezimalzahl (15-20 Ziffern) nach "android_id" in der DB.
+    # Android's toybox-grep unterstützt kein -P (Perl regex), daher strings+grep+sed.
+    # sed entfernt den "android_id" Prefix und lässt nur die Dezimalzahl übrig.
+    _GSF_GREP_CMD = (
+        "strings {db_path} 2>/dev/null "
+        "| grep -oE 'android_id[0-9]{{15,20}}' "
+        "| sed 's/android_id//' "
+        "| head -1"
+    )
+
+    # Fallback: Content Provider (funktioniert auf manchen GMS-Versionen)
     _GSF_QUERY_CMD = (
         "content query "
         "--uri content://com.google.android.gsf.gservices "
@@ -90,6 +119,9 @@ class DeviceHelper:
     # Regex: Extrahiert den Hex-Wert aus der Content Provider Antwort
     # Erwartetes Format: "Row: 0 android_id=3a4b5c6d7e8f9a0b"
     _GSF_ID_PATTERN = re.compile(r"android_id=([0-9a-fA-F]+)")
+
+    # Regex: Validiert eine dezimale GSF-ID (15-20 Ziffern, nicht nur Nullen)
+    _GSF_DECIMAL_PATTERN = re.compile(r"^[0-9]{15,20}$")
 
     def __init__(self, adb: ADBClient):
         self._adb = adb
@@ -490,18 +522,15 @@ class DeviceHelper:
         """
         Wartet passiv bis die GSF-ID lokal generiert wurde.
 
-        KEINE Netzwerk-Requests — nur lokaler Content Provider Query.
+        KEINE Netzwerk-Requests — nur lokale DB/Content-Provider Query.
+
+        v4.0 Multi-Methode:
+          Primär:   grep auf gservices.db (funktioniert auf Android 14 Pixel 6)
+          Fallback: Content Provider Query (ältere GMS-Versionen)
 
         v3.0 Retry-Logik:
           Nach `retry_kickstart_after` Sekunden ohne GSF-ID wird ein
           zweiter kickstart_gms() ausgeführt, um GMS nochmal anzustoßen.
-          Das hilft wenn der erste Kickstart zu früh kam (Netz noch instabil).
-
-        Methode:
-          Prüft alle `poll_interval` Sekunden via ADB Shell, ob der
-          GServices Content Provider einen Wert für android_id hat.
-          Leerer Wert / null → GMS noch nicht bereit → weiter warten.
-          Hex-String vorhanden → GMS hat Checkin beendet → SUCCESS.
 
         Args:
             timeout:                Maximale Wartezeit in Sekunden (Default: 600s / 10 Min)
@@ -605,19 +634,96 @@ class DeviceHelper:
             elapsed += poll_interval
 
     # =========================================================================
-    # Interner Query: GSF Content Provider
+    # Interner Query: GSF-ID Extraktion (v4.0 Multi-Methode)
     # =========================================================================
 
     async def _query_gsf_id(self) -> Optional[str]:
         """
-        Fragt die GSF-ID über den lokalen Content Provider ab.
+        Extrahiert die GSF-ID vom Gerät.
 
-        Command:
-            content query --uri content://com.google.android.gsf.gservices
-                          --projection android_id
+        v4.0 Multi-Methode:
+          1. grep -aoP auf gservices.db  → Dezimal-ID direkt aus der DB
+          2. Content Provider Query       → Hex-ID (Fallback)
+
+        WICHTIG: Auf Android 14 Pixel 6 mit neueren GMS-Versionen
+        gibt der Content Provider "No result found" zurück, obwohl die
+        GSF-ID in der Datenbank vorhanden ist. Daher ist grep die
+        primäre Methode.
 
         Returns:
-            GSF-ID als Hex-String (z.B. "3a4b5c6d7e8f9a0b") oder None
+            GSF-ID als Hex-String (z.B. "3aeb1f...") oder None
+        """
+        # =================================================================
+        # Methode 1 (Primär): Direkte DB-Extraktion via grep
+        # =================================================================
+        gsf_decimal = await self._query_gsf_id_grep()
+        if gsf_decimal:
+            # Dezimal → Hex konvertieren (für Konsistenz mit dem Rest des Codes)
+            try:
+                gsf_hex = hex(int(gsf_decimal))[2:]  # "0x..." → "..."
+                logger.debug(
+                    "GSF-ID via grep (DB): dec=%s → hex=%s",
+                    gsf_decimal, gsf_hex,
+                )
+                return gsf_hex
+            except (ValueError, OverflowError) as e:
+                logger.debug("GSF grep: Dezimal→Hex Konvertierung fehlgeschlagen: %s", e)
+
+        # =================================================================
+        # Methode 2 (Fallback): Content Provider Query
+        # =================================================================
+        return await self._query_gsf_id_content_provider()
+
+    async def _query_gsf_id_grep(self) -> Optional[str]:
+        """
+        Extrahiert die GSF-ID als Dezimalzahl direkt aus der GServices-DB.
+
+        Nutzt grep -aoP (Perl-Regex) um die Ziffernfolge nach 'android_id'
+        zu extrahieren. Dies funktioniert zuverlässig auf Android 14 wo der
+        Content Provider Query fehlschlägt.
+
+        Returns:
+            GSF-ID als Dezimal-String (z.B. "4246407167114332321") oder None
+        """
+        try:
+            cmd = self._GSF_GREP_CMD.format(db_path=self._GSF_DB_PATH)
+            result = await self._adb.shell(cmd, root=True, timeout=10)
+
+            if not result.success:
+                logger.debug("GSF grep: exit=%d", result.returncode)
+                return None
+
+            output = result.output.strip()
+            if not output:
+                logger.debug("GSF grep: Leere Ausgabe (DB existiert evtl. noch nicht)")
+                return None
+
+            # Erste Zeile nehmen (head -1 im Befehl, aber sicherheitshalber)
+            decimal_str = output.split("\n")[0].strip()
+
+            # Validieren: 15-20 Ziffern, nicht nur Nullen
+            if self._GSF_DECIMAL_PATTERN.match(decimal_str):
+                if decimal_str != "0" * len(decimal_str):
+                    return decimal_str
+                logger.debug("GSF grep: ID ist nur Nullen (uninitialisiert)")
+                return None
+
+            logger.debug("GSF grep: Ungültiges Format: %r", decimal_str[:30])
+            return None
+
+        except (ADBError, ADBTimeoutError) as e:
+            logger.debug("GSF grep fehlgeschlagen: %s", e)
+            return None
+
+    async def _query_gsf_id_content_provider(self) -> Optional[str]:
+        """
+        Fallback: Fragt die GSF-ID über den Content Provider ab.
+
+        Funktioniert auf älteren GMS-Versionen, aber NICHT auf
+        Android 14 Pixel 6 mit neueren GMS-Versionen.
+
+        Returns:
+            GSF-ID als Hex-String oder None
         """
         try:
             result = await self._adb.shell(
@@ -628,15 +734,14 @@ class DeviceHelper:
 
             if not result.success:
                 logger.debug(
-                    "GSF Query: exit=%d (GMS evtl. noch nicht initialisiert)",
+                    "GSF Content Provider: exit=%d",
                     result.returncode,
                 )
                 return None
 
-            # Antwort parsen
             output = result.output
 
-            # "No result found." → GMS noch nicht bereit
+            # "No result found." → nicht verfügbar
             if not output or "no result" in output.lower():
                 return None
 
@@ -645,20 +750,20 @@ class DeviceHelper:
             if match:
                 gsf_id = match.group(1).lower()
 
-                # Plausibilitätscheck: GSF-ID muss mindestens 8 Hex-Zeichen haben
-                # und darf nicht "0" sein (Default/Uninitialisiert)
+                # Plausibilitätscheck: mindestens 8 Hex-Zeichen, nicht nur Nullen
                 if len(gsf_id) >= 8 and gsf_id != "0" * len(gsf_id):
                     return gsf_id
                 else:
                     logger.debug(
-                        "GSF Query: ID vorhanden aber ungültig: %r",
-                        gsf_id,
+                        "GSF Content Provider: ID ungültig: %r", gsf_id,
                     )
                     return None
 
-            logger.debug("GSF Query: Kein android_id Match in: %r", output[:200])
+            logger.debug(
+                "GSF Content Provider: Kein Match in: %r", output[:200],
+            )
             return None
 
         except (ADBError, ADBTimeoutError) as e:
-            logger.debug("GSF Query fehlgeschlagen: %s", e)
+            logger.debug("GSF Content Provider fehlgeschlagen: %s", e)
             return None

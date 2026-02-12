@@ -3,12 +3,18 @@ package com.titan.verifier
 import android.util.Log
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.io.File
 
 private const val TAG = "RootShell"
 
 /**
  * Hilfsklasse: Befehle via su ausführen.
  * su -M = Master-Namespace (KernelSU), volle Sicht auf /data, /sys, /persist.
+ * 
+ * Phase 11.0: Fallback auf Snapshot-Datei wenn su nicht verfügbar ist
+ * (z.B. wenn KernelSU der App keinen Root gewährt hat).
+ * Die Snapshot-Datei wird vom Host-Deployment erstellt und enthält
+ * die echten (ungehookten) Gerätewerte.
  */
 object RootShell {
 
@@ -17,18 +23,79 @@ object RootShell {
 
     @Volatile
     private var useSuC = false
+    
+    @Volatile
+    private var suAvailable: Boolean? = null  // null = nicht geprüft
+    
+    /**
+     * Real-Values Snapshot: Wird vom Host-Deployment erstellt.
+     * Enthält die echten Gerätewerte im Format key=value.
+     */
+    private val SNAPSHOT_PATHS = arrayOf(
+        "/data/data/com.titan.verifier/files/.titan_real_values",
+        "/data/user/0/com.titan.verifier/files/.titan_real_values"
+    )
+    
+    @Volatile
+    private var snapshotCache: Map<String, String>? = null
+    
+    private fun loadSnapshot(): Map<String, String> {
+        snapshotCache?.let { return it }
+        val values = mutableMapOf<String, String>()
+        for (path in SNAPSHOT_PATHS) {
+            try {
+                val file = File(path)
+                if (file.exists() && file.canRead()) {
+                    file.readLines().forEach { line ->
+                        val trimmed = line.trim()
+                        if (trimmed.isEmpty() || trimmed.startsWith("#")) return@forEach
+                        val eqIndex = trimmed.indexOf('=')
+                        if (eqIndex > 0) {
+                            val key = trimmed.substring(0, eqIndex).trim().lowercase()
+                            val value = trimmed.substring(eqIndex + 1).trim()
+                            if (value.isNotEmpty()) values[key] = value
+                        }
+                    }
+                    if (values.isNotEmpty()) {
+                        Log.i(TAG, "Snapshot loaded from $path (${values.size} values)")
+                        snapshotCache = values
+                        return values
+                    }
+                }
+            } catch (_: Throwable) {}
+        }
+        Log.w(TAG, "No snapshot file found")
+        snapshotCache = values
+        return values
+    }
+    
+    /**
+     * Liest einen Wert aus dem Snapshot.
+     * Wird als Fallback verwendet wenn su nicht verfügbar ist.
+     */
+    fun getSnapshotValue(key: String): String {
+        return loadSnapshot()[key.lowercase()] ?: ""
+    }
 
     /**
      * Führt Befehl mit su aus. Versucht su -M (Master-Namespace); bei Konsistenz-Fehler Fallback auf su -c.
      */
     fun execute(command: String): String? {
         if (command.isBlank()) return null
+        // Schneller Bail-out wenn su definitiv nicht funktioniert
+        if (suAvailable == false) return null
+        
         var result = execWithSu(command)
         if (result == null && !rootRetryDone) {
             rootRetryDone = true
             try { Thread.sleep(2500) } catch (_: InterruptedException) {}
             result = execWithSu(command)
+            if (result == null) {
+                suAvailable = false
+                Log.w(TAG, "su permanently unavailable - using snapshot fallback")
+            }
         }
+        if (result != null) suAvailable = true
         return result
     }
 
@@ -88,7 +155,77 @@ object RootShell {
         "/data/data/com.google.android.gms/shared_prefs/Checkin.xml"
     )
 
-    /** GSF ID: content query, sqlite3, cat/grep. Reihenfolge nach Erfolgswahrscheinlichkeit. */
+    /** Parcel: IMEI zwischen Single-Quotes. */
+    private fun parseImeiFromOutput(out: String, slot: Int): String {
+        val quoted = Regex("'([^']*)'").findAll(out).map { it.groupValues[1] }.toList()
+        for (q in quoted) {
+            val digits = q.filter { it.isDigit() }
+            if (digits.length >= 15) return digits.take(15)
+        }
+        val ids = IMEI_REGEX.findAll(out).map { it.value }.toList()
+        return ids.getOrNull(if (slot == 1) 1 else 0) ?: ids.firstOrNull() ?: ""
+    }
+
+    /** Android ID (SSAID) via settings get secure. Snapshot-Fallback. */
+    fun getAndroidIdViaRoot(): String {
+        val su = execute("settings get secure android_id")?.trim()
+        if (!su.isNullOrEmpty()) return su
+        return getSnapshotValue("android_id")
+    }
+
+    /** Serial: getprop ro.serialno, Fallback ro.boot.serialno. Snapshot-Fallback. */
+    fun getSerialViaRoot(): String {
+        val su = execute("getprop ro.serialno")?.trim()
+            ?: execute("getprop ro.boot.serialno")?.trim()
+        if (!su.isNullOrEmpty()) return su
+        return getSnapshotValue("serial")
+    }
+
+    /** Boot Serial (ro.boot.serialno). Snapshot-Fallback. */
+    fun getBootSerialViaRoot(): String {
+        val su = execute("getprop ro.boot.serialno")?.trim()
+        if (!su.isNullOrEmpty()) return su
+        return getSnapshotValue("boot_serial")
+    }
+
+    /** IMSI via dumpsys telephony.registry. Snapshot-Fallback. */
+    fun getImsiViaRoot(): String {
+        val out = execute("dumpsys telephony.registry 2>/dev/null")
+        if (out != null) {
+            val m = Regex("mSubscriberId=([0-9]{10,15})").find(out)
+            if (m != null) return m.groupValues[1]
+        }
+        return getSnapshotValue("imsi")
+    }
+
+    /** SIM Serial (ICCID) via dumpsys. Snapshot-Fallback. */
+    fun getSimSerialViaRoot(): String {
+        val out = execute("dumpsys iphonesubinfo 2>/dev/null") ?: execute("service call iphonesubinfo 5 s16 com.android.shell 2>/dev/null")
+        if (out != null) {
+            val m = Regex("(?:ICCID|iccId|Sim Serial|simSerial)[^0-9]*([0-9]{10,20})", RegexOption.IGNORE_CASE).find(out)
+            if (m != null) return m.groupValues[1]
+            val m2 = Regex("\\b([0-9]{18,22})\\b").find(out)
+            if (m2 != null) return m2.groupValues[1]
+        }
+        return getSnapshotValue("sim_serial")
+    }
+
+    /** IMEI via su. Snapshot-Fallback. */
+    fun getImeiViaRoot(slot: Int): String {
+        val codes = if (slot == 1) listOf(2, 3) else listOf(1, 2)
+        val pkgs = listOf("com.android.shell", "com.titan.verifier", "")
+        for (code in codes) {
+            for (pkg in pkgs) {
+                val cmd = if (pkg.isEmpty()) "service call iphonesubinfo $code" else "service call iphonesubinfo $code s16 $pkg"
+                execute(cmd)?.let { parseImeiFromOutput(it, slot).takeIf { id -> id.isNotEmpty() }?.let { return it } }
+            }
+        }
+        execute("dumpsys iphonesubinfo")?.let { parseImeiFromOutput(it, slot).takeIf { it.isNotEmpty() }?.let { return it } }
+        // Snapshot-Fallback
+        return getSnapshotValue(if (slot == 1) "imei2" else "imei1")
+    }
+
+    /** GSF ID via root. Snapshot-Fallback. */
     fun getGsfIdViaRoot(): String {
         for (uri in listOf(
             "content://com.google.android.gsf.gservices/id",
@@ -103,83 +240,16 @@ object RootShell {
                 }
             }
         }
-        val sqliteOut = execute(
-            "sqlite3 /data/data/com.google.android.gsf/databases/gservices.db \"select value from main where name='android_id';\" 2>/dev/null"
-        )
-        if (!sqliteOut.isNullOrBlank() && !sqliteOut.contains("not found") && !sqliteOut.contains("Permission") &&
-            !sqliteOut.contains("Error") && !sqliteOut.contains("No such"))
-        {
-            val raw = sqliteOut.trim()
-            if (raw.length in 8..20 && raw.all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }) return raw
-        }
         for (path in GSF_FILES) {
             execute("cat $path")?.let { out ->
                 GSF_REGEX.find(out)?.groupValues?.get(1)?.trim()?.let { if (it.length in 8..20) return it }
             }
         }
-        execute("grep -rh android_id /data/data/com.google.android.gsf/shared_prefs/ 2>/dev/null")?.let { grepOut ->
-            GSF_REGEX.find(grepOut)?.groupValues?.get(1)?.trim()?.let { if (it.length in 8..20) return it }
-        }
-        return ""
+        // Snapshot-Fallback
+        return getSnapshotValue("gsf_id")
     }
 
-    /** IMEI: service call (s16 für Android 14), dumpsys. */
-    fun getImeiViaRoot(slot: Int): String {
-        val codes = if (slot == 1) listOf(2, 3) else listOf(1, 2)
-        val pkgs = listOf("com.android.shell", "com.titan.verifier", "")
-        for (code in codes) {
-            for (pkg in pkgs) {
-                val cmd = if (pkg.isEmpty()) "service call iphonesubinfo $code" else "service call iphonesubinfo $code s16 $pkg"
-                execute(cmd)?.let { parseImeiFromOutput(it, slot).takeIf { id -> id.isNotEmpty() }?.let { return it } }
-            }
-        }
-        execute("dumpsys iphonesubinfo")?.let { parseImeiFromOutput(it, slot).takeIf { it.isNotEmpty() }?.let { return it } }
-        return ""
-    }
-
-    /** Parcel: IMEI zwischen Single-Quotes. cut -d \"'\" -f 2 -s | tr -d '.[:space:]' */
-    private fun parseImeiFromOutput(out: String, slot: Int): String {
-        val quoted = Regex("'([^']*)'").findAll(out).map { it.groupValues[1] }.toList()
-        for (q in quoted) {
-            val digits = q.filter { it.isDigit() }
-            if (digits.length >= 15) return digits.take(15)
-        }
-        val ids = IMEI_REGEX.findAll(out).map { it.value }.toList()
-        return ids.getOrNull(if (slot == 1) 1 else 0) ?: ids.firstOrNull() ?: ""
-    }
-
-    /** Android ID (SSAID) via settings get secure. */
-    fun getAndroidIdViaRoot(): String {
-        return execute("settings get secure android_id")?.trim() ?: ""
-    }
-
-    /** Serial: getprop ro.serialno, Fallback ro.boot.serialno. */
-    fun getSerialViaRoot(): String {
-        return execute("getprop ro.serialno")?.trim()
-            ?: execute("getprop ro.boot.serialno")?.trim()
-            ?: ""
-    }
-
-    /** Boot Serial (ro.boot.serialno). */
-    fun getBootSerialViaRoot(): String {
-        return execute("getprop ro.boot.serialno")?.trim() ?: ""
-    }
-
-    /** IMSI via dumpsys telephony.registry. */
-    fun getImsiViaRoot(): String {
-        val out = execute("dumpsys telephony.registry 2>/dev/null") ?: return ""
-        val m = Regex("mSubscriberId=([0-9]{10,15})").find(out)
-        return m?.groupValues?.get(1) ?: ""
-    }
-
-    /** SIM Serial (ICCID) via dumpsys. */
-    fun getSimSerialViaRoot(): String {
-        val out = execute("dumpsys iphonesubinfo 2>/dev/null") ?: execute("service call iphonesubinfo 5 s16 com.android.shell 2>/dev/null") ?: return ""
-        val m = Regex("(?:ICCID|iccId|Sim Serial|simSerial)[^0-9]*([0-9]{10,20})", RegexOption.IGNORE_CASE).find(out)
-        return m?.groupValues?.get(1) ?: Regex("\\b([0-9]{18,22})\\b").find(out)?.groupValues?.get(1) ?: ""
-    }
-
-    /** MAC: wlan0, eth0, persist, ip link. */
+    /** MAC: wlan0, eth0, persist, ip link. Snapshot-Fallback. */
     fun getMacWlan0ViaRoot(): String {
         val paths = listOf(
             "/sys/class/net/wlan0/address",
@@ -199,6 +269,7 @@ object RootShell {
         execute("ip link show wlan0 2>/dev/null")?.let { out ->
             Regex("link/ether ([0-9a-f:]{17})").find(out)?.groupValues?.get(1)?.let { return it }
         }
-        return ""
+        // Snapshot-Fallback
+        return getSnapshotValue("wifi_mac")
     }
 }

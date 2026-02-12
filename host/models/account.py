@@ -70,9 +70,28 @@ class ProfileCreate(BaseModel):
     tiktok_email: Optional[str] = Field(default=None, max_length=256)
     tiktok_password: Optional[str] = Field(default=None, max_length=256)
 
+    # Instagram Credentials (optional)
+    instagram_username: Optional[str] = Field(default=None, max_length=128)
+    instagram_email: Optional[str] = Field(default=None, max_length=256)
+    instagram_password: Optional[str] = Field(default=None, max_length=256)
+
+    # YouTube Credentials (optional)
+    youtube_username: Optional[str] = Field(default=None, max_length=128)
+    youtube_email: Optional[str] = Field(default=None, max_length=256)
+    youtube_password: Optional[str] = Field(default=None, max_length=256)
+
+    # Snapchat Credentials (optional)
+    snapchat_username: Optional[str] = Field(default=None, max_length=128)
+    snapchat_email: Optional[str] = Field(default=None, max_length=256)
+    snapchat_password: Optional[str] = Field(default=None, max_length=256)
+
     # Google Account (optional)
     google_email: Optional[str] = Field(default=None, max_length=256)
     google_password: Optional[str] = Field(default=None, max_length=256)
+
+    # General Contact Email (optional)
+    contact_email: Optional[str] = Field(default=None, max_length=256)
+    contact_password: Optional[str] = Field(default=None, max_length=256)
 
     # Proxy
     proxy_ip: Optional[str] = Field(default=None, max_length=256,
@@ -105,9 +124,28 @@ class ProfileRead(BaseModel):
     tiktok_following: int = Field(default=0)
     tiktok_likes: int = Field(default=0)
 
+    # --- Instagram Credentials ---
+    instagram_username: Optional[str] = None
+    instagram_email: Optional[str] = None
+    instagram_password: Optional[str] = None
+
+    # --- YouTube Credentials ---
+    youtube_username: Optional[str] = None
+    youtube_email: Optional[str] = None
+    youtube_password: Optional[str] = None
+
+    # --- Snapchat Credentials ---
+    snapchat_username: Optional[str] = None
+    snapchat_email: Optional[str] = None
+    snapchat_password: Optional[str] = None
+
     # --- Google Account ---
     google_email: Optional[str] = None
     google_password: Optional[str] = None
+
+    # --- General Contact ---
+    contact_email: Optional[str] = None
+    contact_password: Optional[str] = None
 
     # --- Proxy ---
     proxy_ip: Optional[str] = None
@@ -170,9 +208,28 @@ class ProfileUpdate(BaseModel):
     tiktok_following: Optional[int] = None
     tiktok_likes: Optional[int] = None
 
+    # Instagram
+    instagram_username: Optional[str] = None
+    instagram_email: Optional[str] = None
+    instagram_password: Optional[str] = None
+
+    # YouTube
+    youtube_username: Optional[str] = None
+    youtube_email: Optional[str] = None
+    youtube_password: Optional[str] = None
+
+    # Snapchat
+    snapchat_username: Optional[str] = None
+    snapchat_email: Optional[str] = None
+    snapchat_password: Optional[str] = None
+
     # Google
     google_email: Optional[str] = None
     google_password: Optional[str] = None
+
+    # Contact
+    contact_email: Optional[str] = None
+    contact_password: Optional[str] = None
 
     # Proxy
     proxy_ip: Optional[str] = None

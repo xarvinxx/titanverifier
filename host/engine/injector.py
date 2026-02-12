@@ -153,12 +153,25 @@ class TitanInjector:
             if distribute:
                 await self._distribute_to_apps()
 
-            # 8. Cleanup: Staging-Datei auf dem Gerät löschen
+            # 8. Phase 11.0: AAID in GMS Storage patchen
+            #    Die AAID wird von GMS über IPC an Apps geliefert.
+            #    Da wir GMS nicht hooken (GMS-Schutz), müssen wir die
+            #    AAID direkt in GMS's SharedPrefs schreiben.
+            await self._patch_gms_aaid(bridge)
+
+            # 9. Cleanup: Staging-Datei auf dem Gerät löschen
             await self._adb.shell(
                 f"rm -f {self._REMOTE_TMP}", root=True,
             )
 
-            logger.info("Injection komplett: %s", bridge.serial)
+            # 10. POST-INJECTION VERIFICATION
+            # Lese die Bridge-Datei vom primären Pfad zurück und prüfe
+            # ob der Serial korrekt geschrieben wurde. Dies erkennt
+            # stille Fehler bei cp/push die sonst zu "gleiche Werte"
+            # Problemen führen.
+            await self._verify_bridge_written(bridge)
+
+            logger.info("Injection komplett + verifiziert: %s", bridge.serial)
 
         finally:
             # Lokale temp-Datei aufräumen
@@ -167,6 +180,48 @@ class TitanInjector:
                     Path(tmp_file.name).unlink(missing_ok=True)
                 except OSError:
                     pass
+
+    # =========================================================================
+    # Post-Injection Verifikation
+    # =========================================================================
+
+    async def _verify_bridge_written(self, bridge: "IdentityBridge") -> None:
+        """
+        Verifiziert, dass die Bridge-Datei korrekt geschrieben wurde.
+
+        Liest die primäre Bridge-Datei + App-Kopie zurück und vergleicht
+        den Serial mit dem erwarteten Wert. Bei Mismatch → ERROR.
+
+        Prüft folgende Pfade:
+          1. BRIDGE_FILE_PATH (primär, von Zygisk gelesen)
+          2. BRIDGE_SDCARD_PATH (Backup, von LSPosed gelesen)
+          3. /data/data/com.titan.verifier/files/.titan_identity (App-Kopie)
+        """
+        verify_paths = [
+            BRIDGE_FILE_PATH,
+            BRIDGE_SDCARD_PATH,
+            BRIDGE_APP_TEMPLATE.format(package="com.titan.verifier"),
+        ]
+
+        for path in verify_paths:
+            try:
+                result = await self._adb.shell(
+                    f"grep '^serial=' {path}", root=True, timeout=5,
+                )
+                if result.success and result.output.strip():
+                    on_device = result.output.strip().split("=", 1)[-1]
+                    if on_device == bridge.serial:
+                        logger.debug("Verify OK: %s → serial=%s", path, on_device)
+                    else:
+                        logger.error(
+                            "VERIFY MISMATCH: %s hat serial=%s, erwartet=%s! "
+                            "Die Bridge-Datei wurde NICHT korrekt aktualisiert!",
+                            path, on_device, bridge.serial,
+                        )
+                else:
+                    logger.warning("Verify: %s nicht lesbar oder leer", path)
+            except (ADBError, Exception) as e:
+                logger.warning("Verify fehlgeschlagen für %s: %s", path, e)
 
     # =========================================================================
     # Permissions setzen
@@ -185,6 +240,61 @@ class TitanInjector:
             f"chcon {SELINUX_CONTEXT} {remote_path}", root=True,
         )
         logger.debug("Permissions gesetzt: %s (644, %s)", remote_path, SELINUX_CONTEXT)
+
+    # =========================================================================
+    # Phase 11.0: AAID in GMS SharedPrefs patchen
+    # =========================================================================
+
+    async def _patch_gms_aaid(self, bridge: "IdentityBridge") -> None:
+        """
+        Schreibt die deterministische AAID in GMS's adid_settings.xml.
+
+        Da wir GMS nicht hooken (GMS-Schutz für Play Integrity),
+        müssen wir die AAID direkt in GMS's Storage schreiben.
+        Das ist das Äquivalent von "Werbe-ID zurücksetzen" in den
+        Google-Einstellungen — es bricht NICHT die Trust-Chain.
+
+        Die AAID wird deterministisch aus der Identität generiert
+        (SHA-256 von serial+imei+gsf_id), sodass jede Identität
+        eine konsistente, aber einzigartige AAID hat.
+        """
+        import hashlib
+
+        # Deterministische AAID generieren (identisch zu TitanXposedModule)
+        seed = f"{bridge.serial}-{bridge.imei1}-{bridge.gsf_id}-aaid"
+        h = hashlib.sha256(seed.encode()).hexdigest()
+        fake_aaid = (
+            f"{h[0:8]}-{h[8:12]}-4{h[13:16]}-"
+            f"{hex(int(h[16], 16) & 0x3 | 0x8)[2:]}{h[17:20]}-"
+            f"{h[20:32]}"
+        )
+
+        gms_prefs = "/data/data/com.google.android.gms/shared_prefs/adid_settings.xml"
+
+        try:
+            # Prüfe ob die Datei existiert
+            check = await self._adb.shell(
+                f"test -f {gms_prefs}", root=True,
+            )
+            if not check.success:
+                logger.warning("GMS adid_settings.xml nicht gefunden — AAID-Patch übersprungen")
+                return
+
+            # Patch via sed
+            sed_cmd = (
+                f"sed -i 's|<string name=\"adid_key\">[^<]*</string>"
+                f"|<string name=\"adid_key\">{fake_aaid}</string>|' "
+                f"{gms_prefs}"
+            )
+            await self._adb.shell(sed_cmd, root=True)
+
+            # GMS force-stop damit neue SharedPrefs geladen werden
+            await self._adb.shell("am force-stop com.google.android.gms", root=True)
+
+            logger.info("AAID gepatched: %s → %s", gms_prefs, fake_aaid)
+
+        except ADBError as e:
+            logger.warning("AAID-Patch fehlgeschlagen: %s", e)
 
     # =========================================================================
     # Bridge Distribution (in alle Ziel-App-Ordner)
@@ -223,15 +333,17 @@ class TitanInjector:
                     continue
 
                 # Verzeichnis erstellen + Bridge kopieren
+                # chmod 644 statt 600: Damit auch Shared-User-Prozesse lesen können
                 await self._adb.shell(
                     f"mkdir -p {target_dir} && "
                     f"cp {BRIDGE_FILE_PATH} {target_path} && "
                     f"chown {uid}:{uid} {target_path} && "
                     f"chown {uid}:{uid} {target_dir} && "
-                    f"chmod 600 {target_path}",
+                    f"chmod 644 {target_path}",
                     root=True,
                 )
                 distributed += 1
+                logger.debug("Bridge → %s (UID %s)", package, uid)
 
             except ADBError as e:
                 logger.warning("Bridge-Distribution für %s fehlgeschlagen: %s", package, e)
@@ -302,41 +414,32 @@ class TitanInjector:
         build_index: int | None = None,
     ) -> bool:
         """
-        Generiert und pusht eine pif.json nach /data/adb/pif.json.
+        Generiert und pusht custom.pif.prop in den PlayIntegrityFix Modul-Ordner.
+
+        v4.1 FIX: PIF nutzt custom.pif.prop (Key=Value), NICHT pif.json (JSON)!
+          Alte Versionen nutzten /data/adb/pif.json — moderne PIF-Module
+          lesen ausschließlich custom.pif.prop aus ihrem eigenen Modul-Ordner.
 
         KRITISCH für Play Integrity auf Android 14:
           TrickyStore liefert MEETS_DEVICE_INTEGRITY (Hardware-Ebene),
           aber MEETS_BASIC_INTEGRITY erfordert einen gültigen
-          Software-Fingerprint. Ohne pif.json = BASIC_INTEGRITY FAIL.
+          Software-Fingerprint. Ohne custom.pif.prop = BASIC_INTEGRITY FAIL.
 
         v3.2 SAFETY CONSTRAINT:
-          Die pif.json darf NIEMALS echte Pixel 6 (oriole) Daten enthalten!
+          Die Datei darf NIEMALS echte Pixel 6 (oriole) Daten enthalten!
           Stattdessen wird ein ÄLTERES Pixel-Modell simuliert (Pixel 5, 5a, 4a 5G).
           Der PIF_SPOOF_POOL enthält nur verifizierte ältere Builds.
-
-          Grund: Wenn Hardware-Attestation (Tensor G1 / oriole) und
-          Software-Fingerprint dasselbe Gerät beschreiben, kann Google
-          die Diskrepanz erkennen → FAIL. Mit einem älteren Modell ist
-          die Software-Ebene plausibel entkoppelt vom TEE-Zertifikat.
 
         Schützt gegen: Säule 6 (Software-Integrität)
 
         Args:
-            build_index: Optional — Index in PIF_SPOOF_POOL (für Konsistenz
-                         mit dem gewählten Build in der Identity)
+            build_index: Optional — Index in PIF_SPOOF_POOL
 
         Returns:
             True wenn erfolgreich gepusht
         """
         # =====================================================================
         # v3.2 TIME-TRAVEL PREVENTION — Dreistufige Pool-Validierung
-        # =====================================================================
-        #
-        # Stufe 1: Statische Integrität (Pflichtfelder, Datums-Format,
-        #          Zukunfts-Check, Alters-Warnung)
-        # Stufe 2: Dynamischer Host-Patch-Filter (ADB getprop)
-        #          → Pool-Einträge mit SECURITY_PATCH > Host-Patch = FAIL
-        # Stufe 3: Oriole Safety Guard (kein echtes Gerät im Spoof)
         # =====================================================================
 
         # --- Stufe 1: Statische Pool-Validierung ---
@@ -356,10 +459,6 @@ class TitanInjector:
         )
 
         # --- Stufe 2: Dynamischer Host-Patch-Filter ---
-        # Lies den echten Security-Patch-Level des Geräts.
-        # Ein PIF mit SECURITY_PATCH > Host-Patch ist ein logischer Bruch:
-        #   "Wie kann ein Gerät mit Kernel von 2024-10 einen Build
-        #    von 2025-03 laufen haben?" → Instant Play Integrity FAIL.
         host_patch_str: str | None = None
         host_patch_date: date | None = None
 
@@ -378,15 +477,11 @@ class TitanInjector:
         except (ValueError, ADBError, ADBTimeoutError) as e:
             logger.warning(
                 "PIF Host-Patch konnte nicht gelesen werden: %s — "
-                "Time-Travel-Filter wird übersprungen (Fallback: "
-                "nur statische Validierung).",
+                "Time-Travel-Filter wird übersprungen.",
                 e,
             )
 
         if host_patch_date is not None:
-            # Nur Einträge behalten, deren Patch <= Host-Patch.
-            # "Downgrade" (alter Fingerprint auf neuem Kernel) ist plausibel,
-            # "Upgrade" (neuer Fingerprint auf altem Kernel) ist unmöglich.
             time_safe_pool = [
                 p for p in valid_pool
                 if date.fromisoformat(p["SECURITY_PATCH"].strip())
@@ -394,9 +489,6 @@ class TitanInjector:
             ]
 
             if not time_safe_pool:
-                # Alle Pool-Einträge sind neuer als der Host-Patch.
-                # Das sollte nicht passieren, aber wir brechen nicht ab —
-                # wir warnen und fallen auf den statisch validierten Pool zurück.
                 logger.warning(
                     "PIF TIME-TRAVEL WARNING: Alle %d validen Pool-Einträge "
                     "haben SECURITY_PATCH > Host-Patch %s! "
@@ -418,7 +510,6 @@ class TitanInjector:
             )
 
         # --- Stufe 3: Oriole Safety Guard ---
-        # Filtere das echte Gerät (oriole) aus dem Pool.
         safe_pool = [
             p for p in valid_pool
             if p.get("DEVICE", "").lower() != DEVICE_CODENAME
@@ -447,47 +538,99 @@ class TitanInjector:
             pif_data = random.choice(valid_pool)
 
         logger.info(
-            "PIF Injection v3.2: %s %s (Patch: %s) — Spoof-Gerät: %s",
+            "PIF Injection v4.1: %s %s (Patch: %s) — Spoof-Gerät: %s",
             pif_data.get("MODEL", "?"),
             pif_data["BUILD_ID"],
             pif_data["SECURITY_PATCH"],
             pif_data.get("DEVICE", "?"),
         )
 
-        # JSON generieren
-        pif_json = json.dumps(pif_data, indent=2, ensure_ascii=False)
+        # =====================================================================
+        # v4.1: custom.pif.prop generieren (Key=Value Format)
+        # =====================================================================
+        # PlayIntegrityFix liest custom.pif.prop als Java .properties Datei.
+        # Format: KEY=VALUE (eine Zeile pro Eintrag), # für Kommentare.
+        # Zusätzlich: Advanced Settings für das PIF-Modul.
+        # =====================================================================
+
+        # Build-Felder (aus Pool)
+        prop_lines = [
+            "# Titan PIF — Auto-generated, do not edit manually",
+            f"# Source: PIF_SPOOF_POOL ({pif_data.get('MODEL', '?')})",
+            "",
+            "# Build Fields",
+        ]
+        # Reihenfolge wie das PIF-Modul es erwartet
+        build_keys = [
+            "MANUFACTURER", "MODEL", "FINGERPRINT", "BRAND", "PRODUCT",
+            "DEVICE", "RELEASE", "ID", "INCREMENTAL", "TYPE", "TAGS",
+            "SECURITY_PATCH", "DEVICE_INITIAL_SDK_INT",
+        ]
+        for key in build_keys:
+            value = pif_data.get(key)
+            if value:
+                prop_lines.append(f"{key}={value}")
+            elif key == "RELEASE":
+                # RELEASE = Android Version (14 für unsere Builds)
+                prop_lines.append("RELEASE=14")
+            elif key == "ID":
+                # ID = BUILD_ID Alias
+                bid = pif_data.get("BUILD_ID", "")
+                if bid:
+                    prop_lines.append(f"ID={bid}")
+
+        # System Properties (für das PIF-Modul)
+        prop_lines.extend([
+            "",
+            "# System Properties",
+            f"*.build.id={pif_data.get('BUILD_ID', '')}",
+            f"*.security_patch={pif_data.get('SECURITY_PATCH', '')}",
+            f"*api_level={pif_data.get('DEVICE_INITIAL_SDK_INT', '30')}",
+        ])
+
+        # Advanced Settings
+        prop_lines.extend([
+            "",
+            "# Advanced Settings",
+            "spoofBuild=1",
+            "spoofProps=1",
+            "spoofProvider=0",
+            "spoofSignature=0",
+            "spoofVendingFinger=0",
+            "spoofVendingSdk=0",
+            "verboseLogs=0",
+        ])
+
+        prop_content = "\n".join(prop_lines) + "\n"
 
         # Lokale temp-Datei schreiben + Push
         tmp_file = None
         try:
             tmp_file = tempfile.NamedTemporaryFile(
                 mode="w",
-                suffix=".json",
+                suffix=".prop",
                 delete=False,
                 prefix="titan_pif_",
             )
-            tmp_file.write(pif_json)
+            tmp_file.write(prop_content)
             tmp_file.flush()
             tmp_file.close()
 
             local_path = tmp_file.name
-            staging_path = "/data/local/tmp/.titan_pif_staging.json"
+            staging_path = "/data/local/tmp/.titan_pif_staging.prop"
 
-            # Push nach /data/local/tmp/ (kein Root nötig)
+            # Push nach /data/local/tmp/
             await self._adb.push(local_path, staging_path)
 
-            # Root: Kopiere nach /data/adb/pif.json
+            # Root: Kopiere nach PIF Modul-Ordner
             await self._adb.shell(
                 f"cp {staging_path} {PIF_JSON_PATH}",
                 root=True, check=True,
             )
 
-            # Permissions: 644, SELinux system_file
+            # Permissions: 644
             await self._adb.shell(
                 f"chmod 644 {PIF_JSON_PATH}", root=True,
-            )
-            await self._adb.shell(
-                f"chcon {SELINUX_CONTEXT} {PIF_JSON_PATH}", root=True,
             )
 
             # Staging aufräumen
@@ -495,8 +638,13 @@ class TitanInjector:
                 f"rm -f {staging_path}", root=True,
             )
 
+            # Alte pif.json aufräumen (Legacy-Datei die niemand liest)
+            await self._adb.shell(
+                "rm -f /data/adb/pif.json", root=True,
+            )
+
             logger.info(
-                "PIF Injection OK: %s → %s",
+                "PIF Injection v4.1 OK: %s → %s",
                 pif_data["FINGERPRINT"][:40] + "...", PIF_JSON_PATH,
             )
             return True
@@ -627,27 +775,20 @@ class TitanInjector:
 
     async def namespace_nuke(self) -> dict[str, bool]:
         """
-        Bricht GMS-Blockaden via KernelSU Mount-Master Namespace.
+        ⚠️ DEPRECATED (v4.0) — NICHT MEHR IM GENESIS-FLOW VERWENDEN!
+        
+        Diese Funktion zerstört die Google Trust-Chain und verursacht:
+          - Play Integrity verliert BASIC (nur noch DEVICE)
+          - Google-Login bricht ab (Auth-Tokens gelöscht)
+          - DroidGuard muss komplett neu attestieren (30-50 Min)
+          - Erfordert oft Factory Reset zum Reparieren
 
-        Problem:
-          Nach einem Identity-Switch oder fehlgeschlagenem Login bleiben
-          alte Auth-Token, DroidGuard-Caches und GServices-Einträge in
-          den GMS-Datenbanken. Diese verursachen:
-            - "Ewiges Laden" beim Google-Login
-            - GMS-Lockdown (Zertifikats-Mismatch)
-            - BASIC_INTEGRITY Fail trotz korrektem Fingerprint
-
-        Lösung (v3.2):
-          `su -M -c` nutzt den Mount-Master-Namespace von KernelSU,
-          der SELinux-Sperren auf /data/data/com.google.android.gms
-          umgeht. Normale `su -c` (root=True) scheitern oft an SELinux
-          Domain-Transitions, weil der Kontext (u:r:su:s0) keinen
-          Zugriff auf app_data_file hat. Mount-Master (-M) operiert
-          im globalen Namespace — alle Mounts sichtbar, kein Domain-Wechsel.
-
-          WICHTIG: Die Nuke-Befehle werden OHNE root=True gesendet,
-          weil wir `su -M -c` manuell in den Command einbauen.
-          root=True würde nochmal `su -c` darum wrappen → doppeltes su → Fehler.
+        Die Funktion existiert noch für manuelle Notfall-Recovery,
+        wird aber NICHT mehr automatisch im Genesis- oder Switch-Flow aufgerufen.
+        
+        Ursprüngliche Beschreibung:
+          Bricht GMS-Blockaden via KernelSU Mount-Master Namespace.
+          Löscht Auth-DBs, DroidGuard-Cache und leert GServices-DB.
 
         Ablauf:
           1. force-stop GMS + GSF (sauberer Zustand)
@@ -662,7 +803,9 @@ class TitanInjector:
             Dict mit Ergebnis pro Schritt
         """
         logger.info("=" * 50)
-        logger.info("  NAMESPACE NUKE v3.2 (su -M -c): GMS Auth-Reset")
+        logger.warning("⚠️  NAMESPACE NUKE v3.2 — DEPRECATED seit v4.0!")
+        logger.warning("    Diese Funktion zerstört die Google Trust-Chain.")
+        logger.warning("    Nur für manuelle Notfall-Recovery verwenden!")
         logger.info("=" * 50)
 
         results: dict[str, bool] = {}

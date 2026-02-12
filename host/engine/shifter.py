@@ -47,11 +47,13 @@ from host.config import (
     BACKUP_ACCOUNTS_SUBDIR,
     BACKUP_DIR,
     BACKUP_GMS_SUBDIR,
+    BACKUP_SANDBOX_SUBDIR,
     BACKUP_TIKTOK_SUBDIR,
     GMS_BACKUP_PACKAGES,
     GMS_PACKAGES,
     SYSTEM_ACCOUNT_DBS,
     TIKTOK_PACKAGES,
+    TIKTOK_SANDBOX_PATHS,
 )
 
 logger = logging.getLogger("titan.engine.shifter")
@@ -330,6 +332,311 @@ class TitanShifter:
         return tar_path, bytes_written
 
     # =========================================================================
+    # Dual-Path Backup: App-Daten + Sandbox (TikTok-spezifisch)
+    # =========================================================================
+
+    async def backup_tiktok_dual(
+        self,
+        profile_name: str,
+        timeout: int = 600,
+    ) -> dict[str, Optional[Path]]:
+        """
+        Sichert TikTok komplett mit Dual-Path Strategie.
+
+        Dual-Path:
+          A) App-Daten (/data/data/<pkg>/) → Login, Cookies, SharedPrefs
+          B) Sandbox  (/sdcard/Android/data/<pkg>/) → SDK-Fingerprints, Cache, Medien
+
+        WARUM getrennt?
+          - Sandbox kann riesig werden (GB) → selektives Restore möglich
+          - App-Daten sind klein aber kritisch (Login-Session)
+          - Wenn Sandbox leer ist (frischer Account), wird nur app_data gesichert
+          - TikToks Anti-Detection SDK speichert Device-Fingerprints in der Sandbox
+
+        Args:
+            profile_name: Profil-Name für Unterordner
+            timeout:      Timeout pro Einzeloperation
+
+        Returns:
+            Dict mit Pfaden: {"app_data": Path|None, "sandbox": Path|None}
+        """
+        logger.info("=" * 50)
+        logger.info("  DUAL-PATH BACKUP: %s (TikTok)", profile_name)
+        logger.info("=" * 50)
+
+        results: dict[str, Optional[Path]] = {"app_data": None, "sandbox": None}
+        profile_dir = self._backup_dir / profile_name
+        timestamp = datetime.now(LOCAL_TZ).strftime("%Y%m%d_%H%M%S")
+
+        # CE-Storage Check: Gerät muss entsperrt sein
+        if not await self._check_ce_storage():
+            logger.error(
+                "CE-Storage nicht verfügbar — Gerät ist gesperrt! "
+                "Backup würde verschlüsselte (unbrauchbare) Daten sichern."
+            )
+            return results
+
+        # Force-Stop vor Backup (konsistenter State)
+        await self._force_stop()
+
+        # --- Pfad A: App-Daten (/data/data/<pkg>/) ---
+        try:
+            tiktok_dir = profile_dir / BACKUP_TIKTOK_SUBDIR
+            tiktok_dir.mkdir(parents=True, exist_ok=True)
+
+            app_tar = tiktok_dir / f"tiktok_app_{timestamp}.tar"
+
+            # Prüfe ob Login-relevante Ordner existieren
+            check = await self._adb.shell(
+                f"test -d {self._data_path}/shared_prefs", root=True,
+            )
+            if not check.success:
+                logger.warning(
+                    "Pfad A: shared_prefs nicht gefunden — "
+                    "TikTok wurde möglicherweise noch nicht gestartet"
+                )
+
+            tar_cmd = (
+                f"su -c 'tar -cf - -C / data/data/{self._package} 2>/dev/null'"
+            )
+            bytes_written = await self._adb.exec_out_to_file(
+                tar_cmd, str(app_tar), timeout=timeout,
+            )
+
+            if bytes_written > 0:
+                results["app_data"] = app_tar
+                logger.info(
+                    "Pfad A (App-Daten): OK (%.1f MB)",
+                    bytes_written / (1024 * 1024),
+                )
+            else:
+                app_tar.unlink(missing_ok=True)
+                logger.warning("Pfad A (App-Daten): Leer (0 Bytes) — übersprungen")
+
+        except (ADBError, Exception) as e:
+            logger.warning("Pfad A (App-Daten) fehlgeschlagen: %s", e)
+
+        # --- Pfad B: Sandbox (/sdcard/Android/data/<pkg>/) ---
+        try:
+            sandbox_dir = profile_dir / BACKUP_SANDBOX_SUBDIR
+            sandbox_dir.mkdir(parents=True, exist_ok=True)
+
+            sandbox_tar = sandbox_dir / f"tiktok_sandbox_{timestamp}.tar"
+
+            # Finde die installierte Sandbox-Variante
+            sandbox_path = None
+            for sp in TIKTOK_SANDBOX_PATHS:
+                check = await self._adb.shell(f"test -d {sp}", root=True)
+                if check.success:
+                    sandbox_path = sp
+                    break
+
+            if sandbox_path:
+                # Erstelle Verzeichnis falls nötig
+                await self._adb.shell(
+                    f"mkdir -p {sandbox_path}", root=True,
+                )
+
+                tar_cmd = (
+                    f"su -c 'tar -cf - -C {sandbox_path} . 2>/dev/null'"
+                )
+                bytes_written = await self._adb.exec_out_to_file(
+                    tar_cmd, str(sandbox_tar), timeout=timeout,
+                )
+
+                if bytes_written > 0:
+                    results["sandbox"] = sandbox_tar
+                    logger.info(
+                        "Pfad B (Sandbox): OK (%.1f MB)",
+                        bytes_written / (1024 * 1024),
+                    )
+                else:
+                    sandbox_tar.unlink(missing_ok=True)
+                    logger.info("Pfad B (Sandbox): Leer — frischer Account, übersprungen")
+            else:
+                logger.info("Pfad B (Sandbox): Kein Sandbox-Verzeichnis gefunden — übersprungen")
+
+        except (ADBError, Exception) as e:
+            logger.warning("Pfad B (Sandbox) fehlgeschlagen: %s", e)
+
+        success = sum(1 for v in results.values() if v is not None)
+        logger.info("Dual-Path Backup: %d/2 Komponenten gesichert", success)
+        return results
+
+    async def restore_tiktok_dual(
+        self,
+        profile_name: str,
+        timeout: int = 600,
+    ) -> dict[str, bool]:
+        """
+        Stellt TikTok komplett aus Dual-Path Backup wieder her.
+
+        Ablauf:
+          1. Force-Stop TikTok
+          2. Deep-Purge alte Daten (App + Sandbox)
+          3. Restore Pfad A (App-Daten)
+          4. Restore Pfad B (Sandbox)
+          5. Permission-Sync (KRITISCH!)
+
+        Args:
+            profile_name: Profil-Name
+            timeout:      Timeout pro Operation
+
+        Returns:
+            Dict mit Ergebnis: {"app_data": bool, "sandbox": bool}
+        """
+        logger.info("Dual-Path Restore: %s (TikTok)", profile_name)
+        results = {"app_data": False, "sandbox": False}
+
+        profile_dir = self._backup_dir / profile_name
+
+        # 1. Force-Stop
+        await self._force_stop()
+
+        # UID VOR dem Löschen ermitteln
+        try:
+            uid = await self._get_app_uid()
+        except ADBError:
+            uid = None
+            logger.warning("App-UID nicht ermittelbar — App möglicherweise nicht installiert")
+
+        # --- Pfad A: App-Daten Restore ---
+        tiktok_dir = profile_dir / BACKUP_TIKTOK_SUBDIR
+        app_tar = self._find_latest_tar(tiktok_dir, "tiktok_app_")
+
+        if app_tar and app_tar.exists() and app_tar.stat().st_size > 0:
+            try:
+                # Alte App-Daten löschen
+                await self._adb.shell(
+                    f"rm -rf {self._data_path}/*", root=True,
+                )
+
+                # tar-Stream Restore (tar wurde relativ zu / erstellt)
+                restore_result = await self._adb.exec_in_from_file(
+                    "tar -xf - -C /",
+                    str(app_tar),
+                    timeout=timeout,
+                )
+
+                if restore_result.success or restore_result.returncode == 1:
+                    # returncode 1 = "file changed as we read it" (normal bei tar)
+                    results["app_data"] = True
+                    logger.info("Pfad A (App-Daten): Restored (%s)", app_tar.name)
+                else:
+                    logger.error(
+                        "Pfad A Restore fehlgeschlagen (exit %d)",
+                        restore_result.returncode,
+                    )
+            except (ADBError, Exception) as e:
+                logger.warning("Pfad A Restore Fehler: %s", e)
+        else:
+            logger.info("Pfad A: Kein App-Daten Backup vorhanden — übersprungen")
+
+        # --- Pfad B: Sandbox Restore ---
+        sandbox_dir = profile_dir / BACKUP_SANDBOX_SUBDIR
+        sandbox_tar = self._find_latest_tar(sandbox_dir, "tiktok_sandbox_")
+
+        if sandbox_tar and sandbox_tar.exists() and sandbox_tar.stat().st_size > 0:
+            try:
+                # Finde installierte Sandbox-Variante
+                sandbox_path = None
+                for sp in TIKTOK_SANDBOX_PATHS:
+                    check = await self._adb.shell(f"test -d {sp}", root=True)
+                    if check.success:
+                        sandbox_path = sp
+                        break
+
+                if not sandbox_path:
+                    # Erstelle Standard-Pfad
+                    sandbox_path = TIKTOK_SANDBOX_PATHS[0]
+                    await self._adb.shell(
+                        f"mkdir -p {sandbox_path}", root=True,
+                    )
+
+                # Alte Sandbox löschen
+                await self._adb.shell(
+                    f"rm -rf {sandbox_path}/*", root=True,
+                )
+
+                # Sandbox wurde mit -C <sandbox_path> erstellt → Restore dorthin
+                restore_result = await self._adb.exec_in_from_file(
+                    f"tar -xf - -C {sandbox_path}",
+                    str(sandbox_tar),
+                    timeout=timeout,
+                )
+
+                if restore_result.success or restore_result.returncode == 1:
+                    results["sandbox"] = True
+                    logger.info("Pfad B (Sandbox): Restored (%s)", sandbox_tar.name)
+                else:
+                    logger.error(
+                        "Pfad B Restore fehlgeschlagen (exit %d)",
+                        restore_result.returncode,
+                    )
+            except (ADBError, Exception) as e:
+                logger.warning("Pfad B Restore Fehler: %s", e)
+        else:
+            logger.info("Pfad B: Kein Sandbox Backup vorhanden — übersprungen")
+
+        # 5. PERMISSION-SYNC (KRITISCH!)
+        if results["app_data"] and uid:
+            await self._apply_magic_permissions(uid)
+
+        if results["sandbox"]:
+            # Sandbox Permissions fixen (gehört der App, nicht Root)
+            try:
+                if uid:
+                    for sp in TIKTOK_SANDBOX_PATHS:
+                        check = await self._adb.shell(f"test -d {sp}", root=True)
+                        if check.success:
+                            await self._adb.shell(
+                                f"chown -R {uid}:{uid} {sp}", root=True,
+                            )
+                            logger.debug("Sandbox Permissions: chown %s %s", uid, sp)
+            except ADBError as e:
+                logger.warning("Sandbox Permission Fix fehlgeschlagen: %s", e)
+
+        success = sum(1 for v in results.values() if v)
+        logger.info("Dual-Path Restore: %d/2 Komponenten wiederhergestellt", success)
+        return results
+
+    # =========================================================================
+    # CE-Storage Protection Check
+    # =========================================================================
+
+    async def _check_ce_storage(self) -> bool:
+        """
+        Prüft ob Credential Encrypted Storage verfügbar ist.
+
+        Nach einem Reboot (vor erstem Unlock) sind App-Daten unter
+        /data/data/ noch verschlüsselt. Ein Backup in diesem Zustand
+        produziert ein unbrauchbares tar mit verschlüsselten Blöcken.
+
+        Returns:
+            True wenn CE-Storage entschlüsselt und lesbar ist
+        """
+        try:
+            # shared_prefs eines bekannten Pakets prüfen
+            result = await self._adb.shell(
+                "test -d /data/data/com.google.android.gms/shared_prefs",
+                root=True, timeout=5,
+            )
+            return result.success
+        except (ADBError, Exception):
+            return False
+
+    def _find_latest_tar(self, directory: Path, prefix: str) -> Optional[Path]:
+        """Findet die neueste tar-Datei mit gegebenem Prefix in einem Verzeichnis."""
+        if not directory.exists():
+            return None
+        tars = sorted(
+            directory.glob(f"{prefix}*.tar"),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        return tars[0] if tars else None
+
+    # =========================================================================
     # Restore: Host → tar → Gerät + Magic Permission Fix
     # =========================================================================
 
@@ -496,27 +803,37 @@ class TitanShifter:
     # Deep Clean: Vollständige Sterilisierung
     # =========================================================================
 
-    async def deep_clean(self, include_gms: bool = True) -> dict[str, bool]:
+    async def deep_clean(self, include_gms: bool = False) -> dict[str, bool]:
         """
-        Führt eine vollständige Sterilisierung durch.
+        Führt eine Sterilisierung der Target-Apps durch.
 
         TITAN_CONTEXT.md §3C — FLOW 1 (GENESIS), Schritt 1:
           1. pm clear TikTok (beide Pakete)
-          2. pm clear GMS — NUR wenn include_gms=True (Standard)
+          2. pm clear GMS — NUR wenn include_gms=True (⚠️ DEPRECATED!)
           3. Lösche /sdcard/Android/data/<tiktok>/
           4. Lösche /sdcard/.tt* Tracking-Dateien
 
-        v3.0: `include_gms` Parameter erlaubt es, GMS beim Switch
-        zu schonen (Golden Baseline bleibt erhalten).
+        v4.0 GMS-SCHUTZ: Default ist jetzt include_gms=False!
+          GMS/GSF/Vending werden NIEMALS angerührt, weil das die
+          Google Trust-Chain zerstört (Play Integrity nur noch DEVICE,
+          Google-Login kaputt, DroidGuard muss neu attestieren).
+          include_gms=True existiert nur noch für manuelle Notfälle.
 
         Args:
-            include_gms: True = pm clear GMS (Genesis/Erstinitialisierung)
-                         False = GMS State schonen (Switch mit Golden Baseline)
+            include_gms: False = GMS unangetastet (DEFAULT — v4.0)
+                         True = pm clear GMS (⚠️ DEPRECATED — zerstört Trust-Chain!)
 
         Returns:
             Dict mit Ergebnis pro Operation
         """
-        mode = "VOLLSTERILISIERUNG (inkl. GMS)" if include_gms else "LEICHTE STERILISIERUNG (ohne GMS)"
+        if include_gms:
+            logger.warning(
+                "⚠️  deep_clean(include_gms=True) — DEPRECATED seit v4.0! "
+                "Das Löschen von GMS-Daten zerstört die Google Trust-Chain: "
+                "Play Integrity verliert BASIC, Google-Login bricht ab. "
+                "Verwende include_gms=False (Default) für normalen Betrieb."
+            )
+        mode = "⚠️ VOLLSTERILISIERUNG (inkl. GMS — DEPRECATED!)" if include_gms else "Target-App Sterilisierung (GMS geschützt)"
         logger.info("Deep Clean starten — %s", mode)
         results: dict[str, bool] = {}
 
@@ -612,11 +929,59 @@ class TitanShifter:
                         "chmod 777 %s fehlgeschlagen: %s", dir_path, e,
                     )
 
+        # 6. *** NEU v4.0 *** MediaStore Wipe
+        # Entfernt MediaStore-Einträge die auf TikTok-Dateien verweisen.
+        # Ohne diesen Schritt "erinnert" sich die MediaStore-DB an gelöschte
+        # Medien und kann Korrelationsangriffe ermöglichen.
+        for media_pkg in ["musically", "trill", "tiktok"]:
+            try:
+                result = await self._adb.shell(
+                    f"content delete --uri content://media/external/file "
+                    f"--where \"_data LIKE '%{media_pkg}%'\"",
+                    root=True, timeout=10,
+                )
+                results[f"mediastore_{media_pkg}"] = result.success
+                if result.success:
+                    logger.debug("MediaStore: %s Einträge gelöscht", media_pkg)
+            except (ADBError, ADBTimeoutError):
+                results[f"mediastore_{media_pkg}"] = False
+
+        # 7. *** NEU v4.0 *** Compiler Cache Reset
+        # Löscht ART-optimierte DEX-Dateien (oat/odex). Anti-Cheat-Engines
+        # können aus der JIT-Profildaten timing-basierte Fingerprints ableiten.
+        for pkg in TIKTOK_PACKAGES:
+            try:
+                result = await self._adb.shell(
+                    f"cmd package compile --reset {pkg} 2>/dev/null",
+                    root=True, timeout=15,
+                )
+                results[f"compiler_reset_{pkg}"] = result.success
+                if result.success:
+                    logger.debug("Compiler-Cache Reset: %s", pkg)
+            except (ADBError, ADBTimeoutError):
+                results[f"compiler_reset_{pkg}"] = False
+
+        # 8. *** NEU v4.0 *** ART Runtime Profile Cleanup
+        # /data/misc/profiles/cur/0/<pkg>/ enthält JIT-Nutzungsprofile
+        # die zwischen Identitäten leaken können (Fingerprint via App-Usage).
+        for pkg in TIKTOK_PACKAGES:
+            profile_path = f"/data/misc/profiles/cur/0/{pkg}"
+            try:
+                result = await self._adb.shell(
+                    f"rm -rf {profile_path}", root=True, timeout=5,
+                )
+                results[f"art_profile_{pkg}"] = result.success
+                if result.success:
+                    logger.debug("ART Profile gelöscht: %s", profile_path)
+            except (ADBError, ADBTimeoutError):
+                results[f"art_profile_{pkg}"] = False
+
         # Zusammenfassung
         success_count = sum(1 for v in results.values() if v)
         total_count = len(results)
         logger.info(
-            "Deep Clean abgeschlossen: %d/%d Operationen erfolgreich",
+            "Deep Clean abgeschlossen: %d/%d Operationen erfolgreich "
+            "(inkl. MediaStore, Compiler-Cache, ART-Profile)",
             success_count, total_count,
         )
 

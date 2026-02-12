@@ -8,8 +8,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/Users/arvin/Downloads/Custom Hook Module/common/titan_hardware.cpp" "CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o" "gcc" "CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o.d"
-  "/Users/arvin/Downloads/Custom Hook Module/module/zygisk_module.cpp" "CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o" "gcc" "CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o.d"
+  "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp" "CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o" "gcc" "CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o.d"
+  "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/zygisk_module.cpp" "CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o" "gcc" "CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o.d"
   "" "lib/arm64-v8a/libtitan_zygisk.so" "gcc" "CMakeFiles/titan_zygisk.dir/link.d"
   )
 

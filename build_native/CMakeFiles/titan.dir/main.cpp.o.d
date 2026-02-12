@@ -1,6 +1,6 @@
 CMakeFiles/titan.dir/main.cpp.o: \
-  /Users/arvin/Downloads/Custom\ Hook\ Module/module/main.cpp \
-  /Users/arvin/Downloads/Custom\ Hook\ Module/module/../include/zygisk.hpp \
+  /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/main.cpp \
+  /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/../include/zygisk.hpp \
   /Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/jni.h \
   /Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/lib64/clang/14.0.6/include/stdarg.h \
   /Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/stdint.h \

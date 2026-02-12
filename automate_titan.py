@@ -824,38 +824,47 @@ def step_write_aaid(identity: Dict[str, str]) -> None:
 
 
 def step_distribute_bridge(identity: Dict[str, str]) -> None:
-    """Kopiert die Bridge-Datei in die Datenordner ALLER Ziel-Apps."""
+    """Kopiert die Bridge-Datei in die Datenordner ALLER Ziel-Apps.
+    
+    Phase 11.0: Zuverlässige UID-Ermittlung via stat + chmod 644
+    damit LSPosed-Hooks (die im App-Kontext laufen) die Bridge lesen können.
+    """
     log("Distributing bridge to all target apps...")
     
-    target_apps = {
-        "com.titan.verifier":           None,
-        "tw.reh.deviceid":              None,
-        "com.androidfung.drminfo":      None,
-        "com.zhiliaoapp.musically":     None,
-        "com.ss.android.ugc.trill":     None,
-        "com.google.android.gms":       None,
-        "com.google.android.gsf":       None,
-        "com.android.vending":          None,
-    }
-    
-    # UIDs herausfinden
-    for pkg in list(target_apps.keys()):
-        result = adb_shell(f"pm list packages -U {pkg}", check=False)
-        if f"package:{pkg} " in result.stdout and "uid:" in result.stdout:
-            uid = result.stdout.strip().split("uid:")[-1].strip()
-            target_apps[pkg] = uid
+    target_apps = [
+        "com.titan.verifier",
+        "tw.reh.deviceid",
+        "com.androidfung.drminfo",
+        "com.zhiliaoapp.musically",
+        "com.ss.android.ugc.trill",
+        "com.instagram.android",
+        "com.snapchat.android",
+        "com.google.android.youtube",
+        # GMS-Apps: Bridge wird dort NICHT zum Spoofen genutzt,
+        # aber für Konsistenz-Checks nützlich
+    ]
     
     copied = 0
-    for pkg, uid in target_apps.items():
-        if uid is None:
+    for pkg in target_apps:
+        # Prüfe ob App installiert ist
+        check = adb_shell(f"test -d /data/data/{pkg}", as_root=True, check=False)
+        if check.returncode != 0:
             continue
         
+        # UID zuverlässig via stat ermitteln (nicht pm list)
+        uid_result = adb_shell(f"stat -c '%u' /data/data/{pkg}", as_root=True, check=False)
+        uid = uid_result.stdout.strip().strip("'").strip()
+        if not uid.isdigit():
+            log(f"  UID nicht ermittelbar für {pkg}: {uid}", "WARN")
+            continue
+        
+        # Bridge kopieren mit korrektem Owner + 644 Permissions
         result = adb_shell(
             f"mkdir -p /data/data/{pkg}/files && "
             f"cp {BRIDGE_PATH} /data/data/{pkg}/files/.titan_identity && "
             f"chown {uid}:{uid} /data/data/{pkg}/files/.titan_identity && "
             f"chown {uid}:{uid} /data/data/{pkg}/files && "
-            f"chmod 600 /data/data/{pkg}/files/.titan_identity",
+            f"chmod 644 /data/data/{pkg}/files/.titan_identity",
             as_root=True, check=False
         )
         if result.returncode == 0:

@@ -57,10 +57,10 @@ RM = /opt/homebrew/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/Users/arvin/Downloads/Custom Hook Module/module"
+CMAKE_SOURCE_DIR = /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/Users/arvin/Downloads/Custom Hook Module/build_native"
+CMAKE_BINARY_DIR = /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -132,9 +132,9 @@ install/strip/fast: preinstall/fast
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" "/Users/arvin/Downloads/Custom Hook Module/build_native//CMakeFiles/progress.marks"
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start "/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -200,29 +200,29 @@ build_dobby/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/build_dobby.dir/build.make CMakeFiles/build_dobby.dir/build
 .PHONY : build_dobby/fast
 
-Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.o: Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o
-.PHONY : Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.o
+Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.o: Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o
+.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.o
 
 # target to build an object file
-Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o
-.PHONY : Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.o
+Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o
+.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o
 
-Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.i: Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.i
-.PHONY : Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.i
+Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.i: Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.i
+.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.i
 
 # target to preprocess a source file
-Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.i
-.PHONY : Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.i
+Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.i
+.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.i
 
-Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.s: Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.s
-.PHONY : Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.s
+Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.s: Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.s
+.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.s
 
 # target to generate assembly for a file
-Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.s
-.PHONY : Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.cpp.s
+Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.s
+.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.s
 
 main.o: main.cpp.o
 .PHONY : main.o
@@ -287,9 +287,9 @@ help:
 	@echo "... build_dobby"
 	@echo "... titan"
 	@echo "... titan_zygisk"
-	@echo "... Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.o"
-	@echo "... Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.i"
-	@echo "... Users/arvin/Downloads/Custom_Hook_Module/common/titan_hardware.s"
+	@echo "... Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.o"
+	@echo "... Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.i"
+	@echo "... Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

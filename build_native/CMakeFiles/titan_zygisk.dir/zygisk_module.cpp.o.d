@@ -1,5 +1,5 @@
 CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o: \
-  /Users/arvin/Downloads/Custom\ Hook\ Module/module/zygisk_module.cpp \
+  /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/zygisk_module.cpp \
   /Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/jni.h \
   /Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/lib64/clang/14.0.6/include/stdarg.h \
   /Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/stdint.h \
@@ -235,8 +235,8 @@ CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o: \
   /Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/__node_handle \
   /Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/optional \
   /Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/unordered_map \
-  /Users/arvin/Downloads/Custom\ Hook\ Module/module/../include/zygisk.hpp \
-  /Users/arvin/Downloads/Custom\ Hook\ Module/module/../include/dobby.h \
+  /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/../include/zygisk.hpp \
+  /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/../include/dobby.h \
   /Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/include/c++/v1/stdbool.h \
   /Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/lib64/clang/14.0.6/include/stdbool.h \
-  /Users/arvin/Downloads/Custom\ Hook\ Module/module/../common/titan_hardware.h
+  /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/../common/titan_hardware.h

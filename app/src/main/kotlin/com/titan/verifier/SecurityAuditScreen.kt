@@ -122,14 +122,20 @@ fun SecurityAuditScreen() {
                     "gsf_id", "android_id", "wifi_mac",
                     "imsi", "sim_serial", "widevine_id"
                 )
+                // Keys für die eine Hex/Dezimal-Alternativanzeige sinnvoll ist
+                val altFormatKeys = setOf("gsf_id", "android_id", "imei1", "imei2", "imsi", "sim_serial")
                 orderedKeys.forEach { key ->
                     val result = validation.results[key] ?: return@forEach
-                    val displayValue = when (result.status) {
+                    val rawValue = when (result.status) {
                         AuditEngine.HookStatus.VERIFIED -> "[T] ${result.expectedValue}"
                         AuditEngine.HookStatus.MISMATCH -> "⚠ ${result.displayValue.removePrefix("⚠ ")} (expected: ${result.expectedValue})"
                         AuditEngine.HookStatus.NOT_CONFIGURED -> "— (not in bridge)"
                         AuditEngine.HookStatus.EMPTY_CONFIG -> "— (empty)"
                     }
+                    // Alt-Format nur bei Verified und passenden Keys
+                    val displayValue = if (key in altFormatKeys && result.status == AuditEngine.HookStatus.VERIFIED && result.expectedValue != null) {
+                        "[T] ${AuditEngine.withAltFormat(result.expectedValue!!)}"
+                    } else rawValue
                     val isGreen = result.status == AuditEngine.HookStatus.VERIFIED
                     add(AuditRow(
                         label = key.replace("_", " ").replaceFirstChar { it.uppercase() },
@@ -162,10 +168,10 @@ fun SecurityAuditScreen() {
         val identitySection = AuditSection(
             title = "2. Identity (Weitere)",
             rows = listOf(
-                AuditRow("IMSI (Subscriber ID)", imsi.ifEmpty { "—" }, isCritical = true),
-                AuditRow("SIM Serial (ICCID)", simSerial.ifEmpty { "—" }, isCritical = false),
+                AuditRow("IMSI (Subscriber ID)", AuditEngine.withAltFormat(imsi.ifEmpty { "—" }), isCritical = true),
+                AuditRow("SIM Serial (ICCID)", AuditEngine.withAltFormat(simSerial.ifEmpty { "—" }), isCritical = false),
                 AuditRow("Advertising ID (AAID)", aaid.ifEmpty { "—" }, isCritical = false),
-                AuditRow("Native Hook-Memory", nativeHookImei.ifEmpty { "—" }, isCritical = false)
+                AuditRow("Native Hook-Memory", AuditEngine.withAltFormat(nativeHookImei.ifEmpty { "—" }), isCritical = false)
             )
         )
 
@@ -567,7 +573,7 @@ private fun LayerChip(label: String, value: String) {
             text = value,
             style = MaterialTheme.typography.bodySmall,
             fontFamily = FontFamily.Monospace,
-            maxLines = 2,
+            maxLines = 3,
             overflow = TextOverflow.Ellipsis
         )
     }

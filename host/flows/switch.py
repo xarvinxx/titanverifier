@@ -7,18 +7,20 @@ TITAN_CONTEXT.md §3C — FLOW 2: SWITCH (State-Layering + PIF Sync)
 Wechselt zu einem existierenden Profil, ohne das Gerät
 vollständig neu zu starten. Schneller als Genesis.
 
-Zwingender Ablauf (6 Schritte):
-  1. SAFETY KILL    — force-stop GMS + GSF + TikTok (alles tot)
-  2. INJECT         — Bridge + PIF-Fingerprint aktualisieren (v3.2: PIF-Re-Injection!)
-  3. RESTORE STATE  — Full-State Restore: GMS + Account-DBs + TikTok (Golden Baseline)
-  4. RESTORE TIKTOK — TikTok App-Daten (Legacy-Fallback wenn kein Full-State)
-  5. SOFT RESET     — killall zygote (Framework Restart)
-  6. QUICK AUDIT    — Bridge-Serial prüfen + Audit-Score in DB tracken
+Zwingender Ablauf (9 Schritte — v5.1):
+  1. AIRPLANE MODE  — Flugmodus AN (Netz sofort trennen, ganz am Anfang!)
+  2. AUTO-BACKUP    — Aktives Profil automatisch sichern (Dual-Path)
+  3. SAFETY KILL    — force-stop GMS + GSF + TikTok (alles tot)
+  4. INJECT         — Bridge-Datei aktualisieren
+  5. RESTORE STATE  — Full-State Restore: GMS + Account-DBs + TikTok
+  6. RESTORE TIKTOK — TikTok Dual-Path Restore (oder Legacy-Fallback)
+  7. SOFT RESET     — killall zygote (Framework Restart)
+  8. NETWORK INIT   — Flugmodus AUS + neue IP
+  9. QUICK AUDIT    — Bridge-Serial prüfen + Audit-Score in DB tracken
 
-v3.2 Änderungen:
-  - PIF-Re-Injection: pif.json wird bei jedem Switch aktualisiert,
-    damit der Software-Fingerprint konsistent bleibt. Ohne PIF-Refresh
-    kann ein stale Fingerprint BASIC_INTEGRITY FAIL verursachen.
+v4.1 Änderungen:
+  - PIF wird NICHT mehr von Titan verwaltet — das PlayIntegrityFix
+    KernelSU-Modul managed seine eigene custom.pif.prop via autopif4.
   - Audit-Score Tracking: Quick-Audit schreibt Ergebnis in flow_history.
   - KEIN pm clear GMS: Golden Baseline wird restored, nicht gelöscht.
 
@@ -123,11 +125,14 @@ class SwitchFlow:
     """
 
     STEP_NAMES = [
+        "Airplane Mode",        # v5.1: Flugmodus AN (ganz am Anfang!)
+        "Auto-Backup",          # v5.1: Aktives Profil sichern
         "Safety Kill",
         "Inject",
         "Restore State",
         "Restore TikTok",
         "Soft Reset",
+        "Network Init",         # v5.1: Flugmodus AUS + neue IP
         "Quick Audit",
     ]
 
@@ -210,13 +215,73 @@ class SwitchFlow:
 
         try:
             # =================================================================
-            # Schritt 1: SAFETY KILL (GMS + TikTok + Vending)
+            # Schritt 1: AIRPLANE MODE ON (v5.1 — ganz am Anfang!)
             # =================================================================
             step = result.steps[0]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[1/6] Safety Kill: Alle Apps stoppen...")
+            logger.info("[1/9] Flugmodus AN (Netz sofort trennen)...")
+            await self._adb.shell(
+                "settings put global airplane_mode_on 1", root=True,
+            )
+            await self._adb.shell(
+                "am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true",
+                root=True,
+            )
+
+            step.status = FlowStepStatus.SUCCESS
+            step.detail = "Flugmodus AN — Modem getrennt"
+            step.duration_ms = _now_ms() - step_start
+            logger.info("[1/9] Flugmodus: AN")
+
+            # =================================================================
+            # Schritt 2: AUTO-BACKUP (aktives Profil sichern vor Switch)
+            # =================================================================
+            step = result.steps[1]
+            step.status = FlowStepStatus.RUNNING
+            step_start = _now_ms()
+
+            logger.info("[2/9] Auto-Backup: Aktives Profil sichern...")
+            try:
+                active_profile = await self._find_active_profile()
+                if active_profile and active_profile["id"] != profile_id:
+                    # Nur backuppen wenn ein ANDERES Profil aktiv ist
+                    active_name = active_profile["name"]
+                    logger.info(
+                        "[2/9] Auto-Backup: Profil '%s' (ID %d) wird gesichert...",
+                        active_name, active_profile["id"],
+                    )
+                    backup_result = await self._shifter.backup_tiktok_dual(
+                        active_name, timeout=300,
+                    )
+                    saved = sum(1 for v in backup_result.values() if v is not None)
+                    step.status = FlowStepStatus.SUCCESS
+                    step.detail = f"Profil '{active_name}': {saved}/2 Komponenten gesichert"
+                    logger.info("[2/9] Auto-Backup: %s", step.detail)
+                else:
+                    step.status = FlowStepStatus.SKIPPED
+                    if active_profile:
+                        step.detail = "Ziel-Profil ist bereits aktiv"
+                    else:
+                        step.detail = "Kein aktives Profil gefunden"
+                    logger.info("[2/9] Auto-Backup: %s", step.detail)
+            except Exception as e:
+                # Auto-Backup ist nicht kritisch — Switch fortsetzen
+                step.status = FlowStepStatus.SUCCESS
+                step.detail = f"Backup-Warnung: {e} (Switch wird fortgesetzt)"
+                logger.warning("[2/9] Auto-Backup fehlgeschlagen (nicht kritisch): %s", e)
+
+            step.duration_ms = _now_ms() - step_start
+
+            # =================================================================
+            # Schritt 3: SAFETY KILL (GMS + TikTok + Vending)
+            # =================================================================
+            step = result.steps[2]
+            step.status = FlowStepStatus.RUNNING
+            step_start = _now_ms()
+
+            logger.info("[3/9] Safety Kill: Alle Apps stoppen...")
             killed = []
             for pkg in [*GMS_BACKUP_PACKAGES, "com.zhiliaoapp.musically"]:
                 try:
@@ -230,37 +295,29 @@ class SwitchFlow:
             step.status = FlowStepStatus.SUCCESS
             step.detail = f"Gestoppt: {', '.join(killed)}"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[1/6] Safety Kill: OK (%s)", step.detail)
+            logger.info("[3/9] Safety Kill: OK (%s)", step.detail)
 
             # =================================================================
-            # Schritt 2: INJECT (Bridge + PIF v3.2)
+            # Schritt 2: INJECT (Bridge only — v4.1)
             # =================================================================
-            # v3.2: Neben der Bridge-Datei wird auch pif.json aktualisiert.
-            # Beim Identity-Wechsel MUSS der Software-Fingerprint konsistent
-            # bleiben. Ein stale PIF-Fingerprint aus dem vorherigen Profil
-            # kann zu BASIC_INTEGRITY FAIL führen.
+            # v4.1: NUR Bridge-Datei aktualisieren. PIF wird NICHT mehr
+            # von Titan verwaltet — das PlayIntegrityFix KernelSU-Modul
+            # managed seine eigene custom.pif.prop via autopif4.sh.
+            # Der PIF-Fingerprint ist unabhängig von der Titan-Identität
+            # und bleibt beim Switch unverändert.
             # =================================================================
-            step = result.steps[1]
+            step = result.steps[3]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            # 2a. Hardware-IDs: Bridge-Datei schreiben + verteilen
-            logger.info("[2/6] Inject: Bridge-Datei aktualisieren...")
+            # 4a. Hardware-IDs: Bridge-Datei schreiben + verteilen
+            logger.info("[4/9] Inject: Bridge-Datei aktualisieren...")
             await self._injector.inject(
                 identity, label=identity.name, distribute=True,
             )
+            logger.info("[4/9] PIF: Übersprungen (v4.1 — von KSU PlayIntegrityFix verwaltet)")
 
-            # 2b. PIF-Re-Injection: Software-Fingerprint aktualisieren
-            # Stellt sicher, dass pif.json konsistent ist (älteres Modell,
-            # NICHT das echte Pixel 6 — Safety Constraint v3.2).
-            logger.info("[2/6] PIF: Software-Fingerprint aktualisieren...")
-            pif_ok = await self._injector.inject_pif_fingerprint()
-            if pif_ok:
-                logger.info("[2/6] PIF: OK → MEETS_BASIC_INTEGRITY vorbereitet")
-            else:
-                logger.warning("[2/6] PIF: WARN — pif.json konnte nicht aktualisiert werden")
-
-            # 2c. Aktive Identität in DB umschalten + usage_count++
+            # 2b. Aktive Identität in DB umschalten + usage_count++
             await self._activate_identity(identity_id)
             try:
                 await increment_identity_usage(identity_id)
@@ -268,19 +325,19 @@ class SwitchFlow:
                 logger.warning("Usage-Counter Update fehlgeschlagen: %s", e)
 
             step.status = FlowStepStatus.SUCCESS
-            step.detail = f"serial={identity.serial} | PIF={'OK' if pif_ok else 'WARN'}"
+            step.detail = f"serial={identity.serial} | PIF=KSU"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[2/6] Inject: OK (%s)", step.detail)
+            logger.info("[4/9] Inject: OK (%s)", step.detail)
 
             # =================================================================
             # Schritt 3: RESTORE STATE (GMS + Account-DBs)
             # =================================================================
-            step = result.steps[2]
+            step = result.steps[4]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
             if use_full_state:
-                logger.info("[3/6] Restore State: GMS + Account-DBs...")
+                logger.info("[5/9] Restore State: GMS + Account-DBs...")
                 try:
                     state_results = await self._shifter.restore_full_state(
                         profile_name,
@@ -304,41 +361,62 @@ class SwitchFlow:
                             f"TikTok={'OK' if tiktok_from_state else 'SKIP'}"
                         )
                         logger.warning(
-                            "[3/6] Partial Restore — Google Logout möglich"
+                            "[5/9] Partial Restore — Google Logout möglich"
                         )
                     else:
                         step.status = FlowStepStatus.SUCCESS  # Non-critical
                         step.detail = "Keine GMS/Account Backups vorhanden"
-                        logger.warning("[3/6] Kein GMS-State vorhanden")
+                        logger.warning("[5/9] Kein GMS-State vorhanden")
 
                 except Exception as e:
                     step.status = FlowStepStatus.SUCCESS  # Non-critical
                     step.detail = f"State Restore Fehler: {e}"
-                    logger.warning("[3/6] State Restore Fehler: %s", e)
+                    logger.warning("[5/9] State Restore Fehler: %s", e)
 
             else:
                 step.status = FlowStepStatus.SKIPPED
                 step.detail = "Legacy-Modus — kein Full-State Restore"
-                logger.info("[3/6] Restore State: Übersprungen (Legacy)")
+                logger.info("[5/9] Restore State: Übersprungen (Legacy)")
 
             step.duration_ms = _now_ms() - step_start
 
             # =================================================================
-            # Schritt 4: RESTORE TIKTOK (Legacy-Fallback)
+            # Schritt 4: RESTORE TIKTOK (Dual-Path oder Legacy)
             # =================================================================
-            step = result.steps[3]
+            step = result.steps[5]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
             if use_full_state:
-                # TikTok wurde bereits in Schritt 3 restored
                 step.status = FlowStepStatus.SKIPPED
-                step.detail = "Bereits in Schritt 3 (Full-State) enthalten"
-                logger.info("[4/6] TikTok: In Full-State enthalten")
+                step.detail = "Bereits in Schritt 5 (Full-State) enthalten"
+                logger.info("[6/9] TikTok: In Full-State enthalten")
+
+            elif profile_name:
+                # v4.0: Dual-Path Restore (App-Daten + Sandbox)
+                logger.info("[6/9] Restore TikTok: Dual-Path...")
+                try:
+                    dual_result = await self._shifter.restore_tiktok_dual(
+                        profile_name,
+                    )
+                    restored = sum(1 for v in dual_result.values() if v)
+                    if restored > 0:
+                        step.status = FlowStepStatus.SUCCESS
+                        step.detail = (
+                            f"Dual-Path: app_data={'OK' if dual_result['app_data'] else 'SKIP'}, "
+                            f"sandbox={'OK' if dual_result['sandbox'] else 'SKIP'}"
+                        )
+                    else:
+                        step.status = FlowStepStatus.SKIPPED
+                        step.detail = "Keine TikTok Dual-Path Backups vorhanden"
+                except Exception as e:
+                    step.status = FlowStepStatus.SUCCESS  # Nicht kritisch
+                    step.detail = f"Dual-Path Restore Warnung: {e}"
+                    logger.warning("[6/9] Dual-Path Restore fehlgeschlagen: %s", e)
 
             elif backup_path:
                 # Legacy-Modus: Nur TikTok restoren
-                logger.info("[4/6] Restore TikTok: Legacy-Modus...")
+                logger.info("[6/9] Restore TikTok: Legacy-Modus...")
                 try:
                     await self._shifter.restore(backup_path)
                     step.status = FlowStepStatus.SUCCESS
@@ -356,32 +434,38 @@ class SwitchFlow:
             else:
                 step.status = FlowStepStatus.SKIPPED
                 step.detail = "Kein Backup angegeben"
-                logger.info("[4/6] TikTok: Übersprungen (kein Backup)")
+                logger.info("[6/9] TikTok: Übersprungen (kein Backup)")
 
             step.duration_ms = _now_ms() - step_start
 
             # =================================================================
             # Schritt 5: SOFT RESET (killall zygote)
             # =================================================================
-            step = result.steps[4]
+            step = result.steps[6]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[5/6] Soft Reset: killall zygote...")
+            logger.info("[7/9] Soft Reset: killall zygote...")
             try:
                 await self._adb.shell("killall zygote", root=True)
             except ADBError:
                 # killall zygote kann Verbindung kurz unterbrechen
                 pass
 
+            # v4.0: ADB-Reconnect nach Zygote-Kill (Verbindung kann kurz wegfallen)
+            await asyncio.sleep(3)
+            if not await self._adb.is_connected():
+                logger.info("[7/9] ADB nach Zygote-Kill weg — Reconnect...")
+                await self._adb.ensure_connection(timeout=60)
+
             # Warte unbegrenzt bis Gerät wieder erreichbar
-            logger.info("[5/6] Warte auf Framework-Restart (unbegrenzt)...")
+            logger.info("[7/9] Warte auf Framework-Restart (unbegrenzt)...")
             booted = await self._adb.wait_for_device(timeout=0, poll_interval=2)
 
             if booted:
                 # Post-Boot Settle + Unlock
                 logger.info(
-                    "[5/6] Framework bereit — warte %ds + Unlock...",
+                    "[7/9] Framework bereit — warte %ds + Unlock...",
                     TIMING.POST_BOOT_SETTLE_SECONDS,
                 )
                 await asyncio.sleep(TIMING.POST_BOOT_SETTLE_SECONDS)
@@ -395,10 +479,10 @@ class SwitchFlow:
             else:
                 step.status = FlowStepStatus.FAILED
                 step.detail = "Gerät nach Zygote-Kill nicht erreichbar"
-                logger.warning("[5/6] Gerät nach Soft Reset nicht erreichbar")
+                logger.warning("[7/9] Gerät nach Soft Reset nicht erreichbar")
 
             step.duration_ms = _now_ms() - step_start
-            logger.info("[5/6] Soft Reset: %s", step.status.value)
+            logger.info("[7/9] Soft Reset: %s", step.status.value)
 
             # =================================================================
             # v3.2 SAFETY GATE: Boot-Readiness-Check vor dem Audit
@@ -411,7 +495,7 @@ class SwitchFlow:
             #   2) Aktiver Poll auf sys.boot_completed=1 (max 60s)
             # =================================================================
             logger.info(
-                "[5→6] Safety Gate: 5s Pause + boot_completed Check..."
+                "[7→8] Safety Gate: 5s Pause + boot_completed Check..."
             )
             await asyncio.sleep(5)
 
@@ -430,23 +514,69 @@ class SwitchFlow:
 
             if not boot_ready:
                 logger.warning(
-                    "[5→6] WARNUNG: sys.boot_completed != 1 nach 65s! "
+                    "[7→8] WARNUNG: sys.boot_completed != 1 nach 65s! "
                     "Audit wird trotzdem versucht..."
                 )
             else:
-                logger.info("[5→6] Boot-Readiness bestätigt — Audit startet")
+                logger.info("[7→8] Boot-Readiness bestätigt — Network Init startet")
 
             # =================================================================
-            # Schritt 6: QUICK AUDIT + AUDIT-TRACKING (v3.2)
+            # Schritt 8: NETWORK INIT (v5.1: Flugmodus AUS + neue IP)
             # =================================================================
-            # v3.2: Quick-Audit prüft Bridge-Serial UND schreibt das
-            # Ergebnis in flow_history + identities für Audit-Tracking.
+            # Flugmodus war seit Schritt 1 AN. Nach dem Soft Reset
+            # ist das Framework wieder stabil. Jetzt Flugmodus AUS →
+            # Modem verbindet sich frisch → neue IP vom Carrier.
             # =================================================================
-            step = result.steps[5]
+            step = result.steps[7]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[6/6] Quick Audit: Bridge-Serial prüfen...")
+            logger.info("[8/9] Network Init: 20s warten, dann Flugmodus AUS...")
+            await asyncio.sleep(20)
+
+            await self._adb.shell(
+                "settings put global airplane_mode_on 0", root=True,
+            )
+            await self._adb.shell(
+                "am broadcast -a android.intent.action.AIRPLANE_MODE --ez state false",
+                root=True,
+            )
+            logger.info("[8/9] Flugmodus: AUS — Modem verbindet sich neu")
+
+            # IP-Cache invalidieren
+            from host.engine.network import NetworkChecker
+            NetworkChecker.invalidate_ip_cache()
+
+            # Warte auf Mobilfunk-Stabilisierung
+            await asyncio.sleep(TIMING.IP_AUDIT_WAIT_SECONDS)
+
+            # IP-Check (einmalig)
+            try:
+                network = NetworkChecker(self._adb)
+                ip_result = await network.get_public_ip(skip_cache=True)
+                if ip_result.success:
+                    step.status = FlowStepStatus.SUCCESS
+                    step.detail = f"Neue IP: {ip_result.ip} (via {ip_result.service})"
+                    logger.info("[8/9] Network Init: IP = %s", ip_result.ip)
+                else:
+                    step.status = FlowStepStatus.SUCCESS  # Nicht kritisch
+                    step.detail = f"Flugmodus AUS, IP-Check fehlgeschlagen: {ip_result.error}"
+                    logger.warning("[8/9] IP-Check fehlgeschlagen: %s", ip_result.error)
+            except Exception as e:
+                step.status = FlowStepStatus.SUCCESS  # Nicht kritisch
+                step.detail = f"Flugmodus AUS, IP-Check Fehler: {e}"
+                logger.warning("[8/9] Network Init IP-Fehler: %s", e)
+
+            step.duration_ms = _now_ms() - step_start
+
+            # =================================================================
+            # Schritt 9: QUICK AUDIT + AUDIT-TRACKING (v3.2)
+            # =================================================================
+            step = result.steps[8]
+            step.status = FlowStepStatus.RUNNING
+            step_start = _now_ms()
+
+            logger.info("[9/9] Quick Audit: Bridge-Serial prüfen...")
             audit_ok = await self._auditor.quick_audit(identity.serial)
             result.audit_passed = audit_ok
 
@@ -479,7 +609,7 @@ class SwitchFlow:
             else:
                 step.status = FlowStepStatus.FAILED
                 step.detail = "Bridge-Serial stimmt nicht überein! (Score: 0%)"
-                logger.warning("[6/6] Quick Audit FAIL — Serial mismatch!")
+                logger.warning("[9/9] Quick Audit FAIL — Serial mismatch!")
 
             step.duration_ms = _now_ms() - step_start
 
@@ -593,6 +723,23 @@ class SwitchFlow:
                 "updated_at = ?, last_used_at = ? WHERE id = ?",
                 (now, now, identity_id),
             )
+
+    async def _find_active_profile(self) -> Optional[dict]:
+        """
+        Findet das aktuell aktive Profil (für Auto-Backup vor Switch).
+
+        Returns:
+            Dict mit {"id": int, "name": str, "identity_id": int} oder None
+        """
+        async with db.connection() as conn:
+            cursor = await conn.execute(
+                "SELECT p.id, p.name, p.identity_id "
+                "FROM profiles p WHERE p.status = 'active' LIMIT 1"
+            )
+            row = await cursor.fetchone()
+            if row:
+                return dict(row)
+            return None
 
     async def _mark_profile_corrupted(self, profile_id: int) -> None:
         """Markiert ein Profil-Backup als corrupted."""

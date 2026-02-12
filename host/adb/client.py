@@ -1,6 +1,6 @@
 """
-Project Titan — Async ADB Client
-==================================
+Project Titan — Async ADB Client v4.0
+=======================================
 
 Robuster, asynchroner Wrapper um das `adb` CLI-Tool.
 
@@ -11,6 +11,10 @@ Features:
   - Root-Shell via `su -c` (KernelSU kompatibel)
   - Timeout-Protection für jeden Befehl
   - Device-State Monitoring (connected, booted, ...)
+  - *** v4.0 *** Auto-Reconnect bei ADB-Verbindungsverlust
+    Bei "no devices/emulators found" wird automatisch
+    `adb wait-for-device` ausgeführt + ADB-Daemon neugestartet.
+    Kein manuelles Eingreifen nötig, auch nicht nach Reboot.
 
 Alle ADB-Befehle werden über diese Klasse geroutet.
 Kein direkter subprocess-Aufruf an anderer Stelle im Projekt.
@@ -99,6 +103,9 @@ class ADBClient:
         await adb.reboot()
     """
 
+    # Maximale Zeit die ensure_connection auf das Gerät wartet (Sekunden)
+    ADB_RECONNECT_TIMEOUT = 120
+
     def __init__(
         self,
         max_retries: int = 3,
@@ -108,9 +115,126 @@ class ADBClient:
         self._max_retries = max_retries
         self._retry_delay = retry_delay
         self._timeout = timeout
+        self._reconnecting: bool = False  # Verhindert rekursive Reconnects
 
     # =========================================================================
-    # Core: Befehl ausführen mit Retry
+    # v4.0: Auto-Reconnect — ADB-Verbindung garantieren
+    # =========================================================================
+
+    async def ensure_connection(self, timeout: int = 0) -> bool:
+        """
+        Stellt sicher, dass ein ADB-Gerät verbunden und erreichbar ist.
+
+        Ablauf:
+          1. Schneller Check: `adb get-state` → wenn "device" → sofort OK
+          2. ADB-Daemon Kill + Restart (behebt hängende Daemons)
+          3. `adb wait-for-device` (wartet bis USB/TCP-Verbindung steht)
+          4. Verify: `adb get-state` nochmal prüfen
+
+        Wird automatisch von _exec() aufgerufen bei Connection-Errors.
+        Kann auch manuell aufgerufen werden (z.B. nach Reboot).
+
+        Args:
+            timeout: Maximale Wartezeit in Sekunden (0 = ADB_RECONNECT_TIMEOUT)
+
+        Returns:
+            True wenn Gerät verbunden
+        """
+        effective_timeout = timeout or self.ADB_RECONNECT_TIMEOUT
+
+        # --- 1. Quick-Check ---
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                "adb", "get-state",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=5)
+            if proc.returncode == 0 and "device" in stdout.decode():
+                return True
+        except (asyncio.TimeoutError, OSError):
+            pass
+
+        # --- 2. ADB-Daemon Kill + Restart ---
+        logger.warning(
+            "ADB-Verbindung verloren — starte Reconnect "
+            "(max %ds)...", effective_timeout,
+        )
+
+        try:
+            # kill-server beendet den ADB-Daemon sauber
+            proc = await asyncio.create_subprocess_exec(
+                "adb", "kill-server",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            await asyncio.wait_for(proc.communicate(), timeout=5)
+            logger.info("ADB Daemon gestoppt")
+        except (asyncio.TimeoutError, OSError):
+            pass
+
+        await asyncio.sleep(1)
+
+        try:
+            # start-server startet den Daemon neu
+            proc = await asyncio.create_subprocess_exec(
+                "adb", "start-server",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            await asyncio.wait_for(proc.communicate(), timeout=10)
+            logger.info("ADB Daemon gestartet")
+        except (asyncio.TimeoutError, OSError):
+            pass
+
+        await asyncio.sleep(1)
+
+        # --- 3. wait-for-device (blockiert bis Gerät da ist) ---
+        logger.info("ADB wait-for-device (max %ds)...", effective_timeout)
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                "adb", "wait-for-device",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            await asyncio.wait_for(proc.communicate(), timeout=effective_timeout)
+            logger.info("ADB wait-for-device: Gerät gefunden")
+        except asyncio.TimeoutError:
+            logger.error(
+                "ADB wait-for-device: Timeout nach %ds — "
+                "Gerät nicht erreichbar!", effective_timeout,
+            )
+            return False
+        except OSError:
+            return False
+
+        # --- 4. Verify ---
+        await asyncio.sleep(2)  # Kurz warten bis ADB-Auth abgeschlossen
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                "adb", "get-state",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=5)
+            if proc.returncode == 0 and "device" in stdout.decode():
+                logger.info("ADB Reconnect erfolgreich — Gerät verbunden")
+                return True
+            else:
+                state = stdout.decode().strip()
+                logger.warning("ADB Reconnect: Gerät-State = '%s' (nicht 'device')", state)
+                # Auch "unauthorized" loggen
+                if "unauthorized" in state:
+                    logger.error(
+                        "ADB UNAUTHORIZED — bitte USB-Debugging auf dem Gerät bestätigen! "
+                        "(Dialog 'USB-Debugging erlauben?')"
+                    )
+                return False
+        except (asyncio.TimeoutError, OSError):
+            return False
+
+    # =========================================================================
+    # Core: Befehl ausführen mit Retry + Auto-Reconnect
     # =========================================================================
 
     async def _exec(
@@ -123,6 +247,11 @@ class ADBClient:
         """
         Führt `adb <args>` asynchron aus mit automatischem Retry.
 
+        v4.0: Bei ADB-Verbindungsfehler wird automatisch ensure_connection()
+        aufgerufen (ADB-Daemon Restart + wait-for-device), bevor der Retry
+        startet. Das garantiert, dass ein Reboot oder USB-Disconnect den
+        Flow nicht permanent zerstört.
+
         Args:
             args:    Argumente für adb (z.B. ["shell", "id"])
             timeout: Timeout in Sekunden (None = Default)
@@ -134,7 +263,7 @@ class ADBClient:
 
         Raises:
             ADBTimeoutError:     nach Timeout
-            ADBConnectionError:  nach allen Retries gescheitert
+            ADBConnectionError:  nach allen Retries + Reconnect gescheitert
             ADBError:            sonstiger Fehler
         """
         effective_timeout = timeout or self._timeout
@@ -190,7 +319,9 @@ class ADBClient:
                     return result
 
                 # Nicht-Null Exit, aber kein Verbindungsfehler → kein Retry
-                logger.warning(
+                # DEBUG statt WARNING: viele Shell-Befehle (test, which, grep)
+                # haben legitimerweise non-zero exit codes.
+                logger.debug(
                     "ADB exit=%d: %s | stderr: %s",
                     result.returncode, cmd_str, stderr_str.strip()[:200],
                 )
@@ -201,14 +332,44 @@ class ADBClient:
 
             except ADBConnectionError as e:
                 last_error = e
+
                 if attempt < effective_retries:
-                    delay = self._retry_delay * (2 ** (attempt - 1))  # Exponential backoff
-                    logger.warning(
-                        "ADB Verbindungsfehler (Versuch %d/%d), Retry in %.1fs: %s",
-                        attempt, effective_retries, delay, e,
-                    )
-                    await asyncio.sleep(delay)
+                    # =========================================================
+                    # v4.0 AUTO-RECONNECT: Bei Connection-Error ADB reparieren
+                    # =========================================================
+                    # Statt nur zu warten, aktiv den ADB-Daemon neu starten
+                    # und auf das Gerät warten. Das überbrückt Reboots,
+                    # USB-Disconnects und Auth-Probleme.
+                    # =========================================================
+                    if not self._reconnecting:
+                        self._reconnecting = True
+                        try:
+                            logger.warning(
+                                "ADB Verbindungsfehler (Versuch %d/%d) — "
+                                "starte Auto-Reconnect...",
+                                attempt, effective_retries,
+                            )
+                            reconnected = await self.ensure_connection()
+                            if reconnected:
+                                logger.info(
+                                    "Auto-Reconnect erfolgreich — "
+                                    "wiederhole Befehl: %s", cmd_str,
+                                )
+                            else:
+                                logger.warning(
+                                    "Auto-Reconnect fehlgeschlagen — "
+                                    "versuche trotzdem Retry %d/%d",
+                                    attempt + 1, effective_retries,
+                                )
+                        finally:
+                            self._reconnecting = False
+                    else:
+                        # Bereits im Reconnect — einfach kurz warten
+                        delay = self._retry_delay * (2 ** (attempt - 1))
+                        await asyncio.sleep(delay)
+
                     continue
+
                 # Alle Retries aufgebraucht
                 raise
 
@@ -221,16 +382,25 @@ class ADBClient:
 
     @staticmethod
     def _is_connection_error(stderr: str) -> bool:
-        """Erkennt ADB-Verbindungsfehler die einen Retry rechtfertigen."""
+        """
+        Erkennt ADB-Verbindungsfehler die einen Retry + Reconnect rechtfertigen.
+
+        v4.0: Erweitert um alle bekannten ADB-Disconnection-Patterns,
+        insbesondere "no devices/emulators found" (häufig nach Reboot).
+        """
         indicators = [
             "error: device not found",
             "error: no devices",
+            "no devices/emulators found",
             "error: device offline",
             "error: closed",
             "cannot connect to daemon",
-            "Connection refused",
+            "connection refused",
             "adb: error: failed to get feature set",
             "protocol fault",
+            "error: device unauthorized",
+            "error: device still authorizing",
+            "more than one device",
         ]
         stderr_lower = stderr.lower()
         return any(ind.lower() in stderr_lower for ind in indicators)

@@ -116,9 +116,28 @@ CREATE TABLE IF NOT EXISTS profiles (
     tiktok_following        INTEGER NOT NULL DEFAULT 0,
     tiktok_likes            INTEGER NOT NULL DEFAULT 0,
 
+    -- Instagram Credentials
+    instagram_username      TEXT,
+    instagram_email         TEXT,
+    instagram_password      TEXT,
+
+    -- YouTube Credentials
+    youtube_username        TEXT,
+    youtube_email           TEXT,
+    youtube_password        TEXT,
+
+    -- Snapchat Credentials
+    snapchat_username       TEXT,
+    snapchat_email          TEXT,
+    snapchat_password       TEXT,
+
     -- Google Account
     google_email            TEXT,
     google_password         TEXT,
+
+    -- General Contact Email
+    contact_email           TEXT,
+    contact_password        TEXT,
 
     -- Proxy
     proxy_ip                TEXT,
@@ -320,6 +339,21 @@ _SQL_MIGRATIONS = [
     "ALTER TABLE profiles ADD COLUMN accounts_backup_at TEXT",
     # profiles: Activity Tracking
     "ALTER TABLE profiles ADD COLUMN last_active_at TEXT",
+    # profiles: Instagram Credentials (v2.1)
+    "ALTER TABLE profiles ADD COLUMN instagram_username TEXT",
+    "ALTER TABLE profiles ADD COLUMN instagram_email TEXT",
+    "ALTER TABLE profiles ADD COLUMN instagram_password TEXT",
+    # profiles: YouTube Credentials (v2.1)
+    "ALTER TABLE profiles ADD COLUMN youtube_username TEXT",
+    "ALTER TABLE profiles ADD COLUMN youtube_email TEXT",
+    "ALTER TABLE profiles ADD COLUMN youtube_password TEXT",
+    # profiles: Snapchat Credentials (v2.1)
+    "ALTER TABLE profiles ADD COLUMN snapchat_username TEXT",
+    "ALTER TABLE profiles ADD COLUMN snapchat_email TEXT",
+    "ALTER TABLE profiles ADD COLUMN snapchat_password TEXT",
+    # profiles: General Contact Email (v2.1)
+    "ALTER TABLE profiles ADD COLUMN contact_email TEXT",
+    "ALTER TABLE profiles ADD COLUMN contact_password TEXT",
 ]
 
 

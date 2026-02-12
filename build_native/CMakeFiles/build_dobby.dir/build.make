@@ -53,10 +53,10 @@ RM = /opt/homebrew/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/Users/arvin/Downloads/Custom Hook Module/module"
+CMAKE_SOURCE_DIR = /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/Users/arvin/Downloads/Custom Hook Module/build_native"
+CMAKE_BINARY_DIR = /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native
 
 # Utility rule file for build_dobby.
 
@@ -67,9 +67,9 @@ include CMakeFiles/build_dobby.dir/compiler_depend.make
 include CMakeFiles/build_dobby.dir/progress.make
 
 CMakeFiles/build_dobby:
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir="/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Instructions for building Dobby"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Instructions for building Dobby"
 	/opt/homebrew/bin/cmake -E echo Building\ Dobby...
-	/opt/homebrew/bin/cmake -E make_directory /Users/arvin/Downloads/Custom\ Hook\ Module/module/../libs/dobby
+	/opt/homebrew/bin/cmake -E make_directory /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/../libs/dobby
 	/opt/homebrew/bin/cmake -E echo Please\ build\ Dobby\ manually:
 	/opt/homebrew/bin/cmake -E echo \ \ git\ clone\ https://github.com/jmpews/Dobby.git\ /tmp/Dobby
 	/opt/homebrew/bin/cmake -E echo \ \ cd\ /tmp/Dobby\ &&\ mkdir\ build\ &&\ cd\ build
@@ -77,7 +77,7 @@ CMakeFiles/build_dobby:
 	/opt/homebrew/bin/cmake -E echo \ \ \ \ -DANDROID_ABI=arm64-v8a\ -DANDROID_PLATFORM=android-30\ \\
 	/opt/homebrew/bin/cmake -E echo \ \ \ \ -DCMAKE_BUILD_TYPE=Release\ -DDOBBY_DEBUG=OFF
 	/opt/homebrew/bin/cmake -E echo \ \ make\ -j$(nproc)
-	/opt/homebrew/bin/cmake -E echo \ \ cp\ libdobby.a\ /Users/arvin/Downloads/Custom\ Hook\ Module/module/../libs/dobby/arm64-v8a/
+	/opt/homebrew/bin/cmake -E echo \ \ cp\ libdobby.a\ /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/../libs/dobby/arm64-v8a/
 
 CMakeFiles/build_dobby.dir/codegen:
 .PHONY : CMakeFiles/build_dobby.dir/codegen
@@ -95,6 +95,6 @@ CMakeFiles/build_dobby.dir/clean:
 .PHONY : CMakeFiles/build_dobby.dir/clean
 
 CMakeFiles/build_dobby.dir/depend:
-	cd "/Users/arvin/Downloads/Custom Hook Module/build_native" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/Users/arvin/Downloads/Custom Hook Module/module" "/Users/arvin/Downloads/Custom Hook Module/module" "/Users/arvin/Downloads/Custom Hook Module/build_native" "/Users/arvin/Downloads/Custom Hook Module/build_native" "/Users/arvin/Downloads/Custom Hook Module/build_native/CMakeFiles/build_dobby.dir/DependInfo.cmake" "--color=$(COLOR)" build_dobby
+	cd /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles/build_dobby.dir/DependInfo.cmake "--color=$(COLOR)" build_dobby
 .PHONY : CMakeFiles/build_dobby.dir/depend
 

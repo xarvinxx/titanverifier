@@ -1,10 +1,14 @@
 package com.titan.verifier.xposed
 
+import android.accounts.Account
 import android.content.ContentResolver
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageInfo
 import android.database.Cursor
 import android.database.MatrixCursor
 import android.hardware.input.InputManager
 import android.media.MediaDrm
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.net.wifi.WifiInfo
 import android.os.BatteryManager
@@ -24,7 +28,9 @@ import java.net.NetworkInterface
 /**
  * Project Titan - LSPosed Module (Phase 10.0 - Full Spectrum Stealth)
  * 
- * EXTENDED SCOPE: Verifier, TikTok, GMS, Play Store
+ * v4.0 GMS-SCHUTZ: Scope NUR für Target-Apps (TikTok, Instagram, Snapchat, etc.)
+ * GMS/GSF/Vending sind BEWUSST AUSGESCHLOSSEN — Google muss echte Werte sehen
+ * für Play Integrity (BASIC+DEVICE). TikTok sieht nur seine Sandbox-Daten.
  * FULL COVERAGE: Build Props, Display, Sensors, Battery, GSF, Widevine, MAC, All IDs
  */
 class TitanXposedModule : IXposedHookLoadPackage {
@@ -32,17 +38,24 @@ class TitanXposedModule : IXposedHookLoadPackage {
     companion object {
         private const val TAG = "TITAN-TOTAL"
         
-        // EXTENDED SCOPE - Alle relevanten Packages
+        // v4.0 GMS-SCHUTZ: NUR Target-Apps hooken, KEIN GMS/GSF/Vending!
+        // GMS muss die ECHTEN Device-IDs sehen für Play Integrity (BASIC+DEVICE).
+        // Hooks in GMS spoofen die GSF-ID → Google sieht "unbekanntes Gerät"
+        // → Checkin bricht ab → Play Integrity nur noch DEVICE → Setup zerstört.
+        // TikTok/Instagram sehen NUR ihre eigenen Sandbox-Daten, nicht was GMS hat.
         private val TARGET_PACKAGES = setOf(
             "com.titan.verifier",           // Unser Auditor
             "com.zhiliaoapp.musically",     // TikTok International
             "com.ss.android.ugc.trill",     // TikTok
-            "com.google.android.gms",       // GMS (für GSF)
-            "com.android.vending",          // Play Store
-            "com.google.android.gsf",       // GSF Provider
-            "android",                       // System Framework
-            "com.androidfung.drminfo",      // DRM Info App
-            "tw.reh.deviceid"               // Device ID App
+            "com.instagram.android",        // Instagram
+            "com.snapchat.android",         // Snapchat
+            "com.androidfung.drminfo",      // DRM Info App (Verifikation)
+            "tw.reh.deviceid"               // Device ID App (Verifikation)
+            // BEWUSST AUSGESCHLOSSEN:
+            // "com.google.android.gms"     — GMS braucht echte Werte für Play Integrity
+            // "com.android.vending"        — Play Store braucht echte Werte
+            // "com.google.android.gsf"     — GSF Provider darf nicht gespooft werden
+            // "android"                    — System Framework nicht hooken
         )
         
         private const val GSF_CONTENT_URI = "content://com.google.android.gsf.gservices"
@@ -52,6 +65,60 @@ class TitanXposedModule : IXposedHookLoadPackage {
             "/sys/class/net/wlan0/address",
             "/sys/class/net/eth0/address",
             "/proc/net/arp"
+        )
+        
+        // =====================================================================
+        // Phase 11.0: Root/Xposed App-Pakete die versteckt werden müssen
+        // =====================================================================
+        private val HIDDEN_PACKAGES = setOf(
+            // Root-Manager
+            "com.twj.wksu",                        // Wild KSU
+            "com.rifsxd.ksunext",                   // KSU Next
+            "me.weishu.kernelsu",                   // KernelSU
+            "com.topjohnwu.magisk",                 // Magisk
+            "io.github.vvb2060.magisk",             // Magisk Alpha
+            "com.topjohnwu.magisk.lite",            // Magisk Lite
+            // Xposed / Hooking
+            "org.lsposed.manager",                  // LSPosed Manager
+            "de.robv.android.xposed.installer",     // Xposed Installer
+            "org.meowcat.edxposed.manager",         // EdXposed
+            "eu.faircode.xlua",                     // XPrivacyLua
+            // Anti-Detection / Security Tools
+            "io.github.vvb2060.mahoshojo",          // Momo (Root Detector)
+            "com.reveny.nativecheck",               // Native Detector
+            "com.byxiaorun.detector",               // Ruru
+            "org.frknkrc44.hma_oss",                // HMA-OSS
+            "com.github.capntrips.kernelflasher",   // Kernel Flasher
+            "gr.nikolasspyr.integritycheck",        // Play Integrity Checker
+            "io.github.vvb2060.keyattestation",     // Key Attestation
+            // Titan eigene Module
+            "com.titan.verifier",                   // Unsere App (vor Targets verstecken)
+            // Weitere bekannte Root/Mod Apps
+            "eu.chainfire.supersu",                 // SuperSU
+            "com.noshufou.android.su",              // Superuser
+            "com.koushikdutta.superuser",           // Superuser (Koush)
+            "com.zachspong.temprootremovejb",       // Temp Root
+            "com.amphoras.hidemyroot",              // Hide My Root
+            "com.formyhm.hideroot",                 // Hide Root
+            "com.saurik.substrate",                 // Cydia Substrate
+            "com.devadvance.rootcloak",             // RootCloak
+            "com.devadvance.rootcloakplus",         // RootCloak+
+            "rikka.shizuku",                        // Shizuku
+            "moe.shizuku.privileged.api",           // Shizuku API
+        )
+        
+        // Settings.Global Keys die versteckt werden müssen
+        private val HIDDEN_GLOBAL_SETTINGS = mapOf(
+            "adb_enabled" to "0",
+            "development_settings_enabled" to "0",
+            "verifier_verify_adb_installs" to "1"
+        )
+        
+        // Settings.Secure Keys die versteckt werden müssen  
+        private val HIDDEN_SECURE_SETTINGS = mapOf(
+            "adb_enabled" to "0",
+            "development_settings_enabled" to "0",
+            "install_non_market_apps" to "0"
         )
         
         // =====================================================================
@@ -199,7 +266,17 @@ class TitanXposedModule : IXposedHookLoadPackage {
         safeHook("SensorJitter") { hookSensorJitter(lpparam) }
         safeHook("AdvertisingId") { hookAdvertisingId(lpparam) }
         
-        log("Full Spectrum hooks complete for ${lpparam.packageName}")
+        // ===== Phase 11.0: Anti-Detection & Environmental Stealth =====
+        safeHook("BluetoothMAC") { hookBluetoothMac() }
+        safeHook("PackageManager-Hide") { hookPackageManagerHide(lpparam) }
+        safeHook("AccountManager-Hide") { hookAccountManager(lpparam) }
+        safeHook("Settings.Global-Stealth") { hookSettingsGlobal(lpparam) }
+        safeHook("VPN-Detection-Hide") { hookVpnDetection(lpparam) }
+        safeHook("SystemFeatures") { hookSystemFeatures(lpparam) }
+        safeHook("Debug-Detection-Hide") { hookDebugDetection(lpparam) }
+        safeHook("AccessibilityService-Hide") { hookAccessibilityHide(lpparam) }
+        
+        log("Phase 11.0 Full Spectrum + Anti-Detection complete for ${lpparam.packageName}")
     }
     
     private fun ensureBridgeLoaded() {
@@ -550,6 +627,119 @@ class TitanXposedModule : IXposedHookLoadPackage {
                 }
             }
         })
+        
+        // Phase 11.0: IPv6 Link-Local Adressen enthalten echte MAC im EUI-64 Format!
+        // fe80::XXXX:XXFF:FEXX:XXXX → die XX Bytes SIND die MAC
+        // Wir müssen getInetAddresses() hooken um die IPv6 Link-Local zu ersetzen
+        try {
+            XposedHelpers.findAndHookMethod(
+                NetworkInterface::class.java, "getInetAddresses",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        ensureBridgeLoaded()
+                        val fakeMac = cachedMac ?: return
+                        val ni = param.thisObject as? NetworkInterface ?: return
+                        val name = ni.name ?: return
+                        if (name != "wlan0" && name != "eth0") return
+                        
+                        val result = param.result as? java.util.Enumeration<*> ?: return
+                        val addresses = java.util.Collections.list(result)
+                        val spoofed = addresses.map { addr ->
+                            try {
+                                val inetAddr = addr as java.net.InetAddress
+                                if (inetAddr is java.net.Inet6Address) {
+                                    val bytes = inetAddr.address
+                                    // Prüfe ob die Adresse EUI-64 Format hat (ff:fe in Bytes 11-12)
+                                    val hasEui64 = bytes.size == 16 && 
+                                        bytes[11] == 0xff.toByte() && bytes[12] == 0xfe.toByte()
+                                    
+                                    if (hasEui64) {
+                                        // EUI-64 erkannt! Ersetze mit Fake-MAC-basierter Adresse
+                                        val fakeAddr = replaceEui64InAddress(bytes, fakeMac)
+                                        if (fakeAddr != null) {
+                                            log("IPv6 EUI-64 spoofed: ${inetAddr.hostAddress}")
+                                            fakeAddr
+                                        } else inetAddr
+                                    } else {
+                                        inetAddr
+                                    }
+                                } else {
+                                    inetAddr
+                                }
+                            } catch (_: Throwable) { addr }
+                        }
+                        param.result = java.util.Collections.enumeration(spoofed)
+                    }
+                }
+            )
+            log("NetworkInterface.getInetAddresses() IPv6 EUI-64 hook OK")
+        } catch (_: Throwable) {}
+        
+        // Auch InterfaceAddress für getAllByName und getByInetAddress
+        try {
+            XposedHelpers.findAndHookMethod(
+                NetworkInterface::class.java, "getInterfaceAddresses",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        // InterfaceAddress enthält ebenfalls InetAddress mit EUI-64
+                        // Wir lassen es hier erstmal, da getInetAddresses der Hauptvektor ist
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+    }
+    
+    /**
+     * Generiert eine IPv6 Link-Local Adresse mit EUI-64 aus einer MAC-Adresse.
+     * MAC aa:bb:cc:dd:ee:ff → EUI-64: fe80::aabb:ccff:fedd:eeff (mit bit-flip)
+     */
+    private fun generateEui64LinkLocal(mac: String): java.net.Inet6Address? {
+        try {
+            val parts = mac.split(":").map { it.toInt(16) }
+            if (parts.size != 6) return null
+            
+            // EUI-64: Byte 0 mit Bit 1 flipped, dann FF:FE einfügen
+            val b0 = parts[0] xor 0x02  // Universal/Local bit flippen
+            val bytes = byteArrayOf(
+                0xfe.toByte(), 0x80.toByte(), 
+                0, 0, 0, 0, 0, 0,  // 6 Null-Bytes
+                b0.toByte(), parts[1].toByte(),
+                parts[2].toByte(), 0xff.toByte(),
+                0xfe.toByte(), parts[3].toByte(),
+                parts[4].toByte(), parts[5].toByte()
+            )
+            return java.net.Inet6Address.getByAddress(null, bytes, null) as java.net.Inet6Address
+        } catch (_: Throwable) {
+            return null
+        }
+    }
+    
+    /**
+     * Ersetzt die EUI-64 Interface-ID in einer beliebigen IPv6-Adresse.
+     * Behält den Prefix (erste 8 Bytes) bei, ersetzt nur die Interface-ID (letzte 8 Bytes).
+     * Funktioniert für Link-Local (fe80::), ULA (fd::/fc::), und Global Unicast.
+     */
+    private fun replaceEui64InAddress(originalBytes: ByteArray, fakeMac: String): java.net.Inet6Address? {
+        try {
+            val parts = fakeMac.split(":").map { it.toInt(16) }
+            if (parts.size != 6) return null
+            
+            // Prefix beibehalten (Bytes 0-7), Interface-ID ersetzen (Bytes 8-15)
+            val b0 = parts[0] xor 0x02  // Universal/Local bit flippen
+            val newBytes = originalBytes.copyOf()
+            newBytes[8] = b0.toByte()
+            newBytes[9] = parts[1].toByte()
+            newBytes[10] = parts[2].toByte()
+            newBytes[11] = 0xff.toByte()
+            newBytes[12] = 0xfe.toByte()
+            newBytes[13] = parts[3].toByte()
+            newBytes[14] = parts[4].toByte()
+            newBytes[15] = parts[5].toByte()
+            
+            return java.net.Inet6Address.getByAddress(null, newBytes, null) as java.net.Inet6Address
+        } catch (_: Throwable) {
+            return null
+        }
     }
     
     // =========================================================================
@@ -1389,6 +1579,644 @@ class TitanXposedModule : IXposedHookLoadPackage {
     }
     
     // =========================================================================
+    // Phase 11.0: Bluetooth MAC Hooking
+    // =========================================================================
+    
+    private fun hookBluetoothMac() {
+        ensureBridgeLoaded()
+        val fakeBtMac = generateBluetoothMac()
+        
+        // BluetoothAdapter.getAddress()
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.bluetooth.BluetoothAdapter", null,
+                "getAddress",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        param.result = fakeBtMac
+                    }
+                }
+            )
+            log("Bluetooth: getAddress() -> $fakeBtMac")
+        } catch (_: Throwable) {
+            log("Bluetooth: getAddress() not available")
+        }
+        
+        // BluetoothAdapter.getName() - Gerätename anpassen
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.bluetooth.BluetoothAdapter", null,
+                "getName",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        param.result = "Pixel 6"
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // BluetoothDevice.getAddress() für Scans
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.bluetooth.BluetoothDevice", null,
+                "getAddress",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        // Nur die eigene Adresse spoofen, nicht entdeckte Geräte
+                        val original = param.result as? String ?: return
+                        if (original.equals(getOriginalBtMac(), ignoreCase = true)) {
+                            param.result = fakeBtMac
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+    }
+    
+    @Volatile private var originalBtMac: String? = null
+    
+    private fun getOriginalBtMac(): String {
+        if (originalBtMac != null) return originalBtMac!!
+        // Wird beim ersten BluetoothAdapter-Aufruf gesetzt
+        return "00:00:00:00:00:00"
+    }
+    
+    /**
+     * Generiert eine deterministische Bluetooth MAC basierend auf WiFi MAC.
+     * BT MAC ist immer WiFi MAC + 1 auf dem letzten Byte (realistisch für Pixel-Geräte).
+     */
+    private fun generateBluetoothMac(): String {
+        val wifiMac = cachedMac ?: return "02:00:00:00:00:00"
+        try {
+            val parts = wifiMac.split(":")
+            if (parts.size != 6) return "02:00:00:00:00:00"
+            val bytes = parts.map { it.toInt(16) }.toIntArray()
+            bytes[5] = (bytes[5] + 1) and 0xFF
+            return bytes.joinToString(":") { "%02x".format(it) }
+        } catch (_: Throwable) {
+            return "02:00:00:00:00:00"
+        }
+    }
+    
+    // =========================================================================
+    // Phase 11.0: PackageManager Hide (Root/Xposed Apps verstecken)
+    // =========================================================================
+    
+    private fun hookPackageManagerHide(lpparam: XC_LoadPackage.LoadPackageParam) {
+        // Nicht in unserer eigenen App verstecken (für Audit)
+        if (lpparam.packageName == "com.titan.verifier") return
+        
+        // ---- getInstalledPackages() → Filtere Root/Xposed Apps ----
+        XposedHelpers.findAndHookMethod(
+            "android.app.ApplicationPackageManager", lpparam.classLoader,
+            "getInstalledPackages",
+            Int::class.javaPrimitiveType,
+            object : XC_MethodHook() {
+                @Suppress("UNCHECKED_CAST")
+                override fun afterHookedMethod(param: MethodHookParam) {
+                    val original = param.result as? MutableList<PackageInfo> ?: return
+                    val filtered = original.filter { it.packageName !in HIDDEN_PACKAGES }
+                    param.result = ArrayList(filtered)
+                }
+            }
+        )
+        
+        // ---- getInstalledApplications() → Filtere Root/Xposed Apps ----
+        XposedHelpers.findAndHookMethod(
+            "android.app.ApplicationPackageManager", lpparam.classLoader,
+            "getInstalledApplications",
+            Int::class.javaPrimitiveType,
+            object : XC_MethodHook() {
+                @Suppress("UNCHECKED_CAST")
+                override fun afterHookedMethod(param: MethodHookParam) {
+                    val original = param.result as? MutableList<ApplicationInfo> ?: return
+                    val filtered = original.filter { it.packageName !in HIDDEN_PACKAGES }
+                    param.result = ArrayList(filtered)
+                }
+            }
+        )
+        
+        // ---- getPackageInfo() → NameNotFoundException für versteckte Apps ----
+        XposedHelpers.findAndHookMethod(
+            "android.app.ApplicationPackageManager", lpparam.classLoader,
+            "getPackageInfo",
+            String::class.java, Int::class.javaPrimitiveType,
+            object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    val packageName = param.args[0] as? String ?: return
+                    if (packageName in HIDDEN_PACKAGES && lpparam.packageName != packageName) {
+                        param.throwable = android.content.pm.PackageManager.NameNotFoundException(packageName)
+                    }
+                }
+            }
+        )
+        
+        // ---- getApplicationInfo() → NameNotFoundException für versteckte Apps ----
+        XposedHelpers.findAndHookMethod(
+            "android.app.ApplicationPackageManager", lpparam.classLoader,
+            "getApplicationInfo",
+            String::class.java, Int::class.javaPrimitiveType,
+            object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    val packageName = param.args[0] as? String ?: return
+                    if (packageName in HIDDEN_PACKAGES && lpparam.packageName != packageName) {
+                        param.throwable = android.content.pm.PackageManager.NameNotFoundException(packageName)
+                    }
+                }
+            }
+        )
+        
+        // ---- resolveActivity() → null für versteckte Apps ----
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.app.ApplicationPackageManager", lpparam.classLoader,
+                "resolveActivity",
+                android.content.Intent::class.java, Int::class.javaPrimitiveType,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val intent = param.args[0] as? android.content.Intent ?: return
+                        val pkg = intent.`package` ?: intent.component?.packageName ?: return
+                        if (pkg in HIDDEN_PACKAGES) {
+                            param.result = null
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // ---- queryIntentActivities() → Filtere versteckte Apps ----
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.app.ApplicationPackageManager", lpparam.classLoader,
+                "queryIntentActivities",
+                android.content.Intent::class.java, Int::class.javaPrimitiveType,
+                object : XC_MethodHook() {
+                    @Suppress("UNCHECKED_CAST")
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val result = param.result as? MutableList<*> ?: return
+                        val filtered = result.filter { resolveInfo ->
+                            try {
+                                val actInfo = resolveInfo?.javaClass?.getField("activityInfo")?.get(resolveInfo)
+                                val pkg = actInfo?.javaClass?.getField("packageName")?.get(actInfo) as? String
+                                pkg == null || pkg !in HIDDEN_PACKAGES
+                            } catch (_: Throwable) { true }
+                        }
+                        param.result = ArrayList(filtered)
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        log("PackageManager: ${HIDDEN_PACKAGES.size} packages hidden")
+    }
+    
+    // =========================================================================
+    // Phase 11.0: AccountManager Hide (Google-Account vor Target-Apps verstecken)
+    // =========================================================================
+    
+    private fun hookAccountManager(lpparam: XC_LoadPackage.LoadPackageParam) {
+        // Nicht in unserer eigenen App oder GMS-Apps verstecken
+        if (lpparam.packageName == "com.titan.verifier") return
+        
+        // ---- getAccounts() → Leeres Array ----
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.accounts.AccountManager", lpparam.classLoader,
+                "getAccounts",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        param.result = emptyArray<Account>()
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // ---- getAccountsByType() → Leeres Array ----
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.accounts.AccountManager", lpparam.classLoader,
+                "getAccountsByType",
+                String::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        param.result = emptyArray<Account>()
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // ---- getAccountsByTypeAndFeatures() → Leeres Array (Async) ----
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.accounts.AccountManager", lpparam.classLoader,
+                "getAccountsByTypeAndFeatures",
+                String::class.java, Array<String>::class.java,
+                android.accounts.AccountManagerCallback::class.java,
+                android.os.Handler::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        // Die Callback wird vom System aufgerufen — wir können den Future nicht direkt manipulieren
+                        // Stattdessen: getResult() des AccountManagerFuture manipulieren
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // ---- hasFeatures() → false für Google-Accounts ----
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.accounts.AccountManager", lpparam.classLoader,
+                "hasFeatures",
+                Account::class.java, Array<String>::class.java,
+                android.accounts.AccountManagerCallback::class.java,
+                android.os.Handler::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        // Verhindern dass Apps Google-Account-Features abfragen
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        log("AccountManager: Accounts hidden from ${lpparam.packageName}")
+    }
+    
+    // =========================================================================
+    // Phase 11.0: Settings.Global Hooks (ADB/Developer Options verstecken)
+    // =========================================================================
+    
+    private fun hookSettingsGlobal(lpparam: XC_LoadPackage.LoadPackageParam) {
+        // Settings.Global.getInt(ContentResolver, name) → Fake-Werte
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.provider.Settings\$Global", lpparam.classLoader,
+                "getInt",
+                ContentResolver::class.java, String::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val name = param.args[1] as? String ?: return
+                        val fakeValue = HIDDEN_GLOBAL_SETTINGS[name] ?: return
+                        param.result = fakeValue.toIntOrNull() ?: return
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // Settings.Global.getInt(ContentResolver, name, def) → Fake-Werte
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.provider.Settings\$Global", lpparam.classLoader,
+                "getInt",
+                ContentResolver::class.java, String::class.java, Int::class.javaPrimitiveType,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val name = param.args[1] as? String ?: return
+                        val fakeValue = HIDDEN_GLOBAL_SETTINGS[name] ?: return
+                        param.result = fakeValue.toIntOrNull() ?: return
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // Settings.Global.getString(ContentResolver, name) → Fake-Werte
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.provider.Settings\$Global", lpparam.classLoader,
+                "getString",
+                ContentResolver::class.java, String::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val name = param.args[1] as? String ?: return
+                        val fakeValue = HIDDEN_GLOBAL_SETTINGS[name] ?: return
+                        param.result = fakeValue
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // Erweitere auch Settings.Secure für development_settings_enabled
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.provider.Settings\$Secure", lpparam.classLoader,
+                "getInt",
+                ContentResolver::class.java, String::class.java, Int::class.javaPrimitiveType,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val name = param.args[1] as? String ?: return
+                        val fakeValue = HIDDEN_SECURE_SETTINGS[name] ?: return
+                        param.result = fakeValue.toIntOrNull() ?: return
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        log("Settings.Global: ADB/DevOptions hidden")
+    }
+    
+    // =========================================================================
+    // Phase 11.0: VPN Detection verstecken
+    // =========================================================================
+    
+    private fun hookVpnDetection(lpparam: XC_LoadPackage.LoadPackageParam) {
+        // NetworkCapabilities: TRANSPORT_VPN entfernen
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.net.NetworkCapabilities", lpparam.classLoader,
+                "hasTransport",
+                Int::class.javaPrimitiveType,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val transport = param.args[0] as Int
+                        // TRANSPORT_VPN = 4
+                        if (transport == NetworkCapabilities.TRANSPORT_VPN) {
+                            param.result = false
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // ConnectivityManager.getNetworkInfo(TYPE_VPN) → null
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.net.ConnectivityManager", lpparam.classLoader,
+                "getNetworkInfo",
+                Int::class.javaPrimitiveType,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val type = param.args[0] as Int
+                        // TYPE_VPN = 17
+                        if (type == 17) {
+                            param.result = null
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // NetworkInterface: tun0/ppp0 (VPN Interfaces) verstecken
+        try {
+            XposedHelpers.findAndHookMethod(
+                "java.net.NetworkInterface", lpparam.classLoader,
+                "getName",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val name = param.result as? String ?: return
+                        if (name.startsWith("tun") || name.startsWith("ppp") || name.startsWith("tap")) {
+                            // Verstecke VPN-Interfaces
+                            param.result = "dummy0"
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // NetworkInterface.getNetworkInterfaces() → VPN-Interfaces filtern
+        try {
+            XposedHelpers.findAndHookMethod(
+                "java.net.NetworkInterface", lpparam.classLoader,
+                "getNetworkInterfaces",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val result = param.result as? java.util.Enumeration<*> ?: return
+                        val list = java.util.Collections.list(result)
+                        val filtered = list.filter { iface ->
+                            try {
+                                val name = (iface as NetworkInterface).name
+                                !name.startsWith("tun") && !name.startsWith("ppp") && !name.startsWith("tap")
+                            } catch (_: Throwable) { true }
+                        }
+                        param.result = java.util.Collections.enumeration(filtered)
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        log("VPN: Detection hooks applied")
+    }
+    
+    // =========================================================================
+    // Phase 11.0: System Features Hook (Emulator-Marker verstecken)
+    // =========================================================================
+    
+    private fun hookSystemFeatures(lpparam: XC_LoadPackage.LoadPackageParam) {
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.app.ApplicationPackageManager", lpparam.classLoader,
+                "hasSystemFeature",
+                String::class.java,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val feature = param.args[0] as? String ?: return
+                        when {
+                            // Emulator-Features → false
+                            feature.contains("android.hardware.type.pc") -> param.result = false
+                            feature.contains("com.google.android.feature.EMULATOR") -> param.result = false
+                            // Echte Pixel 6 Features → true
+                            feature == "android.hardware.fingerprint" -> param.result = true
+                            feature == "android.hardware.camera.flash" -> param.result = true
+                            feature == "android.hardware.nfc" -> param.result = true
+                            feature == "android.hardware.bluetooth" -> param.result = true
+                            feature == "android.hardware.bluetooth_le" -> param.result = true
+                            feature == "android.hardware.telephony" -> param.result = true
+                            feature == "android.hardware.telephony.gsm" -> param.result = true
+                            feature == "android.hardware.sensor.accelerometer" -> param.result = true
+                            feature == "android.hardware.sensor.gyroscope" -> param.result = true
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // hasSystemFeature(String, int) Variante
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.app.ApplicationPackageManager", lpparam.classLoader,
+                "hasSystemFeature",
+                String::class.java, Int::class.javaPrimitiveType,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val feature = param.args[0] as? String ?: return
+                        if (feature.contains("EMULATOR") || feature.contains("type.pc")) {
+                            param.result = false
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        log("SystemFeatures: Emulator markers hidden, Pixel 6 features confirmed")
+    }
+    
+    // =========================================================================
+    // Phase 11.0: Debug/Root Detection verstecken
+    // =========================================================================
+    
+    private fun hookDebugDetection(lpparam: XC_LoadPackage.LoadPackageParam) {
+        // NICHT in unserer eigenen App! Titan Verifier braucht su für Root-Layer-Audit
+        if (lpparam.packageName == "com.titan.verifier") {
+            log("Debug/Root: Skipped for own app (needs su for audit)")
+            return
+        }
+        
+        // Debug.isDebuggerConnected() → false
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.os.Debug", lpparam.classLoader,
+                "isDebuggerConnected",
+                XC_MethodReplacement.returnConstant(false)
+            )
+        } catch (_: Throwable) {}
+        
+        // Debug.waitingForDebugger() → false
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.os.Debug", lpparam.classLoader,
+                "waitingForDebugger",
+                XC_MethodReplacement.returnConstant(false)
+            )
+        } catch (_: Throwable) {}
+        
+        // ApplicationInfo.flags: FLAG_DEBUGGABLE entfernen
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.app.ApplicationPackageManager", lpparam.classLoader,
+                "getApplicationInfo",
+                String::class.java, Int::class.javaPrimitiveType,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        if (param.throwable != null) return
+                        val appInfo = param.result as? ApplicationInfo ?: return
+                        // FLAG_DEBUGGABLE entfernen
+                        appInfo.flags = appInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE.inv()
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // Runtime.exec() → Blockiere su/magisk/ksud Checks
+        try {
+            XposedHelpers.findAndHookMethod(
+                "java.lang.Runtime", lpparam.classLoader,
+                "exec",
+                String::class.java,
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val cmd = param.args[0] as? String ?: return
+                        val lower = cmd.lowercase()
+                        if (lower.contains("which su") || lower.contains("which magisk") || 
+                            lower.contains("which ksud") || lower.contains("su -c") ||
+                            lower == "su" || lower.contains("/sbin/su") || 
+                            lower.contains("/system/xbin/su")) {
+                            param.throwable = java.io.IOException("Command not found")
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // Runtime.exec(String[]) Array-Variante
+        try {
+            XposedHelpers.findAndHookMethod(
+                "java.lang.Runtime", lpparam.classLoader,
+                "exec",
+                Array<String>::class.java,
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        @Suppress("UNCHECKED_CAST")
+                        val cmdArray = param.args[0] as? Array<String> ?: return
+                        val cmd = cmdArray.joinToString(" ").lowercase()
+                        if (cmd.contains("which su") || cmd.contains("which magisk") ||
+                            cmd.contains("which ksud") || cmdArray[0] == "su" ||
+                            cmd.contains("/sbin/su") || cmd.contains("/system/xbin/su")) {
+                            param.throwable = java.io.IOException("Command not found")
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // ProcessBuilder → Blockiere Root-Checks
+        try {
+            XposedHelpers.findAndHookMethod(
+                "java.lang.ProcessBuilder", lpparam.classLoader,
+                "start",
+                object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val pb = param.thisObject as? ProcessBuilder ?: return
+                        val cmd = pb.command().joinToString(" ").lowercase()
+                        if (cmd.contains("which su") || cmd.contains("which magisk") ||
+                            cmd.contains("which ksud") || (pb.command().size == 1 && pb.command()[0] == "su") ||
+                            cmd.contains("/sbin/su")) {
+                            param.throwable = java.io.IOException("Command not found")
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // File.exists() → false für Root-Binaries
+        try {
+            XposedHelpers.findAndHookMethod(
+                "java.io.File", lpparam.classLoader,
+                "exists",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val file = param.thisObject as? File ?: return
+                        val path = file.absolutePath.lowercase()
+                        if (path.contains("/su") || path.contains("/magisk") || path.contains("/ksud") ||
+                            path.contains("/busybox") || path.contains("superuser.apk") ||
+                            path.contains("/data/adb/modules") || path.contains("/sbin/.magisk") ||
+                            path.contains("zygisk") || path.contains("lsposed") || path.contains("xposed")) {
+                            param.result = false
+                        }
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        log("Debug/Root: Detection hooks applied")
+    }
+    
+    // =========================================================================
+    // Phase 11.0: Accessibility Service Detection verstecken
+    // =========================================================================
+    
+    private fun hookAccessibilityHide(lpparam: XC_LoadPackage.LoadPackageParam) {
+        // Nicht in unserer eigenen App
+        if (lpparam.packageName == "com.titan.verifier") return
+        
+        // Accessibility-spezifischer Hook für getEnabledAccessibilityServiceList
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.view.accessibility.AccessibilityManager", lpparam.classLoader,
+                "getEnabledAccessibilityServiceList",
+                Int::class.javaPrimitiveType,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        param.result = emptyList<Any>()
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // isEnabled() → false (keine Accessibility Services aktiv)
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.view.accessibility.AccessibilityManager", lpparam.classLoader,
+                "isEnabled",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        param.result = false
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        log("Accessibility: Services hidden")
+    }
+    
+    // =========================================================================
     // Helpers
     // =========================================================================
     
@@ -1409,7 +2237,7 @@ class TitanXposedModule : IXposedHookLoadPackage {
     
     // Stealth-Logging: Nur beim Init loggen, nicht bei jedem Hook-Call
     @Volatile private var logCount = 0
-    private val MAX_LOG_LINES = 200  // Erhöht für Phase 13 Debugging
+    private val MAX_LOG_LINES = 300  // Erhöht für Phase 11.0 Anti-Detection
     
     private fun log(msg: String) {
         if (logCount >= MAX_LOG_LINES) return

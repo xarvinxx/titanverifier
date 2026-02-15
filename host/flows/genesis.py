@@ -57,6 +57,7 @@ from host.config import LOCAL_TZ, TIMING
 from host.database import db
 from host.engine.auditor import AuditResult, TitanAuditor
 from host.engine.db_ops import (
+    check_ip_collision,
     create_flow_history,
     create_profile_auto,
     record_audit,
@@ -240,36 +241,62 @@ class GenesisFlow:
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            if backup_before:
-                logger.info("[2/11] Auto-Backup: Aktives Profil sichern...")
-                try:
-                    active_profile = await self._find_active_profile()
-                    if active_profile:
-                        active_name = active_profile["name"]
-                        logger.info(
-                            "[2/11] Auto-Backup: Profil '%s' (ID %d) wird gesichert...",
-                            active_name, active_profile["id"],
-                        )
-                        backup_result = await self._shifter.backup_tiktok_dual(
-                            active_name, timeout=300,
-                        )
-                        saved = sum(1 for v in backup_result.values() if v is not None)
-                        step.status = FlowStepStatus.SUCCESS
-                        step.detail = f"Profil '{active_name}': {saved}/2 Komponenten gesichert"
-                        logger.info("[2/11] Auto-Backup: %s", step.detail)
-                    else:
-                        step.status = FlowStepStatus.SKIPPED
-                        step.detail = "Kein aktives Profil gefunden (erster Lauf?)"
-                        logger.info("[2/11] Auto-Backup: %s", step.detail)
-                except Exception as e:
-                    # Backup-Fehler ist NICHT kritisch — Genesis fortsetzen!
+            # =================================================================
+            # FIX-11: Intelligente Backup-Logik
+            #   - Aktives Profil MIT tiktok_username → IMMER Backup
+            #   - Aktives Profil OHNE tiktok_username + Checkbox → Backup
+            #   - Kein aktives Profil + Checkbox → Versuche Backup
+            #   - Sonst → KEIN Backup
+            # =================================================================
+            logger.info("[2/11] Auto-Backup: Prüfe aktives Profil...")
+            try:
+                active_profile = await self._find_active_profile()
+
+                should_backup = False
+                backup_reason = ""
+
+                if active_profile:
+                    tiktok_user = active_profile.get("tiktok_username")
+                    if tiktok_user and tiktok_user.strip():
+                        # TikTok-Account eingerichtet → IMMER Backup
+                        should_backup = True
+                        backup_reason = f"TikTok @{tiktok_user} aktiv"
+                    elif backup_before:
+                        # Kein TikTok-User aber Checkbox gesetzt → Backup (User Override)
+                        should_backup = True
+                        backup_reason = "Checkbox aktiviert (kein TikTok-Account)"
+                elif backup_before:
+                    # Kein aktives Profil aber Checkbox → skip
+                    should_backup = False
+                    backup_reason = "Kein aktives Profil"
+
+                if should_backup and active_profile:
+                    active_name = active_profile["name"]
+                    logger.info(
+                        "[2/11] Auto-Backup: Profil '%s' wird gesichert (%s)...",
+                        active_name, backup_reason,
+                    )
+                    backup_result = await self._shifter.backup_tiktok_dual(
+                        active_name, timeout=300,
+                    )
+                    saved = sum(1 for v in backup_result.values() if v is not None)
                     step.status = FlowStepStatus.SUCCESS
-                    step.detail = f"Backup-Warnung: {e} (Genesis wird fortgesetzt)"
-                    logger.warning("[2/11] Auto-Backup fehlgeschlagen (nicht kritisch): %s", e)
-            else:
-                step.status = FlowStepStatus.SKIPPED
-                step.detail = "Backup-Option nicht aktiviert"
-                logger.info("[2/11] Auto-Backup: Übersprungen (nicht aktiviert)")
+                    step.detail = f"Profil '{active_name}': {saved}/2 Komponenten ({backup_reason})"
+                    logger.info("[2/11] Auto-Backup: %s", step.detail)
+                else:
+                    step.status = FlowStepStatus.SKIPPED
+                    if not active_profile:
+                        step.detail = "Kein aktives Profil gefunden (erster Lauf?)"
+                    elif not backup_before:
+                        step.detail = f"Profil '{active_profile['name']}' hat keinen TikTok-Account — Checkbox nicht gesetzt"
+                    else:
+                        step.detail = backup_reason
+                    logger.info("[2/11] Auto-Backup: %s", step.detail)
+            except Exception as e:
+                # Backup-Fehler ist NICHT kritisch — Genesis fortsetzen!
+                step.status = FlowStepStatus.SUCCESS
+                step.detail = f"Backup-Warnung: {e} (Genesis wird fortgesetzt)"
+                logger.warning("[2/11] Auto-Backup fehlgeschlagen (nicht kritisch): %s", e)
 
             step.duration_ms = _now_ms() - step_start
 
@@ -511,33 +538,71 @@ class GenesisFlow:
             # aber /data/adb/modules/ und /data/data/ überleben den Reboot.
             # Hier prüfen wir, ob der Serial in der Bridge noch korrekt ist.
             # =============================================================
-            logger.info("[7/11] Post-Reboot Bridge-Verifikation...")
-            try:
-                from host.config import BRIDGE_FILE_PATH as _BFP
-                verify_result = await self._adb.shell(
-                    f"grep '^serial=' {_BFP}", root=True, timeout=5,
-                )
-                if verify_result.success and verify_result.output.strip():
-                    on_device_serial = verify_result.output.strip().split("=", 1)[-1]
-                    if on_device_serial == identity.serial:
-                        logger.info(
-                            "[7/11] Bridge-Verifikation: OK (serial=%s nach Reboot korrekt)",
-                            on_device_serial,
-                        )
-                    else:
-                        logger.error(
-                            "[7/11] BRIDGE MISMATCH NACH REBOOT! "
-                            "Auf Gerät: serial=%s, Erwartet: serial=%s — "
-                            "Die Bridge-Datei wurde beim Reboot überschrieben/gelöscht!",
-                            on_device_serial, identity.serial,
-                        )
-                else:
-                    logger.warning(
-                        "[7/11] Bridge-Datei nach Reboot nicht lesbar! "
-                        "Pfad %s existiert möglicherweise nicht mehr.", _BFP,
+            # =============================================================
+            # FIX-9: Bridge-Verifikation auf ALLE Pfade ausweiten
+            # =============================================================
+            # Prüfe alle 3 Hauptpfade nach dem Reboot:
+            #   1. Primär: /data/adb/modules/... (Zygisk liest hier)
+            #   2. SDCard: /sdcard/.titan_identity (LSPosed Fallback)
+            #   3. App:    /data/data/.../files/.titan_identity (Audit)
+            # Primärpfad-Mismatch = FAIL. Andere = nur WARNING.
+            # =============================================================
+            logger.info("[7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...")
+            from host.config import (
+                BRIDGE_FILE_PATH as _BFP,
+                BRIDGE_SDCARD_PATH as _BSP,
+            )
+
+            bridge_paths = {
+                "primär": _BFP,
+                "sdcard": _BSP,
+                "app": "/data/data/com.titan.verifier/files/.titan_identity",
+            }
+            primary_ok = False
+            for path_label, bridge_path in bridge_paths.items():
+                try:
+                    verify_result = await self._adb.shell(
+                        f"grep '^serial=' {bridge_path}", root=True, timeout=5,
                     )
-            except Exception as e:
-                logger.warning("[7/11] Bridge-Verifikation fehlgeschlagen: %s", e)
+                    if verify_result.success and verify_result.output.strip():
+                        on_device_serial = verify_result.output.strip().split("=", 1)[-1]
+                        if on_device_serial == identity.serial:
+                            logger.info(
+                                "[7/11] Bridge [%s]: OK (serial=%s)",
+                                path_label, on_device_serial,
+                            )
+                            if path_label == "primär":
+                                primary_ok = True
+                        else:
+                            if path_label == "primär":
+                                logger.error(
+                                    "[7/11] BRIDGE MISMATCH [%s]! "
+                                    "Auf Gerät: %s, Erwartet: %s",
+                                    path_label, on_device_serial, identity.serial,
+                                )
+                            else:
+                                logger.warning(
+                                    "[7/11] Bridge [%s]: Mismatch (serial=%s, erwartet=%s)",
+                                    path_label, on_device_serial, identity.serial,
+                                )
+                    else:
+                        if path_label == "primär":
+                            logger.warning(
+                                "[7/11] Bridge [%s]: Nicht lesbar! Pfad: %s",
+                                path_label, bridge_path,
+                            )
+                        else:
+                            logger.debug(
+                                "[7/11] Bridge [%s]: Nicht vorhanden (optional)",
+                                path_label,
+                            )
+                except Exception as e:
+                    logger.debug("[7/11] Bridge [%s] Check fehlgeschlagen: %s", path_label, e)
+
+            if primary_ok:
+                logger.info("[7/11] Bridge-Verifikation: Primärpfad OK")
+            else:
+                logger.warning("[7/11] Bridge-Verifikation: Primärpfad NICHT bestätigt!")
 
             boot_secs = (_now_ms() - step_start) / 1000
             step.status = FlowStepStatus.SUCCESS
@@ -612,6 +677,15 @@ class GenesisFlow:
                             connection_type="mobile_o2",
                             flow_type="genesis",
                         )
+
+                    # FIX-18: IP-Collision-Check
+                    collision = await check_ip_collision(
+                        ip_result.ip, current_profile_id=result.profile_id,
+                    )
+                    if collision["collision"]:
+                        step.detail += f" | ⚠ IP-Collision: {collision['message']}"
+                        logger.warning("[8/11] %s", collision["message"])
+
                     # Flow-History: IP
                     if flow_history_id:
                         await update_flow_history(
@@ -662,7 +736,19 @@ class GenesisFlow:
             #   3. Finsky Kill (hängende Prozesse beenden)
             # =================================================================
 
-            logger.info("[9/11] GMS Ready: Konnektivität + Kickstart (v5.0 — GSF-ID bleibt generiert)...")
+            # =============================================================
+            # FIX-10: GMS Ready vereinfacht (Option A)
+            # =============================================================
+            # Seit v4.0 GMS-Schutz wird GMS NIEMALS gelöscht. Die Trust-Chain
+            # bleibt intakt. Finsky Kill, MinuteMaid und GMS Kickstart sind
+            # Relikte der alten Architektur und verursachen unnötige Wartezeiten
+            # und Flow-Hänger.
+            #
+            # Neuer Ablauf (nur 2 Dinge):
+            #   1. Konnektivitäts-Check (schnell, IP bereits in Schritt 8 bestätigt)
+            #   2. GSF-ID Logging (informativ, kein Wait)
+            # =============================================================
+            logger.info("[9/11] GMS Ready: Konnektivitäts-Check (v5.2 — vereinfacht)...")
 
             # --- Konnektivitäts-Check ---
             connectivity_ok = False
@@ -685,37 +771,19 @@ class GenesisFlow:
                 if not connectivity_ok:
                     logger.error("[9/11] Network: Kein Netzwerk nach 3 Versuchen")
 
-            # --- GMS Kickstart (für DroidGuard + Play Integrity) ---
-            logger.info("[9/11] Finsky Kill: Play Store hart beenden...")
-            await self._device.kill_finsky()
-
-            logger.info("[9/11] GMS Core Repair: MinuteMaid starten...")
-            repair_ok = await self._device.reset_gms_internal()
-            if repair_ok:
-                await asyncio.sleep(3)
-            else:
-                logger.info("[9/11] MinuteMaid nicht verfügbar")
-
-            kickstart_ok = await self._device.kickstart_gms()
-            await asyncio.sleep(TIMING.GMS_KICKSTART_SETTLE_SECONDS)
-
             # --- GSF-ID: Bridge-Wert beibehalten (v5.0) ---
-            # Die generierte GSF-ID aus Schritt 2 bleibt UNVERÄNDERT in
-            # Bridge und DB. KEINE Synchronisierung mit der echten GMS GSF-ID!
             logger.info(
                 "[9/11] GSF-ID: Generierte ID beibehalten (v5.0 — KEIN Sync mit GMS). "
                 "Bridge-GSF-ID: %s...%s",
                 identity.gsf_id[:4], identity.gsf_id[-4:],
             )
 
-            # real_gsf_id = die generierte (nicht die echte GMS-ID!)
             real_gsf_id = identity.gsf_id
 
             step.status = FlowStepStatus.SUCCESS
             step.detail = (
-                f"GMS Kickstart {'OK' if kickstart_ok else 'WARN'} | "
-                f"GSF-ID: generiert beibehalten (v5.0) | "
-                f"Netz: {'OK' if connectivity_ok else 'WARN'}"
+                f"Connectivity: {'OK' if connectivity_ok else 'WARN'} | "
+                f"GSF-ID: generiert beibehalten (v5.2)"
             )
             step.duration_ms = _now_ms() - step_start
             logger.info("[9/11] GMS Ready: OK (%s)", step.detail)
@@ -904,15 +972,38 @@ class GenesisFlow:
             result.error = str(e)
             logger.error("Genesis Flow ADB-Fehler: %s", e)
 
-            # Rollback: Wenn Identity in DB gespeichert aber Injection fehlgeschlagen
-            if db_identity_id and not any(
-                s.name == "Inject" and s.status == FlowStepStatus.SUCCESS
-                for s in result.steps
-            ):
+            # =================================================================
+            # FIX-22: Rollback bei JEDEM Fehler (nicht nur Inject-Fehler)
+            # =================================================================
+            # Alte Logik: Nur corrupted wenn Inject NICHT erfolgreich war.
+            # Neue Logik: IMMER corrupted wenn Identity in DB existiert und
+            # der Flow fehlgeschlagen ist. Das Gerät ist in einem unbekannten
+            # Zustand — die Identity darf nicht als 'active' bleiben.
+            # =================================================================
+            if db_identity_id:
+                inject_succeeded = any(
+                    s.name == "Inject" and s.status == FlowStepStatus.SUCCESS
+                    for s in result.steps
+                )
                 await self._update_identity_status(
                     db_identity_id, IdentityStatus.CORRUPTED,
                 )
-                logger.warning("Identity %d als corrupted markiert (Rollback)", db_identity_id)
+                if inject_succeeded:
+                    result.error = (
+                        f"{result.error} | ⚠ Identity '{name}' als corrupted markiert — "
+                        f"Genesis Flow NACH Inject abgebrochen. "
+                        f"Bitte neuen Genesis-Flow starten."
+                    )
+                    logger.warning(
+                        "FIX-22: Identity %d als corrupted markiert "
+                        "(Flow NACH Inject fehlgeschlagen: %s)",
+                        db_identity_id, e,
+                    )
+                else:
+                    logger.warning(
+                        "Identity %d als corrupted markiert (Inject nicht erreicht)",
+                        db_identity_id,
+                    )
 
         except Exception as e:
             result.error = f"Unerwarteter Fehler: {e}"
@@ -924,6 +1015,27 @@ class GenesisFlow:
                     step.detail = str(e)
                 elif step.status == FlowStepStatus.PENDING:
                     step.status = FlowStepStatus.SKIPPED
+
+            # FIX-22: Auch bei unerwarteten Fehlern: Identity als corrupted
+            if db_identity_id:
+                try:
+                    await self._update_identity_status(
+                        db_identity_id, IdentityStatus.CORRUPTED,
+                    )
+                    result.error = (
+                        f"{result.error} | ⚠ Identity '{name}' als corrupted markiert — "
+                        f"Unerwarteter Fehler. Bitte neuen Genesis-Flow starten."
+                    )
+                    logger.warning(
+                        "FIX-22: Identity %d als corrupted markiert "
+                        "(Unerwarteter Fehler: %s)",
+                        db_identity_id, e,
+                    )
+                except Exception as rollback_err:
+                    logger.error(
+                        "FIX-22: Rollback fehlgeschlagen für Identity %d: %s",
+                        db_identity_id, rollback_err,
+                    )
 
         finally:
             result.finished_at = datetime.now(LOCAL_TZ).isoformat()
@@ -968,12 +1080,15 @@ class GenesisFlow:
         """
         Findet das aktuell aktive Profil (für Auto-Backup vor Genesis).
 
+        FIX-11: Gibt jetzt auch tiktok_username zurück für die
+        intelligente Backup-Entscheidung.
+
         Returns:
-            Dict mit {"id": int, "name": str, "identity_id": int} oder None
+            Dict mit {"id", "name", "identity_id", "tiktok_username"} oder None
         """
         async with db.connection() as conn:
             cursor = await conn.execute(
-                "SELECT p.id, p.name, p.identity_id "
+                "SELECT p.id, p.name, p.identity_id, p.tiktok_username "
                 "FROM profiles p WHERE p.status = 'active' LIMIT 1"
             )
             row = await cursor.fetchone()

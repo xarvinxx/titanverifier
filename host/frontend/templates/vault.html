@@ -1296,7 +1296,11 @@
     // ===================================================================
     let vaultFlowPoll = null;
 
+    // FIX-26: Polling-Guard
+    let headerPollInProgress = false;
     async function refreshHeaderStatus() {
+        if (headerPollInProgress) return;
+        headerPollInProgress = true;
         try {
             const res = await fetch('/api/dashboard/stats');
             const data = await res.json();
@@ -1359,10 +1363,17 @@
                     dnaEl.className = 'text-[11px] font-mono font-medium text-gray-500';
                 }
             }
-        } catch (e) {}
+        } catch (e) {
+        } finally {
+            headerPollInProgress = false;
+        }
     }
 
+    // FIX-26: Polling-Guard
+    let flowPollInProgress = false;
     async function pollFlowForHeader() {
+        if (flowPollInProgress) return;
+        flowPollInProgress = true;
         try {
             const res = await fetch('/api/control/status');
             const data = await res.json();
@@ -1381,7 +1392,10 @@
                 badge.classList.remove('flex');
                 idle.classList.remove('hidden');
             }
-        } catch (e) {}
+        } catch (e) {
+        } finally {
+            flowPollInProgress = false;
+        }
     }
 
     async function headerAbortFlow() {

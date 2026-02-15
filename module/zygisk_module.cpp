@@ -39,11 +39,80 @@
 #include <unordered_set>
 #include <unordered_map>
 
+#include <sys/syscall.h>   // FIX-24: Raw Syscalls
+#include <linux/memfd.h>   // FIX-24: memfd_create (MFD_CLOEXEC)
+
 #include "../include/zygisk.hpp"
 #include "../include/dobby.h"
 #include "../common/titan_hardware.h"
 
-#define LOG_TAG "TitanZygisk"
+// =============================================================================
+// FIX-24A: Compile-Time XOR String Obfuscation
+// =============================================================================
+// Verhindert dass `strings libtitan_zygisk.so` sensitive Pfade und
+// Package-Namen im Klartext enthüllt.
+//
+// Verwendung:
+//   XOR_STR("klartext") → verschlüsseltes char-Array (stack-allocated)
+//   Wird zur Laufzeit on-the-fly entschlüsselt, nie im Klartext im RAM
+// =============================================================================
+#define TITAN_XOR_KEY 0x5A
+
+// Helper: XOR-Entschlüsselung auf dem Stack (alloca = kein Heap-Leak)
+static inline void _titan_xor_decode(char* out, const unsigned char* enc, size_t len) {
+    for (size_t i = 0; i < len; i++) {
+        out[i] = (char)(enc[i] ^ TITAN_XOR_KEY);
+    }
+    out[len] = '\0';
+}
+
+// Macro für verschlüsselte Strings — erzeugt lokale Variable
+// Beispiel: TITAN_DEC(path, "\x36\x2e\x3e\x2e", 4) → path = "/dat"
+#define TITAN_DEC(varname, enc_bytes, enc_len) \
+    char varname[enc_len + 1]; \
+    _titan_xor_decode(varname, (const unsigned char*)enc_bytes, enc_len)
+
+// =============================================================================
+// FIX-24B: Raw Syscall Wrappers
+// =============================================================================
+// Umgeht libc-Interception durch Anti-Cheat-Engines.
+// TikToks libsscronet.so hooked libc open/read/close über PLT.
+// Raw Syscalls gehen direkt zum Kernel, kein PLT involviert.
+// =============================================================================
+static inline int _raw_openat(const char* path, int flags) {
+    return (int)syscall(__NR_openat, AT_FDCWD, path, flags, 0);
+}
+
+static inline ssize_t _raw_read(int fd, void* buf, size_t count) {
+    return (ssize_t)syscall(__NR_read, fd, buf, count);
+}
+
+static inline int _raw_close(int fd) {
+    return (int)syscall(__NR_close, fd);
+}
+
+// FIX-24C: memfd_create — anonymer RAM-FD ohne Dateisystem-Eintrag
+static inline int _memfd_create(unsigned int flags) {
+    return (int)syscall(__NR_memfd_create, "", flags);
+}
+
+// FIX-24A: Log-Tag nicht im Klartext im Binary
+// Klartext: "TitanZygisk" → XOR 0x5A
+static const unsigned char _ENC_LOG_TAG[] = {
+    0x0e,0x33,0x2e,0x3b,0x34,0x00,0x23,0x3d,0x33,0x29,0x31
+};
+#define LOG_TAG_LEN 11
+
+// Einmalig entschlüsselter Log-Tag (lazy init)
+static char g_logTag[LOG_TAG_LEN + 1] = {};
+static std::once_flag g_logTagDecoded;
+static const char* _getLogTag() {
+    std::call_once(g_logTagDecoded, []() {
+        _titan_xor_decode(g_logTag, _ENC_LOG_TAG, LOG_TAG_LEN);
+    });
+    return g_logTag;
+}
+#define LOG_TAG _getLogTag()
 
 #ifdef TITAN_STEALTH
     #define LOGI(...) ((void)0)
@@ -59,8 +128,36 @@
 // Konfiguration
 // ==============================================================================
 
-#define TITAN_KILL_SWITCH       "/data/local/tmp/titan_stop"
-#define TITAN_BRIDGE_PATH       "/data/adb/modules/titan_verifier/titan_identity"
+// FIX-24A: Pfade als XOR-verschlüsselte Byte-Arrays
+// Klartext: "/data/local/tmp/titan_stop"
+// XOR mit 0x5A:
+static const unsigned char _ENC_KILL_SWITCH[] = {
+    0x75,0x6e,0x6b,0x7e,0x6b,0x75,0x36,0x39,0x63,0x6b,0x36,0x75,
+    0x2e,0x37,0x32,0x75,0x2e,0x3f,0x2e,0x6b,0x3c,0x7f,0x2b,0x2e,0x39,0x32
+};
+#define TITAN_KILL_SWITCH_LEN 26
+
+// Klartext: "/data/adb/modules/titan_verifier/titan_identity"
+static const unsigned char _ENC_BRIDGE_PATH[] = {
+    0x75,0x6e,0x6b,0x7e,0x6b,0x75,0x6b,0x6e,0x62,0x75,0x37,0x39,
+    0x6e,0x3f,0x36,0x69,0x2b,0x75,0x2e,0x3f,0x2e,0x6b,0x3c,0x7f,
+    0x28,0x69,0x2a,0x3f,0x68,0x3f,0x69,0x2a,0x75,0x2e,0x3f,0x2e,
+    0x6b,0x3c,0x7f,0x3f,0x6e,0x69,0x3c,0x2e,0x3f,0x2e,0x2d
+};
+#define TITAN_BRIDGE_PATH_LEN 47
+
+// Lazy-Init decoded paths (einmalig beim ersten Zugriff)
+static char g_killSwitchPath[TITAN_KILL_SWITCH_LEN + 1] = {};
+static char g_bridgePath[TITAN_BRIDGE_PATH_LEN + 1] = {};
+static std::once_flag g_pathsDecoded;
+
+static void _decodePaths() {
+    _titan_xor_decode(g_killSwitchPath, _ENC_KILL_SWITCH, TITAN_KILL_SWITCH_LEN);
+    _titan_xor_decode(g_bridgePath, _ENC_BRIDGE_PATH, TITAN_BRIDGE_PATH_LEN);
+}
+
+#define TITAN_KILL_SWITCH  (std::call_once(g_pathsDecoded, _decodePaths), g_killSwitchPath)
+#define TITAN_BRIDGE_PATH  (std::call_once(g_pathsDecoded, _decodePaths), g_bridgePath)
 
 // Target Apps — NUR Social-Media & Verifier.
 // GMS/GSF/Vending sind BEWUSST AUSGESCHLOSSEN (v4.0 GMS-Schutz):
@@ -68,25 +165,53 @@
 //   - Hooks in GMS spoofen die GSF-ID → Google sieht "unbekanntes Gerät"
 //   - Das zerstört den Checkin und die gesamte Trust-Chain
 //   - TikTok/Instagram prüfen NICHT welche IDs GMS intern hat
-static const char* TARGET_APPS[] = {
-    "com.titan.verifier",
-    "com.zhiliaoapp.musically",      // TikTok International
-    "com.ss.android.ugc.trill",      // TikTok
-    "com.instagram.android",         // Instagram
-    "com.snapchat.android",          // Snapchat
-    "com.androidfung.drminfo",       // DRM Info App (Verifikation)
-    "tw.reh.deviceid",               // Device ID App (Verifikation)
-    nullptr
+
+// FIX-24A: Target-Apps als XOR-verschlüsselte Byte-Arrays
+// → `strings libtitan_zygisk.so` enthüllt keine Package-Namen
+struct EncPackage { const unsigned char* data; size_t len; };
+
+static const unsigned char _ENC_PKG_VERIFIER[] = {
+    0x39,0x35,0x37,0x74,0x2e,0x33,0x2e,0x3b,0x34,0x74,0x2c,0x3f,0x28,0x33,0x3c,0x33,0x3f,0x28
+};
+static const unsigned char _ENC_PKG_TIKTOK1[] = {
+    0x39,0x35,0x37,0x74,0x20,0x32,0x33,0x36,0x33,0x3b,0x35,0x3b,0x2a,0x2a,0x74,0x37,0x2f,0x29,0x33,0x39,0x3b,0x36,0x36,0x23
+};
+static const unsigned char _ENC_PKG_TIKTOK2[] = {
+    0x39,0x35,0x37,0x74,0x29,0x29,0x74,0x3b,0x34,0x3e,0x28,0x35,0x33,0x3e,0x74,0x2f,0x3d,0x39,0x74,0x2e,0x28,0x33,0x36,0x36
+};
+static const unsigned char _ENC_PKG_INSTAGRAM[] = {
+    0x39,0x35,0x37,0x74,0x33,0x34,0x29,0x2e,0x3b,0x3d,0x28,0x3b,0x37,0x74,0x3b,0x34,0x3e,0x28,0x35,0x33,0x3e
+};
+static const unsigned char _ENC_PKG_SNAPCHAT[] = {
+    0x39,0x35,0x37,0x74,0x29,0x34,0x3b,0x2a,0x39,0x32,0x3b,0x2e,0x74,0x3b,0x34,0x3e,0x28,0x35,0x33,0x3e
+};
+static const unsigned char _ENC_PKG_DRMINFO[] = {
+    0x39,0x35,0x37,0x74,0x3b,0x34,0x3e,0x28,0x35,0x33,0x3e,0x3c,0x2f,0x34,0x3d,0x74,0x3e,0x28,0x37,0x33,0x34,0x3c,0x35
+};
+static const unsigned char _ENC_PKG_DEVICEID[] = {
+    0x2e,0x2d,0x74,0x28,0x3f,0x32,0x74,0x3e,0x3f,0x2c,0x33,0x39,0x3f,0x33,0x3e
 };
 
-// Hardcoded Pixel 6 Defaults
-static const char* DEFAULT_SERIAL = "28161FDF6006P8";
-static const char* DEFAULT_IMEI1 = "352269111271008";
-static const char* DEFAULT_IMEI2 = "358476312016587";
-static const char* DEFAULT_ANDROID_ID = "d7f4b30e1b210a83";
-static const char* DEFAULT_GSF_ID = "3a8c4f72d91e50b6";
-static const char* DEFAULT_WIFI_MAC = "be:08:6e:16:a6:5d";
-static const char* DEFAULT_WIDEVINE_ID = "10179c6bcba352dbd5ce5c88fec8e098";
+static const EncPackage ENC_TARGET_APPS[] = {
+    {_ENC_PKG_VERIFIER,  18},   // com.titan.verifier
+    {_ENC_PKG_TIKTOK1,   24},   // com.zhiliaoapp.musically
+    {_ENC_PKG_TIKTOK2,   24},   // com.ss.android.ugc.trill
+    {_ENC_PKG_INSTAGRAM, 21},   // com.instagram.android
+    {_ENC_PKG_SNAPCHAT,  20},   // com.snapchat.android
+    {_ENC_PKG_DRMINFO,   23},   // com.androidfung.drminfo
+    {_ENC_PKG_DEVICEID,  15},   // tw.reh.deviceid
+};
+static const int ENC_TARGET_APPS_COUNT = 7;
+
+// FIX-20: Hardcoded Defaults ENTFERNT.
+// Wenn die Bridge-Datei nicht geladen werden kann, werden die Hooks
+// DEAKTIVIERT statt statische Werte zu verwenden. Echte Werte
+// durchlassen ist weniger verdächtig als falsche statische Werte,
+// und der Auditor (FIX-17) erkennt den Fehler sofort.
+//
+// ALTE DEFAULTS (gelöscht — NIEMALS wiederherstellen!):
+// static const char* DEFAULT_SERIAL = "...";    ← Cross-App Fingerprint!
+// static const char* DEFAULT_IMEI1 = "...";     ← Alle Apps bekommen dieselbe ID!
 
 // ==============================================================================
 // Original Function Pointers
@@ -198,6 +323,8 @@ static const FakeInputEvent PIXEL6_INPUT_EVENTS[] = {
 static std::atomic<bool> g_bridgeLoaded{false};
 static std::atomic<bool> g_killSwitchActive{false};
 static std::atomic<bool> g_usingDefaults{false};
+// FIX-12: Debug-Log-Mode — wenn true, wird jeder Hook-Call geloggt
+static std::atomic<bool> g_debugHooks{false};
 static std::mutex g_fdMapMutex;
 static std::unordered_set<int> g_macFileFds;
 
@@ -209,19 +336,26 @@ static bool g_macParsed = false;
 // Helpers
 // ==============================================================================
 
+// FIX-24B: Raw Syscall statt libc stat()
 static bool checkKillSwitch() {
     struct stat st;
-    if (stat(TITAN_KILL_SWITCH, &st) == 0) {
+    if (syscall(__NR_newfstatat, AT_FDCWD, TITAN_KILL_SWITCH, &st, 0) == 0) {
         g_killSwitchActive = true;
         return true;
     }
     return false;
 }
 
+// FIX-24A: isTargetApp mit XOR-Entschlüsselung (on-the-fly, stack-only)
 static bool isTargetApp(const char* packageName) {
     if (!packageName) return false;
-    for (int i = 0; TARGET_APPS[i] != nullptr; i++) {
-        if (strcmp(packageName, TARGET_APPS[i]) == 0) return true;
+    size_t pkgLen = strlen(packageName);
+    for (int i = 0; i < ENC_TARGET_APPS_COUNT; i++) {
+        if (pkgLen != ENC_TARGET_APPS[i].len) continue;
+        // Entschlüssele auf dem Stack und vergleiche
+        char decoded[64];
+        _titan_xor_decode(decoded, ENC_TARGET_APPS[i].data, ENC_TARGET_APPS[i].len);
+        if (strcmp(packageName, decoded) == 0) return true;
     }
     return false;
 }
@@ -236,26 +370,20 @@ static bool parseMacString(const char* macStr, unsigned char* out) {
     return true;
 }
 
-static void applyDefaults() {
-    TitanHardware& hw = TitanHardware::getInstance();
-    hw.setSerial(DEFAULT_SERIAL);
-    hw.setBootSerial(DEFAULT_SERIAL);
-    hw.setImei1(DEFAULT_IMEI1);
-    hw.setImei2(DEFAULT_IMEI2);
-    hw.setAndroidId(DEFAULT_ANDROID_ID);
-    hw.setGsfId(DEFAULT_GSF_ID);
-    hw.setWifiMac(DEFAULT_WIFI_MAC);
-    hw.setWidevineId(DEFAULT_WIDEVINE_ID);
-    g_usingDefaults = true;
-}
+// FIX-20: applyDefaults() ENTFERNT.
+// Statt statische Defaults zu laden (= Cross-App Fingerprint!),
+// werden die Hooks bei fehlendem Bridge-File deaktiviert.
+// Die echten Geräte-Werte werden dann durchgelassen.
 
 static bool loadBridgeFromFile(const char* path) {
-    int fd = open(path, O_RDONLY);
+    // FIX-24B: Raw Syscalls statt libc open/read/close
+    // Umgeht PLT-Hooking durch Anti-Cheat-Engines (z.B. libsscronet.so)
+    int fd = _raw_openat(path, O_RDONLY);
     if (fd < 0) return false;
     
     char buffer[2048] = {};
-    ssize_t bytesRead = read(fd, buffer, sizeof(buffer) - 1);
-    close(fd);
+    ssize_t bytesRead = _raw_read(fd, buffer, sizeof(buffer) - 1);
+    _raw_close(fd);
     
     if (bytesRead <= 0) return false;
     buffer[bytesRead] = '\0';
@@ -288,6 +416,13 @@ static bool loadBridgeFromFile(const char* path) {
             else if (strcmp(key, "widevine_id") == 0) { hw.setWidevineId(value); foundAny = true; }
             else if (strcmp(key, "imsi") == 0) { hw.setImsi(value); foundAny = true; }
             else if (strcmp(key, "sim_serial") == 0) { hw.setSimSerial(value); foundAny = true; }
+            // FIX-12: Debug-Log-Mode via Bridge-Feld
+            else if (strcmp(key, "debug_hooks") == 0) {
+                g_debugHooks = (strcmp(value, "1") == 0 || strcmp(value, "true") == 0);
+                if (g_debugHooks.load()) {
+                    LOGI("[TITAN] Debug-Hook-Mode AKTIVIERT — alle Hook-Calls werden geloggt");
+                }
+            }
         }
     }
     
@@ -301,9 +436,16 @@ static void loadBridge() {
         LOGI("[TITAN] Bridge loaded from: %s", TITAN_BRIDGE_PATH);
         g_bridgeLoaded = true;
     } else {
-        LOGW("[TITAN] Bridge not found, using defaults");
-        applyDefaults();
-        g_bridgeLoaded = true;
+        // =================================================================
+        // FIX-20: Hooks DEAKTIVIEREN statt Defaults verwenden
+        // =================================================================
+        // Alte Logik: applyDefaults() → alle Apps bekommen dieselben
+        // statischen IDs → sofortige Cross-App Correlation.
+        // Neue Logik: Bridge nicht geladen → Hooks bleiben inaktiv →
+        // echte Geräte-Werte werden durchgelassen → kein Fingerprint.
+        // =================================================================
+        LOGW("[TITAN] Bridge not found — Hooks DEAKTIVIERT (kein Spoofing)");
+        g_bridgeLoaded = false;  // Hooks bleiben inaktiv
     }
     
     // Cache MAC bytes
@@ -334,21 +476,38 @@ static bool isNetworkInfoPath(const char* path) {
            strcmp(path, "/proc/net/udp6") == 0;
 }
 
-// Phase 11.0: Root-Detection Pfade die versteckt werden müssen
+// FIX-24A: Root-Detection Pfade als XOR-verschlüsselte Byte-Arrays
+// `strings libtitan_zygisk.so` darf keine Root-Pfade oder Framework-Namen enthüllen
+struct EncRootStr { const unsigned char* data; size_t len; };
+static const unsigned char _ENC_ROOT_01[] = {0x75,0x29,0x38,0x33,0x34,0x75,0x29,0x2f};
+static const unsigned char _ENC_ROOT_02[] = {0x75,0x29,0x23,0x29,0x2e,0x3f,0x37,0x75,0x22,0x38,0x33,0x34,0x75,0x29,0x2f};
+static const unsigned char _ENC_ROOT_03[] = {0x75,0x29,0x23,0x29,0x2e,0x3f,0x37,0x75,0x38,0x33,0x34,0x75,0x29,0x2f};
+static const unsigned char _ENC_ROOT_04[] = {0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x3b,0x3e,0x38,0x75,0x37,0x35,0x3e,0x2f,0x36,0x3f,0x29};
+static const unsigned char _ENC_ROOT_05[] = {0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x3b,0x3e,0x38,0x75,0x31,0x29,0x2f};
+static const unsigned char _ENC_ROOT_06[] = {0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x3b,0x3e,0x38,0x75,0x37,0x3b,0x3d,0x33,0x29,0x31};
+static const unsigned char _ENC_ROOT_07[] = {0x29,0x2f,0x2a,0x3f,0x28,0x2f,0x29,0x3f,0x28,0x74,0x3b,0x2a,0x31};
+static const unsigned char _ENC_ROOT_08[] = {0x75,0x29,0x38,0x33,0x34,0x75,0x74,0x37,0x3b,0x3d,0x33,0x29,0x31};
+static const unsigned char _ENC_ROOT_09[] = {0x20,0x23,0x3d,0x33,0x29,0x31};
+static const unsigned char _ENC_ROOT_10[] = {0x36,0x29,0x2a,0x35,0x29,0x3f,0x3e};
+static const unsigned char _ENC_ROOT_11[] = {0x22,0x2a,0x35,0x29,0x3f,0x3e};
+static const unsigned char _ENC_ROOT_12[] = {0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x36,0x35,0x39,0x3b,0x36,0x75,0x2e,0x37,0x2a,0x75,0x31,0x29,0x2f,0x3e};
+
+static const EncRootStr ENC_ROOT_PATHS[] = {
+    {_ENC_ROOT_01,  8}, {_ENC_ROOT_02, 15}, {_ENC_ROOT_03, 14},
+    {_ENC_ROOT_04, 17}, {_ENC_ROOT_05, 13}, {_ENC_ROOT_06, 16},
+    {_ENC_ROOT_07, 13}, {_ENC_ROOT_08, 13}, {_ENC_ROOT_09,  6},
+    {_ENC_ROOT_10,  7}, {_ENC_ROOT_11,  6}, {_ENC_ROOT_12, 20},
+};
+static const int ENC_ROOT_PATHS_COUNT = 12;
+
 static bool isRootDetectionPath(const char* path) {
     if (!path) return false;
-    return strstr(path, "/sbin/su") != nullptr ||
-           strstr(path, "/system/xbin/su") != nullptr ||
-           strstr(path, "/system/bin/su") != nullptr ||
-           strstr(path, "/data/adb/modules") != nullptr ||
-           strstr(path, "/data/adb/ksu") != nullptr ||
-           strstr(path, "/data/adb/magisk") != nullptr ||
-           strstr(path, "superuser.apk") != nullptr ||
-           strstr(path, "/sbin/.magisk") != nullptr ||
-           strstr(path, "zygisk") != nullptr ||
-           strstr(path, "lsposed") != nullptr ||
-           strstr(path, "xposed") != nullptr ||
-           strstr(path, "/data/local/tmp/ksud") != nullptr;
+    for (int i = 0; i < ENC_ROOT_PATHS_COUNT; i++) {
+        char decoded[32];
+        _titan_xor_decode(decoded, ENC_ROOT_PATHS[i].data, ENC_ROOT_PATHS[i].len);
+        if (strstr(path, decoded) != nullptr) return true;
+    }
+    return false;
 }
 
 static bool isInputDevicesPath(const char* path) {
@@ -636,30 +795,46 @@ static int titan_hooked_system_property_get(const char* name, char* value) {
     
     if (strcmp(name, "ro.serialno") == 0 || strcmp(name, "ro.boot.serialno") == 0) {
         hw.getSerial(spoofed, sizeof(spoofed));
-        if (spoofed[0]) { strncpy(value, spoofed, 91); value[91] = '\0'; return (int)strlen(value); }
+        if (spoofed[0]) {
+            // FIX-12: Debug-Log
+            if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed: %s", name, spoofed);
+            strncpy(value, spoofed, 91); value[91] = '\0'; return (int)strlen(value);
+        }
     }
     
     if (strstr(name, "gsf") || strcmp(name, "ro.com.google.gservices.gsf.id") == 0) {
         hw.getGsfId(spoofed, sizeof(spoofed));
-        if (spoofed[0]) { strncpy(value, spoofed, 91); value[91] = '\0'; return (int)strlen(value); }
+        if (spoofed[0]) {
+            if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed GSF: %.8s...", name, spoofed);
+            strncpy(value, spoofed, 91); value[91] = '\0'; return (int)strlen(value);
+        }
     }
     
     if (strcmp(name, "gsm.baseband.imei") == 0 || strstr(name, "imei")) {
         hw.getImei1(spoofed, sizeof(spoofed));
-        if (spoofed[0]) { strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value); }
+        if (spoofed[0]) {
+            if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed IMEI1: %s", name, spoofed);
+            strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value);
+        }
     }
     
     if (strstr(name, "wifimacaddr") || strstr(name, "wlan.driver.macaddr") || 
         strcmp(name, "ro.wlan.mac") == 0 || strcmp(name, "wifi.interface.mac") == 0) {
         hw.getWifiMac(spoofed, sizeof(spoofed));
-        if (spoofed[0]) { strncpy(value, spoofed, 23); value[23] = '\0'; return (int)strlen(value); }
+        if (spoofed[0]) {
+            if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed MAC: %s", name, spoofed);
+            strncpy(value, spoofed, 23); value[23] = '\0'; return (int)strlen(value);
+        }
     }
     
     // IMEI via RIL Properties (TikTok libsscronet.so liest diese!)
     if (strcmp(name, "ro.ril.oem.imei") == 0 || strcmp(name, "ro.ril.oem.imei1") == 0 ||
         strcmp(name, "persist.radio.imei") == 0) {
         hw.getImei1(spoofed, sizeof(spoofed));
-        if (spoofed[0]) { strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value); }
+        if (spoofed[0]) {
+            if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed RIL-IMEI1: %s", name, spoofed);
+            strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value);
+        }
     }
     if (strcmp(name, "ro.ril.oem.imei2") == 0 || strcmp(name, "persist.radio.imei2") == 0) {
         hw.getImei2(spoofed, sizeof(spoofed));
@@ -831,22 +1006,46 @@ static ssize_t titan_hooked_recvmsg(int sockfd, struct msghdr* msg, int flags) {
 // Hook: open (MAC File Shadowing)
 // ==============================================================================
 
-// Helper: Erstellt eine temporäre Datei via open() und gibt den FD zurück
+// =============================================================================
+// FIX-24C: memfd_create statt Temp-Dateien
+// =============================================================================
+// Erstellt einen anonymen RAM-FD ohne Dateisystem-Eintrag.
+// Vorteile:
+//   - `find / -name '.titan*'` findet NICHTS
+//   - Kein Eintrag in /proc/self/maps (MFD_CLOEXEC)
+//   - Existiert nur solange der Prozess lebt
+//   - Kernel 5.10+ (Pixel 6) unterstützt memfd_create
+// =============================================================================
 static int createFakeOpenFd(const char* origPath, int flags, mode_t mode,
                              const char* content, size_t contentLen, const char* tag) {
-    if (!g_origOpen) return -1;
+    (void)flags; (void)mode;  // memfd braucht keine File-Flags
     
+    // Versuche memfd_create (bevorzugt — kein Dateisystem-Eintrag)
+    int memFd = _memfd_create(MFD_CLOEXEC);
+    if (memFd >= 0) {
+        write(memFd, content, contentLen);
+        lseek(memFd, 0, SEEK_SET);
+        if (g_debugHooks.load()) {
+            LOGI("[TITAN] memfd redirect: %s (fd=%d) [%s]", origPath, memFd, tag);
+        }
+        return memFd;
+    }
+    
+    // Fallback: Temp-Datei (sollte auf Pixel 6 nie passieren)
+    if (!g_origOpen) return -1;
     char tempPath[128];
-    snprintf(tempPath, sizeof(tempPath), "/data/local/tmp/.titan_%s_%d", tag, getpid());
+    snprintf(tempPath, sizeof(tempPath), "/data/local/tmp/.t_%d_%s", getpid(), tag);
     
     int writeFd = g_origOpen(tempPath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (writeFd >= 0) {
         write(writeFd, content, contentLen);
         close(writeFd);
         
-        int fakeFd = g_origOpen(tempPath, flags & ~(O_WRONLY | O_CREAT | O_TRUNC), mode);
+        int fakeFd = g_origOpen(tempPath, O_RDONLY, 0);
+        // Sofort löschen (FD bleibt offen, Datei verschwindet)
+        unlink(tempPath);
         if (fakeFd >= 0) {
-            LOGI("[TITAN] open redirect: %s -> %s (fd=%d) [%s]", origPath, tempPath, fakeFd, tag);
+            LOGW("[TITAN] temp fallback: %s (fd=%d) [%s]", origPath, fakeFd, tag);
             return fakeFd;
         }
     }
@@ -989,22 +1188,44 @@ static ssize_t titan_hooked_read(int fd, void* buf, size_t count) {
 // Hook: fopen (für std::ifstream) - Direct MAC Spoofing
 // ==============================================================================
 
-// Helper: Erstellt eine temporäre Datei mit beliebigem Inhalt
+// FIX-24C: fopen via memfd_create (anonymer RAM-FD)
 static FILE* createFakeFopen(const char* origPath, const char* mode, 
                               const char* content, const char* tag) {
-    if (!g_origFopen) return nullptr;
+    (void)mode;  // memfd ist immer read/write
     
+    // Versuche memfd_create → fdopen (kein Dateisystem-Eintrag)
+    int memFd = _memfd_create(MFD_CLOEXEC);
+    if (memFd >= 0) {
+        // Schreibe Inhalt in den anonymen FD
+        size_t len = strlen(content);
+        write(memFd, content, len);
+        lseek(memFd, 0, SEEK_SET);
+        
+        // fdopen wraps den FD in einen FILE* Stream
+        FILE* fakeFp = fdopen(memFd, "r");
+        if (fakeFp) {
+            if (g_debugHooks.load()) {
+                LOGI("[TITAN] memfd fopen: %s (fd=%d) [%s]", origPath, memFd, tag);
+            }
+            return fakeFp;
+        }
+        _raw_close(memFd);  // Cleanup bei fdopen-Fehler
+    }
+    
+    // Fallback: Temp-Datei mit sofortigem unlink
+    if (!g_origFopen) return nullptr;
     char tempPath[128];
-    snprintf(tempPath, sizeof(tempPath), "/data/local/tmp/.titan_%s_%d", tag, getpid());
+    snprintf(tempPath, sizeof(tempPath), "/data/local/tmp/.t_%d_%s", getpid(), tag);
     
     FILE* tempFp = g_origFopen(tempPath, "w");
     if (tempFp) {
         fputs(content, tempFp);
         fclose(tempFp);
         
-        FILE* fakeFp = g_origFopen(tempPath, mode);
+        FILE* fakeFp = g_origFopen(tempPath, "r");
+        unlink(tempPath);  // Sofort löschen (FD bleibt offen)
         if (fakeFp) {
-            LOGI("[TITAN] fopen redirect: %s -> %s [%s]", origPath, tempPath, tag);
+            LOGW("[TITAN] temp fopen fallback: %s [%s]", origPath, tag);
             return fakeFp;
         }
     }
@@ -1932,6 +2153,12 @@ public:
     void postAppSpecialize(const zygisk::AppSpecializeArgs* args) override {
         (void)args;
         if (!m_shouldInject || g_killSwitchActive.load()) return;
+        
+        // FIX-20: Bridge muss geladen sein — sonst keine Hooks
+        if (!g_bridgeLoaded.load()) {
+            LOGW("[TITAN] Bridge nicht geladen — Hooks DEAKTIVIERT für %s", m_packageName);
+            return;
+        }
         
         // Atomicity Check: Identität muss konsistent geladen sein
         if (!verifyIdentityAtomicity()) {

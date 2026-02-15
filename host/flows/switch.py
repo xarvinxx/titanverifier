@@ -45,11 +45,14 @@ from host.config import GMS_BACKUP_PACKAGES, LOCAL_TZ, TIMING
 from host.database import db
 from host.engine.auditor import TitanAuditor
 from host.engine.db_ops import (
+    check_ip_collision,
     create_flow_history,
     find_profile_by_identity,
     increment_identity_usage,
+    record_ip,
     update_flow_history,
     update_identity_audit,
+    update_identity_network,
     update_profile_activity,
 )
 from host.engine.injector import TitanInjector
@@ -242,23 +245,37 @@ class SwitchFlow:
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[2/9] Auto-Backup: Aktives Profil sichern...")
+            # =============================================================
+            # FIX-11: Intelligente Backup-Logik
+            #   - Aktives Profil MIT tiktok_username → IMMER Backup
+            #   - Aktives Profil OHNE tiktok_username → KEIN Backup
+            #   - Kein aktives Profil → KEIN Backup
+            # =============================================================
+            logger.info("[2/9] Auto-Backup: Aktives Profil prüfen...")
             try:
                 active_profile = await self._find_active_profile()
                 if active_profile and active_profile["id"] != profile_id:
-                    # Nur backuppen wenn ein ANDERES Profil aktiv ist
                     active_name = active_profile["name"]
-                    logger.info(
-                        "[2/9] Auto-Backup: Profil '%s' (ID %d) wird gesichert...",
-                        active_name, active_profile["id"],
-                    )
-                    backup_result = await self._shifter.backup_tiktok_dual(
-                        active_name, timeout=300,
-                    )
-                    saved = sum(1 for v in backup_result.values() if v is not None)
-                    step.status = FlowStepStatus.SUCCESS
-                    step.detail = f"Profil '{active_name}': {saved}/2 Komponenten gesichert"
-                    logger.info("[2/9] Auto-Backup: %s", step.detail)
+                    tiktok_user = active_profile.get("tiktok_username")
+
+                    if tiktok_user and tiktok_user.strip():
+                        # TikTok-Account eingerichtet → IMMER Backup
+                        logger.info(
+                            "[2/9] Auto-Backup: Profil '%s' (TikTok: @%s) wird gesichert...",
+                            active_name, tiktok_user,
+                        )
+                        backup_result = await self._shifter.backup_tiktok_dual(
+                            active_name, timeout=300,
+                        )
+                        saved = sum(1 for v in backup_result.values() if v is not None)
+                        step.status = FlowStepStatus.SUCCESS
+                        step.detail = f"Profil '{active_name}' (@{tiktok_user}): {saved}/2 Komponenten"
+                        logger.info("[2/9] Auto-Backup: %s", step.detail)
+                    else:
+                        # Kein TikTok-Username → kein Account → nichts zu sichern
+                        step.status = FlowStepStatus.SKIPPED
+                        step.detail = f"Profil '{active_name}' hat keinen TikTok-Account — kein Backup nötig"
+                        logger.info("[2/9] Auto-Backup: %s", step.detail)
                 else:
                     step.status = FlowStepStatus.SKIPPED
                     if active_profile:
@@ -298,7 +315,22 @@ class SwitchFlow:
             logger.info("[3/9] Safety Kill: OK (%s)", step.detail)
 
             # =================================================================
-            # Schritt 2: INJECT (Bridge only — v4.1)
+            # FIX-16: Mini-Clean — ByteDance Tracking-Reste vor Inject löschen
+            # =================================================================
+            # Zwischen letztem Backup und Switch kann TikTok neue Tracking-
+            # Dateien auf /sdcard/ geschrieben haben (z.B. .tt_device_id_v2).
+            # Diese Reste könnten das ALTE Profil verraten.
+            # =================================================================
+            try:
+                logger.info("[3→4] Mini-Clean: ByteDance Tracking-Reste bereinigen...")
+                clean_results = await self._shifter.clean_tracking_remnants()
+                clean_ok = sum(1 for v in clean_results.values() if v)
+                logger.info("[3→4] Mini-Clean: %d/%d Operationen OK", clean_ok, len(clean_results))
+            except Exception as e:
+                logger.warning("[3→4] Mini-Clean fehlgeschlagen (nicht kritisch): %s", e)
+
+            # =================================================================
+            # Schritt 4: INJECT (Bridge only — v4.1)
             # =================================================================
             # v4.1: NUR Bridge-Datei aktualisieren. PIF wird NICHT mehr
             # von Titan verwaltet — das PlayIntegrityFix KernelSU-Modul
@@ -388,9 +420,35 @@ class SwitchFlow:
             step_start = _now_ms()
 
             if use_full_state:
-                step.status = FlowStepStatus.SKIPPED
-                step.detail = "Bereits in Schritt 5 (Full-State) enthalten"
-                logger.info("[6/9] TikTok: In Full-State enthalten")
+                # =============================================================
+                # FIX-15: Sandbox-Lücke — Full-State restored KEINE Sandbox!
+                # restore_full_state() restored nur /data/data/<pkg>/ (App-Daten).
+                # Die TikTok Sandbox (/sdcard/Android/data/<pkg>/) wird NICHT
+                # restored. Ohne diesen Fix gehen TikToks SDK-Fingerprints,
+                # Download-Cache und Medien bei jedem Switch verloren.
+                # → IMMER Dual-Path Restore für TikTok ausführen!
+                # =============================================================
+                logger.info("[6/9] FIX-15: TikTok Sandbox-Restore (Full-State deckt nur App-Daten ab)...")
+                try:
+                    dual_result = await self._shifter.restore_tiktok_dual(
+                        profile_name,
+                    )
+                    sandbox_ok = dual_result.get("sandbox", False)
+                    app_ok = dual_result.get("app_data", False)
+
+                    if sandbox_ok or app_ok:
+                        step.status = FlowStepStatus.SUCCESS
+                        step.detail = (
+                            f"Sandbox: {'OK' if sandbox_ok else 'SKIP'}, "
+                            f"App (Supplement): {'OK' if app_ok else 'SKIP'}"
+                        )
+                    else:
+                        step.status = FlowStepStatus.SKIPPED
+                        step.detail = "Keine TikTok Dual-Path Backups vorhanden"
+                except Exception as e:
+                    step.status = FlowStepStatus.SUCCESS  # Nicht kritisch
+                    step.detail = f"Sandbox-Restore Warnung: {e}"
+                    logger.warning("[6/9] Sandbox-Restore fehlgeschlagen (nicht kritisch): %s", e)
 
             elif profile_name:
                 # v4.0: Dual-Path Restore (App-Daten + Sandbox)
@@ -550,14 +608,41 @@ class SwitchFlow:
             # Warte auf Mobilfunk-Stabilisierung
             await asyncio.sleep(TIMING.IP_AUDIT_WAIT_SECONDS)
 
-            # IP-Check (einmalig)
+            # IP-Check (einmalig) + FIX-18: IP persistieren + Collision-Check
             try:
                 network = NetworkChecker(self._adb)
                 ip_result = await network.get_public_ip(skip_cache=True)
                 if ip_result.success:
-                    step.status = FlowStepStatus.SUCCESS
                     step.detail = f"Neue IP: {ip_result.ip} (via {ip_result.service})"
                     logger.info("[8/9] Network Init: IP = %s", ip_result.ip)
+
+                    # FIX-18: IP in DB persistieren (vorher nur im Genesis!)
+                    try:
+                        if identity_id:
+                            await update_identity_network(
+                                identity_id, ip_result.ip, ip_result.service,
+                            )
+                            await record_ip(
+                                public_ip=ip_result.ip,
+                                identity_id=identity_id,
+                                profile_id=profile_id,
+                                ip_service=ip_result.service,
+                                connection_type="mobile_o2",
+                                flow_type="switch",
+                            )
+
+                        # FIX-18: IP-Collision-Check
+                        collision = await check_ip_collision(
+                            ip_result.ip, current_profile_id=profile_id,
+                        )
+                        if collision["collision"]:
+                            step.detail += f" | ⚠ IP-Collision: {collision['message']}"
+                            logger.warning("[8/9] %s", collision["message"])
+
+                    except Exception as db_e:
+                        logger.warning("[8/9] IP-DB/Collision-Check fehlgeschlagen: %s", db_e)
+
+                    step.status = FlowStepStatus.SUCCESS
                 else:
                     step.status = FlowStepStatus.SUCCESS  # Nicht kritisch
                     step.detail = f"Flugmodus AUS, IP-Check fehlgeschlagen: {ip_result.error}"
@@ -576,8 +661,9 @@ class SwitchFlow:
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[9/9] Quick Audit: Bridge-Serial prüfen...")
-            audit_ok = await self._auditor.quick_audit(identity.serial)
+            # FIX-17: Erweiterter Quick Audit (5 Felder statt nur Serial)
+            logger.info("[9/9] Quick Audit: Bridge-Felder prüfen (serial, imei1, gsf_id, android_id, mac)...")
+            audit_ok = await self._auditor.quick_audit(identity.serial, expected_identity=identity)
             result.audit_passed = audit_ok
 
             # v3.2: Audit-Score in DB tracken
@@ -728,12 +814,15 @@ class SwitchFlow:
         """
         Findet das aktuell aktive Profil (für Auto-Backup vor Switch).
 
+        FIX-11: Gibt jetzt auch tiktok_username zurück für die
+        intelligente Backup-Entscheidung (Backup wenn Username gesetzt).
+
         Returns:
-            Dict mit {"id": int, "name": str, "identity_id": int} oder None
+            Dict mit {"id", "name", "identity_id", "tiktok_username"} oder None
         """
         async with db.connection() as conn:
             cursor = await conn.execute(
-                "SELECT p.id, p.name, p.identity_id "
+                "SELECT p.id, p.name, p.identity_id, p.tiktok_username "
                 "FROM profiles p WHERE p.status = 'active' LIMIT 1"
             )
             row = await cursor.fetchone()

@@ -158,6 +158,104 @@ async def record_ip(
 
 
 # =============================================================================
+# FIX-18: IP-Collision Detection
+# =============================================================================
+
+async def check_ip_collision(
+    public_ip: str,
+    current_profile_id: Optional[int] = None,
+) -> dict:
+    """
+    Prüft ob eine IP bereits von einem anderen Profil benutzt wurde.
+
+    FIX-18: Cross-Profile IP-Korrelation erkennen.
+
+    Returns:
+        Dict mit:
+          - collision: bool (True wenn IP von anderem Profil benutzt)
+          - severity: "none" | "warning" | "critical"
+          - profiles: Liste der betroffenen Profile
+          - message: Menschenlesbare Meldung
+    """
+    result = {
+        "collision": False,
+        "severity": "none",
+        "profiles": [],
+        "message": "",
+        "total_uses": 0,
+    }
+
+    async with db.connection() as conn:
+        # Prüfe ob diese IP jemals von einem ANDEREN Profil benutzt wurde
+        if current_profile_id:
+            cursor = await conn.execute(
+                """SELECT DISTINCT ip.profile_id, p.name, ip.flow_type,
+                          ip.detected_at
+                   FROM ip_history ip
+                   LEFT JOIN profiles p ON ip.profile_id = p.id
+                   WHERE ip.public_ip = ?
+                     AND ip.profile_id IS NOT NULL
+                     AND ip.profile_id != ?
+                   ORDER BY ip.detected_at DESC
+                   LIMIT 10""",
+                (public_ip, current_profile_id),
+            )
+        else:
+            cursor = await conn.execute(
+                """SELECT DISTINCT ip.profile_id, p.name, ip.flow_type,
+                          ip.detected_at
+                   FROM ip_history ip
+                   LEFT JOIN profiles p ON ip.profile_id = p.id
+                   WHERE ip.public_ip = ?
+                     AND ip.profile_id IS NOT NULL
+                   ORDER BY ip.detected_at DESC
+                   LIMIT 10""",
+                (public_ip,),
+            )
+
+        rows = await cursor.fetchall()
+
+        if not rows:
+            result["message"] = f"IP {public_ip} ist neu — keine Collision"
+            return result
+
+        # Unique Profile zählen
+        unique_profiles = {r["profile_id"] for r in rows if r["profile_id"]}
+        result["collision"] = True
+        result["total_uses"] = len(rows)
+        result["profiles"] = [
+            {
+                "profile_id": r["profile_id"],
+                "name": r["name"] or f"Profil #{r['profile_id']}",
+                "flow_type": r["flow_type"],
+                "detected_at": r["detected_at"],
+            }
+            for r in rows[:5]
+        ]
+
+        n_profiles = len(unique_profiles)
+        if n_profiles >= 3:
+            result["severity"] = "critical"
+            result["message"] = (
+                f"IP {public_ip} wurde von {n_profiles} verschiedenen Profilen benutzt! "
+                f"Cross-Profile Korrelation HOCH. Empfehlung: Wartezeit erhöhen."
+            )
+            logger.error("IP-COLLISION CRITICAL: %s", result["message"])
+        else:
+            result["severity"] = "warning"
+            profile_names = ", ".join(
+                r["name"] or f"#{r['profile_id']}" for r in rows[:3]
+            )
+            result["message"] = (
+                f"IP {public_ip} wurde bereits von Profil(en) {profile_names} benutzt. "
+                f"Cross-Profile Korrelation möglich."
+            )
+            logger.warning("IP-COLLISION WARNING: %s", result["message"])
+
+    return result
+
+
+# =============================================================================
 # Audit History
 # =============================================================================
 

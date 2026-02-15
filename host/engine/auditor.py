@@ -166,14 +166,45 @@ class TitanAuditor:
                 logger.error("Audit abgebrochen: Gerät nicht verbunden")
                 return result
 
-            # Bridge-Datei vom Gerät lesen (Basis für Check 1, 2, 4)
+            # Bridge-Datei vom Gerät lesen (Basis für alle Checks)
             bridge_fields = await self._read_bridge_file()
 
-            # Die 4 Audit-Checks
+            # =================================================================
+            # FIX-17: Erweiterter Full Audit — alle kritischen Spoofing-Felder
+            # =================================================================
+            # Basis-Checks (wie bisher)
             result.checks.append(self._check_bridge_exists(bridge_fields))
             result.checks.append(self._check_bridge_serial(bridge_fields, expected))
             result.checks.append(await self._check_input_devices())
             result.checks.append(self._check_bridge_mac(bridge_fields, expected))
+
+            # Neue kritische Checks (FIX-17)
+            result.checks.append(
+                self._check_bridge_field(bridge_fields, expected, "imei1", critical=True)
+            )
+            result.checks.append(
+                self._check_bridge_field(bridge_fields, expected, "imei2", critical=True)
+            )
+            result.checks.append(
+                self._check_bridge_field(bridge_fields, expected, "gsf_id", critical=True)
+            )
+            result.checks.append(
+                self._check_bridge_field(bridge_fields, expected, "android_id", critical=True)
+            )
+            result.checks.append(
+                self._check_bridge_field(bridge_fields, expected, "widevine_id", critical=False)
+            )
+            result.checks.append(
+                self._check_bridge_field(bridge_fields, expected, "imsi", critical=False)
+            )
+            result.checks.append(
+                self._check_bridge_field(bridge_fields, expected, "sim_serial", critical=False)
+            )
+            result.checks.append(
+                self._check_bridge_field(
+                    bridge_fields, expected, "build_fingerprint", critical=False,
+                )
+            )
 
         except ADBError as e:
             result.error = f"ADB-Fehler während Audit: {e}"
@@ -200,32 +231,74 @@ class TitanAuditor:
     # Quick Audit (nur Bridge-Serial — für Switch-Flow)
     # =========================================================================
 
-    async def quick_audit(self, expected_serial: str) -> bool:
+    async def quick_audit(
+        self,
+        expected_serial: str,
+        expected_identity: Optional[IdentityRead] = None,
+    ) -> bool:
         """
-        Schneller Audit: Prüft ob die Bridge-Datei die erwartete Serial enthält.
+        Schneller Audit: Prüft die 5 wichtigsten Bridge-Felder.
 
-        Liest die Bridge-Datei statt getprop (getprop zeigt echte Werte,
-        nicht die gespooften).
+        FIX-17: Erweitert von nur Serial auf die 5 kritischsten Felder:
+          serial, imei1, gsf_id, android_id, wifi_mac
+
+        Falls expected_identity nicht angegeben wird, wird nur Serial geprüft
+        (Rückwärtskompatibilität).
 
         Args:
-            expected_serial: Erwartete Serial Number
+            expected_serial:   Erwartete Serial Number
+            expected_identity: Optionale vollständige Identity für erweiterten Check
 
         Returns:
-            True wenn Bridge-Serial übereinstimmt
+            True wenn alle geprüften Felder übereinstimmen
         """
         try:
             bridge = await self._read_bridge_file()
-            actual = bridge.get("serial", "")
-            match = actual == expected_serial
 
-            if match:
-                logger.info("Quick Audit: OK (bridge serial=%s)", expected_serial)
+            if expected_identity:
+                # FIX-17: Erweiterter Quick Audit (5 Felder)
+                fields_to_check = {
+                    "serial": expected_identity.serial,
+                    "imei1": expected_identity.imei1,
+                    "gsf_id": expected_identity.gsf_id,
+                    "android_id": expected_identity.android_id,
+                    "wifi_mac": expected_identity.wifi_mac,
+                }
+                mismatches: list[str] = []
+                for field_name, expected_val in fields_to_check.items():
+                    actual = bridge.get(field_name, "")
+                    if field_name == "wifi_mac":
+                        # MAC case-insensitive vergleichen
+                        if actual.lower() != expected_val.lower():
+                            mismatches.append(f"{field_name}: erwartet={expected_val}, bridge={actual}")
+                    elif actual != expected_val:
+                        mismatches.append(f"{field_name}: erwartet={expected_val}, bridge={actual}")
+
+                if not mismatches:
+                    logger.info(
+                        "Quick Audit: OK (5/5 Felder — serial=%s)",
+                        expected_serial,
+                    )
+                    return True
+                else:
+                    logger.warning(
+                        "Quick Audit: FAIL (%d/5 Mismatches: %s)",
+                        len(mismatches), "; ".join(mismatches[:3]),
+                    )
+                    return False
             else:
-                logger.warning(
-                    "Quick Audit: FAIL (erwartet=%s, bridge=%s)",
-                    expected_serial, actual or "NICHT GEFUNDEN",
-                )
-            return match
+                # Rückwärtskompatibel: Nur Serial prüfen
+                actual = bridge.get("serial", "")
+                match = actual == expected_serial
+
+                if match:
+                    logger.info("Quick Audit: OK (bridge serial=%s)", expected_serial)
+                else:
+                    logger.warning(
+                        "Quick Audit: FAIL (erwartet=%s, bridge=%s)",
+                        expected_serial, actual or "NICHT GEFUNDEN",
+                    )
+                return match
 
         except ADBError as e:
             logger.error("Quick Audit fehlgeschlagen: %s", e)
@@ -387,6 +460,64 @@ class TitanAuditor:
         except ADBError as e:
             check.status = CheckStatus.SKIP
             check.detail = f"Nicht lesbar: {e}"
+
+        return check
+
+    # =========================================================================
+    # Check 4: Bridge-MAC stimmt überein
+    # =========================================================================
+
+    # =========================================================================
+    # FIX-17: Generischer Bridge-Feld Check
+    # =========================================================================
+
+    def _check_bridge_field(
+        self,
+        bridge: dict[str, str],
+        expected: IdentityRead,
+        field_name: str,
+        critical: bool = True,
+    ) -> AuditCheck:
+        """
+        Generischer Check: Prüft ob ein einzelnes Feld in der Bridge mit
+        dem erwarteten Wert übereinstimmt.
+
+        Args:
+            bridge:     Geparstes Bridge-Dict
+            expected:   Erwartete Identität
+            field_name: Name des Felds (z.B. "imei1", "gsf_id")
+            critical:   Zählt für den Score?
+        """
+        expected_val = getattr(expected, field_name, "")
+        check = AuditCheck(
+            name=f"bridge_{field_name}",
+            expected=expected_val,
+            critical=critical,
+        )
+
+        if not bridge:
+            check.status = CheckStatus.SKIP
+            check.detail = "Bridge-Datei nicht verfügbar"
+            return check
+
+        actual_val = bridge.get(field_name, "")
+        check.actual = actual_val
+
+        if not expected_val:
+            check.status = CheckStatus.SKIP
+            check.detail = f"{field_name} nicht in erwarteter Identity"
+        elif actual_val == expected_val:
+            check.status = CheckStatus.PASS
+            check.detail = f"{field_name} korrekt"
+        elif not actual_val:
+            check.status = CheckStatus.FAIL
+            check.detail = f"{field_name} fehlt in Bridge-Datei"
+        else:
+            check.status = CheckStatus.FAIL
+            check.detail = (
+                f"Mismatch: erwartet='{expected_val[:20]}...', "
+                f"bridge='{actual_val[:20]}...'"
+            )
 
         return check
 

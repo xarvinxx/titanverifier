@@ -33,7 +33,6 @@ from host.config import BRIDGE_FILE_PATH
 from host.engine.db_ops import (
     detect_identity_by_dna,
     get_audit_history,
-    get_dashboard_stats,
     get_flow_history,
     get_ip_history,
     parse_bridge_file,
@@ -419,26 +418,8 @@ async def list_identities():
 
 
 # =============================================================================
-# GET /api/dashboard/profiles
+# FIX-27: GET /api/dashboard/profiles ENTFERNT (redundant mit /api/vault)
 # =============================================================================
-
-@router.get("/profiles")
-async def list_profiles():
-    """Alle Profile mit verknüpfter Identität."""
-    try:
-        async with db.connection() as conn:
-            cursor = await conn.execute(
-                """SELECT p.*, i.name as identity_name, i.serial as identity_serial,
-                   i.last_public_ip as identity_last_ip
-                FROM profiles p
-                LEFT JOIN identities i ON p.identity_id = i.id
-                ORDER BY p.id DESC"""
-            )
-            rows = await cursor.fetchall()
-            return {"profiles": [dict(r) for r in rows]}
-    except Exception as e:
-        return {"profiles": [], "error": str(e)}
-
 
 # =============================================================================
 # GET /api/dashboard/flow-history — Flow-Verlauf
@@ -495,24 +476,5 @@ async def audit_history(
 
 
 # =============================================================================
-# GET /api/dashboard/farm-stats — Aggregierte Farm-Statistiken
+# FIX-27: GET /api/dashboard/farm-stats ENTFERNT (redundant mit /stats)
 # =============================================================================
-
-@router.get("/farm-stats")
-async def farm_stats():
-    """
-    Liefert aggregierte Statistiken für die gesamte Farm.
-
-    Beinhaltet:
-      - Identitäten: Total, Active, Corrupted
-      - Profile: Total, Active, Banned, Backed-up
-      - Flows: Total, Success, Failed, Success-Rate
-      - Netzwerk: Unique IPs
-      - Audits: Durchschnitts-Score
-    """
-    try:
-        stats = await get_dashboard_stats()
-        return stats
-    except Exception as e:
-        logger.error("Farm-Stats Fehler: %s", e)
-        return {"error": str(e)}

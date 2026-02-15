@@ -57,6 +57,35 @@ _console_handler.setFormatter(
 logging.root.addHandler(_console_handler)
 logging.root.setLevel(logging.INFO)
 
+# =============================================================================
+# FIX-25: Persistenter File-Logger mit Rotation
+# =============================================================================
+# Logs werden zusätzlich in titan.log geschrieben (max ~40MB Disk):
+#   - 10 MB pro Datei, 3 alte Dateien behalten
+#   - DEBUG-Level (mehr Details als Console/WebSocket)
+#   - Post-Mortem bei Crashes möglich
+# =============================================================================
+
+from logging.handlers import RotatingFileHandler  # noqa: E402
+
+_log_dir = Path(__file__).resolve().parent.parent  # Projekt-Root
+_log_file = _log_dir / "titan.log"
+
+_file_handler = RotatingFileHandler(
+    str(_log_file),
+    maxBytes=10_000_000,   # 10 MB pro Datei
+    backupCount=3,          # 3 alte Dateien behalten (titan.log.1, .2, .3)
+    encoding="utf-8",
+)
+_file_handler.setFormatter(
+    _BerlinFormatter(
+        fmt="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+)
+_file_handler.setLevel(logging.DEBUG)  # Alles loggen, auch DEBUG
+logging.root.addHandler(_file_handler)
+
 logger = logging.getLogger("titan.main")
 
 # =============================================================================

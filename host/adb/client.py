@@ -229,9 +229,69 @@ class ADBClient:
                         "ADB UNAUTHORIZED — bitte USB-Debugging auf dem Gerät bestätigen! "
                         "(Dialog 'USB-Debugging erlauben?')"
                     )
-                return False
         except (asyncio.TimeoutError, OSError):
-            return False
+            pass
+
+        # =================================================================
+        # FIX-6: USB-Reconnect Simulation als letzter Fallback
+        # =================================================================
+        # Wenn normaler kill-server/start-server/wait-for-device nicht hilft,
+        # liegt das Problem oft an einem "Zombie-State" des USB-Stacks.
+        # Ein USB-Modus-Toggle erzwingt ein Hardware-Reconnect.
+        # =================================================================
+        logger.warning(
+            "FIX-6: Standard-Reconnect fehlgeschlagen — "
+            "versuche USB-Modus-Toggle (Fallback)..."
+        )
+        try:
+            # Schritt 1: USB-Modus auf "none" (trennt Verbindung)
+            proc = await asyncio.create_subprocess_exec(
+                "adb", "shell", "su -c 'setprop sys.usb.config none'",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            await asyncio.wait_for(proc.communicate(), timeout=5)
+            logger.info("FIX-6: USB-Modus auf 'none' gesetzt")
+            await asyncio.sleep(2)
+
+            # Schritt 2: USB-Modus auf "mtp,adb" (verbindet neu)
+            proc = await asyncio.create_subprocess_exec(
+                "adb", "shell", "su -c 'setprop sys.usb.config mtp,adb'",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            await asyncio.wait_for(proc.communicate(), timeout=5)
+            logger.info("FIX-6: USB-Modus auf 'mtp,adb' gesetzt")
+            await asyncio.sleep(3)
+
+            # Schritt 3: Erneut wait-for-device
+            proc = await asyncio.create_subprocess_exec(
+                "adb", "wait-for-device",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            await asyncio.wait_for(proc.communicate(), timeout=30)
+
+            # Schritt 4: Finaler Verify
+            await asyncio.sleep(2)
+            proc = await asyncio.create_subprocess_exec(
+                "adb", "get-state",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=5)
+            if proc.returncode == 0 and "device" in stdout.decode():
+                logger.info("FIX-6: USB-Reconnect erfolgreich — Gerät verbunden")
+                return True
+            else:
+                logger.error(
+                    "FIX-6: USB-Reconnect fehlgeschlagen — State: %s",
+                    stdout.decode().strip(),
+                )
+        except (asyncio.TimeoutError, OSError) as e:
+            logger.error("FIX-6: USB-Reconnect Fehler: %s", e)
+
+        return False
 
     # =========================================================================
     # Core: Befehl ausführen mit Retry + Auto-Reconnect
@@ -747,27 +807,97 @@ class ADBClient:
 
     async def unlock_device(self) -> bool:
         """
-        Entsperrt das Gerät (Wakeup + Swipe).
+        Entsperrt das Gerät (Wakeup + Swipe + Keyguard Dismiss).
 
         Ablauf:
           1. Bildschirm aufwecken (KEYCODE_WAKEUP)
           2. 1s warten
           3. Swipe nach oben (Lock-Screen dismiss)
+          4. FIX-7: `wm dismiss-keyguard` als Fallback
+             (umgeht trägen WindowManager nach Reboot)
+          5. Verifizierung: Prüfe ob Keyguard noch aktiv ist
 
         Returns:
             True wenn Befehle erfolgreich, False bei Fehler
         """
         try:
-            # Wakeup (Bildschirm einschalten)
+            # 1. Wakeup (Bildschirm einschalten)
             await self.shell("input keyevent KEYCODE_WAKEUP")
             await asyncio.sleep(1)
 
-            # Swipe Up (Lockscreen wegwischen — 500ms Dauer)
+            # 2. Swipe Up (Lockscreen wegwischen — 500ms Dauer)
             await self.shell("input swipe 540 1800 540 600 500")
             await asyncio.sleep(0.5)
 
-            logger.info("Gerät entsperrt (Wakeup + Swipe)")
+            # =================================================================
+            # FIX-7: wm dismiss-keyguard als Fallback
+            # Nach Reboot kann der WindowManager träge sein und Swipes
+            # ignorieren. dismiss-keyguard umgeht das komplett über die
+            # WindowManager API (kein Swipe nötig).
+            # =================================================================
+            try:
+                await self.shell("wm dismiss-keyguard", root=True, timeout=5)
+                logger.debug("FIX-7: wm dismiss-keyguard ausgeführt")
+            except ADBError:
+                # Nicht kritisch — Swipe hat möglicherweise bereits funktioniert
+                logger.debug("FIX-7: wm dismiss-keyguard fehlgeschlagen (nicht kritisch)")
+
+            await asyncio.sleep(0.5)
+
+            # 3. Verifizierung: Prüfe ob Keyguard noch aktiv ist
+            unlocked = await self._check_keyguard_dismissed()
+            if unlocked:
+                logger.info("Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)")
+            else:
+                # Letzter Versuch: Nochmal Swipe + dismiss
+                logger.warning("Keyguard noch aktiv — zweiter Unlock-Versuch...")
+                await self.shell("input keyevent KEYCODE_WAKEUP")
+                await asyncio.sleep(0.5)
+                await self.shell("input swipe 540 1800 540 600 300")
+                await asyncio.sleep(0.5)
+                try:
+                    await self.shell("wm dismiss-keyguard", root=True, timeout=5)
+                except ADBError:
+                    pass
+                unlocked = await self._check_keyguard_dismissed()
+                if unlocked:
+                    logger.info("Gerät entsperrt (zweiter Versuch)")
+                else:
+                    logger.warning(
+                        "Keyguard möglicherweise noch aktiv — "
+                        "CE-Storage Check wird entscheiden"
+                    )
+
             return True
         except ADBError as e:
             logger.warning("Unlock fehlgeschlagen: %s", e)
             return False
+
+    async def _check_keyguard_dismissed(self) -> bool:
+        """
+        FIX-5 (Teil): Prüft via dumpsys window ob der Keyguard dismisst ist.
+
+        Wenn mCurrentFocus "Keyguard" oder "StatusBar" enthält, ist das
+        Gerät noch gesperrt. Bei "Launcher", "Activity" oder anderem ist
+        es entsperrt.
+
+        Returns:
+            True wenn Gerät entsperrt scheint
+        """
+        try:
+            result = await self.shell(
+                "dumpsys window windows | grep -i mCurrentFocus",
+                timeout=5,
+            )
+            if result.success:
+                focus = result.output.lower()
+                if "keyguard" in focus or "lockscreen" in focus:
+                    logger.debug("Keyguard aktiv: %s", result.output.strip())
+                    return False
+                else:
+                    logger.debug("Kein Keyguard: %s", result.output.strip())
+                    return True
+        except ADBError:
+            pass
+        # Im Zweifel: True (nicht blockieren)
+        return True

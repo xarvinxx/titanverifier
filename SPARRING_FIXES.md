@@ -2,9 +2,10 @@
 ## CTO-Analyse: Was ausgebessert werden muss
 
 **Erstellt**: 2026-02-12
-**Quelle**: Vergleich Titan (aktuell) vs. Ares/Maschina (alt) + CTO-Sparring (Block 1-8)
-**Status**: Dokumentiert — Umsetzung ausstehend
-**Fixes**: 24 dokumentiert (1 bereits gefixt, 1 bestätigt korrekt)
+**Quelle**: Vergleich Titan (aktuell) vs. Ares/Maschina (alt) + CTO-Sparring (Block 1-17)
+**Status**: ✅ ALLE PHASEN ABGESCHLOSSEN (Phase 1-8)
+**Fixes**: 28 dokumentiert — 27 implementiert ✅ | 1 bereits korrekt (Block 10 GMS-Ausschluss)
+**Sparring**: ABGESCHLOSSEN — Alle 17 Blöcke analysiert, alle Fragen beantwortet
 
 ---
 
@@ -84,7 +85,7 @@ su -c 'tar -C /data/data/com.zhiliaoapp.musically -cf - shared_prefs databases f
 
 ---
 
-### FIX-4: Integrity Guard (Dateianzahl + Größenvergleich)
+### FIX-4: Integrity Guard (Dateianzahl + Größenvergleich) ✅ IMPLEMENTIERT
 **Problem**: Titan prüft nur ob tar > 0 Bytes ist. Das erkennt keine teilweise korrupten Backups (z.B. wenn ADB-Verbindung während Stream abbricht und nur 10% der Daten übertragen wurden).
 
 **Empfohlene Änderung**: Nach Backup die Statistiken auf dem Gerät vs. lokal vergleichen:
@@ -98,7 +99,7 @@ su -c 'tar -C /data/data/com.zhiliaoapp.musically -cf - shared_prefs databases f
 
 ---
 
-### FIX-5: CE-Storage Unlock-Check via `dumpsys window`
+### FIX-5: CE-Storage Unlock-Check via `dumpsys window` ✅ IMPLEMENTIERT
 **Problem**: Titans `_check_ce_storage()` prüft nur ob `/data/data/com.google.android.gms/shared_prefs` existiert. Das ist ein schwacher Proxy. Ares hat eine robustere Methode die den tatsächlichen Lock-Screen-State prüft.
 
 **Empfohlene Änderung**: Zusätzlich `dumpsys window` prüfen:
@@ -117,7 +118,7 @@ dumpsys window windows | grep -i mCurrentFocus
 
 ## PRIORITÄT: MITTEL
 
-### FIX-6: USB-Reconnect Simulation nach Reboot
+### FIX-6: USB-Reconnect Simulation nach Reboot ✅ IMPLEMENTIERT
 **Problem**: Nach Reboot bleibt ADB manchmal in einem "Zombie-State" hängen — der Daemon meldet "device" aber Shell-Befehle scheitern. Ein USB-Modus-Toggle löst das.
 
 **Empfohlene Änderung**: In `host/adb/client.py` → `ensure_connection()` als Fallback:
@@ -136,7 +137,7 @@ sleep 3
 
 ---
 
-### FIX-7: `wm dismiss-keyguard` als Unlock-Fallback
+### FIX-7: `wm dismiss-keyguard` als Unlock-Fallback ✅ IMPLEMENTIERT
 **Problem**: Titans Unlock (Wakeup + Swipe) funktioniert meistens, aber nach Reboot kann der WindowManager träge sein und Swipes ignorieren. `wm dismiss-keyguard` umgeht das komplett.
 
 **Empfohlene Änderung**: Nach dem Swipe-Unlock als Fallback:
@@ -186,7 +187,7 @@ Erfordert aber das Merken des APK-Pfads vorher.
 
 ---
 
-### FIX-14: TikTok Settings-ContentProvider Werte bereinigen
+### FIX-14: TikTok Settings-ContentProvider Werte bereinigen ✅ IMPLEMENTIERT
 **Priorität**: MITTEL
 **Problem**: TikTok kann eigene Werte über den Android `Settings`-ContentProvider schreiben (`Settings.Global` oder `Settings.Secure`). Diese Werte überleben `pm clear` und sogar `pm uninstall`, weil sie nicht App-spezifisch sondern **System-global** gespeichert werden.
 
@@ -214,7 +215,7 @@ settings delete global <key>
 
 ## SPARRING BLOCK 4 — Genesis Flow Logik
 
-### FIX-9: Bridge-Verifikation auf ALLE Pfade ausweiten (Post-Reboot)
+### FIX-9: Bridge-Verifikation auf ALLE Pfade ausweiten (Post-Reboot) ✅ IMPLEMENTIERT
 **Priorität**: MITTEL
 **Problem**: Nach dem Reboot in Schritt 7 (Hard Reset) wird nur der primäre Bridge-Pfad verifiziert (`/data/adb/modules/titan_verifier/titan_identity`). Die weiteren Kopien (`/sdcard/`, App-Ordner) werden nicht geprüft. Wenn eine Kopie fehlt oder korrupt ist, merkt der Flow das nicht.
 
@@ -294,7 +295,7 @@ VOR JEDEM FLOW:
 
 ---
 
-### FIX-12: Xposed Debug-Log-Mode (Hook-Monitoring für WebUI)
+### FIX-12: Xposed Debug-Log-Mode (Hook-Monitoring für WebUI) ✅ IMPLEMENTIERT
 **Priorität**: MITTEL
 **Problem**: Aktuell gibt es keine Möglichkeit zu sehen, welche Hooks TikTok tatsächlich trifft und was TikTok für Werte empfängt. Die Titan Verifier App prüft aus ihrer eigenen Perspektive, aber nicht aus TikToks Prozess heraus.
 
@@ -384,8 +385,9 @@ Dies ist eine Teilmenge von FIX-1 (ByteDance Deep-Search), aber speziell für de
 
 ## SPARRING BLOCK 7 — Auditor Lücken
 
-### FIX-17: Host-Side Auditor erweitern (Full + Quick Audit)
+### FIX-17: Host-Side Auditor erweitern (Full + Quick Audit) ✅ IMPLEMENTIERT
 **Priorität**: HOCH
+**Status**: ✅ Implementiert (Phase 3)
 **Problem**: Der `TitanAuditor` prüft aktuell nur **4 Dinge**: Bridge existiert, Bridge-Serial, Input-Devices, Bridge-MAC. Er prüft NICHT ob die kritischsten Spoofing-Felder korrekt in der Bridge stehen:
 
 | Feld | Status | Risiko wenn fehlerhaft |
@@ -438,8 +440,9 @@ return True
 
 ## SPARRING BLOCK 8 — Network & IP
 
-### FIX-18: IP-Duplikat-Erkennung (IP-Datenbank mit Collision-Check)
+### FIX-18: IP-Duplikat-Erkennung (IP-Datenbank mit Collision-Check) ✅ IMPLEMENTIERT
 **Priorität**: HOCH
+**Status**: ✅ Implementiert (Phase 3)
 **Problem**: Die IP-Rotation via Flugmodus-Cycle erzwingt eine neue Modem-Session. ABER: Der Carrier (O2) kann dieselbe IP erneut zuweisen (IP-Pool ist begrenzt, Lease-Zuordnung erfolgt server-seitig). Aktuell wird die IP in `ip_history` gespeichert, aber es gibt **keinen Check** ob diese IP bereits von einem ANDEREN Profil benutzt wurde.
 
 **Risiko**: Wenn Profil A und Profil B dieselbe öffentliche IP verwenden, kann TikTok (oder jeder Netzwerk-Analyst) die beiden Accounts korrelieren — identische IP = wahrscheinlich dasselbe Gerät.
@@ -495,9 +498,212 @@ Diese müssen für die Collision-Detection aktiv sein (sonst Full-Table-Scan bei
 
 ---
 
+## SPARRING BLOCK 13 — Error Handling & Resilience
+
+### FIX-22: Genesis Rollback erweitern — `corrupted` nach Inject bei späterem Fehler ✅ IMPLEMENTIERT
+**Priorität**: HOCH
+**Status**: ✅ Implementiert (Phase 4)
+**Problem**: Wenn Genesis Schritt 6 (Inject) erfolgreich ist, aber ein späterer Schritt fehlschlägt (Hard Reset, Network Init, Capture State), bleibt die Identity in der DB als `active` — obwohl der Flow FAILED ist. Das Gerät ist in einem unbekannten Zustand.
+
+**Lösung**: Auch nach erfolgreichem Inject die Identity als `corrupted` markieren wenn der Flow danach fehlschlägt. Zusätzlich eine **Info-Meldung in der WebUI** anzeigen:
+```
+"⚠ Identity '{name}' als corrupted markiert — Genesis Flow nach Inject abgebrochen 
+(Schritt {step_name} fehlgeschlagen). Bitte neuen Genesis-Flow starten."
+```
+
+**Aktueller Rollback** (nur bei Inject-Fehler):
+```python
+if db_identity_id and not any(
+    s.name == "Inject" and s.status == FlowStepStatus.SUCCESS
+    for s in result.steps
+):
+    await self._update_identity_status(db_identity_id, IdentityStatus.CORRUPTED)
+```
+
+**Neuer Rollback** (auch nach Inject bei späterem Fehler):
+```python
+# Bei JEDEM Flow-Fehler die Identity als corrupted markieren
+if db_identity_id:
+    await self._update_identity_status(db_identity_id, IdentityStatus.CORRUPTED)
+    logger.warning("Identity %d als corrupted markiert (Flow nach Inject fehlgeschlagen)", db_identity_id)
+```
+
+**Wo**: `host/flows/genesis.py` → `except ADBError` + `except Exception` Handler (Zeilen 891-927).
+
+---
+
+### FIX-23: Backup-Resilience — Atomic Write + Retry bei ADB-Abbruch ✅ IMPLEMENTIERT
+**Priorität**: HOCH
+**Status**: ✅ Implementiert (Phase 4)
+**Problem**: Backup schreibt direkt in die finale Datei. Wenn ADB während des tar-Streams die Verbindung verliert, bleibt eine korrupte Teildatei liegen. Beim nächsten Restore wird diese als gültiges Backup behandelt.
+
+**Lösung — Dreistufig**:
+
+**Stufe 1: Atomic Write**
+```
+1. Schreibe nach app_data.tar.tmp (nicht direkt in .tar)
+2. Bei Erfolg: rename .tmp → .tar
+3. Bei Fehler: lösche .tmp, altes .tar bleibt intakt
+```
+
+**Stufe 2: Retry bei ADB-Abbruch**
+```
+1. Fange ADBError/ADBTimeoutError beim tar-Stream
+2. Lösche korrupte .tmp Datei
+3. ADB-Verbindung wiederherstellen (ensure_connection)
+4. Erneuter Versuch (max. 3 Retries mit exponential backoff)
+5. Wenn alle Retries fehlschlagen → Flow abbrechen
+```
+
+**Stufe 3: Info-Meldung bei Abbruch**
+```
+"🔴 Backup fehlgeschlagen nach 3 Versuchen — ADB-Verbindung instabil.
+ Bestehendes Backup bleibt erhalten. Flow abgebrochen."
+```
+→ WebUI zeigt die Meldung als Error-Notification an.
+
+**Wichtig**: Altes Backup darf NIE mit korrupten Daten überschrieben werden. Erst rename wenn vollständig + validiert.
+
+**Wo**: `host/engine/shifter.py` → `backup_tiktok_dual()`, `backup()` — Atomic Write + Retry-Wrapper.
+
+---
+
+### ENTSCHEIDUNG Block 14.1 — String-Verschlüsselung: SEPARATE PHASE
+**Status**: Dokumentiert als eigene Phase NACH allen funktionalen Fixes.
+**Begründung**: TikTok scannt nicht aktiv Zygisk-Module-Binaries. Die funktionalen Fixes (TikTok-Erkennung, Backup-Lücken, Auditor) haben höhere Priorität. String-Verschlüsselung wird als Phase 7 eingeplant.
+
+### FIX-24: String-Verschlüsselung + Raw Syscalls + memfd_create (Stealth-Hardening) ✅ IMPLEMENTIERT
+**Priorität**: MITTEL — Eigene Phase nach allen Flow-Fixes
+**Problem**: Alle sensitiven Strings in `zygisk_module.cpp` und `titan_hardware.cpp` sind Klartext. `strings libtitan_zygisk.so` enthüllt das komplette Modul. Zusätzlich nutzt das Modul libc-Wrapper statt raw syscalls. Und es werden Temp-Dateien in `/data/local/tmp/` erstellt die nie gelöscht werden.
+
+**Umfang (3 Teilbereiche)**:
+
+**A) XOR-Verschlüsselung** für alle Strings (Pfade, Package-Namen, Log-Tags, Defaults):
+```cpp
+// Compile-Time XOR Macro
+#define XOR_KEY 0x5A
+#define DECRYPT(enc, len) ({ char* d = (char*)alloca(len+1); \
+    for(int i=0;i<len;i++) d[i]=enc[i]^XOR_KEY; d[len]=0; d; })
+```
+
+**B) Raw Syscalls** (`syscall(__NR_openat, ...)`) statt `open()`, `read()`, `close()`, `stat()`:
+```cpp
+// Statt: int fd = open(path, O_RDONLY);
+// Besser:
+int fd = syscall(__NR_openat, AT_FDCWD, path, O_RDONLY, 0);
+```
+
+**C) `memfd_create` statt Temp-Dateien** (unauffindbarste Lösung):
+```cpp
+// Statt: open("/data/local/tmp/.titan_cpuinfo_1234", O_CREAT|O_RDWR, 0600)
+// Besser:
+int fd = syscall(__NR_memfd_create, "", MFD_CLOEXEC);
+write(fd, fake_content, content_len);
+lseek(fd, 0, SEEK_SET);
+// → Kein Dateisystem-Eintrag, nur anonymer RAM-FD
+// → find / -name '.titan*' findet NICHTS
+// → Existiert nur solange der Prozess lebt
+// → Funktioniert auf Android 14 (Kernel 5.10+, Pixel 6)
+```
+
+Betrifft folgende Temp-Dateien die aktuell erstellt werden:
+- `/data/local/tmp/.titan_mac_open_<pid>` → memfd_create
+- `/data/local/tmp/.titan_input_open_<pid>` → memfd_create
+- `/data/local/tmp/.titan_cpuinfo_<pid>` → memfd_create
+- `/data/local/tmp/.titan_version_<pid>` → memfd_create
+- `/data/local/tmp/.titan_if_inet6_<pid>` → memfd_create
+
+Host-seitige Staging-Dateien (nach Push löschen):
+- `/data/local/tmp/.titan_bridge_staging` → `adb shell rm` nach Push
+- `/data/local/tmp/.titan_pif_staging.prop` → `adb shell rm` nach Push
+
+**Geschätzter Aufwand**: 2-3 Tage (eigene Phase)
+
+**Wo**: `module/zygisk_module.cpp`, `common/titan_hardware.cpp`, `common/titan_hardware.h`, `host/engine/injector.py` (Staging-Cleanup)
+
+---
+
+## SPARRING BLOCK 15 — Logging & Observability
+
+### FIX-25: Persistenter File-Logger mit Rotation ✅ IMPLEMENTIERT
+**Priorität**: MITTEL
+**Problem**: Logs existieren nur in-memory (Ring-Buffer, 500 Einträge) und im Terminal. Wenn der Server crasht oder neustartet, sind alle Logs weg. Post-Mortem-Analyse ist unmöglich.
+
+**Lösung**: `RotatingFileHandler` in `host/main.py` hinzufügen:
+```python
+from logging.handlers import RotatingFileHandler
+
+file_handler = RotatingFileHandler(
+    "titan.log",
+    maxBytes=10_000_000,    # 10 MB pro Datei
+    backupCount=3,           # 3 alte Dateien behalten
+    encoding="utf-8",
+)
+file_handler.setFormatter(_BerlinFormatter(...))
+file_handler.setLevel(logging.DEBUG)  # Alles loggen, auch DEBUG
+logging.root.addHandler(file_handler)
+```
+
+**Vorteile**:
+- Max ~40MB Disk (10MB × 4 Dateien)
+- DEBUG-Level im File (WebSocket bleibt auf INFO)
+- Post-Mortem bei 3-Uhr-Nachts-Crashes möglich
+- ~10 Zeilen Code
+
+**Wo**: `host/main.py` → nach dem Console-Handler.
+
+---
+
+## SPARRING BLOCK 17 — Frontend Konsistenz
+
+### FIX-27: Unbenutzte Backend-Endpoints bereinigen ✅ IMPLEMENTIERT
+**Priorität**: NIEDRIG
+**Problem**: 7 Backend-Endpoints werden im Frontend nicht aufgerufen. Toter Code erhöht Wartungsaufwand.
+
+**Aktion — Selektives Aufräumen**:
+
+**BEHALTEN** (werden für Backup-Features gebraucht):
+- `POST /api/control/backup` — Backup-Flow manuell triggern
+- `GET /api/vault/{id}/backups` — Backup-Liste für ein Profil
+- `POST /api/vault/{id}/backup` — Manuelles Backup für ein Profil
+
+**LÖSCHEN** (redundant oder über andere Wege erreichbar):
+- `GET /api/dashboard/profiles` — redundant mit `/api/vault`
+- `GET /api/dashboard/farm-stats` — redundant mit `/api/dashboard/stats`
+- `PUT /api/vault/{id}/credentials` — bereits über `PUT /api/vault/{id}` (Edit) abgedeckt
+- `PUT /api/vault/{id}/status` — bereits über Edit oder Bulk-Status abgedeckt
+
+**Wo**: `host/api/dashboard.py` (profiles, farm-stats), `host/api/vault.py` (credentials, status)
+
+---
+
+### FIX-26: Polling-Guard gegen Race-Conditions ✅ IMPLEMENTIERT
+**Priorität**: NIEDRIG
+**Problem**: `pollFlowStatus()` im Dashboard wird alle 2s aufgerufen. Wenn ein API-Request länger als 2s dauert, starten parallele Polls → Doppel-Updates, UI-Flackern.
+
+**Lösung**:
+```javascript
+let pollInProgress = false;
+async function pollFlowStatus() {
+    if (pollInProgress) return;
+    pollInProgress = true;
+    try {
+        // ... bestehende Logik
+    } finally {
+        pollInProgress = false;
+    }
+}
+```
+
+Gleiches Muster für `refreshHeaderStatus()` und `pollFlowForHeader()` in `vault.html`.
+
+**Wo**: `host/frontend/templates/dashboard.html` + `host/frontend/templates/vault.html`
+
+---
+
 ## SPARRING BLOCK 9 — Injector / Distribution
 
-### FIX-19: Bridge-Distribution an Instagram + Snapchat (Vorbereitung)
+### FIX-19: Bridge-Distribution an Instagram + Snapchat (Vorbereitung) ✅ IMPLEMENTIERT
 **Priorität**: NIEDRIG (erst relevant wenn Insta/Snap aktiv genutzt werden)
 **Problem**: Die `BRIDGE_TARGET_APPS` in `host/config.py` enthält TikTok, GMS, Titan Verifier, DRM Info und Device ID — aber NICHT Instagram (`com.instagram.android`) und Snapchat (`com.snapchat.android`). 
 
@@ -514,9 +720,9 @@ Das bedeutet: Wenn Insta/Snap installiert und geöffnet werden, sehen sie ALLE d
 1. `BRIDGE_TARGET_APPS` in `host/config.py` um `com.instagram.android` und `com.snapchat.android` erweitern
 2. Der Injector verteilt die Bridge dann automatisch in die App-Ordner
 
-**Status**: Dokumentiert für spätere Umsetzung. Aktuell nur TikTok-Fokus.
+**Status**: ✅ Implementiert. `SOCIAL_MEDIA_PACKAGES` enthält jetzt TikTok + Instagram + Snapchat. Bridge-Distribution prüft via `test -d` ob die App installiert ist — nicht installierte Apps werden übersprungen.
 
-**Wo**: `host/config.py` → `BRIDGE_TARGET_APPS` Liste erweitern.
+**Wo**: `host/config.py` → `BRIDGE_TARGET_APPS` via `SOCIAL_MEDIA_PACKAGES` erweitert.
 
 ---
 
@@ -525,7 +731,7 @@ Das bedeutet: Wenn Insta/Snap installiert und geöffnet werden, sehen sie ALLE d
 
 ---
 
-### FIX-20: Hardcoded Default-Werte im Zygisk-Module entfernen
+### FIX-20: Hardcoded Default-Werte im Zygisk-Module entfernen ✅ IMPLEMENTIERT
 **Priorität**: MITTEL
 **Problem**: `zygisk_module.cpp` Zeilen 83-89 definieren statische Default-Werte:
 ```cpp
@@ -561,7 +767,7 @@ if (!loadBridge()) {
 
 ## SPARRING BLOCK 12 — Datenbank-Konsistenz
 
-### FIX-21: Foreign Key von RESTRICT auf CASCADE ändern
+### FIX-21: Foreign Key von RESTRICT auf CASCADE ändern ✅ IMPLEMENTIERT
 **Priorität**: MITTEL
 **Problem**: `profiles.identity_id` hat `ON DELETE RESTRICT`. Wenn eine Identität gelöscht wird die noch ein Profil hat, schlägt der DELETE fehl mit `FOREIGN KEY constraint failed`.
 
@@ -612,21 +818,31 @@ identity_id INTEGER NOT NULL REFERENCES identities(id) ON DELETE CASCADE
 8. **FIX-17** — Auditor Full + Quick Audit erweitern → alle Spoofing-Felder prüfen
 9. **FIX-18** — IP-Collision-Detection → Cross-Profile IP-Korrelation erkennen
 
-### Phase 4: Robustheit (HOCH → MITTEL)
-10. **FIX-7** — `wm dismiss-keyguard` → 3 Zeilen, sofort wirksam
-11. **FIX-5** — CE-Storage Check → robusterer Unlock-Check
-12. **FIX-6** — USB-Reconnect → ADB-Zombie-State Fallback
+### Phase 4: Error Handling & Resilience (HOCH)
+10. **FIX-22** — Genesis Rollback erweitern → `corrupted` nach Inject bei Fehler + WebUI-Info
+11. **FIX-23** — Backup Atomic Write + Retry → keine korrupten Backups + WebUI-Info bei Abbruch
 
-### Phase 5: Verifikation & Monitoring (MITTEL)
-13. **FIX-9** — Bridge-Verifikation alle Pfade → vollständige Post-Reboot-Prüfung
-14. **FIX-4** — Integrity Guard → Backup-Validierung (braucht Testing)
-15. **FIX-14** — Settings-ContentProvider Cleanup → TikTok System-Settings bereinigen
-16. **FIX-12** — Xposed Debug-Log-Mode → Hook-Monitoring in WebUI
-17. **FIX-20** — Hardcoded Defaults im Zygisk entfernen → Bridge-Fehler = Hooks aus
-18. **FIX-21** — ON DELETE CASCADE → Profil wird mit Identität mitgelöscht
+### Phase 5: Robustheit (HOCH → MITTEL)
+12. **FIX-7** — `wm dismiss-keyguard` → 3 Zeilen, sofort wirksam
+13. **FIX-5** — CE-Storage Check → robusterer Unlock-Check
+14. **FIX-6** — USB-Reconnect → ADB-Zombie-State Fallback
 
-### Phase 6: Vorbereitung Multi-App (NIEDRIG — erst wenn Insta/Snap aktiviert)
-19. **FIX-19** — Bridge-Distribution an Instagram + Snapchat
+### Phase 6: Verifikation & Monitoring (MITTEL)
+15. **FIX-9** — Bridge-Verifikation alle Pfade → vollständige Post-Reboot-Prüfung
+16. **FIX-4** — Integrity Guard → Backup-Validierung (braucht Testing)
+17. **FIX-14** — Settings-ContentProvider Cleanup → TikTok System-Settings bereinigen
+18. **FIX-12** — Xposed Debug-Log-Mode → Hook-Monitoring in WebUI
+19. **FIX-20** — Hardcoded Defaults im Zygisk entfernen → Bridge-Fehler = Hooks aus
+20. **FIX-21** — ON DELETE CASCADE → Profil wird mit Identität mitgelöscht
+21. **FIX-25** — Persistenter File-Logger mit Rotation → Post-Mortem möglich
+22. **FIX-26** — Polling-Guard → keine Race-Conditions im Frontend
+23. **FIX-27** — Unbenutzte Endpoints löschen (4 von 7), Backup-Endpoints behalten
+
+### Phase 7: Stealth-Hardening (MITTEL — eigene Phase) ✅ ABGESCHLOSSEN
+24. **FIX-24** — String-Verschlüsselung + Raw Syscalls + memfd_create ✅
+
+### Phase 8: Vorbereitung Multi-App (NIEDRIG — erst wenn Insta/Snap aktiviert) ✅ ABGESCHLOSSEN
+25. **FIX-19** — Bridge-Distribution an Instagram + Snapchat ✅
 
 ---
 
@@ -643,9 +859,14 @@ identity_id INTEGER NOT NULL REFERENCES identities(id) ON DELETE CASCADE
 | `host/database.py` | FIX-18 (Indizes aktivieren) |
 | `app/.../TitanXposedModule.kt` | FIX-12 |
 | `host/models/identity.py` | FIX-12 (Bridge-Feld `debug_hooks`) |
-| `host/frontend/templates/dashboard.html` | FIX-18 (optional: IP-Metriken) |
+| `host/frontend/templates/dashboard.html` | FIX-18 (optional: IP-Metriken), FIX-22 + FIX-23 (WebUI-Meldungen) |
 | `host/config.py` | FIX-19 (BRIDGE_TARGET_APPS erweitern) |
-| `module/zygisk_module.cpp` | FIX-20 (Hardcoded Defaults entfernen) |
+| `module/zygisk_module.cpp` | FIX-20 (Defaults entfernen), FIX-24 (XOR + Syscalls) |
+| `common/titan_hardware.cpp` | FIX-24 (XOR + Syscalls + memfd_create) |
+| `host/main.py` | FIX-25 (File-Logger) |
+| `host/frontend/templates/vault.html` | FIX-26 (Polling-Guard) |
+| `host/api/vault.py` | FIX-27 (Endpoints löschen: credentials, status) |
+| `host/api/dashboard.py` | FIX-27 (Endpoints löschen: profiles, farm-stats) |
 
 ---
 

@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     id                      INTEGER PRIMARY KEY AUTOINCREMENT,
 
     -- Beziehung
-    identity_id             INTEGER NOT NULL REFERENCES identities(id) ON DELETE RESTRICT,
+    identity_id             INTEGER NOT NULL REFERENCES identities(id) ON DELETE CASCADE,
 
     -- Metadaten
     name                    TEXT NOT NULL,
@@ -293,7 +293,10 @@ CREATE INDEX IF NOT EXISTS idx_flow_time                ON flow_history(started_
 -- IP History
 CREATE INDEX IF NOT EXISTS idx_ip_ip                    ON ip_history(public_ip);
 CREATE INDEX IF NOT EXISTS idx_ip_identity              ON ip_history(identity_id);
+CREATE INDEX IF NOT EXISTS idx_ip_profile               ON ip_history(profile_id);
 CREATE INDEX IF NOT EXISTS idx_ip_time                  ON ip_history(detected_at DESC);
+-- FIX-18: Composite Index für IP-Collision-Check (IP + Profile)
+CREATE INDEX IF NOT EXISTS idx_ip_collision             ON ip_history(public_ip, profile_id);
 
 -- Audit History
 CREATE INDEX IF NOT EXISTS idx_audit_identity           ON audit_history(identity_id);
@@ -451,6 +454,74 @@ class TitanDatabase:
         if migrated > 0:
             await self._connection.commit()
             logger.info("Schema-Migration: %d neue Spalten hinzugefügt", migrated)
+
+        # =================================================================
+        # FIX-21: Foreign Key von RESTRICT auf CASCADE migrieren
+        # =================================================================
+        # SQLite unterstützt kein ALTER COLUMN. Deshalb: Table-Rebuild.
+        # Prüfe zuerst ob Migration nötig ist (idempotent).
+        # =================================================================
+        await self._migrate_fk_cascade()
+
+    async def _migrate_fk_cascade(self) -> None:
+        """
+        FIX-21: Migriert profiles.identity_id FK von RESTRICT zu CASCADE.
+
+        Prüft zuerst den aktuellen FK-Typ. Wenn noch RESTRICT, wird
+        ein Table-Rebuild durchgeführt (SQLite-Limitation).
+        """
+        try:
+            cursor = await self._connection.execute(
+                "SELECT sql FROM sqlite_master WHERE name='profiles' AND type='table'"
+            )
+            row = await cursor.fetchone()
+            if not row:
+                return
+
+            create_sql = row[0]
+            if "ON DELETE CASCADE" in create_sql:
+                # Bereits migriert
+                return
+            if "ON DELETE RESTRICT" not in create_sql:
+                # Weder RESTRICT noch CASCADE — unbekanntes Schema
+                return
+
+            logger.info("FIX-21: Migriere profiles FK → ON DELETE CASCADE...")
+
+            # FK temporär deaktivieren für den Rebuild
+            await self._connection.execute("PRAGMA foreign_keys=OFF")
+
+            # Neue Tabelle mit CASCADE erstellen
+            new_sql = create_sql.replace(
+                "ON DELETE RESTRICT", "ON DELETE CASCADE"
+            ).replace("profiles", "profiles_new", 1)
+            await self._connection.execute(new_sql)
+
+            # Daten kopieren
+            await self._connection.execute(
+                "INSERT INTO profiles_new SELECT * FROM profiles"
+            )
+
+            # Alte Tabelle löschen + umbenennen
+            await self._connection.execute("DROP TABLE profiles")
+            await self._connection.execute(
+                "ALTER TABLE profiles_new RENAME TO profiles"
+            )
+
+            await self._connection.commit()
+
+            # FK wieder aktivieren
+            await self._connection.execute("PRAGMA foreign_keys=ON")
+
+            logger.info("FIX-21: FK-Migration erfolgreich — ON DELETE CASCADE aktiv")
+
+        except Exception as e:
+            logger.warning("FIX-21: FK-Migration fehlgeschlagen: %s", e)
+            # Nicht kritisch — RESTRICT funktioniert weiterhin
+            try:
+                await self._connection.execute("PRAGMA foreign_keys=ON")
+            except Exception:
+                pass
 
     @asynccontextmanager
     async def connection(self) -> AsyncGenerator[aiosqlite.Connection, None]:

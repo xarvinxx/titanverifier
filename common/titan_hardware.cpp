@@ -14,6 +14,76 @@
 #include <cerrno>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/syscall.h>  // FIX-24B: Raw Syscalls
+
+// =============================================================================
+// FIX-24A: XOR-verschlüsselte Bridge-Pfade
+// =============================================================================
+#define TITAN_XOR_KEY 0x5A
+
+static inline void _hw_xor_decode(char* out, const unsigned char* enc, size_t len) {
+    for (size_t i = 0; i < len; i++) out[i] = (char)(enc[i] ^ TITAN_XOR_KEY);
+    out[len] = '\0';
+}
+
+// "/data/local/tmp/.titan_identity" (len=31)
+static const unsigned char _ENC_HW_PATH[] = {
+    0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x36,0x35,0x39,0x3b,0x36,0x75,
+    0x2e,0x37,0x2a,0x75,0x74,0x2e,0x33,0x2e,0x3b,0x34,0x05,0x33,
+    0x3e,0x3f,0x34,0x2e,0x33,0x2e,0x23
+};
+// "/data/adb/modules/titan_verifier/titan_identity" (len=47)
+static const unsigned char _ENC_HW_FALLBACK[] = {
+    0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x3b,0x3e,0x38,0x75,0x37,0x35,
+    0x3e,0x2f,0x36,0x3f,0x29,0x75,0x2e,0x33,0x2e,0x3b,0x34,0x05,
+    0x2c,0x3f,0x28,0x33,0x3c,0x33,0x3f,0x28,0x75,0x2e,0x33,0x2e,
+    0x3b,0x34,0x05,0x33,0x3e,0x3f,0x34,0x2e,0x33,0x2e,0x23
+};
+// "/data/local/tmp/.titan_state" (len=28)
+static const unsigned char _ENC_HW_LEGACY[] = {
+    0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x36,0x35,0x39,0x3b,0x36,0x75,
+    0x2e,0x37,0x2a,0x75,0x74,0x2e,0x33,0x2e,0x3b,0x34,0x05,0x29,
+    0x2e,0x3b,0x2e,0x3f
+};
+
+// Einmalig entschlüsselte Pfade
+static char g_hwPath[32] = {};
+static char g_hwFallback[48] = {};
+static char g_hwLegacy[32] = {};
+static bool g_hwPathsDecoded = false;
+
+static void _decodeBridgePaths() {
+    if (g_hwPathsDecoded) return;
+    _hw_xor_decode(g_hwPath,     _ENC_HW_PATH,     31);
+    _hw_xor_decode(g_hwFallback, _ENC_HW_FALLBACK,  47);
+    _hw_xor_decode(g_hwLegacy,   _ENC_HW_LEGACY,    28);
+    g_hwPathsDecoded = true;
+}
+
+// Exportierte Pfad-Pointer (werden von titan_hardware.h referenziert)
+const char* TITAN_BRIDGE_PATH_DEC     = nullptr;
+const char* TITAN_BRIDGE_FALLBACK_DEC = nullptr;
+const char* TITAN_BRIDGE_LEGACY_DEC   = nullptr;
+
+// Initialisierung beim Laden der Shared Library
+__attribute__((constructor))
+static void _initBridgePaths() {
+    _decodeBridgePaths();
+    TITAN_BRIDGE_PATH_DEC     = g_hwPath;
+    TITAN_BRIDGE_FALLBACK_DEC = g_hwFallback;
+    TITAN_BRIDGE_LEGACY_DEC   = g_hwLegacy;
+}
+
+// FIX-24B: Raw Syscall Wrappers für titan_hardware
+static inline int _hw_raw_openat(const char* path, int flags) {
+    return (int)syscall(__NR_openat, AT_FDCWD, path, flags, 0);
+}
+static inline ssize_t _hw_raw_read(int fd, void* buf, size_t count) {
+    return (ssize_t)syscall(__NR_read, fd, buf, count);
+}
+static inline int _hw_raw_close(int fd) {
+    return (int)syscall(__NR_close, fd);
+}
 
 // ============================================================================
 // TitanHardware Singleton Implementation
@@ -115,15 +185,16 @@ bool TitanHardware::parseKeyValue(const char* key, const char* value) {
 }
 
 bool TitanHardware::loadFromFile(const char* path) {
-    int fd = open(path, O_RDONLY);
+    // FIX-24B: Raw Syscalls statt libc open/read/close
+    int fd = _hw_raw_openat(path, O_RDONLY);
     if (fd < 0) {
         return false;
     }
     
     // Lese gesamte Datei (max 2KB für alle Keys)
     char buffer[2048] = {};
-    ssize_t bytesRead = read(fd, buffer, sizeof(buffer) - 1);
-    close(fd);
+    ssize_t bytesRead = _hw_raw_read(fd, buffer, sizeof(buffer) - 1);
+    _hw_raw_close(fd);
     
     if (bytesRead <= 0) {
         return false;

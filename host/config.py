@@ -453,8 +453,18 @@ GMS_PACKAGES = [
     "com.android.vending",              # Play Store
 ]
 
-BRIDGE_TARGET_APPS = [
+# FIX-19: Instagram + Snapchat hinzugefügt (Multi-App Vorbereitung)
+# Die Zygisk-Hooks targetieren diese Apps bereits — ohne Bridge-Datei
+# in ihrem App-Ordner deaktivieren sich die Hooks (FIX-20).
+# Mit Bridge-Distribution erhalten sie die korrekt gespooften IDs.
+SOCIAL_MEDIA_PACKAGES = [
     *TIKTOK_PACKAGES,
+    "com.instagram.android",            # Instagram
+    "com.snapchat.android",             # Snapchat
+]
+
+BRIDGE_TARGET_APPS = [
+    *SOCIAL_MEDIA_PACKAGES,
     *GMS_PACKAGES,
     "com.titan.verifier",               # Unsere eigene App (Audit)
     "tw.reh.deviceid",                  # Device ID Checker

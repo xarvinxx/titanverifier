@@ -506,7 +506,11 @@
     // ===================================================================
     // Dashboard: Stats Polling
     // ===================================================================
+    // FIX-26: Polling-Guard
+    let refreshStatsInProgress = false;
     async function refreshStats() {
+        if (refreshStatsInProgress) return;
+        refreshStatsInProgress = true;
         try {
             const res = await fetch('/api/dashboard/stats');
             const data = await res.json();
@@ -643,6 +647,8 @@
             }
         } catch (e) {
             console.error('Stats refresh error:', e);
+        } finally {
+            refreshStatsInProgress = false;
         }
     }
 
@@ -781,7 +787,11 @@
         }
     }
 
+    // FIX-26: Polling-Guard gegen Race-Conditions
+    let pollFlowInProgress = false;
     async function pollFlowStatus() {
+        if (pollFlowInProgress) return;
+        pollFlowInProgress = true;
         try {
             const res = await fetch('/api/control/status');
             const data = await res.json();
@@ -804,6 +814,8 @@
             }
         } catch (e) {
             console.error('Status poll error:', e);
+        } finally {
+            pollFlowInProgress = false;
         }
     }
 

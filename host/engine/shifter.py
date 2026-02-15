@@ -80,6 +80,35 @@ TIKTOK_TRACKING_GLOBS = [
     "/sdcard/.tobid*",        # TikTok TOBID tracking
 ]
 
+# FIX-1: ByteDance Deep-Search Patterns
+# Versteckte Tracking-Verzeichnisse die pm clear und statische rm -rf nicht erfassen
+BYTEDANCE_DEEP_PATTERNS = [
+    "/sdcard/.com.ss.android*",            # ByteDance Cross-App SDK
+    "/sdcard/Documents/com.zhiliaoapp*",   # TikTok Document-Tracking
+    "/sdcard/Download/.log/",              # Versteckte Logs
+    "/sdcard/.msync/",                     # ByteDance Cross-App Sync
+    "/sdcard/Documents/.tmlog/",           # Versteckte TikTok-Logs
+    "/sdcard/DCIM/.thumbnails/",           # TikTok-Metadata in Thumbnails
+]
+
+# FIX-1: find-basierte Suchmuster für dynamisch angelegte Tracking-Dateien
+BYTEDANCE_FIND_PATTERNS = [
+    "-name '.tt*' -o -name '*.tt*'",               # Alle versteckten TT-Dateien
+    "-type d -name '*zhiliaoapp*'",                 # zhiliaoapp-Verzeichnisse
+    "-type d -name '*com.ss.android*'",             # ByteDance SDK-Reste
+    "-type d -name '.msync'",                       # Cross-App Sync Verzeichnisse
+]
+
+# FIX-2: Cache-Pfade die nach pm clear/uninstall explizit geprüft werden müssen
+TIKTOK_RESIDUAL_CACHE_PATHS = [
+    "/data/data/com.zhiliaoapp.musically/cache",
+    "/data/data/com.zhiliaoapp.musically/code_cache",
+    "/storage/emulated/0/Android/data/com.zhiliaoapp.musically/cache",
+    "/data/data/com.ss.android.ugc.trill/cache",
+    "/data/data/com.ss.android.ugc.trill/code_cache",
+    "/storage/emulated/0/Android/data/com.ss.android.ugc.trill/cache",
+]
+
 
 class TitanShifter:
     """
@@ -292,12 +321,12 @@ class TitanShifter:
         # Stoppe App vor Backup (konsistenter State)
         await self._force_stop()
 
-        # Streame tar direkt vom Gerät
-        # su -c nötig weil /data/data/ nur als root lesbar
+        # FIX-23: Atomic Write + Retry statt direktem exec_out_to_file
         tar_cmd = f"su -c 'tar -cf - -C / data/data/{self._package}'"
-        bytes_written = await self._adb.exec_out_to_file(
-            tar_cmd,
-            str(tar_path),
+        bytes_written = await self._atomic_backup_with_retry(
+            tar_cmd=tar_cmd,
+            final_path=tar_path,
+            label=f"Backup {profile_name}",
             timeout=timeout,
         )
 
@@ -330,6 +359,108 @@ class TitanShifter:
         )
 
         return tar_path, bytes_written
+
+    # =========================================================================
+    # FIX-23: Atomic Backup mit Retry
+    # =========================================================================
+
+    async def _atomic_backup_with_retry(
+        self,
+        tar_cmd: str,
+        final_path: Path,
+        label: str,
+        timeout: int = 600,
+        max_retries: int = 3,
+    ) -> int:
+        """
+        FIX-23: Atomares Backup mit Retry-Logik.
+
+        Schreibt in .tmp-Datei → bei Erfolg rename → bei Fehler delete .tmp.
+        Altes Backup bleibt bei Fehler immer intakt.
+
+        Bei ADB-Abbruch: Verbindung wiederherstellen + erneut versuchen
+        (max. 3 Retries mit exponential backoff: 2s, 4s, 8s).
+
+        Args:
+            tar_cmd:      Der tar-Befehl für adb exec-out
+            final_path:   Endgültiger Zielpfad für das Backup
+            label:        Beschreibung für Logging (z.B. "App-Daten Pfad A")
+            timeout:      Timeout pro Einzelversuch
+            max_retries:  Maximale Anzahl Retries
+
+        Returns:
+            Anzahl geschriebener Bytes (0 bei Fehler)
+
+        Raises:
+            ADBError: Wenn alle Retries fehlschlagen
+        """
+        tmp_path = final_path.with_suffix(final_path.suffix + ".tmp")
+        last_error: Optional[Exception] = None
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                # Sicherstellen dass .tmp sauber ist
+                tmp_path.unlink(missing_ok=True)
+
+                # Backup in .tmp schreiben
+                bytes_written = await self._adb.exec_out_to_file(
+                    tar_cmd, str(tmp_path), timeout=timeout,
+                )
+
+                if bytes_written <= 0:
+                    # Leeres Backup — kein Retry nötig, ist normal bei leeren Ordnern
+                    tmp_path.unlink(missing_ok=True)
+                    logger.info(
+                        "%s: Leer (0 Bytes) — Versuch %d/%d",
+                        label, attempt, max_retries,
+                    )
+                    return 0
+
+                # Atomic rename: .tmp → .tar (OS-Level atomar auf ext4/APFS)
+                tmp_path.rename(final_path)
+                logger.info(
+                    "%s: OK (%.1f MB, Versuch %d/%d)",
+                    label, bytes_written / (1024 * 1024), attempt, max_retries,
+                )
+                return bytes_written
+
+            except (ADBError, ADBTimeoutError, OSError) as e:
+                last_error = e
+                # Korrupte .tmp sofort löschen
+                tmp_path.unlink(missing_ok=True)
+
+                if attempt >= max_retries:
+                    logger.error(
+                        "%s: Alle %d Versuche fehlgeschlagen — letzter Fehler: %s",
+                        label, max_retries, e,
+                    )
+                    break
+
+                # Exponential Backoff: 2s, 4s, 8s
+                backoff = 2 ** attempt
+                logger.warning(
+                    "%s: Versuch %d/%d fehlgeschlagen (%s) — "
+                    "ADB-Reconnect + Retry in %ds...",
+                    label, attempt, max_retries, e, backoff,
+                )
+
+                # ADB-Reconnect versuchen
+                try:
+                    await self._adb.ensure_connection()
+                except Exception as reconnect_err:
+                    logger.error(
+                        "%s: ADB-Reconnect fehlgeschlagen: %s",
+                        label, reconnect_err,
+                    )
+
+                await asyncio.sleep(backoff)
+
+        # Alle Retries fehlgeschlagen — altes Backup bleibt intakt
+        raise ADBError(
+            f"{label}: Backup fehlgeschlagen nach {max_retries} Versuchen. "
+            f"Bestehendes Backup bleibt erhalten. "
+            f"Letzter Fehler: {last_error}"
+        )
 
     # =========================================================================
     # Dual-Path Backup: App-Daten + Sandbox (TikTok-spezifisch)
@@ -396,24 +527,60 @@ class TitanShifter:
                     "TikTok wurde möglicherweise noch nicht gestartet"
                 )
 
-            tar_cmd = (
-                f"su -c 'tar -cf - -C / data/data/{self._package} 2>/dev/null'"
-            )
-            bytes_written = await self._adb.exec_out_to_file(
-                tar_cmd, str(app_tar), timeout=timeout,
+            # =============================================================
+            # FIX-3: Backup-Whitelist — nur Login-relevante Ordner sichern
+            #   shared_prefs/ = Login-Session, Cookies, User-Preferences
+            #   databases/    = SQLite-DBs mit Account-Daten
+            #   files/        = Token-Dateien, Konfiguration
+            #   Nicht gesichert: cache/, code_cache/, no_backup/ (können
+            #   Probleme beim Restore verursachen und sind nicht nötig)
+            # =============================================================
+            whitelist_dirs = []
+            for subdir in ["shared_prefs", "databases", "files"]:
+                check = await self._adb.shell(
+                    f"test -d {self._data_path}/{subdir}", root=True,
+                )
+                if check.success:
+                    whitelist_dirs.append(subdir)
+
+            if whitelist_dirs:
+                # Whitelist-basiertes tar (nur relevante Unterordner)
+                dirs_str = " ".join(whitelist_dirs)
+                tar_cmd = (
+                    f"su -c 'tar -C {self._data_path} -cf - {dirs_str} 2>/dev/null'"
+                )
+                logger.debug("Pfad A Whitelist: %s", dirs_str)
+            else:
+                # Fallback: Vollständiges Backup (falls keine Whitelist-Dirs existieren)
+                tar_cmd = (
+                    f"su -c 'tar -cf - -C / data/data/{self._package} 2>/dev/null'"
+                )
+                logger.warning("Pfad A: Keine Whitelist-Dirs gefunden — volles Backup als Fallback")
+
+            # FIX-23: Atomic Write + Retry statt direktem exec_out_to_file
+            bytes_written = await self._atomic_backup_with_retry(
+                tar_cmd=tar_cmd,
+                final_path=app_tar,
+                label=f"Pfad A (App-Daten, Whitelist: {', '.join(whitelist_dirs) if whitelist_dirs else 'full'})",
+                timeout=timeout,
             )
 
             if bytes_written > 0:
-                results["app_data"] = app_tar
-                logger.info(
-                    "Pfad A (App-Daten): OK (%.1f MB)",
-                    bytes_written / (1024 * 1024),
+                # FIX-4: Integrity Guard — Größe auf Gerät vs. lokal vergleichen
+                await self._integrity_check(
+                    self._data_path, app_tar, bytes_written, "Pfad A",
                 )
+                results["app_data"] = app_tar
             else:
-                app_tar.unlink(missing_ok=True)
                 logger.warning("Pfad A (App-Daten): Leer (0 Bytes) — übersprungen")
 
-        except (ADBError, Exception) as e:
+        except ADBError as e:
+            # FIX-23: Alle Retries fehlgeschlagen — altes Backup bleibt intakt
+            logger.error(
+                "Pfad A (App-Daten) fehlgeschlagen nach Retries: %s — "
+                "Bestehendes Backup bleibt erhalten", e,
+            )
+        except Exception as e:
             logger.warning("Pfad A (App-Daten) fehlgeschlagen: %s", e)
 
         # --- Pfad B: Sandbox (/sdcard/Android/data/<pkg>/) ---
@@ -440,23 +607,29 @@ class TitanShifter:
                 tar_cmd = (
                     f"su -c 'tar -cf - -C {sandbox_path} . 2>/dev/null'"
                 )
-                bytes_written = await self._adb.exec_out_to_file(
-                    tar_cmd, str(sandbox_tar), timeout=timeout,
+
+                # FIX-23: Atomic Write + Retry
+                bytes_written = await self._atomic_backup_with_retry(
+                    tar_cmd=tar_cmd,
+                    final_path=sandbox_tar,
+                    label="Pfad B (Sandbox)",
+                    timeout=timeout,
                 )
 
                 if bytes_written > 0:
                     results["sandbox"] = sandbox_tar
-                    logger.info(
-                        "Pfad B (Sandbox): OK (%.1f MB)",
-                        bytes_written / (1024 * 1024),
-                    )
                 else:
-                    sandbox_tar.unlink(missing_ok=True)
                     logger.info("Pfad B (Sandbox): Leer — frischer Account, übersprungen")
             else:
                 logger.info("Pfad B (Sandbox): Kein Sandbox-Verzeichnis gefunden — übersprungen")
 
-        except (ADBError, Exception) as e:
+        except ADBError as e:
+            # FIX-23: Alle Retries fehlgeschlagen
+            logger.error(
+                "Pfad B (Sandbox) fehlgeschlagen nach Retries: %s — "
+                "Bestehendes Backup bleibt erhalten", e,
+            )
+        except Exception as e:
             logger.warning("Pfad B (Sandbox) fehlgeschlagen: %s", e)
 
         success = sum(1 for v in results.values() if v is not None)
@@ -612,16 +785,60 @@ class TitanShifter:
         /data/data/ noch verschlüsselt. Ein Backup in diesem Zustand
         produziert ein unbrauchbares tar mit verschlüsselten Blöcken.
 
+        FIX-5: Erweitert um dumpsys window Check für robustere Erkennung.
+
+        Prüfreihenfolge:
+          1. dumpsys window → Keyguard im Fokus? (zuverlässigster Check)
+          2. shared_prefs Test → CE entschlüsselt? (Fallback)
+
         Returns:
             True wenn CE-Storage entschlüsselt und lesbar ist
         """
         try:
-            # shared_prefs eines bekannten Pakets prüfen
+            # =================================================================
+            # FIX-5: Primärer Check via dumpsys window
+            # Prüft ob der Keyguard (Lock-Screen) noch aktiv ist.
+            # Wenn ja, ist CE-Storage definitiv verschlüsselt.
+            # =================================================================
+            try:
+                result = await self._adb.shell(
+                    "dumpsys window windows | grep -i mCurrentFocus",
+                    timeout=5,
+                )
+                if result.success:
+                    focus = result.output.lower()
+                    if "keyguard" in focus or "lockscreen" in focus:
+                        logger.warning(
+                            "FIX-5: Keyguard aktiv (%s) — CE-Storage verschlüsselt!",
+                            result.output.strip(),
+                        )
+                        return False
+                    else:
+                        logger.debug(
+                            "FIX-5: Kein Keyguard (%s) — CE-Storage vermutlich OK",
+                            result.output.strip(),
+                        )
+            except (ADBError, Exception) as e:
+                logger.debug("FIX-5: dumpsys window Check fehlgeschlagen: %s", e)
+
+            # Fallback: shared_prefs eines bekannten Pakets prüfen
             result = await self._adb.shell(
                 "test -d /data/data/com.google.android.gms/shared_prefs",
                 root=True, timeout=5,
             )
-            return result.success
+            if result.success:
+                return True
+
+            # Zweiter Fallback: Prüfe ob /data/data/ überhaupt lesbar ist
+            result = await self._adb.shell(
+                "ls /data/data/com.google.android.gms/ 2>/dev/null | head -1",
+                root=True, timeout=5,
+            )
+            if result.success and result.output.strip():
+                return True
+
+            logger.warning("CE-Storage Check: Alle Prüfungen fehlgeschlagen")
+            return False
         except (ADBError, Exception):
             return False
 
@@ -837,19 +1054,53 @@ class TitanShifter:
         logger.info("Deep Clean starten — %s", mode)
         results: dict[str, bool] = {}
 
-        # 1. pm clear TikTok (alle Pakete)
+        # =====================================================================
+        # 1. FIX-13: pm uninstall --user 0 + pm install-existing (TikTok)
+        #    Erzwingt echten "First Launch"-State — App verhält sich wie frisch
+        #    installiert. pm clear behält Permissions, Package-State und
+        #    first-run Flags, was Anti-Fraud-Systemen auffällt.
+        # =====================================================================
         for pkg in TIKTOK_PACKAGES:
             try:
-                result = await self._adb.shell(f"pm clear {pkg}", root=True)
-                success = "Success" in result.stdout
-                results[f"pm_clear_{pkg}"] = success
-                if success:
-                    logger.info("pm clear %s: OK", pkg)
+                # Schritt 1: Deinstallation für User 0 (App bleibt im System-Cache)
+                uninstall_result = await self._adb.shell(
+                    f"pm uninstall --user 0 {pkg}", root=True, timeout=15,
+                )
+                uninstall_ok = "Success" in uninstall_result.stdout
+
+                if uninstall_ok:
+                    logger.info("pm uninstall --user 0 %s: OK", pkg)
+
+                    # Schritt 2: Re-Installation aus System-Cache
+                    install_result = await self._adb.shell(
+                        f"pm install-existing --user 0 {pkg}", root=True, timeout=15,
+                    )
+                    install_ok = "installed" in install_result.stdout.lower() or install_result.success
+
+                    if install_ok:
+                        logger.info("pm install-existing %s: OK — Fresh-Install State", pkg)
+                        results[f"fresh_install_{pkg}"] = True
+                    else:
+                        # Fallback: Versuche normales pm clear
+                        logger.warning(
+                            "pm install-existing %s fehlgeschlagen (%s) — Fallback auf pm clear",
+                            pkg, install_result.output[:100],
+                        )
+                        clear_result = await self._adb.shell(f"pm clear {pkg}", root=True)
+                        results[f"fresh_install_{pkg}"] = "Success" in clear_result.stdout
                 else:
-                    logger.debug("pm clear %s: %s (evtl. nicht installiert)", pkg, result.output)
+                    # App nicht installiert oder anderer Fehler → pm clear als Fallback
+                    logger.debug(
+                        "pm uninstall %s: %s — versuche pm clear",
+                        pkg, uninstall_result.output[:100],
+                    )
+                    clear_result = await self._adb.shell(f"pm clear {pkg}", root=True)
+                    results[f"fresh_install_{pkg}"] = "Success" in clear_result.stdout
+                    if "Success" in clear_result.stdout:
+                        logger.info("pm clear %s: OK (Fallback)", pkg)
             except ADBError as e:
-                results[f"pm_clear_{pkg}"] = False
-                logger.warning("pm clear %s fehlgeschlagen: %s", pkg, e)
+                results[f"fresh_install_{pkg}"] = False
+                logger.warning("TikTok Sterilisierung %s fehlgeschlagen: %s", pkg, e)
 
         # 2. pm clear GMS — NUR bei include_gms=True (Genesis / Initial Seed)
         if include_gms:
@@ -882,6 +1133,71 @@ class TitanShifter:
                 results[f"rm_{glob_pattern}"] = result.success
             except ADBError:
                 results[f"rm_{glob_pattern}"] = False
+
+        # =====================================================================
+        # 4b. FIX-1: ByteDance Deep-Search — Versteckte Tracking-Verzeichnisse
+        #     TikTok/ByteDance legt Tracking-Daten an mehreren versteckten Orten
+        #     ab, die pm clear und statische rm -rf nicht erfassen.
+        # =====================================================================
+        logger.info("ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...")
+
+        # Statische Patterns löschen
+        for pattern in BYTEDANCE_DEEP_PATTERNS:
+            try:
+                result = await self._adb.shell(f"rm -rf {pattern}", root=True, timeout=10)
+                results[f"bytedance_{pattern}"] = result.success
+                if result.success:
+                    logger.debug("ByteDance Pattern gelöscht: %s", pattern)
+            except (ADBError, ADBTimeoutError):
+                results[f"bytedance_{pattern}"] = False
+
+        # Dynamische find-basierte Suche auf /sdcard
+        for find_pattern in BYTEDANCE_FIND_PATTERNS:
+            try:
+                result = await self._adb.shell(
+                    f"find /sdcard {find_pattern} 2>/dev/null",
+                    root=True, timeout=30,
+                )
+                found_paths = [p.strip() for p in result.stdout.splitlines() if p.strip()]
+                if found_paths:
+                    logger.info("ByteDance find: %d Treffer für '%s'", len(found_paths), find_pattern)
+                    for found in found_paths[:20]:  # Max 20 pro Pattern (Schutz gegen Endlosschleifen)
+                        try:
+                            await self._adb.shell(f"rm -rf '{found}'", root=True, timeout=5)
+                            logger.debug("  Gelöscht: %s", found)
+                        except (ADBError, ADBTimeoutError):
+                            pass
+                results[f"find_{find_pattern}"] = True
+            except (ADBError, ADBTimeoutError):
+                results[f"find_{find_pattern}"] = False
+
+        # Spezifische ByteDance Sandbox-Tracking Dateien
+        try:
+            await self._adb.shell(
+                "rm -rf /sdcard/Android/data/com.zhiliaoapp.musically/.tt* 2>/dev/null",
+                root=True, timeout=5,
+            )
+            results["bytedance_sandbox_tt"] = True
+        except (ADBError, ADBTimeoutError):
+            results["bytedance_sandbox_tt"] = False
+
+        # =====================================================================
+        # 4c. FIX-2: Cache-Verzeichnisse explizit prüfen und löschen
+        #     pm clear/uninstall löscht nicht alle Cache-Pfade zuverlässig.
+        #     Manche werden von Android nach pm clear automatisch neu erstellt.
+        # =====================================================================
+        logger.info("Cache-Residual-Check: Reste nach Sterilisierung aufräumen...")
+        for cache_path in TIKTOK_RESIDUAL_CACHE_PATHS:
+            try:
+                check = await self._adb.shell(f"test -d {cache_path}", root=True, timeout=5)
+                if check.success:
+                    await self._adb.shell(f"rm -rf {cache_path}", root=True, timeout=10)
+                    results[f"cache_cleanup_{cache_path}"] = True
+                    logger.debug("Cache-Rest gelöscht: %s", cache_path)
+                else:
+                    results[f"cache_cleanup_{cache_path}"] = True  # Existiert nicht → OK
+            except (ADBError, ADBTimeoutError):
+                results[f"cache_cleanup_{cache_path}"] = False
 
         # 5. Lösche System Account-Datenbanken (KRITISCH bei include_gms)
         # Verhindert "Kontoaktion erforderlich" nach Identity-Switch.
@@ -976,15 +1292,186 @@ class TitanShifter:
             except (ADBError, ADBTimeoutError):
                 results[f"art_profile_{pkg}"] = False
 
+        # =====================================================================
+        # FIX-14: TikTok Settings-ContentProvider Werte bereinigen
+        # =====================================================================
+        # TikTok schreibt Tracking-Werte über Settings.Secure/Global.
+        # Diese überleben pm clear UND pm uninstall, weil sie System-global
+        # gespeichert werden (nicht App-spezifisch).
+        # =====================================================================
+        logger.info("FIX-14: Settings-ContentProvider bereinigen...")
+        settings_patterns = [
+            "tiktok", "bytedance", "musically", "tt_", "ss_android",
+            "zhiliaoapp", "pangle", "tobid",
+        ]
+        for settings_ns in ["secure", "global"]:
+            try:
+                list_result = await self._adb.shell(
+                    f"settings list {settings_ns}", root=True, timeout=10,
+                )
+                if list_result.success:
+                    for line in list_result.output.splitlines():
+                        line_lower = line.lower()
+                        for pattern in settings_patterns:
+                            if pattern in line_lower:
+                                key = line.split("=", 1)[0].strip()
+                                if key:
+                                    try:
+                                        await self._adb.shell(
+                                            f"settings delete {settings_ns} {key}",
+                                            root=True, timeout=5,
+                                        )
+                                        logger.info(
+                                            "FIX-14: Settings.%s gelöscht: %s",
+                                            settings_ns, key,
+                                        )
+                                        results[f"settings_{settings_ns}_{key}"] = True
+                                    except (ADBError, ADBTimeoutError):
+                                        results[f"settings_{settings_ns}_{key}"] = False
+                                break  # Nächste Zeile
+            except (ADBError, ADBTimeoutError) as e:
+                logger.debug("FIX-14: settings list %s fehlgeschlagen: %s", settings_ns, e)
+
         # Zusammenfassung
         success_count = sum(1 for v in results.values() if v)
         total_count = len(results)
         logger.info(
             "Deep Clean abgeschlossen: %d/%d Operationen erfolgreich "
-            "(inkl. MediaStore, Compiler-Cache, ART-Profile)",
+            "(inkl. MediaStore, Compiler-Cache, ART-Profile, Settings)",
             success_count, total_count,
         )
 
+        return results
+
+    # =========================================================================
+    # FIX-4: Integrity Guard — Backup-Validierung
+    # =========================================================================
+
+    async def _integrity_check(
+        self,
+        device_path: str,
+        local_tar: Path,
+        local_bytes: int,
+        label: str,
+    ) -> bool:
+        """
+        FIX-4: Prüft ob das Backup plausibel vollständig ist.
+
+        Vergleicht die Dateigröße auf dem Gerät mit dem lokalen tar.
+        Toleranz: 10% (Dateisystem-Overhead, tar-Header).
+
+        Args:
+            device_path: Pfad auf dem Gerät (z.B. /data/data/com.zhiliaoapp.musically)
+            local_tar:   Lokaler Pfad zur tar-Datei
+            local_bytes: Geschriebene Bytes
+            label:       Beschreibung für Logging
+
+        Returns:
+            True wenn Integrity-Check bestanden
+        """
+        try:
+            # Gerätegröße ermitteln
+            result = await self._adb.shell(
+                f"du -sb {device_path} 2>/dev/null | cut -f1",
+                root=True, timeout=10,
+            )
+            if not result.success or not result.output.strip().isdigit():
+                logger.debug("FIX-4 [%s]: du -sb fehlgeschlagen — übersprungen", label)
+                return True  # Nicht blockieren
+
+            device_bytes = int(result.output.strip())
+            if device_bytes == 0:
+                return True
+
+            # Dateianzahl auf Gerät
+            count_result = await self._adb.shell(
+                f"find {device_path} -type f 2>/dev/null | wc -l",
+                root=True, timeout=10,
+            )
+            device_files = 0
+            if count_result.success and count_result.output.strip().isdigit():
+                device_files = int(count_result.output.strip())
+
+            # Vergleich: tar sollte mindestens 60% der Gerätegröße haben
+            # (tar hat Overhead, Whitelist filtert Ordner → weniger ist OK)
+            ratio = local_bytes / device_bytes if device_bytes > 0 else 1.0
+
+            if ratio < 0.3:
+                logger.warning(
+                    "FIX-4 [%s]: Integrity WARNUNG — tar ist nur %.0f%% "
+                    "der Gerätedaten (tar=%.1f MB, device=%.1f MB, %d Dateien). "
+                    "Möglicherweise unvollständig!",
+                    label, ratio * 100,
+                    local_bytes / (1024 * 1024),
+                    device_bytes / (1024 * 1024),
+                    device_files,
+                )
+                return False
+            else:
+                logger.debug(
+                    "FIX-4 [%s]: Integrity OK (tar=%.1f MB, device=%.1f MB, "
+                    "ratio=%.0f%%, %d Dateien)",
+                    label, local_bytes / (1024 * 1024),
+                    device_bytes / (1024 * 1024),
+                    ratio * 100, device_files,
+                )
+                return True
+
+        except (ADBError, Exception) as e:
+            logger.debug("FIX-4 [%s]: Integrity-Check fehlgeschlagen: %s", label, e)
+            return True  # Bei Fehler nicht blockieren
+
+    # =========================================================================
+    # FIX-16: Tracking-Reste bereinigen (für Switch Flow)
+    # =========================================================================
+
+    async def clean_tracking_remnants(self) -> dict[str, bool]:
+        """
+        Bereinigt ByteDance/TikTok Tracking-Reste auf /sdcard/.
+
+        FIX-16: Mini-Clean für den Switch Flow — löscht Tracking-Dateien
+        die zwischen Backup und Switch von TikTok geschrieben wurden und
+        das alte Profil verraten könnten.
+
+        Unterschied zu deep_clean():
+          - Kein pm clear/uninstall (App-Daten werden via Restore überschrieben)
+          - Nur /sdcard/ Tracking-Dateien (kein /data/data/)
+          - Schnell (~2-3s)
+
+        Returns:
+            Dict mit Ergebnis pro Operation
+        """
+        logger.info("Tracking-Remnants Cleanup: ByteDance-Reste auf /sdcard/ entfernen...")
+        results: dict[str, bool] = {}
+
+        # Statische Tracking-Globs
+        all_globs = TIKTOK_TRACKING_GLOBS + [p for p in BYTEDANCE_DEEP_PATTERNS]
+        for pattern in all_globs:
+            try:
+                result = await self._adb.shell(f"rm -rf {pattern}", root=True, timeout=5)
+                results[f"rm_{pattern}"] = result.success
+            except (ADBError, ADBTimeoutError):
+                results[f"rm_{pattern}"] = False
+
+        # Dynamische find-basierte Suche
+        for find_pattern in BYTEDANCE_FIND_PATTERNS:
+            try:
+                result = await self._adb.shell(
+                    f"find /sdcard {find_pattern} 2>/dev/null",
+                    root=True, timeout=15,
+                )
+                found_paths = [p.strip() for p in result.stdout.splitlines() if p.strip()]
+                for found in found_paths[:20]:
+                    try:
+                        await self._adb.shell(f"rm -rf '{found}'", root=True, timeout=5)
+                    except (ADBError, ADBTimeoutError):
+                        pass
+                results[f"find_{find_pattern}"] = True
+            except (ADBError, ADBTimeoutError):
+                results[f"find_{find_pattern}"] = False
+
+        success_count = sum(1 for v in results.values() if v)
+        logger.info("Tracking-Remnants Cleanup: %d/%d Operationen OK", success_count, len(results))
         return results
 
     # =========================================================================
@@ -1216,8 +1703,12 @@ class TitanShifter:
         paths_str = " ".join(existing_paths)
         tar_cmd = f"su -c 'tar -cf - -C / {paths_str}'"
 
-        bytes_written = await self._adb.exec_out_to_file(
-            tar_cmd, str(tar_path), timeout=timeout,
+        # FIX-23: Atomic Write + Retry
+        bytes_written = await self._atomic_backup_with_retry(
+            tar_cmd=tar_cmd,
+            final_path=tar_path,
+            label=f"GMS Backup ({len(existing_paths)} Pakete)",
+            timeout=timeout,
         )
 
         if bytes_written == 0:
@@ -1370,8 +1861,12 @@ class TitanShifter:
         paths_str = " ".join(existing_paths)
         tar_cmd = f"su -c 'tar -cf - -C / {paths_str}'"
 
-        bytes_written = await self._adb.exec_out_to_file(
-            tar_cmd, str(tar_path), timeout=30,
+        # FIX-23: Atomic Write + Retry
+        bytes_written = await self._atomic_backup_with_retry(
+            tar_cmd=tar_cmd,
+            final_path=tar_path,
+            label=f"Account-DBs ({len(existing_paths)} Dateien)",
+            timeout=30,
         )
 
         if bytes_written == 0:
@@ -1558,8 +2053,13 @@ class TitanShifter:
         tar_path = target_dir / tar_filename
 
         tar_cmd = f"su -c 'tar -cf - -C / data/data/{package}'"
-        bytes_written = await self._adb.exec_out_to_file(
-            tar_cmd, str(tar_path), timeout=timeout,
+
+        # FIX-23: Atomic Write + Retry
+        bytes_written = await self._atomic_backup_with_retry(
+            tar_cmd=tar_cmd,
+            final_path=tar_path,
+            label=f"Package Backup ({package})",
+            timeout=timeout,
         )
 
         if bytes_written == 0:

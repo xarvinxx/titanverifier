@@ -338,62 +338,14 @@ async def update_profile(profile_id: int, req: VaultUpdateRequest):
 
 
 # =============================================================================
-# PUT /api/vault/{id}/credentials — TikTok + Google Credentials
+# FIX-27: PUT /api/vault/{id}/credentials ENTFERNT
+# (redundant — bereits über PUT /api/vault/{id} (Edit) abgedeckt)
 # =============================================================================
 
-@router.put("/{profile_id}/credentials")
-async def update_credentials(profile_id: int, req: VaultCredentialsRequest):
-    """
-    Aktualisiert die TikTok- und Google-Zugangsdaten eines Profils.
-    """
-    now = datetime.now(LOCAL_TZ).isoformat()
-
-    async with db.transaction() as conn:
-        cursor = await conn.execute(
-            """UPDATE profiles SET
-                tiktok_username = COALESCE(?, tiktok_username),
-                tiktok_email    = COALESCE(?, tiktok_email),
-                tiktok_password = COALESCE(?, tiktok_password),
-                google_email    = COALESCE(?, google_email),
-                google_password = COALESCE(?, google_password),
-                updated_at      = ?
-            WHERE id = ?""",
-            (req.tiktok_username, req.tiktok_email, req.tiktok_password,
-             req.google_email, req.google_password, now, profile_id),
-        )
-        if cursor.rowcount == 0:
-            raise HTTPException(status_code=404, detail=f"Profil #{profile_id} nicht gefunden")
-
-    logger.info("Credentials aktualisiert: Profil #%d", profile_id)
-    return {"id": profile_id, "message": "Credentials aktualisiert."}
-
-
 # =============================================================================
-# PUT /api/vault/{id}/status — Status ändern
+# FIX-27: PUT /api/vault/{id}/status ENTFERNT
+# (redundant — bereits über Edit oder Bulk-Status abgedeckt)
 # =============================================================================
-
-@router.put("/{profile_id}/status")
-async def update_status(profile_id: int, req: VaultStatusRequest):
-    """Ändert den Profil-Status (warmup/active/banned/...)."""
-    valid = {"warmup", "active", "cooldown", "banned", "suspended", "archived"}
-    if req.status not in valid:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Ungültiger Status: '{req.status}'. Erlaubt: {valid}",
-        )
-
-    now = datetime.now(LOCAL_TZ).isoformat()
-
-    async with db.transaction() as conn:
-        cursor = await conn.execute(
-            "UPDATE profiles SET status = ?, updated_at = ? WHERE id = ?",
-            (req.status, now, profile_id),
-        )
-        if cursor.rowcount == 0:
-            raise HTTPException(status_code=404, detail=f"Profil #{profile_id} nicht gefunden")
-
-    logger.info("Status geändert: Profil #%d → %s", profile_id, req.status)
-    return {"id": profile_id, "status": req.status, "message": f"Status auf '{req.status}' geändert."}
 
 
 # =============================================================================

@@ -32,10 +32,20 @@
 #include <mutex>
 #include <atomic>
 
-// Bridge-Pfade für Zygisk-Module
-#define TITAN_BRIDGE_PATH       "/data/local/tmp/.titan_identity"
-#define TITAN_BRIDGE_FALLBACK   "/data/adb/modules/titan_verifier/titan_identity"
-#define TITAN_BRIDGE_LEGACY     "/data/local/tmp/.titan_state"
+// FIX-24A: Bridge-Pfade als XOR-verschlüsselte Arrays (Dekodierung in titan_hardware.cpp)
+// Klartext-Defines bleiben NICHT im Header um `strings` Scans zu verhindern.
+// Die tatsächlichen Pfade werden zur Laufzeit aus verschlüsselten Arrays dekodiert.
+// Siehe titan_hardware.cpp → _decodeBridgePaths()
+
+// Placeholder-Defines (werden NICHT als Strings im Binary landen,
+// da titan_hardware.cpp die XOR-Varianten verwendet)
+extern const char* TITAN_BRIDGE_PATH_DEC;
+extern const char* TITAN_BRIDGE_FALLBACK_DEC;
+extern const char* TITAN_BRIDGE_LEGACY_DEC;
+
+#define TITAN_BRIDGE_PATH       TITAN_BRIDGE_PATH_DEC
+#define TITAN_BRIDGE_FALLBACK   TITAN_BRIDGE_FALLBACK_DEC
+#define TITAN_BRIDGE_LEGACY     TITAN_BRIDGE_LEGACY_DEC
 
 // Buffer-Größen (fixiert für Anti-Forensics)
 #define TITAN_SERIAL_SIZE       96

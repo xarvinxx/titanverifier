@@ -4,7 +4,7 @@
 **Erstellt**: 2026-02-12
 **Quelle**: Vergleich Titan (aktuell) vs. Ares/Maschina (alt) + CTO-Sparring (Block 1-8)
 **Status**: Dokumentiert — Umsetzung ausstehend
-**Fixes**: 18 dokumentiert (1 bereits gefixt)
+**Fixes**: 24 dokumentiert (1 bereits gefixt, 1 bestätigt korrekt)
 
 ---
 
@@ -495,6 +495,97 @@ Diese müssen für die Collision-Detection aktiv sein (sonst Full-Table-Scan bei
 
 ---
 
+## SPARRING BLOCK 9 — Injector / Distribution
+
+### FIX-19: Bridge-Distribution an Instagram + Snapchat (Vorbereitung)
+**Priorität**: NIEDRIG (erst relevant wenn Insta/Snap aktiv genutzt werden)
+**Problem**: Die `BRIDGE_TARGET_APPS` in `host/config.py` enthält TikTok, GMS, Titan Verifier, DRM Info und Device ID — aber NICHT Instagram (`com.instagram.android`) und Snapchat (`com.snapchat.android`). 
+
+Gleichzeitig hooked der **Zygisk-Module** (C++) und das **LSPosed-Module** (Kotlin) BEIDE Apps bereits aktiv. Wenn die Bridge-Datei fehlt, fallen die Hooks auf **hardcoded Default-Werte** zurück (Zeile 83-89 in `zygisk_module.cpp`):
+```cpp
+static const char* DEFAULT_SERIAL = "28161FDF6006P8";
+static const char* DEFAULT_IMEI1 = "352269111271008";
+// ... etc.
+```
+
+Das bedeutet: Wenn Insta/Snap installiert und geöffnet werden, sehen sie ALLE die gleichen statischen Default-IDs → sofortige Cross-App Correlation möglich.
+
+**Lösung (wenn Insta/Snap aktiviert werden)**:
+1. `BRIDGE_TARGET_APPS` in `host/config.py` um `com.instagram.android` und `com.snapchat.android` erweitern
+2. Der Injector verteilt die Bridge dann automatisch in die App-Ordner
+
+**Status**: Dokumentiert für spätere Umsetzung. Aktuell nur TikTok-Fokus.
+
+**Wo**: `host/config.py` → `BRIDGE_TARGET_APPS` Liste erweitern.
+
+---
+
+### ERGEBNIS Block 10 — GMS-Ausschluss in Zygisk: ✅ BEREITS KORREKT
+**Analyse**: Der Zygisk-Module hat eine explizite `TARGET_APPS[]` Whitelist (Zeile 71-80 in `zygisk_module.cpp`). GMS/GSF/Vending sind **bewusst ausgeschlossen** (Kommentar Zeile 66-70). In `preAppSpecialize()` (Zeile 1923) wird geprüft: Wenn das Package NICHT in `TARGET_APPS` steht → Modul wird mit `DLCLOSE_MODULE_LIBRARY` entladen. **Play Integrity ist sicher.**
+
+---
+
+### FIX-20: Hardcoded Default-Werte im Zygisk-Module entfernen
+**Priorität**: MITTEL
+**Problem**: `zygisk_module.cpp` Zeilen 83-89 definieren statische Default-Werte:
+```cpp
+static const char* DEFAULT_SERIAL = "28161FDF6006P8";
+static const char* DEFAULT_IMEI1 = "352269111271008";
+static const char* DEFAULT_IMEI2 = "358476312016587";
+static const char* DEFAULT_ANDROID_ID = "d7f4b30e1b210a83";
+static const char* DEFAULT_GSF_ID = "3a8c4f72d91e50b6";
+static const char* DEFAULT_WIFI_MAC = "be:08:6e:16:a6:5d";
+static const char* DEFAULT_WIDEVINE_ID = "10179c6bcba352dbd5ce5c88fec8e098";
+```
+
+Diese werden als Fallback verwendet wenn die Bridge-Datei nicht geladen werden kann. Das Risiko: Wenn die Bridge aus irgendeinem Grund fehlt (Datei gelöscht, Permissions falsch, Race-Condition beim Boot), bekommen ALLE Target-Apps **dieselben statischen IDs**. Das ist schlimmer als keine Hooks — weil es ein eindeutiger Fingerprint ist den kein echtes Gerät hat.
+
+**Empfohlene Änderung**: Statt statische Defaults → **Hooks deaktivieren** wenn Bridge nicht geladen werden kann:
+```cpp
+// Statt:
+if (!loadBridge()) { useDefaults(); }
+
+// Besser:
+if (!loadBridge()) {
+    LOGW("[TITAN] Bridge nicht geladen — Hooks DEAKTIVIERT");
+    m_shouldInject = false;  // Keine Hooks → echte Werte durchlassen
+    return;
+}
+```
+
+**Warum besser**: Echte Werte durchlassen ist weniger verdächtig als falsche statische Werte. Und der Auditor (FIX-17) würde den Fehler sofort erkennen.
+
+**Wo**: `module/zygisk_module.cpp` → Zeilen 83-89 (Defaults) + `loadBridge()` / `postAppSpecialize()` Fehlerbehandlung.
+
+---
+
+## SPARRING BLOCK 12 — Datenbank-Konsistenz
+
+### FIX-21: Foreign Key von RESTRICT auf CASCADE ändern
+**Priorität**: MITTEL
+**Problem**: `profiles.identity_id` hat `ON DELETE RESTRICT`. Wenn eine Identität gelöscht wird die noch ein Profil hat, schlägt der DELETE fehl mit `FOREIGN KEY constraint failed`.
+
+**Gewünschtes Verhalten** (User-Entscheidung): Identität löschen → verlinktes Profil wird **automatisch mitgelöscht**.
+
+**Änderung**:
+```sql
+-- ALT:
+identity_id INTEGER NOT NULL REFERENCES identities(id) ON DELETE RESTRICT
+
+-- NEU:
+identity_id INTEGER NOT NULL REFERENCES identities(id) ON DELETE CASCADE
+```
+
+**Achtung**: SQLite unterstützt kein `ALTER TABLE ... ALTER COLUMN`. Die Änderung erfordert eine **Schema-Migration**:
+1. Neue Tabelle `profiles_new` mit `ON DELETE CASCADE` erstellen
+2. Daten von `profiles` → `profiles_new` kopieren
+3. Alte Tabelle löschen
+4. Neue Tabelle umbenennen
+
+**Wo**: `host/database.py` → Schema `_SQL_CREATE_PROFILES` + Migration-Logik in `_run_migrations()`.
+
+---
+
 ## BEREITS GEFIXTE FINDINGS
 
 ### FIX-8: Genesis Flow meldet FEHLGESCHLAGEN bei SKIPPED Steps
@@ -531,6 +622,11 @@ Diese müssen für die Collision-Detection aktiv sein (sonst Full-Table-Scan bei
 14. **FIX-4** — Integrity Guard → Backup-Validierung (braucht Testing)
 15. **FIX-14** — Settings-ContentProvider Cleanup → TikTok System-Settings bereinigen
 16. **FIX-12** — Xposed Debug-Log-Mode → Hook-Monitoring in WebUI
+17. **FIX-20** — Hardcoded Defaults im Zygisk entfernen → Bridge-Fehler = Hooks aus
+18. **FIX-21** — ON DELETE CASCADE → Profil wird mit Identität mitgelöscht
+
+### Phase 6: Vorbereitung Multi-App (NIEDRIG — erst wenn Insta/Snap aktiviert)
+19. **FIX-19** — Bridge-Distribution an Instagram + Snapchat
 
 ---
 
@@ -548,6 +644,8 @@ Diese müssen für die Collision-Detection aktiv sein (sonst Full-Table-Scan bei
 | `app/.../TitanXposedModule.kt` | FIX-12 |
 | `host/models/identity.py` | FIX-12 (Bridge-Feld `debug_hooks`) |
 | `host/frontend/templates/dashboard.html` | FIX-18 (optional: IP-Metriken) |
+| `host/config.py` | FIX-19 (BRIDGE_TARGET_APPS erweitern) |
+| `module/zygisk_module.cpp` | FIX-20 (Hardcoded Defaults entfernen) |
 
 ---
 

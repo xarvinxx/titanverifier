@@ -2715,88 +2715,50 @@ class AppShifter:
         self, pkg: str = TIKTOK_PRIMARY,
     ) -> dict[str, bool]:
         """
-        Radikale Bereinigung des TikTok-Datenverzeichnisses nach Restore.
+        v6.0: Radikale Bereinigung — NUR shared_prefs/ überlebt.
 
-        TikTok speichert Device-Fingerprints NICHT nur in shared_prefs (XML),
-        sondern auch in:
-          - files/mmkv/           → Tencent MMKV (binärer Key-Value Store)
-          - databases/            → SQLite DBs mit install_id, device_id etc.
-          - app_webview/          → WebView LocalStorage & Cookies
-          - no_backup/            → Nicht-gesicherte Tracking-Dateien
-          - files/tracker/        → ByteDance Analytics Tracker
-          - files/cachemgr/       → Cache Manager mit Fingerprints
-          - cache/                → HTTP & Image Cache (kann Tokens enthalten)
+        TikToks Anti-Fraud-System (libsscronet.so) speichert Device-
+        Fingerprints in ALLEN Daten-Verzeichnissen:
+          - files/mmkv/       → Tencent MMKV mit install_id, device_id (KRITISCH!)
+          - databases/        → SQLite DBs mit Tracking-IDs
+          - app_webview/      → WebView Cookies & LocalStorage
+          - no_backup/        → Nicht-gesicherte Device-Fingerprints
+          - files/tracker/    → ByteDance Analytics SDK
+          - cache/            → HTTP Cache mit Session-Tokens
+          - code_cache/       → DEX/OAT Cache
 
-        NUR shared_prefs/ überlebt (bereinigt), um den Login-Token zu halten.
-        Alles andere wird gelöscht, damit TikTok beim nächsten Start
-        frische IDs generiert, die zur NEUEN Hardware-Identität passen.
+        v5.1 hat versucht selektiv zu löschen — das reicht NICHT.
+        MMKV ist ein binärer Key-Value-Store, `rm -f` auf einzelne
+        MMKV-Dateien hinterlässt interne Indizes. TikTok erkennt die
+        Diskrepanz: 'MMKV-Index vorhanden aber Daten fehlen' → Ban.
+
+        NEUE STRATEGIE: Alles außer shared_prefs/ wird radikal gelöscht.
+        shared_prefs/ wird separat via _sanitize_shared_prefs() bereinigt.
+        Der Login-Token ist in shared_prefs/ gespeichert und überlebt.
 
         MUSS NACH dem Restore und NACH _sanitize_shared_prefs() aufgerufen
         werden, aber VOR dem Permission-Fix (_apply_magic_permissions).
-
-        Args:
-            pkg: TikTok Package Name
-
-        Returns:
-            Dict mit Ergebnis pro gelöschtem Pfad
         """
         data_path = f"/data/data/{pkg}"
         results: dict[str, bool] = {}
 
-        # v5.1: Selektive Bereinigung — Login-Session schützen!
-        # NICHT mehr databases/ und files/mmkv/ komplett löschen, da
-        # TikTok dort Session-Tokens speichern kann → Login geht verloren.
-        # Stattdessen: Nur Tracking/Fingerprinting-Ordner löschen.
-        dangerous_dirs = [
+        # v6.0: Radikal-Löschung — ALLES außer shared_prefs/
+        nuke_dirs = [
+            "files/mmkv",           # MMKV komplett (KRITISCH für Anti-Fraud!)
+            "databases",            # Alle SQLite DBs inkl. Tracking
             "app_webview",          # WebView LocalStorage, Cookies, IndexedDB
-            "no_backup",            # Tracking-Dateien die Android nicht sichert
+            "no_backup",            # Device-Fingerprints (nicht von Android gesichert)
             "files/tracker",        # ByteDance Analytics SDK
             "files/cachemgr",       # Cache Manager mit Fingerprints
             "cache",                # HTTP/Image Cache
             "code_cache",           # DEX/OAT Cache
-            "files/recently_attached_image", # Medien-Metadaten
+            "files/recently_attached_image",
+            "files/react_cache",    # React Native Cache
+            "files/alog",           # ByteDance Logging
+            "files/tombstone",      # Crash Reports mit Device-Info
         ]
 
-        # MMKV: Nur Tracking-Keys löschen, nicht den ganzen Ordner
-        # (MMKV kann Session-Tokens enthalten die für Login nötig sind)
-        mmkv_tracking_files = [
-            "files/mmkv/com.bytedance.sdk.openadsdk.DeviceID",
-            "files/mmkv/com.bytedance.sdk.openadsdk.DeviceID.crc",
-            "files/mmkv/tiktok_device_config",
-            "files/mmkv/tiktok_device_config.crc",
-            "files/mmkv/com.bytedance.ies.ugc.device",
-            "files/mmkv/com.bytedance.ies.ugc.device.crc",
-        ]
-        for mmkv_file in mmkv_tracking_files:
-            full_path = f"{data_path}/{mmkv_file}"
-            try:
-                result = await self._adb.shell(
-                    f"rm -f {full_path}", root=True, timeout=3,
-                )
-                results[f"mmkv:{mmkv_file.split('/')[-1]}"] = result.success
-            except (ADBError, ADBTimeoutError):
-                results[f"mmkv:{mmkv_file.split('/')[-1]}"] = False
-
-        # databases/: Nur Tracking-DBs löschen, Session-DBs behalten
-        tracking_dbs = [
-            "databases/tracker.db",
-            "databases/tracker.db-journal",
-            "databases/tracker.db-wal",
-            "databases/webview.db",
-            "databases/webview.db-journal",
-            "databases/ad_*.db",
-        ]
-        for db_pattern in tracking_dbs:
-            full_path = f"{data_path}/{db_pattern}"
-            try:
-                result = await self._adb.shell(
-                    f"rm -f {full_path}", root=True, timeout=3,
-                )
-                results[f"db:{db_pattern.split('/')[-1]}"] = result.success
-            except (ADBError, ADBTimeoutError):
-                results[f"db:{db_pattern.split('/')[-1]}"] = False
-
-        for dir_name in dangerous_dirs:
+        for dir_name in nuke_dirs:
             full_path = f"{data_path}/{dir_name}"
             try:
                 result = await self._adb.shell(
@@ -2804,7 +2766,7 @@ class AppShifter:
                 )
                 results[dir_name] = result.success
                 if result.success:
-                    logger.debug("[DeepClean] Gelöscht: %s", full_path)
+                    logger.debug("[v6.0 DeepClean] Gelöscht: %s", full_path)
             except (ADBError, ADBTimeoutError):
                 results[dir_name] = False
 
@@ -2814,6 +2776,8 @@ class AppShifter:
             "files/.apollo_device_id",
             "files/device_id",
             "files/ies_sdk_iid",
+            "files/hybrid_verify_token",
+            "files/applog_state",
         ]
         for file_name in dangerous_files:
             full_path = f"{data_path}/{file_name}"
@@ -2828,8 +2792,8 @@ class AppShifter:
         deleted = sum(1 for v in results.values() if v)
         total = len(results)
         logger.info(
-            "[v5.1 DeepClean] %s: %d/%d Tracking-Speicher selektiv gelöscht "
-            "(Login-Session geschützt — shared_prefs + DBs + MMKV-Core erhalten)",
+            "[v6.0 DeepClean] %s: %d/%d Verzeichnisse/Dateien radikal gelöscht "
+            "(NUR shared_prefs/ überlebt — MMKV+DBs+WebView komplett entfernt)",
             pkg, deleted, total,
         )
         return results
@@ -2912,6 +2876,105 @@ class AppShifter:
                 total_removed,
             )
         return total_removed
+
+    # =========================================================================
+    # TikTok install_id Extraktion (Anti-Duplicate Detection)
+    # =========================================================================
+
+    async def extract_tiktok_install_id(
+        self, pkg: str = TIKTOK_PRIMARY,
+    ) -> str | None:
+        """
+        Extrahiert die install_id aus TikToks shared_prefs.
+
+        TikTok generiert beim ersten Start eine install_id (UUID-Format),
+        die als primärer Identifikator für das Geräte-Profil dient.
+        Wenn zwei verschiedene Identitäten dieselbe install_id haben,
+        erkennt TikTok Multi-Accounting → Ban.
+
+        Suchstrategie:
+          1. grep in allen shared_prefs XMLs nach 'install_id'
+          2. Parse den Wert aus dem XML-Tag
+
+        Returns:
+            install_id als String oder None wenn nicht gefunden
+        """
+        prefs_dir = f"/data/data/{pkg}/shared_prefs"
+        try:
+            result = await self._adb.shell(
+                f"grep -rh 'install_id' {prefs_dir}/ 2>/dev/null"
+                " | grep -oE '[0-9a-f]{{8}}-[0-9a-f]{{4}}-[0-9a-f]{{4}}-[0-9a-f]{{4}}-[0-9a-f]{{12}}'",
+                root=True, timeout=10,
+            )
+            if result.success and result.output.strip():
+                install_id = result.output.strip().splitlines()[0].strip()
+                if len(install_id) == 36:
+                    logger.info(
+                        "[InstallID] Extrahiert: %s…%s (%s)",
+                        install_id[:8], install_id[-4:], pkg,
+                    )
+                    return install_id
+
+            # Fallback: MMKV binary grep (install_id ist als Klartext gespeichert)
+            result2 = await self._adb.shell(
+                f"strings /data/data/{pkg}/files/mmkv/* 2>/dev/null"
+                " | grep -oE '[0-9a-f]{{8}}-[0-9a-f]{{4}}-[0-9a-f]{{4}}-[0-9a-f]{{4}}-[0-9a-f]{{12}}'"
+                " | head -1",
+                root=True, timeout=10,
+            )
+            if result2.success and result2.output.strip():
+                install_id = result2.output.strip().splitlines()[0].strip()
+                if len(install_id) == 36:
+                    logger.info(
+                        "[InstallID] Extrahiert aus MMKV: %s…%s (%s)",
+                        install_id[:8], install_id[-4:], pkg,
+                    )
+                    return install_id
+
+        except Exception as e:
+            logger.warning("[InstallID] Extraktion fehlgeschlagen: %s", e)
+
+        logger.debug("[InstallID] Keine install_id gefunden für %s", pkg)
+        return None
+
+    async def launch_and_extract_install_id(
+        self, pkg: str = TIKTOK_PRIMARY, wait_seconds: int = 15,
+    ) -> str | None:
+        """
+        Startet TikTok kurz, wartet auf ID-Generierung und extrahiert die install_id.
+
+        Ablauf:
+          1. am start (Launch Activity)
+          2. Warte wait_seconds (TikTok generiert install_id beim ersten Start)
+          3. am force-stop (kill)
+          4. Extrahiere install_id aus shared_prefs/MMKV
+
+        Returns:
+            install_id oder None
+        """
+        logger.info("[SilentLaunch] Starte %s für ID-Generierung (%ds)...", pkg, wait_seconds)
+        try:
+            await self._adb.shell(
+                f"am start -n {pkg}/com.ss.android.ugc.aweme.splash.SplashActivity"
+                " -c android.intent.category.LAUNCHER"
+                " -a android.intent.action.MAIN",
+                root=True, timeout=10,
+            )
+        except Exception as e:
+            logger.warning("[SilentLaunch] App-Start fehlgeschlagen: %s", e)
+            return None
+
+        await asyncio.sleep(wait_seconds)
+
+        # Kill
+        try:
+            await self._adb.shell(f"am force-stop {pkg}", root=True, timeout=5)
+        except Exception:
+            pass
+
+        await asyncio.sleep(2)
+
+        return await self.extract_tiktok_install_id(pkg)
 
     # =========================================================================
     # Google Account Verifikation nach Restore

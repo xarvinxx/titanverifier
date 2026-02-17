@@ -27,6 +27,7 @@ from host.config import (
     ANDROID_ID_LENGTH,
     GSF_ID_LENGTH,
     O2_DE,
+    PIXEL6_DEVICE_PROPS,
     PIXEL6_TAC,
     SERIAL_LENGTH,
     WIDEVINE_ID_LENGTH,
@@ -217,12 +218,13 @@ class IdentityBridge(BaseModel):
             - Leerzeilen werden ignoriert
             - Format: key=value (kein Whitespace um =)
 
-        WICHTIG: Nur Hardware-Identitäts-Felder werden geschrieben.
-        Build-Properties (fingerprint, id, patch) und DB-Metadaten
-        werden EXPLIZIT ausgeschlossen, da:
-          1. Die C++/Kotlin Parser verwirren können
-          2. Forensische Spuren hinterlassen (Timestamps, Audit-Daten)
-          3. Nicht von den Hooks benötigt werden
+        v6.0: Zwei Sektionen:
+          1. Hardware-Identitäts-Felder (serial, imei, mac, etc.)
+          2. Device Properties (ro.product.*, ro.build.type, etc.)
+             → werden vom Zygisk-Modul als System-Property Overrides gelesen
+
+        Build-Fingerprints (ro.build.fingerprint, ro.build.id, etc.)
+        werden NICHT geschrieben — PIF hat exklusive Kontrolle.
         """
         lines = [
             f"# Identity Bridge — {label or self.serial}",
@@ -230,17 +232,26 @@ class IdentityBridge(BaseModel):
             f"# Carrier: O2-DE ({O2_DE.MCC_MNC})",
             "",
         ]
+
+        # --- Sektion 1: Hardware-Identitäts-Felder ---
         for key, value in self.model_dump().items():
-            # Metadaten-Felder ausschließen
             if key in self._BRIDGE_EXCLUDE_FIELDS:
                 continue
-            # None-Werte nicht schreiben (sauberer Output)
             if value is None:
                 continue
-            # Enum-Werte als .value serialisieren
             if hasattr(value, "value"):
                 value = value.value
             lines.append(f"{key}={value}")
+
+        # --- Sektion 2: Device Properties (ro.*) ---
+        # v6.0: Das Zygisk-Modul liest diese dynamisch statt sie
+        # statisch im C++ Binary zu haben → keine Bans durch
+        # einkompilierte Fingerprints.
+        lines.append("")
+        lines.append("# Device Properties (Zygisk dynamic override)")
+        for prop_name, prop_value in PIXEL6_DEVICE_PROPS.items():
+            lines.append(f"{prop_name}={prop_value}")
+
         return "\n".join(lines) + "\n"
 
 

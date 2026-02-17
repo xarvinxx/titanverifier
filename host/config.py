@@ -71,6 +71,51 @@ DEVICE_SOC = "Tensor G1 (GS101)"
 ANDROID_VERSION = 14
 API_LEVEL = 34
 
+# v6.0: Device Properties die in die Bridge-Datei geschrieben werden.
+# Das Zygisk-Modul liest diese dynamisch und spooft sie als System-Properties.
+# KEINE Build-Fingerprints hier — die gehören PIF (PlayIntegrityFix)!
+PIXEL6_DEVICE_PROPS: dict[str, str] = {
+    # Product Properties (Hardware-Identität)
+    "ro.product.manufacturer": "Google",
+    "ro.product.model": "Pixel 6",
+    "ro.product.brand": "google",
+    "ro.product.name": "oriole",
+    "ro.product.device": "oriole",
+    "ro.product.board": "oriole",
+    "ro.hardware": "oriole",
+    "ro.hardware.chipname": "gs101",
+    # Product Partitions (system, vendor, odm)
+    "ro.product.system.brand": "google",
+    "ro.product.system.model": "Pixel 6",
+    "ro.product.system.manufacturer": "Google",
+    "ro.product.system.device": "oriole",
+    "ro.product.system.name": "oriole",
+    "ro.product.vendor.brand": "google",
+    "ro.product.vendor.model": "Pixel 6",
+    "ro.product.vendor.manufacturer": "Google",
+    "ro.product.vendor.device": "oriole",
+    "ro.product.vendor.name": "oriole",
+    "ro.product.odm.brand": "google",
+    "ro.product.odm.model": "Pixel 6",
+    "ro.product.odm.manufacturer": "Google",
+    "ro.product.odm.device": "oriole",
+    "ro.product.odm.name": "oriole",
+    "ro.product.first_api_level": "31",
+    # Build-Metadaten (Gerätetyp, NICHT build-spezifisch)
+    "ro.build.product": "oriole",
+    "ro.build.type": "user",
+    "ro.build.tags": "release-keys",
+    "ro.build.flavor": "oriole-user",
+    # SDK/Release Version (Konstante)
+    "ro.build.version.sdk": "34",
+    "ro.build.version.release": "14",
+    "ro.build.version.release_or_codename": "14",
+    "ro.build.version.codename": "REL",
+    # SoC
+    "ro.soc.manufacturer": "Google",
+    "ro.soc.model": "Tensor",
+}
+
 # =============================================================================
 # 4. O2 Germany Carrier Spezifikation
 # =============================================================================

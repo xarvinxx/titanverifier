@@ -644,6 +644,108 @@ class GenesisFlow:
                 logger.warning("[7b/11] DroidGuard Sanitize fehlgeschlagen (nicht-kritisch): %s", e)
 
             # =================================================================
+            # Schritt 7c: "BEWOHNTES HAUS" — Dummy App Presence Check
+            # =================================================================
+            # Anti-Fraud-Systeme (TikTok, Meta) flaggen Geräte auf denen
+            # NUR eine einzelne Social-Media-App installiert ist. Ein echtes
+            # Gerät hat WhatsApp, YouTube, Gmail, Maps, eine Banking-App, etc.
+            #
+            # Prüfung:
+            #   1. Liste der erwarteten "normalen" Apps checken
+            #   2. Fehlende Apps per pm install-existing reaktivieren
+            #      (funktioniert für System-Apps die deaktiviert wurden)
+            #   3. Nicht-reaktivierbare Apps → Warnung loggen
+            #
+            # pm install-existing: Reaktiviert eine deaktivierte System-App
+            # ohne APK zu benötigen. Funktioniert nur für Apps die auf der
+            # System-Partition vorhanden sind (z.B. YouTube, Gmail, Maps).
+            # =================================================================
+            logger.info("[7c/11] Bewohntes Haus: Prüfe Dummy-App-Präsenz...")
+            try:
+                # Apps die auf einem normalen Pixel 6 installiert sein sollten
+                # (sortiert nach Erkennungs-Relevanz)
+                EXPECTED_APPS = [
+                    # Tier 1: Kritisch (deren Fehlen ist sofort verdächtig)
+                    ("com.google.android.youtube", "YouTube"),
+                    ("com.google.android.apps.maps", "Google Maps"),
+                    ("com.google.android.gm", "Gmail"),
+                    ("com.google.android.apps.photos", "Google Photos"),
+                    ("com.google.android.apps.messaging", "Messages"),
+                    # Tier 2: Wichtig (stark verdächtig wenn fehlend)
+                    ("com.google.android.dialer", "Phone"),
+                    ("com.google.android.contacts", "Contacts"),
+                    ("com.google.android.calendar", "Google Calendar"),
+                    ("com.google.android.deskclock", "Clock"),
+                    ("com.google.android.apps.docs", "Google Drive"),
+                    # Tier 3: Nice-to-have (weniger verdächtig)
+                    ("com.google.android.keep", "Google Keep"),
+                    ("com.google.android.apps.translate", "Google Translate"),
+                ]
+
+                # Installierte Pakete abfragen (schneller als pro-App pm path)
+                installed_result = await self._adb.shell(
+                    "pm list packages 2>/dev/null", root=False, timeout=15,
+                )
+                installed_packages = set()
+                if installed_result.success:
+                    for line in installed_result.output.strip().split("\n"):
+                        line = line.strip()
+                        if line.startswith("package:"):
+                            installed_packages.add(line[8:])
+
+                missing_apps = []
+                present_apps = []
+                for pkg, label in EXPECTED_APPS:
+                    if pkg in installed_packages:
+                        present_apps.append(label)
+                    else:
+                        missing_apps.append((pkg, label))
+
+                # Fehlende Apps per pm install-existing reaktivieren
+                reactivated = []
+                still_missing = []
+                for pkg, label in missing_apps:
+                    try:
+                        reactivate = await self._adb.shell(
+                            f"pm install-existing {pkg} 2>&1",
+                            root=True, timeout=10,
+                        )
+                        if reactivate.success and "installed" in reactivate.output.lower():
+                            reactivated.append(label)
+                            logger.info(
+                                "[7c/11] App reaktiviert: %s (%s)", label, pkg,
+                            )
+                        else:
+                            still_missing.append((pkg, label))
+                    except Exception:
+                        still_missing.append((pkg, label))
+
+                # Ergebnis loggen
+                total_expected = len(EXPECTED_APPS)
+                total_present = len(present_apps) + len(reactivated)
+                coverage = (total_present / total_expected * 100) if total_expected > 0 else 0
+
+                if still_missing:
+                    missing_names = ", ".join(l for _, l in still_missing)
+                    logger.warning(
+                        "[7c/11] BEWOHNTES HAUS: %d/%d Apps vorhanden (%.0f%%). "
+                        "Fehlend: %s — Gerät könnte als 'frisch' erkannt werden!",
+                        total_present, total_expected, coverage, missing_names,
+                    )
+                else:
+                    logger.info(
+                        "[7c/11] BEWOHNTES HAUS: %d/%d Apps vorhanden (%.0f%%) — OK",
+                        total_present, total_expected, coverage,
+                    )
+                if reactivated:
+                    logger.info(
+                        "[7c/11] Reaktiviert: %s", ", ".join(reactivated),
+                    )
+
+            except Exception as e:
+                logger.warning("[7c/11] Bewohntes Haus Check fehlgeschlagen: %s", e)
+
+            # =================================================================
             # Schritt 8: NETWORK INIT (Flugmodus AUS + neue IP)
             # =================================================================
             # Flugmodus war seit Schritt 1 AN. Das Gerät hat mit
@@ -890,13 +992,13 @@ class GenesisFlow:
             step.duration_ms = _now_ms() - step_start
 
             # =================================================================
-            # Schritt 11: AUDIT + ACCOUNT-CHECK + TRACKING (v6.0)
+            # Schritt 11: AUDIT + ACCOUNT-CHECK + ID-VALIDATION (v6.1)
             # =================================================================
             step = result.steps[10]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[11/11] Audit + Account-Check (v6.0)...")
+            logger.info("[11/11] Audit + Account-Check + TikTok ID-Validation (v6.1)...")
             audit = await self._auditor.audit_device(identity)
             result.audit = audit
 
@@ -904,6 +1006,48 @@ class GenesisFlow:
             account_info = await self._shifter.verify_google_account()
             account_detail = account_info["detail"]
             logger.info("[11/11] %s", account_detail)
+
+            # v6.1: Silent TikTok Launch + install_id Duplicate-Check
+            # Startet TikTok kurz → extrahiert install_id → prüft ob unique
+            install_id_detail = ""
+            try:
+                logger.info(
+                    "[11/11] TikTok Silent Launch: ID-Generierung starten..."
+                )
+                tiktok_install_id = await self._shifter.launch_and_extract_install_id(
+                    wait_seconds=15,
+                )
+                if tiktok_install_id:
+                    # Prüfe ob install_id schon in der DB existiert (Collision)
+                    collision_check = await db.fetch_one(
+                        "SELECT fh.identity_name, fh.flow_type "
+                        "FROM flow_history fh "
+                        "WHERE fh.detail LIKE :pattern "
+                        "AND fh.identity_id != :current_id "
+                        "LIMIT 1",
+                        {
+                            "pattern": f"%{tiktok_install_id}%",
+                            "current_id": db_identity_id or 0,
+                        },
+                    )
+                    if collision_check:
+                        install_id_detail = (
+                            f"WARNUNG: install_id {tiktok_install_id[:8]}… "
+                            f"bereits bekannt von '{collision_check['identity_name']}' — "
+                            f"Deep-Clean war nicht gründlich genug!"
+                        )
+                        logger.error("[11/11] ID-COLLISION: %s", install_id_detail)
+                    else:
+                        install_id_detail = (
+                            f"install_id={tiktok_install_id[:8]}…{tiktok_install_id[-4:]} (UNIQUE)"
+                        )
+                        logger.info("[11/11] TikTok install_id: %s", install_id_detail)
+                else:
+                    install_id_detail = "install_id nicht extrahierbar (TikTok nicht installiert?)"
+                    logger.warning("[11/11] %s", install_id_detail)
+            except Exception as e:
+                install_id_detail = f"ID-Check fehlgeschlagen: {e}"
+                logger.warning("[11/11] TikTok ID-Check: %s", e)
 
             # DB: Audit in audit_history + identities speichern
             audit_detail_json = json.dumps(
@@ -941,6 +1085,8 @@ class GenesisFlow:
             if audit.passed:
                 step.status = FlowStepStatus.SUCCESS
                 step.detail = (
+                    f"Score: {audit.score_percent}% | {account_detail}"
+                    f" | {install_id_detail}" if install_id_detail else
                     f"Score: {audit.score_percent}% | {account_detail}"
                 )
                 logger.info("[11/11] Audit: PASS (%d%%) | %s", audit.score_percent, account_detail)

@@ -381,14 +381,24 @@ static bool loadBridgeFromFile(const char* path) {
                     LOGI("[HW] Debug-Hook-Mode AKTIVIERT — alle Hook-Calls werden geloggt");
                 }
             }
-            // v5.1: build_* Felder werden IGNORIERT — PIF hat exklusive Kontrolle
-            // über ro.build.fingerprint, ro.build.id, security_patch etc.
+            // v6.0: Dynamische Property-Overrides aus Bridge
+            // Jeder Key der mit "ro." beginnt wird als System-Property Override gespeichert
+            else if (strncmp(key, "ro.", 3) == 0) {
+                if (isPifExclusive(key)) {
+                    LOGI("[HW] Bridge %s: IGNORIERT (PIF-exklusiv)", key);
+                } else if (strlen(value) > 0) {
+                    g_dynamicProps[key] = value;
+                    foundAny = true;
+                    LOGI("[HW] Bridge prop: %s=%s", key, value);
+                }
+            }
+            // Legacy bridge keys (build_id etc.) — still ignored
             else if (strcmp(key, "build_id") == 0 ||
                      strcmp(key, "build_fingerprint") == 0 ||
                      strcmp(key, "security_patch") == 0 ||
                      strcmp(key, "build_incremental") == 0 ||
                      strcmp(key, "build_description") == 0) {
-                LOGI("[HW] Bridge %s: IGNORIERT (PIF-exklusiv)", key);
+                LOGI("[HW] Bridge %s: IGNORIERT (legacy/PIF-exklusiv)", key);
             }
         }
     }
@@ -671,82 +681,52 @@ static const char* FAKE_KERNEL_VERSION =
     "14.0.7, LLD 14.0.7) #1 SMP PREEMPT Mon Jan 30 19:12:27 UTC 2023\n";
 
 // ==============================================================================
-// Build Property Overrides (Pixel 6 - Oriole, Android 14)
+// v6.0: Dynamic Property Overrides — Bridge-gesteuert
 // ==============================================================================
-
-struct PropertyOverride {
-    const char* name;
-    const char* value;
-};
-
-// =============================================================================
-// FIX-30: Dynamic Build Props — Lookup-Tabelle + Hilfsfunktion
-// v5.1: DYN_BUILD_OVERRIDES komplett ENTFERNT.
-// Build-Properties werden NICHT mehr von unserem Modul gespooft.
-// PIF (PlayIntegrityFix) hat EXKLUSIVE Kontrolle über:
+// KEINE statischen Build-Props mehr! Alle Property-Overrides kommen
+// ausschließlich aus der Bridge-Datei (KEY=VALUE Format).
+//
+// Der Python-Orchestrator schreibt ro.* Keys in die Bridge:
+//   ro.product.model=Pixel 6
+//   ro.build.type=user
+//   ro.hardware=oriole
+//
+// PIF-SCHUTZ: Folgende Keys werden IGNORIERT (PIF-exklusiv):
 //   ro.build.fingerprint, ro.build.id, ro.build.description,
 //   ro.build.version.security_patch, ro.build.version.incremental,
-//   ro.bootimage/vendor/odm/system.build.fingerprint
-// =============================================================================
+//   ro.bootimage.build.fingerprint, ro.vendor.build.fingerprint,
+//   ro.odm.build.fingerprint, ro.system.build.fingerprint
+// ==============================================================================
 
-// Statische Pixel 6 Defaults (Fallback wenn Bridge keinen Build-Wert hat)
-static const PropertyOverride PIXEL6_BUILD_PROPS[] = {
-    // Product Properties (immer gleich — Pixel 6 Hardware-Identität)
-    {"ro.product.manufacturer",             "Google"},
-    {"ro.product.model",                    "Pixel 6"},
-    {"ro.product.brand",                    "google"},
-    {"ro.product.name",                     "oriole"},
-    {"ro.product.device",                   "oriole"},
-    {"ro.product.board",                    "oriole"},
-    {"ro.hardware",                         "oriole"},
-    {"ro.hardware.chipname",                "gs101"},
-    
-    // Product Partitions (system, vendor, odm)
-    {"ro.product.system.brand",             "google"},
-    {"ro.product.system.model",             "Pixel 6"},
-    {"ro.product.system.manufacturer",      "Google"},
-    {"ro.product.system.device",            "oriole"},
-    {"ro.product.system.name",              "oriole"},
-    {"ro.product.vendor.brand",             "google"},
-    {"ro.product.vendor.model",             "Pixel 6"},
-    {"ro.product.vendor.manufacturer",      "Google"},
-    {"ro.product.vendor.device",            "oriole"},
-    {"ro.product.vendor.name",              "oriole"},
-    {"ro.product.odm.brand",               "google"},
-    {"ro.product.odm.model",               "Pixel 6"},
-    {"ro.product.odm.manufacturer",        "Google"},
-    {"ro.product.odm.device",              "oriole"},
-    {"ro.product.odm.name",                "oriole"},
-    {"ro.product.first_api_level",          "31"},
-    
-    // v5.1: Build-spezifische Properties ENTFERNT (PIF-exklusiv)
-    // Folgende Props werden NICHT mehr gespooft (PIF kontrolliert sie):
-    //   ro.build.display.id, ro.build.description, ro.build.fingerprint,
-    //   ro.build.id, ro.build.version.security_patch,
-    //   ro.build.version.incremental
-    //
-    // Wir behalten NUR generische Build-Metadaten die zum Gerätetyp gehören:
-    {"ro.build.product",                    "oriole"},
-    {"ro.build.type",                       "user"},
-    {"ro.build.tags",                       "release-keys"},
-    {"ro.build.flavor",                     "oriole-user"},
-    
-    // SDK/Release Version (Geräte-Konstante, NICHT build-spezifisch)
-    {"ro.build.version.sdk",                "34"},
-    {"ro.build.version.release",            "14"},
-    {"ro.build.version.release_or_codename","14"},
-    {"ro.build.version.codename",           "REL"},
-    
-    // SoC
-    {"ro.soc.manufacturer",                 "Google"},
-    {"ro.soc.model",                        "Tensor"},
-    
-    // v5.1: Partition Fingerprints ENTFERNT (PIF-exklusiv)
-    // ro.bootimage/vendor/odm/system.build.fingerprint → PIF kontrolliert
-    
-    // Sentinel
-    {nullptr, nullptr}
-};
+static std::unordered_map<std::string, std::string> g_dynamicProps;
+
+static bool isPifExclusive(const char* key) {
+    static const char* PIF_KEYS[] = {
+        "ro.build.fingerprint",
+        "ro.build.id",
+        "ro.build.display.id",
+        "ro.build.description",
+        "ro.build.version.security_patch",
+        "ro.build.version.incremental",
+        "ro.bootimage.build.fingerprint",
+        "ro.vendor.build.fingerprint",
+        "ro.odm.build.fingerprint",
+        "ro.system.build.fingerprint",
+        nullptr
+    };
+    for (int i = 0; PIF_KEYS[i] != nullptr; i++) {
+        if (strcmp(key, PIF_KEYS[i]) == 0) return true;
+    }
+    return false;
+}
+
+static const char* lookupDynamicProp(const char* name) {
+    auto it = g_dynamicProps.find(name);
+    if (it != g_dynamicProps.end()) {
+        return it->second.c_str();
+    }
+    return nullptr;
+}
 
 // ==============================================================================
 // Hook: __system_property_get
@@ -810,18 +790,15 @@ static int _hooked_system_property_get(const char* name, char* value) {
         if (spoofed[0]) { strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value); }
     }
     
-    // --- Device Properties (Gerätetyp-Konstanten, KEINE Build-Fingerprints) ---
-    // v5.1: Dynamische Build-Overrides ENTFERNT (PIF-exklusiv).
-    // Nur noch Product-Props (Pixel 6 Hardware-Identität) werden gespooft.
-    for (int i = 0; PIXEL6_BUILD_PROPS[i].name != nullptr; i++) {
-        if (strcmp(name, PIXEL6_BUILD_PROPS[i].name) == 0) {
-            const char* override = PIXEL6_BUILD_PROPS[i].value;
-            size_t len = strlen(override);
-            if (len > 91) len = 91;
-            memcpy(value, override, len);
-            value[len] = '\0';
-            return (int)len;
-        }
+    // --- v6.0: Dynamic Property Overrides (aus Bridge-Datei) ---
+    const char* dynOverride = lookupDynamicProp(name);
+    if (dynOverride) {
+        size_t len = strlen(dynOverride);
+        if (len > 91) len = 91;
+        memcpy(value, dynOverride, len);
+        value[len] = '\0';
+        if (g_debugHooks.load()) LOGI("[HOOK] %s → Dynamic: %s", name, dynOverride);
+        return (int)len;
     }
     
     return g_origSystemPropertyGet ? g_origSystemPropertyGet(name, value) : 0;
@@ -1690,14 +1667,15 @@ static void patchAllPropertiesInMemory() {
         if (patchPropertyDirect("wifi.interface.mac", buf)) patched++;
     }
     
-    // v5.1: Nur noch Gerätetyp-Props patchen (KEINE Build-Fingerprints!)
-    for (int i = 0; PIXEL6_BUILD_PROPS[i].name != nullptr; i++) {
-        if (patchPropertyDirect(PIXEL6_BUILD_PROPS[i].name, PIXEL6_BUILD_PROPS[i].value)) {
+    // v6.0: Dynamische Properties aus Bridge-Datei patchen
+    for (const auto& [propName, propValue] : g_dynamicProps) {
+        if (patchPropertyDirect(propName.c_str(), propValue.c_str())) {
             patched++;
         }
     }
     
-    LOGI("[MEM] Direct memory patched: %d properties (v5.1: no build fingerprints)", patched);
+    LOGI("[MEM] Direct memory patched: %d properties (v6.0: bridge-driven, %zu dynamic props)",
+         patched, g_dynamicProps.size());
 }
 
 // ==============================================================================
@@ -1756,12 +1734,10 @@ static void _hooked_prop_read_callback(
         hw.getWifiMac(spoofed, sizeof(spoofed));
         if (spoofed[0]) overrideVal = spoofed;
     } else {
-        // v5.1: Nur Gerätetyp-Props (KEINE Build-Fingerprints)
-        for (int i = 0; PIXEL6_BUILD_PROPS[i].name != nullptr; i++) {
-            if (strcmp(captured.name, PIXEL6_BUILD_PROPS[i].name) == 0) {
-                overrideVal = PIXEL6_BUILD_PROPS[i].value;
-                break;
-            }
+        // v6.0: Dynamic Property Overrides (aus Bridge-Datei)
+        const char* dynVal = lookupDynamicProp(captured.name);
+        if (dynVal) {
+            overrideVal = dynVal;
         }
     }
     
@@ -1819,16 +1795,14 @@ static int _hooked_system_property_read(const void* pi, char* name, char* value)
         if (spoofed[0]) { strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value); }
     }
     
-    // v5.1: Nur Gerätetyp-Props (KEINE Build-Fingerprints — PIF-exklusiv)
-    for (int i = 0; PIXEL6_BUILD_PROPS[i].name != nullptr; i++) {
-        if (strcmp(name, PIXEL6_BUILD_PROPS[i].name) == 0) {
-            const char* override = PIXEL6_BUILD_PROPS[i].value;
-            size_t len = strlen(override);
-            if (len > 91) len = 91;
-            memcpy(value, override, len);
-            value[len] = '\0';
-            return (int)len;
-        }
+    // v6.0: Dynamic Property Overrides (aus Bridge-Datei)
+    const char* dynOverride = lookupDynamicProp(name);
+    if (dynOverride) {
+        size_t len = strlen(dynOverride);
+        if (len > 91) len = 91;
+        memcpy(value, dynOverride, len);
+        value[len] = '\0';
+        return (int)len;
     }
     
     return result;

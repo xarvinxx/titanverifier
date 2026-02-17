@@ -461,6 +461,198 @@ class NetworkChecker:
             pass
         return False
 
+    # =========================================================================
+    # IP-Rotation mit Verifikation (Flugmodus-Cycle + Retry)
+    # =========================================================================
+
+    async def rotate_ip(
+        self,
+        old_ip: Optional[str] = None,
+        max_retries: int = 5,
+        reconnect_wait: int = 15,
+        lease_wait: int = 12,
+    ) -> IPCheckResult:
+        """
+        Rotiert die IP via Flugmodus-Cycle und verifiziert den Wechsel.
+
+        Ablauf pro Versuch:
+          1. Flugmodus AN → lease_wait Sekunden → Flugmodus AUS
+          2. reconnect_wait Sekunden warten (Mobilfunk-Reconnect)
+          3. Neue IP abfragen (skip_cache=True)
+          4. Vergleich: neue_IP != alte_IP → Erfolg
+          5. Sonst: Retry (max max_retries Versuche)
+
+        Nach erfolgreichem IP-Wechsel wird zusätzlich ein IPv6-Leak-Check
+        durchgeführt.
+
+        Args:
+            old_ip:          Bisherige IP (wenn None, wird sie zuerst ermittelt)
+            max_retries:     Max. Anzahl Flugmodus-Toggles (Default: 5)
+            reconnect_wait:  Sekunden nach Flugmodus-AUS bis IP-Check
+            lease_wait:      Sekunden mit Flugmodus-AN (DHCP-Lease-Reset)
+
+        Returns:
+            IPCheckResult mit der neuen IP (oder Fehler nach max_retries)
+        """
+        # Alte IP ermitteln falls nicht übergeben
+        if old_ip is None:
+            old_result = await self.get_public_ip(skip_cache=True)
+            if old_result.success:
+                old_ip = old_result.ip
+                logger.info("[IP-Rotation] Aktuelle IP: %s", old_ip)
+            else:
+                logger.warning(
+                    "[IP-Rotation] Konnte aktuelle IP nicht ermitteln — "
+                    "Rotation wird trotzdem versucht"
+                )
+
+        for attempt in range(1, max_retries + 1):
+            logger.info(
+                "[IP-Rotation] Versuch %d/%d — Flugmodus-Cycle starten...",
+                attempt, max_retries,
+            )
+
+            # Flugmodus AN
+            await self._adb.shell(
+                "settings put global airplane_mode_on 1", root=True,
+            )
+            await self._adb.shell(
+                "am broadcast -a android.intent.action.AIRPLANE_MODE "
+                "--ez state true",
+                root=True,
+            )
+            logger.debug("[IP-Rotation] Flugmodus AN — warte %ds (Lease-Reset)...", lease_wait)
+
+            # Lease-Wait (DHCP-Lease verfallen lassen)
+            import asyncio
+            await asyncio.sleep(lease_wait)
+
+            # Flugmodus AUS
+            await self._adb.shell(
+                "settings put global airplane_mode_on 0", root=True,
+            )
+            await self._adb.shell(
+                "am broadcast -a android.intent.action.AIRPLANE_MODE "
+                "--ez state false",
+                root=True,
+            )
+
+            # IP-Cache invalidieren
+            self.invalidate_ip_cache()
+
+            # Mobilfunk-Reconnect abwarten
+            logger.debug(
+                "[IP-Rotation] Flugmodus AUS — warte %ds auf Reconnect...",
+                reconnect_wait,
+            )
+            await asyncio.sleep(reconnect_wait)
+
+            # Neue IP abfragen
+            new_result = await self.get_public_ip(skip_cache=True)
+
+            if not new_result.success:
+                logger.warning(
+                    "[IP-Rotation] Versuch %d: IP-Check fehlgeschlagen: %s",
+                    attempt, new_result.error,
+                )
+                continue
+
+            new_ip = new_result.ip
+
+            if old_ip and new_ip == old_ip:
+                logger.warning(
+                    "[IP-Rotation] Versuch %d: IP NICHT gewechselt! "
+                    "%s == %s — Retry...",
+                    attempt, new_ip, old_ip,
+                )
+                continue
+
+            # IP hat sich geändert!
+            logger.info(
+                "[IP-Rotation] Erfolg nach %d Versuch(en): %s → %s",
+                attempt, old_ip or "?", new_ip,
+            )
+
+            # IPv6-Leak-Check nach erfolgreichem IP-Wechsel
+            await self.check_ipv6_leak()
+
+            return new_result
+
+        # Alle Versuche fehlgeschlagen
+        logger.error(
+            "[IP-Rotation] IP-Wechsel nach %d Versuchen FEHLGESCHLAGEN! "
+            "IP bleibt: %s — Carrier throttling?",
+            max_retries, old_ip or "unbekannt",
+        )
+        return IPCheckResult(
+            success=False,
+            error=(
+                f"IP-Rotation fehlgeschlagen nach {max_retries} Versuchen. "
+                f"IP unverändert: {old_ip or 'unbekannt'}. "
+                f"Mögliche Ursache: Carrier-Throttling oder feste IP-Zuweisung."
+            ),
+        )
+
+    # =========================================================================
+    # IPv6-Leak-Detection
+    # =========================================================================
+
+    async def check_ipv6_leak(self) -> dict:
+        """
+        Prüft ob das Gerät über IPv6 erreichbar ist (Leak-Detection).
+
+        Viele Carrier vergeben zusätzlich eine IPv6-Adresse. Da TikTok und
+        andere Apps bevorzugt IPv6 nutzen, kann die IPv6-Adresse über
+        Flugmodus-Cycles hinweg STABIL bleiben, auch wenn sich die IPv4
+        ändert. Das ist ein Tracking-Vektor.
+
+        Prüfung:
+          1. `ip -6 addr show rmnet_data0` → Hat das Mobilfunk-Interface IPv6?
+          2. Falls ja: Warnung ausgeben (IPv6 sollte deaktiviert werden)
+
+        Returns:
+            {"has_ipv6": bool, "ipv6_address": str|None, "warning": str|None}
+        """
+        result = {"has_ipv6": False, "ipv6_address": None, "warning": None}
+
+        try:
+            # Prüfe IPv6 auf Mobilfunk-Interfaces (rmnet_data*, ccmni*)
+            ipv6_check = await self._adb.shell(
+                "ip -6 addr show scope global 2>/dev/null "
+                "| grep 'inet6' | grep -v '::1' | head -3",
+                root=False, timeout=5,
+            )
+
+            if ipv6_check.success and ipv6_check.output.strip():
+                lines = ipv6_check.output.strip().split("\n")
+                for line in lines:
+                    line = line.strip()
+                    if "inet6" in line:
+                        parts = line.split()
+                        if len(parts) >= 2:
+                            ipv6_addr = parts[1].split("/")[0]
+                            result["has_ipv6"] = True
+                            result["ipv6_address"] = ipv6_addr
+                            result["warning"] = (
+                                f"IPv6-LEAK ERKANNT: {ipv6_addr} — "
+                                f"IPv6 kann über IP-Rotation hinweg stabil "
+                                f"bleiben und als Tracking-Vektor dienen! "
+                                f"Empfehlung: IPv6 auf dem Carrier deaktivieren "
+                                f"oder APN auf IPv4-only setzen."
+                            )
+                            logger.warning(
+                                "[IPv6-Leak] %s", result["warning"],
+                            )
+                            break
+
+            if not result["has_ipv6"]:
+                logger.debug("[IPv6-Leak] Kein globaler IPv6-Scope — sauber")
+
+        except (ADBError, Exception) as e:
+            logger.debug("[IPv6-Leak] Check fehlgeschlagen: %s", e)
+
+        return result
+
     @staticmethod
     def _is_valid_ipv4(ip: str) -> bool:
         """Legacy: Prüft ob ein String eine gültige IPv4-Adresse ist."""

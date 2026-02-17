@@ -402,13 +402,18 @@ class SwitchFlow:
             except ADBError:
                 pass
 
-            await asyncio.sleep(3)
+            # v6.1: Konfigurierbare Wartezeit statt hardcoded 3s
+            logger.info(
+                "[5/10] Warte %ds auf Zygote-Restart...",
+                TIMING.ZYGOTE_RESTART_WAIT,
+            )
+            await asyncio.sleep(TIMING.ZYGOTE_RESTART_WAIT)
             if not await self._adb.is_connected():
                 logger.info("[5/10] ADB nach Zygote-Kill weg — Reconnect...")
                 await self._adb.ensure_connection(timeout=60)
 
             step.status = FlowStepStatus.SUCCESS
-            step.detail = "Zygote-Kill gesendet"
+            step.detail = f"Zygote-Kill + {TIMING.ZYGOTE_RESTART_WAIT}s Wait"
             step.duration_ms = _now_ms() - step_start
 
             # =================================================================

@@ -315,19 +315,29 @@ class SwitchFlow:
             logger.info("[3/9] Safety Kill: OK (%s)", step.detail)
 
             # =================================================================
-            # FIX-16: Mini-Clean — ByteDance Tracking-Reste vor Inject löschen
+            # FIX-29: Gründlicher State-Wipe (ersetzt FIX-16 Mini-Clean)
             # =================================================================
-            # Zwischen letztem Backup und Switch kann TikTok neue Tracking-
-            # Dateien auf /sdcard/ geschrieben haben (z.B. .tt_device_id_v2).
-            # Diese Reste könnten das ALTE Profil verraten.
+            # Löscht ALLE TikTok-Daten (App-Daten inkl. Hidden Files,
+            # Sandbox, Tracking-Dateien, ART Profiles, Compiler Cache,
+            # Settings-ContentProvider). Der Restore in Step 5/6 schreibt
+            # dann in eine garantiert saubere Umgebung.
+            #
+            # Unterschied zu FIX-16 Mini-Clean:
+            #   - Löscht /data/data/<pkg>/ komplett (nicht nur /sdcard/)
+            #   - Bereinigt ART Profiles + Compiler Cache
+            #   - Bereinigt Settings-ContentProvider (FIX-14)
+            #   - Verhindert Identity-Leakage durch Hidden Files
             # =================================================================
             try:
-                logger.info("[3→4] Mini-Clean: ByteDance Tracking-Reste bereinigen...")
-                clean_results = await self._shifter.clean_tracking_remnants()
+                logger.info("[3→4] FIX-29: Gründlicher State-Wipe vor Restore...")
+                clean_results = await self._shifter.prepare_switch_clean()
                 clean_ok = sum(1 for v in clean_results.values() if v)
-                logger.info("[3→4] Mini-Clean: %d/%d Operationen OK", clean_ok, len(clean_results))
+                logger.info(
+                    "[3→4] FIX-29: State-Wipe abgeschlossen: %d/%d Operationen OK",
+                    clean_ok, len(clean_results),
+                )
             except Exception as e:
-                logger.warning("[3→4] Mini-Clean fehlgeschlagen (nicht kritisch): %s", e)
+                logger.warning("[3→4] FIX-29: State-Wipe fehlgeschlagen (nicht kritisch): %s", e)
 
             # =================================================================
             # Schritt 4: INJECT (Bridge only — v4.1)
@@ -495,6 +505,50 @@ class SwitchFlow:
                 logger.info("[6/9] TikTok: Übersprungen (kein Backup)")
 
             step.duration_ms = _now_ms() - step_start
+
+            # =================================================================
+            # FIX-30: Post-Restore Verifikation (zwischen Step 6 und 7)
+            # =================================================================
+            # Prüft ob TikTok App-Daten tatsächlich vorhanden sind.
+            # Verhindert Zombie-States: Bridge zeigt auf neue Identität,
+            # aber App-Daten sind leer → TikTok startet als "neue App"
+            # mit der falschen Identität.
+            # =================================================================
+            if use_full_state or profile_name:
+                try:
+                    logger.info("[6→7] FIX-30: Post-Restore Verifikation...")
+                    verify = await self._shifter.verify_app_data_restored()
+                    if verify["ok"]:
+                        logger.info(
+                            "[6→7] FIX-30: Verifikation OK — %s", verify["detail"],
+                        )
+                    else:
+                        logger.warning(
+                            "[6→7] FIX-30: Verifikation FEHLGESCHLAGEN — %s",
+                            verify["detail"],
+                        )
+                        # Zombie-Schutz: App-Daten löschen statt korrupten State zu behalten
+                        logger.warning(
+                            "[6→7] FIX-30: Zombie-Schutz — pm clear TikTok "
+                            "um inkonsistenten State zu verhindern"
+                        )
+                        try:
+                            await self._adb.shell(
+                                "pm clear com.zhiliaoapp.musically", root=True, timeout=15,
+                            )
+                        except ADBError:
+                            pass
+
+                        # Step 6 nachträglich als FAILED markieren
+                        tiktok_step = result.steps[5]
+                        if tiktok_step.status == FlowStepStatus.SUCCESS:
+                            tiktok_step.status = FlowStepStatus.FAILED
+                            tiktok_step.detail = (
+                                f"Restore-Verifikation fehlgeschlagen: {verify['detail']} "
+                                f"— App-Daten gelöscht (Zombie-Schutz)"
+                            )
+                except Exception as e:
+                    logger.warning("[6→7] FIX-30: Verifikation fehlgeschlagen: %s", e)
 
             # =================================================================
             # Schritt 5: SOFT RESET (killall zygote)

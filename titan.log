@@ -387,3 +387,454 @@
 2026-02-15 03:58:47 [titan.database] INFO: Datenbank geschlossen.
 2026-02-15 03:58:47 [titan.main] INFO: Titan Command Center gestoppt.
 2026-02-15 03:58:47 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 00:50:45 [titan.main] INFO: ============================================================
+2026-02-17 00:50:45 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 00:50:45 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/titan.db
+2026-02-17 00:50:45 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 00:50:45 [titan.main] INFO: ============================================================
+2026-02-17 00:50:45 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/titan.db
+2026-02-17 00:50:45 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 00:50:45 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 00:51:03 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=62635)
+2026-02-17 01:03:38 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=62635)
+2026-02-17 01:03:41 [titan.api.vault] INFO: Profil #24 archiviert: 'Account0'
+2026-02-17 01:03:43 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=63038)
+2026-02-17 01:03:49 [titan.api.control] INFO: Genesis-Flow gestartet: Account1
+2026-02-17 01:03:49 [titan.flows.genesis] INFO: ============================================================
+2026-02-17 01:03:49 [titan.flows.genesis] INFO:   GENESIS FLOW: Account1
+2026-02-17 01:03:49 [titan.flows.genesis] INFO: ============================================================
+2026-02-17 01:03:49 [titan.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-17 01:03:49 [titan.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-17 01:03:49 [titan.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-17 01:03:49 [titan.flows.genesis] INFO: [2/11] Auto-Backup: Kein aktives Profil gefunden (erster Lauf?)
+2026-02-17 01:03:49 [titan.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-17 01:03:49 [titan.engine.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-17 01:03:49 [titan.engine.shifter] INFO: FIX-28: APK-Pfad gesichert: com.zhiliaoapp.musically → /data/app/~~gkfnLVSEUsd_W9ePMrYngg==/com.zhiliaoapp.musically-_a8fxAK0_Dh1GwyUB7yaUA==/split_df_search_adblock.apk
+2026-02-17 01:03:50 [titan.engine.shifter] INFO: pm uninstall --user 0 com.zhiliaoapp.musically: OK
+2026-02-17 01:03:50 [titan.engine.shifter] WARNING: FIX-28: pm install-existing com.zhiliaoapp.musically fehlgeschlagen oder nicht verifiziert — Rettung via gespeichertem APK-Pfad: /data/app/~~gkfnLVSEUsd_W9ePMrYngg==/com.zhiliaoapp.musically-_a8fxAK0_Dh1GwyUB7yaUA==/split_df_search_adblock.apk
+2026-02-17 01:03:50 [titan.engine.shifter] WARNING: FIX-28: pm install fehlgeschlagen — letzter Versuch: cmd package install-existing com.zhiliaoapp.musically
+2026-02-17 01:03:50 [titan.engine.shifter] ERROR: FIX-28: KRITISCH — com.zhiliaoapp.musically konnte nicht reinstalliert werden! APK-Pfad war: /data/app/~~gkfnLVSEUsd_W9ePMrYngg==/com.zhiliaoapp.musically-_a8fxAK0_Dh1GwyUB7yaUA==/split_df_search_adblock.apk. App muss manuell installiert werden.
+2026-02-17 01:03:50 [titan.engine.shifter] WARNING: FIX-28: APK-Pfad für com.ss.android.ugc.trill nicht ermittelbar — Fallback auf sicheres pm clear (kein Uninstall)
+2026-02-17 01:03:50 [titan.engine.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-17 01:03:51 [titan.engine.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-17 01:03:51 [titan.engine.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-17 01:03:55 [titan.engine.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-17 01:03:55 [titan.engine.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-17 01:03:56 [titan.engine.shifter] INFO: Deep Clean abgeschlossen: 30/34 Operationen erfolgreich (inkl. MediaStore, Compiler-Cache, ART-Profile, Settings)
+2026-02-17 01:03:56 [titan.flows.genesis] INFO: [3/11] Sterilize: OK (30/34 Operationen (GMS geschützt))
+2026-02-17 01:03:56 [titan.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-17 01:03:56 [titan.engine.identity] INFO: Identität generiert: name=Account1 serial=023QYN5YTSY2 imei1=355543…3819 carrier=O2-DE
+2026-02-17 01:03:56 [titan.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 1367...0509 (v5.0 — FINAL, kein Platzhalter)
+2026-02-17 01:03:56 [titan.flows.genesis] INFO: [4/11] Generate: OK (serial=023QYN5YTSY2)
+2026-02-17 01:03:56 [titan.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-17 01:03:56 [titan.db_ops] INFO: Auto-Profil erstellt: id=25, name=Account1
+2026-02-17 01:03:56 [titan.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=25
+2026-02-17 01:03:56 [titan.flows.genesis] INFO: [5/11] Persist: OK (identity_id=31, profile_id=25)
+2026-02-17 01:03:56 [titan.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-17 01:03:56 [titan.engine.injector] INFO: Injecting identity: serial=023QYN5YTSY2 imei1=355543…3819
+2026-02-17 01:03:56 [titan.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/titan_5_kdnb_j.titan_bridge → /data/local/tmp/.titan_bridge_staging
+2026-02-17 01:03:56 [titan.engine.injector] INFO: Bridge geschrieben: /data/adb/modules/titan_verifier/titan_identity
+2026-02-17 01:03:56 [titan.engine.injector] INFO: Backup: /sdcard/.titan_identity
+2026-02-17 01:03:57 [titan.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #31 auf 'active' gesetzt
+2026-02-17 01:03:59 [titan.engine.injector] INFO: Bridge verteilt an 6/10 Apps
+2026-02-17 01:03:59 [titan.engine.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → c2dd78d7-90f7-489d-827b-3f2a99e968fe
+2026-02-17 01:04:00 [titan.engine.injector] INFO: Injection komplett + verifiziert: 023QYN5YTSY2
+2026-02-17 01:04:00 [titan.flows.genesis] INFO: [6/11] PIF: Übersprungen (v4.1 — von KSU PlayIntegrityFix verwaltet)
+2026-02-17 01:04:00 [titan.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-17 01:04:00 [titan.engine.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-17 01:04:00 [titan.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Kill-Switch entfernt (PIF=KSU, Nuke=SKIP))
+2026-02-17 01:04:00 [titan.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-17 01:04:00 [titan.adb] INFO: Reboot: mode=normal
+2026-02-17 01:04:07 [titan.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-17 01:04:07 [titan.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-17 01:04:07 [titan.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-17 01:04:07 [titan.adb] INFO: ADB Daemon gestoppt
+2026-02-17 01:04:11 [titan.adb] INFO: ADB Daemon gestartet
+2026-02-17 01:04:12 [titan.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-17 01:04:22 [titan.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-17 01:04:22 [titan.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-17 01:04:22 [titan.adb] INFO: ADB Daemon gestoppt
+2026-02-17 01:04:22 [titan.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-17 01:04:26 [titan.adb] INFO: ADB Daemon gestartet
+2026-02-17 01:04:26 [titan.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-17 01:04:26 [titan.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-17 01:04:26 [titan.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-17 01:04:27 [titan.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-17 01:04:28 [titan.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-17 01:04:34 [titan.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-17 01:04:36 [titan.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-17 01:04:36 [titan.flows.genesis] INFO: [7/11] Warte auf Boot (unbegrenzt, pollt alle 3s)...
+2026-02-17 01:04:36 [titan.adb] INFO: Warte auf Gerät (unbegrenzt, pollt alle 3s)...
+2026-02-17 01:04:36 [titan.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-17 01:04:36 [titan.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell getprop ro.serialno
+2026-02-17 01:04:36 [titan.adb] INFO: ADB Erfolg nach 2 Versuchen: adb shell getprop ro.serialno
+2026-02-17 01:04:45 [titan.adb] INFO: Gerät gebootet nach 9.0s
+2026-02-17 01:04:45 [titan.flows.genesis] INFO: [7/11] Boot erkannt — warte 5s bevor Popup-Hammer...
+2026-02-17 01:04:50 [titan.flows.genesis] INFO: [7/11] Popup Hammer: Fehler-Dialoge unterdrücken...
+2026-02-17 01:04:58 [titan.flows.genesis] INFO: [7/11] Popup Hammer abgeschlossen — Unlock starten...
+2026-02-17 01:05:01 [titan.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-17 01:05:01 [titan.adb.device] INFO: System-Dialoge unterdrücken (Post-Boot Hardening)...
+2026-02-17 01:05:01 [titan.adb.device] INFO:   [OK] hide_error_dialogs
+2026-02-17 01:05:01 [titan.adb.device] INFO:   [OK] device_provisioned
+2026-02-17 01:05:01 [titan.adb.device] INFO:   [OK] user_setup_complete
+2026-02-17 01:05:01 [titan.adb.device] INFO: System-Dialog-Suppression: 5/5 Maßnahmen erfolgreich
+2026-02-17 01:05:01 [titan.flows.genesis] INFO: [7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...
+2026-02-17 01:05:01 [titan.flows.genesis] INFO: [7/11] Bridge [primär]: OK (serial=023QYN5YTSY2)
+2026-02-17 01:05:01 [titan.flows.genesis] INFO: [7/11] Bridge [sdcard]: OK (serial=023QYN5YTSY2)
+2026-02-17 01:05:01 [titan.flows.genesis] INFO: [7/11] Bridge [app]: OK (serial=023QYN5YTSY2)
+2026-02-17 01:05:01 [titan.flows.genesis] INFO: [7/11] Bridge-Verifikation: Primärpfad OK
+2026-02-17 01:05:01 [titan.flows.genesis] INFO: [7/11] Hard Reset: OK (Boot + Popup-Hammer + Unlock in 61.6s)
+2026-02-17 01:05:01 [titan.flows.genesis] INFO: [8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS...
+2026-02-17 01:05:22 [titan.flows.genesis] INFO: [8/11] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-17 01:05:22 [titan.flows.genesis] INFO: [8/11] Warte 15s auf neue Mobilfunk-Verbindung...
+2026-02-17 01:05:37 [titan.engine.network] INFO: HTTP-Tool erkannt: busybox wget (/data/adb/ksu/bin/busybox)
+2026-02-17 01:05:37 [titan.engine.network] INFO: Öffentliche IP: 2.205.137.61 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-17 01:05:37 [titan.flows.genesis] INFO: [8/11] Network Init: Neue IP = 2.205.137.61 (via api.ipify.org)
+2026-02-17 01:05:37 [titan.db_ops] WARNING: IP-COLLISION WARNING: IP 2.205.137.61 wurde bereits von Profil(en) Account0 benutzt. Cross-Profile Korrelation möglich.
+2026-02-17 01:05:37 [titan.flows.genesis] WARNING: [8/11] IP 2.205.137.61 wurde bereits von Profil(en) Account0 benutzt. Cross-Profile Korrelation möglich.
+2026-02-17 01:05:37 [titan.flows.genesis] INFO: [9/11] GMS Ready: Konnektivitäts-Check (v5.2 — vereinfacht)...
+2026-02-17 01:05:37 [titan.flows.genesis] INFO: [9/11] Network: IP bereits bestätigt (2.205.137.61)
+2026-02-17 01:05:37 [titan.flows.genesis] INFO: [9/11] GSF-ID: Generierte ID beibehalten (v5.0 — KEIN Sync mit GMS). Bridge-GSF-ID: 1367...0509
+2026-02-17 01:05:37 [titan.flows.genesis] INFO: [9/11] GMS Ready: OK (Connectivity: OK | GSF-ID: generiert beibehalten (v5.2))
+2026-02-17 01:05:37 [titan.flows.genesis] INFO: [10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...
+2026-02-17 01:05:37 [titan.engine.auditor] INFO: Audit starten: Account1 (serial=023QYN5YTSY2)
+2026-02-17 01:05:37 [titan.engine.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 18 Felder auf dem Gerät
+2026-02-17 01:05:37 [titan.engine.auditor] INFO:   [+] bridge_serial: pass — serial=023QYN5YTSY2, boot_serial=023QYN5YTSY2 — korrekt
+2026-02-17 01:05:37 [titan.engine.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-17 01:05:37 [titan.engine.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: f4:f5:d8:e9:63:c2
+2026-02-17 01:05:37 [titan.engine.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-17 01:05:37 [titan.engine.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-17 01:05:37 [titan.engine.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-17 01:05:37 [titan.engine.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-17 01:05:37 [titan.engine.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-17 01:05:37 [titan.engine.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-17 01:05:37 [titan.engine.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-17 01:05:37 [titan.engine.auditor] INFO:   [+] bridge_build_fingerprint: pass — build_fingerprint korrekt
+2026-02-17 01:05:37 [titan.engine.auditor] INFO: Audit [Account1]: 100% (12/12 passed)
+2026-02-17 01:05:37 [titan.flows.genesis] INFO: [10/11] Baseline-Trigger: Integrität bestätigt (100%)
+2026-02-17 01:05:37 [titan.flows.genesis] INFO: [10/11] Capture State: Golden Baseline sichern...
+2026-02-17 01:05:37 [titan.engine.shifter] INFO: ============================================================
+2026-02-17 01:05:37 [titan.engine.shifter] INFO:   GOLDEN BASELINE CAPTURE: Account1
+2026-02-17 01:05:37 [titan.engine.shifter] INFO:   GSF-ID: 1367...0509
+2026-02-17 01:05:37 [titan.engine.shifter] INFO: ============================================================
+2026-02-17 01:05:37 [titan.engine.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-17 01:05:38 [titan.engine.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-17 01:05:39 [titan.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/Account1/gms/gms_20260217_010539.tar.tmp
+2026-02-17 01:05:47 [titan.adb] INFO: Exec-Out fertig: 97159168 Bytes geschrieben
+2026-02-17 01:05:47 [titan.engine.shifter] INFO: GMS Backup (3 Pakete): OK (92.7 MB, Versuch 1/3)
+2026-02-17 01:05:47 [titan.engine.shifter] INFO: GMS tar: gms_20260217_010539.tar (92.7 MB) — 3 Pakete
+2026-02-17 01:05:47 [titan.engine.shifter] INFO: Golden Baseline GMS: OK (gms_20260217_010539.tar)
+2026-02-17 01:05:48 [titan.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/Account1/accounts/accounts_20260217_010548.tar.tmp
+2026-02-17 01:05:48 [titan.adb] INFO: Exec-Out fertig: 230912 Bytes geschrieben
+2026-02-17 01:05:48 [titan.engine.shifter] INFO: Account-DBs (1 Dateien): OK (0.2 MB, Versuch 1/3)
+2026-02-17 01:05:48 [titan.engine.shifter] INFO: Account-DBs tar: accounts_20260217_010548.tar (230912 Bytes, 1 Dateien)
+2026-02-17 01:05:48 [titan.engine.shifter] INFO: Golden Baseline Accounts: OK (accounts_20260217_010548.tar)
+2026-02-17 01:05:48 [titan.engine.shifter] INFO: Golden Baseline: 2/2 Komponenten gesichert
+2026-02-17 01:05:48 [titan.flows.genesis] INFO: [10/11] Capture State: Golden Baseline komplett
+2026-02-17 01:05:48 [titan.flows.genesis] INFO: [11/11] Audit: Device prüfen...
+2026-02-17 01:05:48 [titan.engine.auditor] INFO: Audit starten: Account1 (serial=023QYN5YTSY2)
+2026-02-17 01:05:48 [titan.engine.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 18 Felder auf dem Gerät
+2026-02-17 01:05:48 [titan.engine.auditor] INFO:   [+] bridge_serial: pass — serial=023QYN5YTSY2, boot_serial=023QYN5YTSY2 — korrekt
+2026-02-17 01:05:48 [titan.engine.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-17 01:05:48 [titan.engine.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: f4:f5:d8:e9:63:c2
+2026-02-17 01:05:48 [titan.engine.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-17 01:05:48 [titan.engine.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-17 01:05:48 [titan.engine.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-17 01:05:48 [titan.engine.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-17 01:05:48 [titan.engine.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-17 01:05:48 [titan.engine.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-17 01:05:48 [titan.engine.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-17 01:05:48 [titan.engine.auditor] INFO:   [+] bridge_build_fingerprint: pass — build_fingerprint korrekt
+2026-02-17 01:05:48 [titan.engine.auditor] INFO: Audit [Account1]: 100% (12/12 passed)
+2026-02-17 01:05:48 [titan.flows.genesis] INFO: [11/11] Audit: PASS (100%)
+2026-02-17 01:05:48 [titan.flows.genesis] INFO: ============================================================
+2026-02-17 01:05:48 [titan.flows.genesis] INFO:   GENESIS ERFOLG: Account1 (118875 ms)
+2026-02-17 01:05:48 [titan.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
+2026-02-17 01:05:48 [titan.flows.genesis] INFO: ============================================================
+2026-02-17 01:19:15 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=63038)
+2026-02-17 01:19:23 [titan.api.vault] INFO: Bulk-Delete: 2 Profile gelöscht, 2 Identitäten gelöscht, 0 übersprungen
+2026-02-17 01:19:26 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=64515)
+2026-02-17 01:19:26 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=64515)
+2026-02-17 01:19:26 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=64521)
+2026-02-17 01:19:57 [titan.api.control] INFO: Genesis-Flow gestartet: Account 1
+2026-02-17 01:19:57 [titan.flows.genesis] INFO: ============================================================
+2026-02-17 01:19:57 [titan.flows.genesis] INFO:   GENESIS FLOW: Account 1
+2026-02-17 01:19:57 [titan.flows.genesis] INFO: ============================================================
+2026-02-17 01:19:57 [titan.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-17 01:19:58 [titan.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-17 01:19:58 [titan.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-17 01:19:58 [titan.flows.genesis] INFO: [2/11] Auto-Backup: Kein aktives Profil gefunden (erster Lauf?)
+2026-02-17 01:19:58 [titan.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-17 01:19:58 [titan.engine.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-17 01:19:58 [titan.engine.shifter] WARNING: FIX-28: APK-Pfad für com.zhiliaoapp.musically nicht ermittelbar — Fallback auf sicheres pm clear (kein Uninstall)
+2026-02-17 01:19:58 [titan.engine.shifter] WARNING: FIX-28: APK-Pfad für com.ss.android.ugc.trill nicht ermittelbar — Fallback auf sicheres pm clear (kein Uninstall)
+2026-02-17 01:19:58 [titan.engine.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-17 01:19:58 [titan.engine.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-17 01:19:59 [titan.engine.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-17 01:20:03 [titan.engine.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-17 01:20:03 [titan.engine.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-17 01:20:03 [titan.engine.shifter] INFO: Deep Clean abgeschlossen: 30/34 Operationen erfolgreich (inkl. MediaStore, Compiler-Cache, ART-Profile, Settings)
+2026-02-17 01:20:03 [titan.flows.genesis] INFO: [3/11] Sterilize: OK (30/34 Operationen (GMS geschützt))
+2026-02-17 01:20:03 [titan.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-17 01:20:03 [titan.engine.identity] INFO: Identität generiert: name=Account 1 serial=CR7XNB546YUV imei1=355543…2793 carrier=O2-DE
+2026-02-17 01:20:03 [titan.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 8207...5578 (v5.0 — FINAL, kein Platzhalter)
+2026-02-17 01:20:03 [titan.flows.genesis] INFO: [4/11] Generate: OK (serial=CR7XNB546YUV)
+2026-02-17 01:20:03 [titan.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-17 01:20:03 [titan.db_ops] INFO: Auto-Profil erstellt: id=26, name=Account 1
+2026-02-17 01:20:03 [titan.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=26
+2026-02-17 01:20:03 [titan.flows.genesis] INFO: [5/11] Persist: OK (identity_id=32, profile_id=26)
+2026-02-17 01:20:03 [titan.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-17 01:20:03 [titan.engine.injector] INFO: Injecting identity: serial=CR7XNB546YUV imei1=355543…2793
+2026-02-17 01:20:03 [titan.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/titan_6rewlqz3.titan_bridge → /data/local/tmp/.titan_bridge_staging
+2026-02-17 01:20:03 [titan.engine.injector] INFO: Bridge geschrieben: /data/adb/modules/titan_verifier/titan_identity
+2026-02-17 01:20:03 [titan.engine.injector] INFO: Backup: /sdcard/.titan_identity
+2026-02-17 01:20:04 [titan.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #32 auf 'active' gesetzt
+2026-02-17 01:20:05 [titan.engine.injector] INFO: Bridge verteilt an 6/10 Apps
+2026-02-17 01:20:06 [titan.engine.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → caec9873-f119-4edb-9231-9f91a89f85d0
+2026-02-17 01:20:06 [titan.engine.injector] INFO: Injection komplett + verifiziert: CR7XNB546YUV
+2026-02-17 01:20:06 [titan.flows.genesis] INFO: [6/11] PIF: Übersprungen (v4.1 — von KSU PlayIntegrityFix verwaltet)
+2026-02-17 01:20:06 [titan.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-17 01:20:06 [titan.engine.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-17 01:20:06 [titan.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Kill-Switch entfernt (PIF=KSU, Nuke=SKIP))
+2026-02-17 01:20:06 [titan.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-17 01:20:06 [titan.adb] INFO: Reboot: mode=normal
+2026-02-17 01:20:13 [titan.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-17 01:20:28 [titan.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-17 01:20:28 [titan.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-17 01:20:28 [titan.adb] INFO: ADB Daemon gestoppt
+2026-02-17 01:20:32 [titan.adb] INFO: ADB Daemon gestartet
+2026-02-17 01:20:33 [titan.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-17 01:20:41 [titan.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-17 01:20:43 [titan.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-17 01:20:43 [titan.flows.genesis] INFO: [7/11] Warte auf Boot (unbegrenzt, pollt alle 3s)...
+2026-02-17 01:20:43 [titan.adb] INFO: Warte auf Gerät (unbegrenzt, pollt alle 3s)...
+2026-02-17 01:20:49 [titan.adb] INFO: Gerät gebootet nach 6.0s
+2026-02-17 01:20:49 [titan.flows.genesis] INFO: [7/11] Boot erkannt — warte 5s bevor Popup-Hammer...
+2026-02-17 01:20:54 [titan.flows.genesis] INFO: [7/11] Popup Hammer: Fehler-Dialoge unterdrücken...
+2026-02-17 01:21:00 [titan.flows.genesis] INFO: [7/11] Popup Hammer abgeschlossen — Unlock starten...
+2026-02-17 01:21:03 [titan.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-17 01:21:03 [titan.adb.device] INFO: System-Dialoge unterdrücken (Post-Boot Hardening)...
+2026-02-17 01:21:03 [titan.adb.device] INFO:   [OK] hide_error_dialogs
+2026-02-17 01:21:03 [titan.adb.device] INFO:   [OK] device_provisioned
+2026-02-17 01:21:03 [titan.adb.device] INFO:   [OK] user_setup_complete
+2026-02-17 01:21:03 [titan.adb.device] INFO: System-Dialog-Suppression: 5/5 Maßnahmen erfolgreich
+2026-02-17 01:21:03 [titan.flows.genesis] INFO: [7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...
+2026-02-17 01:21:03 [titan.flows.genesis] INFO: [7/11] Bridge [primär]: OK (serial=CR7XNB546YUV)
+2026-02-17 01:21:03 [titan.flows.genesis] INFO: [7/11] Bridge [sdcard]: OK (serial=CR7XNB546YUV)
+2026-02-17 01:21:03 [titan.flows.genesis] INFO: [7/11] Bridge [app]: OK (serial=CR7XNB546YUV)
+2026-02-17 01:21:03 [titan.flows.genesis] INFO: [7/11] Bridge-Verifikation: Primärpfad OK
+2026-02-17 01:21:03 [titan.flows.genesis] INFO: [7/11] Hard Reset: OK (Boot + Popup-Hammer + Unlock in 57.5s)
+2026-02-17 01:21:03 [titan.flows.genesis] INFO: [8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS...
+2026-02-17 01:21:17 [titan.api.control] WARNING: Flow-Lock manuell zurückgesetzt (war_aktiv=True)
+2026-02-17 01:21:24 [titan.flows.genesis] INFO: [8/11] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-17 01:21:24 [titan.flows.genesis] INFO: [8/11] Warte 15s auf neue Mobilfunk-Verbindung...
+2026-02-17 01:21:44 [titan.engine.network] INFO: Öffentliche IP: 176.6.12.219 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-17 01:21:44 [titan.flows.genesis] INFO: [8/11] Network Init: Neue IP = 176.6.12.219 (via api.ipify.org)
+2026-02-17 01:21:44 [titan.flows.genesis] INFO: [9/11] GMS Ready: Konnektivitäts-Check (v5.2 — vereinfacht)...
+2026-02-17 01:21:44 [titan.flows.genesis] INFO: [9/11] Network: IP bereits bestätigt (176.6.12.219)
+2026-02-17 01:21:44 [titan.flows.genesis] INFO: [9/11] GSF-ID: Generierte ID beibehalten (v5.0 — KEIN Sync mit GMS). Bridge-GSF-ID: 8207...5578
+2026-02-17 01:21:44 [titan.flows.genesis] INFO: [9/11] GMS Ready: OK (Connectivity: OK | GSF-ID: generiert beibehalten (v5.2))
+2026-02-17 01:21:44 [titan.flows.genesis] INFO: [10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...
+2026-02-17 01:21:44 [titan.engine.auditor] INFO: Audit starten: Account 1 (serial=CR7XNB546YUV)
+2026-02-17 01:21:44 [titan.engine.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 18 Felder auf dem Gerät
+2026-02-17 01:21:44 [titan.engine.auditor] INFO:   [+] bridge_serial: pass — serial=CR7XNB546YUV, boot_serial=CR7XNB546YUV — korrekt
+2026-02-17 01:21:44 [titan.engine.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-17 01:21:44 [titan.engine.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: 94:eb:2c:86:78:9f
+2026-02-17 01:21:44 [titan.engine.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-17 01:21:44 [titan.engine.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-17 01:21:44 [titan.engine.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-17 01:21:44 [titan.engine.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-17 01:21:44 [titan.engine.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-17 01:21:44 [titan.engine.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-17 01:21:44 [titan.engine.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-17 01:21:44 [titan.engine.auditor] INFO:   [+] bridge_build_fingerprint: pass — build_fingerprint korrekt
+2026-02-17 01:21:44 [titan.engine.auditor] INFO: Audit [Account 1]: 100% (12/12 passed)
+2026-02-17 01:21:44 [titan.flows.genesis] INFO: [10/11] Baseline-Trigger: Integrität bestätigt (100%)
+2026-02-17 01:21:44 [titan.flows.genesis] INFO: [10/11] Capture State: Golden Baseline sichern...
+2026-02-17 01:21:44 [titan.engine.shifter] INFO: ============================================================
+2026-02-17 01:21:44 [titan.engine.shifter] INFO:   GOLDEN BASELINE CAPTURE: Account 1
+2026-02-17 01:21:44 [titan.engine.shifter] INFO:   GSF-ID: 8207...5578
+2026-02-17 01:21:44 [titan.engine.shifter] INFO: ============================================================
+2026-02-17 01:21:44 [titan.engine.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-17 01:21:45 [titan.engine.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-17 01:21:45 [titan.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/Account 1/gms/gms_20260217_012145.tar.tmp
+2026-02-17 01:21:54 [titan.adb] INFO: Exec-Out fertig: 94113928 Bytes geschrieben
+2026-02-17 01:21:54 [titan.engine.shifter] INFO: GMS Backup (3 Pakete): OK (89.8 MB, Versuch 1/3)
+2026-02-17 01:21:54 [titan.engine.shifter] INFO: GMS tar: gms_20260217_012145.tar (89.8 MB) — 3 Pakete
+2026-02-17 01:21:54 [titan.engine.shifter] INFO: Golden Baseline GMS: OK (gms_20260217_012145.tar)
+2026-02-17 01:21:54 [titan.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/Account 1/accounts/accounts_20260217_012154.tar.tmp
+2026-02-17 01:21:54 [titan.adb] INFO: Exec-Out fertig: 230912 Bytes geschrieben
+2026-02-17 01:21:54 [titan.engine.shifter] INFO: Account-DBs (1 Dateien): OK (0.2 MB, Versuch 1/3)
+2026-02-17 01:21:54 [titan.engine.shifter] INFO: Account-DBs tar: accounts_20260217_012154.tar (230912 Bytes, 1 Dateien)
+2026-02-17 01:21:54 [titan.engine.shifter] INFO: Golden Baseline Accounts: OK (accounts_20260217_012154.tar)
+2026-02-17 01:21:54 [titan.engine.shifter] INFO: Golden Baseline: 2/2 Komponenten gesichert
+2026-02-17 01:21:54 [titan.flows.genesis] INFO: [10/11] Capture State: Golden Baseline komplett
+2026-02-17 01:21:54 [titan.flows.genesis] INFO: [11/11] Audit: Device prüfen...
+2026-02-17 01:21:54 [titan.engine.auditor] INFO: Audit starten: Account 1 (serial=CR7XNB546YUV)
+2026-02-17 01:21:54 [titan.engine.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 18 Felder auf dem Gerät
+2026-02-17 01:21:54 [titan.engine.auditor] INFO:   [+] bridge_serial: pass — serial=CR7XNB546YUV, boot_serial=CR7XNB546YUV — korrekt
+2026-02-17 01:21:54 [titan.engine.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-17 01:21:54 [titan.engine.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: 94:eb:2c:86:78:9f
+2026-02-17 01:21:54 [titan.engine.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-17 01:21:54 [titan.engine.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-17 01:21:54 [titan.engine.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-17 01:21:54 [titan.engine.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-17 01:21:54 [titan.engine.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-17 01:21:54 [titan.engine.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-17 01:21:54 [titan.engine.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-17 01:21:54 [titan.engine.auditor] INFO:   [+] bridge_build_fingerprint: pass — build_fingerprint korrekt
+2026-02-17 01:21:54 [titan.engine.auditor] INFO: Audit [Account 1]: 100% (12/12 passed)
+2026-02-17 01:21:54 [titan.flows.genesis] INFO: [11/11] Audit: PASS (100%)
+2026-02-17 01:21:54 [titan.flows.genesis] INFO: ============================================================
+2026-02-17 01:21:54 [titan.flows.genesis] INFO:   GENESIS ERFOLG: Account 1 (116798 ms)
+2026-02-17 01:21:54 [titan.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
+2026-02-17 01:21:54 [titan.flows.genesis] INFO: ============================================================
+2026-02-17 01:22:30 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=64521)
+2026-02-17 01:22:33 [titan.api.vault] INFO: Profil #26 archiviert: 'Account 1'
+2026-02-17 01:22:42 [titan.api.vault] INFO: Bulk-Delete: 1 Profile gelöscht, 1 Identitäten gelöscht, 0 übersprungen
+2026-02-17 01:22:43 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=65388)
+2026-02-17 01:22:48 [titan.api.control] INFO: Genesis-Flow gestartet: Account 1
+2026-02-17 01:22:48 [titan.flows.genesis] INFO: ============================================================
+2026-02-17 01:22:48 [titan.flows.genesis] INFO:   GENESIS FLOW: Account 1
+2026-02-17 01:22:48 [titan.flows.genesis] INFO: ============================================================
+2026-02-17 01:22:48 [titan.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-17 01:22:49 [titan.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-17 01:22:49 [titan.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-17 01:22:49 [titan.flows.genesis] INFO: [2/11] Auto-Backup: Kein aktives Profil gefunden (erster Lauf?)
+2026-02-17 01:22:49 [titan.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-17 01:22:49 [titan.engine.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-17 01:22:49 [titan.engine.shifter] WARNING: FIX-28: APK-Pfad für com.zhiliaoapp.musically nicht ermittelbar — Fallback auf sicheres pm clear (kein Uninstall)
+2026-02-17 01:22:49 [titan.engine.shifter] WARNING: FIX-28: APK-Pfad für com.ss.android.ugc.trill nicht ermittelbar — Fallback auf sicheres pm clear (kein Uninstall)
+2026-02-17 01:22:49 [titan.engine.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-17 01:22:50 [titan.engine.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-17 01:22:51 [titan.engine.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-17 01:22:55 [titan.engine.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-17 01:22:55 [titan.engine.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-17 01:22:55 [titan.engine.shifter] INFO: Deep Clean abgeschlossen: 30/34 Operationen erfolgreich (inkl. MediaStore, Compiler-Cache, ART-Profile, Settings)
+2026-02-17 01:22:55 [titan.flows.genesis] INFO: [3/11] Sterilize: OK (30/34 Operationen (GMS geschützt))
+2026-02-17 01:22:55 [titan.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-17 01:22:55 [titan.engine.identity] INFO: Identität generiert: name=Account 1 serial=VS6SZ02YPVQH imei1=355543…7685 carrier=O2-DE
+2026-02-17 01:22:55 [titan.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 2516...2547 (v5.0 — FINAL, kein Platzhalter)
+2026-02-17 01:22:55 [titan.flows.genesis] INFO: [4/11] Generate: OK (serial=VS6SZ02YPVQH)
+2026-02-17 01:22:55 [titan.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-17 01:22:55 [titan.db_ops] INFO: Auto-Profil erstellt: id=27, name=Account 1
+2026-02-17 01:22:55 [titan.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=27
+2026-02-17 01:22:55 [titan.flows.genesis] INFO: [5/11] Persist: OK (identity_id=33, profile_id=27)
+2026-02-17 01:22:55 [titan.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-17 01:22:55 [titan.engine.injector] INFO: Injecting identity: serial=VS6SZ02YPVQH imei1=355543…7685
+2026-02-17 01:22:55 [titan.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/titan_j__r5sil.titan_bridge → /data/local/tmp/.titan_bridge_staging
+2026-02-17 01:22:56 [titan.engine.injector] INFO: Bridge geschrieben: /data/adb/modules/titan_verifier/titan_identity
+2026-02-17 01:22:56 [titan.engine.injector] INFO: Backup: /sdcard/.titan_identity
+2026-02-17 01:22:57 [titan.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #33 auf 'active' gesetzt
+2026-02-17 01:22:59 [titan.engine.injector] INFO: Bridge verteilt an 6/10 Apps
+2026-02-17 01:22:59 [titan.engine.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → 346d5953-8549-4341-88d4-2d09b1cc9fe1
+2026-02-17 01:23:00 [titan.engine.injector] INFO: Injection komplett + verifiziert: VS6SZ02YPVQH
+2026-02-17 01:23:00 [titan.flows.genesis] INFO: [6/11] PIF: Übersprungen (v4.1 — von KSU PlayIntegrityFix verwaltet)
+2026-02-17 01:23:00 [titan.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-17 01:23:00 [titan.engine.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-17 01:23:00 [titan.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Kill-Switch entfernt (PIF=KSU, Nuke=SKIP))
+2026-02-17 01:23:00 [titan.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-17 01:23:00 [titan.adb] INFO: Reboot: mode=normal
+2026-02-17 01:23:06 [titan.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-17 01:23:06 [titan.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-17 01:23:06 [titan.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-17 01:23:06 [titan.adb] INFO: ADB Daemon gestoppt
+2026-02-17 01:23:10 [titan.adb] INFO: ADB Daemon gestartet
+2026-02-17 01:23:11 [titan.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-17 01:23:21 [titan.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-17 01:23:21 [titan.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-17 01:23:21 [titan.adb] INFO: ADB Daemon gestoppt
+2026-02-17 01:23:21 [titan.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-17 01:23:25 [titan.adb] INFO: ADB Daemon gestartet
+2026-02-17 01:23:25 [titan.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-17 01:23:25 [titan.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-17 01:23:25 [titan.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-17 01:23:26 [titan.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-17 01:23:27 [titan.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-17 01:23:34 [titan.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-17 01:23:36 [titan.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-17 01:23:36 [titan.flows.genesis] INFO: [7/11] Warte auf Boot (unbegrenzt, pollt alle 3s)...
+2026-02-17 01:23:36 [titan.adb] INFO: Warte auf Gerät (unbegrenzt, pollt alle 3s)...
+2026-02-17 01:23:36 [titan.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-17 01:23:36 [titan.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell getprop ro.serialno
+2026-02-17 01:23:36 [titan.adb] INFO: ADB Erfolg nach 2 Versuchen: adb shell getprop ro.serialno
+2026-02-17 01:23:45 [titan.adb] INFO: Gerät gebootet nach 9.0s
+2026-02-17 01:23:45 [titan.flows.genesis] INFO: [7/11] Boot erkannt — warte 5s bevor Popup-Hammer...
+2026-02-17 01:23:50 [titan.flows.genesis] INFO: [7/11] Popup Hammer: Fehler-Dialoge unterdrücken...
+2026-02-17 01:23:58 [titan.flows.genesis] INFO: [7/11] Popup Hammer abgeschlossen — Unlock starten...
+2026-02-17 01:24:00 [titan.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-17 01:24:00 [titan.adb.device] INFO: System-Dialoge unterdrücken (Post-Boot Hardening)...
+2026-02-17 01:24:01 [titan.adb.device] INFO:   [OK] hide_error_dialogs
+2026-02-17 01:24:01 [titan.adb.device] INFO:   [OK] device_provisioned
+2026-02-17 01:24:01 [titan.adb.device] INFO:   [OK] user_setup_complete
+2026-02-17 01:24:01 [titan.adb.device] INFO: System-Dialog-Suppression: 5/5 Maßnahmen erfolgreich
+2026-02-17 01:24:01 [titan.flows.genesis] INFO: [7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...
+2026-02-17 01:24:01 [titan.flows.genesis] INFO: [7/11] Bridge [primär]: OK (serial=VS6SZ02YPVQH)
+2026-02-17 01:24:01 [titan.flows.genesis] INFO: [7/11] Bridge [sdcard]: OK (serial=VS6SZ02YPVQH)
+2026-02-17 01:24:01 [titan.flows.genesis] INFO: [7/11] Bridge [app]: OK (serial=VS6SZ02YPVQH)
+2026-02-17 01:24:01 [titan.flows.genesis] INFO: [7/11] Bridge-Verifikation: Primärpfad OK
+2026-02-17 01:24:01 [titan.flows.genesis] INFO: [7/11] Hard Reset: OK (Boot + Popup-Hammer + Unlock in 61.2s)
+2026-02-17 01:24:01 [titan.flows.genesis] INFO: [8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS...
+2026-02-17 01:24:21 [titan.flows.genesis] INFO: [8/11] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-17 01:24:21 [titan.flows.genesis] INFO: [8/11] Warte 15s auf neue Mobilfunk-Verbindung...
+2026-02-17 01:24:37 [titan.engine.network] INFO: Öffentliche IP: 176.6.77.147 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-17 01:24:37 [titan.flows.genesis] INFO: [8/11] Network Init: Neue IP = 176.6.77.147 (via api.ipify.org)
+2026-02-17 01:24:37 [titan.flows.genesis] INFO: [9/11] GMS Ready: Konnektivitäts-Check (v5.2 — vereinfacht)...
+2026-02-17 01:24:37 [titan.flows.genesis] INFO: [9/11] Network: IP bereits bestätigt (176.6.77.147)
+2026-02-17 01:24:37 [titan.flows.genesis] INFO: [9/11] GSF-ID: Generierte ID beibehalten (v5.0 — KEIN Sync mit GMS). Bridge-GSF-ID: 2516...2547
+2026-02-17 01:24:37 [titan.flows.genesis] INFO: [9/11] GMS Ready: OK (Connectivity: OK | GSF-ID: generiert beibehalten (v5.2))
+2026-02-17 01:24:37 [titan.flows.genesis] INFO: [10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...
+2026-02-17 01:24:37 [titan.engine.auditor] INFO: Audit starten: Account 1 (serial=VS6SZ02YPVQH)
+2026-02-17 01:24:37 [titan.engine.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 18 Felder auf dem Gerät
+2026-02-17 01:24:37 [titan.engine.auditor] INFO:   [+] bridge_serial: pass — serial=VS6SZ02YPVQH, boot_serial=VS6SZ02YPVQH — korrekt
+2026-02-17 01:24:37 [titan.engine.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-17 01:24:37 [titan.engine.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: 94:eb:2c:3a:7a:63
+2026-02-17 01:24:37 [titan.engine.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-17 01:24:37 [titan.engine.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-17 01:24:37 [titan.engine.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-17 01:24:37 [titan.engine.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-17 01:24:37 [titan.engine.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-17 01:24:37 [titan.engine.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-17 01:24:37 [titan.engine.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-17 01:24:37 [titan.engine.auditor] INFO:   [+] bridge_build_fingerprint: pass — build_fingerprint korrekt
+2026-02-17 01:24:37 [titan.engine.auditor] INFO: Audit [Account 1]: 100% (12/12 passed)
+2026-02-17 01:24:37 [titan.flows.genesis] INFO: [10/11] Baseline-Trigger: Integrität bestätigt (100%)
+2026-02-17 01:24:37 [titan.flows.genesis] INFO: [10/11] Capture State: Golden Baseline sichern...
+2026-02-17 01:24:37 [titan.engine.shifter] INFO: ============================================================
+2026-02-17 01:24:37 [titan.engine.shifter] INFO:   GOLDEN BASELINE CAPTURE: Account 1
+2026-02-17 01:24:37 [titan.engine.shifter] INFO:   GSF-ID: 2516...2547
+2026-02-17 01:24:37 [titan.engine.shifter] INFO: ============================================================
+2026-02-17 01:24:37 [titan.engine.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-17 01:24:38 [titan.engine.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-17 01:24:38 [titan.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/Account 1/gms/gms_20260217_012438.tar.tmp
+2026-02-17 01:24:48 [titan.adb] INFO: Exec-Out fertig: 95464960 Bytes geschrieben
+2026-02-17 01:24:48 [titan.engine.shifter] INFO: GMS Backup (3 Pakete): OK (91.0 MB, Versuch 1/3)
+2026-02-17 01:24:48 [titan.engine.shifter] INFO: GMS tar: gms_20260217_012438.tar (91.0 MB) — 3 Pakete
+2026-02-17 01:24:48 [titan.engine.shifter] INFO: Golden Baseline GMS: OK (gms_20260217_012438.tar)
+2026-02-17 01:24:48 [titan.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/Account 1/accounts/accounts_20260217_012448.tar.tmp
+2026-02-17 01:24:48 [titan.adb] INFO: Exec-Out fertig: 230912 Bytes geschrieben
+2026-02-17 01:24:48 [titan.engine.shifter] INFO: Account-DBs (1 Dateien): OK (0.2 MB, Versuch 1/3)
+2026-02-17 01:24:48 [titan.engine.shifter] INFO: Account-DBs tar: accounts_20260217_012448.tar (230912 Bytes, 1 Dateien)
+2026-02-17 01:24:48 [titan.engine.shifter] INFO: Golden Baseline Accounts: OK (accounts_20260217_012448.tar)
+2026-02-17 01:24:48 [titan.engine.shifter] INFO: Golden Baseline: 2/2 Komponenten gesichert
+2026-02-17 01:24:48 [titan.flows.genesis] INFO: [10/11] Capture State: Golden Baseline komplett
+2026-02-17 01:24:48 [titan.flows.genesis] INFO: [11/11] Audit: Device prüfen...
+2026-02-17 01:24:48 [titan.engine.auditor] INFO: Audit starten: Account 1 (serial=VS6SZ02YPVQH)
+2026-02-17 01:24:49 [titan.engine.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 18 Felder auf dem Gerät
+2026-02-17 01:24:49 [titan.engine.auditor] INFO:   [+] bridge_serial: pass — serial=VS6SZ02YPVQH, boot_serial=VS6SZ02YPVQH — korrekt
+2026-02-17 01:24:49 [titan.engine.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-17 01:24:49 [titan.engine.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: 94:eb:2c:3a:7a:63
+2026-02-17 01:24:49 [titan.engine.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-17 01:24:49 [titan.engine.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-17 01:24:49 [titan.engine.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-17 01:24:49 [titan.engine.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-17 01:24:49 [titan.engine.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-17 01:24:49 [titan.engine.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-17 01:24:49 [titan.engine.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-17 01:24:49 [titan.engine.auditor] INFO:   [+] bridge_build_fingerprint: pass — build_fingerprint korrekt
+2026-02-17 01:24:49 [titan.engine.auditor] INFO: Audit [Account 1]: 100% (12/12 passed)
+2026-02-17 01:24:49 [titan.flows.genesis] INFO: [11/11] Audit: PASS (100%)
+2026-02-17 01:24:49 [titan.flows.genesis] INFO: ============================================================
+2026-02-17 01:24:49 [titan.flows.genesis] INFO:   GENESIS ERFOLG: Account 1 (120177 ms)
+2026-02-17 01:24:49 [titan.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
+2026-02-17 01:24:49 [titan.flows.genesis] INFO: ============================================================

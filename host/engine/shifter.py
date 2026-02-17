@@ -679,9 +679,12 @@ class TitanShifter:
 
         if app_tar and app_tar.exists() and app_tar.stat().st_size > 0:
             try:
-                # Alte App-Daten löschen
+                # FIX-29: Alte App-Daten KOMPLETT löschen (inkl. Hidden Files)
                 await self._adb.shell(
-                    f"rm -rf {self._data_path}/*", root=True,
+                    f"rm -rf {self._data_path}", root=True,
+                )
+                await self._adb.shell(
+                    f"mkdir -p {self._data_path}", root=True,
                 )
 
                 # tar-Stream Restore (tar wurde relativ zu / erstellt)
@@ -726,9 +729,12 @@ class TitanShifter:
                         f"mkdir -p {sandbox_path}", root=True,
                     )
 
-                # Alte Sandbox löschen
+                # FIX-29: Alte Sandbox KOMPLETT löschen (inkl. Hidden Files)
                 await self._adb.shell(
-                    f"rm -rf {sandbox_path}/*", root=True,
+                    f"rm -rf {sandbox_path}", root=True,
+                )
+                await self._adb.shell(
+                    f"mkdir -p {sandbox_path}", root=True,
                 )
 
                 # Sandbox wurde mit -C <sandbox_path> erstellt → Restore dorthin
@@ -897,14 +903,20 @@ class TitanShifter:
         # 1. Force-stop App
         await self._force_stop()
 
-        # 2. Bestehende Daten löschen (aber Ordner behalten für UID)
+        # 2. Bestehende Daten KOMPLETT löschen (FIX-29: inkl. Hidden Files)
         # Erst UID ermitteln BEVOR wir löschen (falls App installiert)
         uid = await self._get_app_uid()
 
+        # FIX-29: rm -rf <path>/* verpasst dot-files (.device_id, .tt_session etc.)
+        # Stattdessen: Verzeichnis komplett löschen + leer neu erstellen.
+        # tar-Restore erstellt die Struktur sowieso neu.
         await self._adb.shell(
-            f"rm -rf {self._data_path}/*", root=True,
+            f"rm -rf {self._data_path}", root=True,
         )
-        logger.debug("Alte Daten gelöscht: %s/*", self._data_path)
+        await self._adb.shell(
+            f"mkdir -p {self._data_path}", root=True,
+        )
+        logger.debug("FIX-29: Alte Daten komplett gelöscht: %s (inkl. Hidden Files)", self._data_path)
 
         # 3. tar-Stream auf das Gerät
         # tar wurde relativ zu / erstellt (data/data/pkg/...)
@@ -1017,6 +1029,56 @@ class TitanShifter:
         logger.info("Magic Permission Fix angewendet (UID %s)", uid)
 
     # =========================================================================
+    # FIX-28: APK-Pfad + App-Verifikation Helpers
+    # =========================================================================
+
+    async def _get_apk_path(self, pkg: str) -> Optional[str]:
+        """
+        Ermittelt den APK-Pfad eines Pakets auf dem Gerät.
+
+        FIX-28: Wird VOR pm uninstall aufgerufen, damit bei Fehlschlag
+        von pm install-existing die App manuell reinstalliert werden kann.
+
+        Args:
+            pkg: Package-Name (z.B. "com.zhiliaoapp.musically")
+
+        Returns:
+            APK-Pfad als String oder None wenn nicht ermittelbar
+        """
+        try:
+            result = await self._adb.shell(
+                f"pm path {pkg}", root=True, timeout=10,
+            )
+            if result.success and "package:" in result.stdout:
+                apk_path = result.stdout.strip().split("package:")[-1].strip()
+                if apk_path and apk_path.endswith(".apk"):
+                    return apk_path
+        except (ADBError, ADBTimeoutError):
+            pass
+        return None
+
+    async def _verify_app_installed(self, pkg: str) -> bool:
+        """
+        Prüft ob ein Paket für User 0 installiert ist.
+
+        FIX-28: Wird NACH pm install-existing/pm install aufgerufen,
+        um sicherzustellen dass die App nicht verschwunden ist.
+
+        Args:
+            pkg: Package-Name
+
+        Returns:
+            True wenn App installiert und für User 0 verfügbar
+        """
+        try:
+            result = await self._adb.shell(
+                f"pm path {pkg}", root=True, timeout=10,
+            )
+            return result.success and "package:" in result.stdout
+        except (ADBError, ADBTimeoutError):
+            return False
+
+    # =========================================================================
     # Deep Clean: Vollständige Sterilisierung
     # =========================================================================
 
@@ -1055,49 +1117,104 @@ class TitanShifter:
         results: dict[str, bool] = {}
 
         # =====================================================================
-        # 1. FIX-13: pm uninstall --user 0 + pm install-existing (TikTok)
-        #    Erzwingt echten "First Launch"-State — App verhält sich wie frisch
-        #    installiert. pm clear behält Permissions, Package-State und
-        #    first-run Flags, was Anti-Fraud-Systemen auffällt.
+        # 1. FIX-28: Sichere App-Reinstallation (überarbeitet FIX-13)
+        #    Erzwingt echten "First Launch"-State via pm uninstall + reinstall.
+        #    KRITISCH: APK-Pfad wird VOR dem Uninstall gesichert, damit die
+        #    App bei Fehlschlag von pm install-existing manuell reinstalliert
+        #    werden kann. Verifikation nach jedem Schritt verhindert
+        #    stillschweigenden App-Verlust.
         # =====================================================================
         for pkg in TIKTOK_PACKAGES:
             try:
-                # Schritt 1: Deinstallation für User 0 (App bleibt im System-Cache)
+                # --- Schritt 0: APK-Pfad SICHERN bevor wir irgendetwas deinstallieren ---
+                saved_apk_path = await self._get_apk_path(pkg)
+                if not saved_apk_path:
+                    # APK-Pfad nicht ermittelbar → kein Uninstall riskieren, nur pm clear
+                    logger.warning(
+                        "FIX-28: APK-Pfad für %s nicht ermittelbar — "
+                        "Fallback auf sicheres pm clear (kein Uninstall)",
+                        pkg,
+                    )
+                    clear_result = await self._adb.shell(f"pm clear {pkg}", root=True, timeout=15)
+                    results[f"fresh_install_{pkg}"] = "Success" in clear_result.stdout
+                    if results[f"fresh_install_{pkg}"]:
+                        logger.info("pm clear %s: OK (sicherer Fallback — kein APK-Pfad)", pkg)
+                    continue
+
+                logger.info("FIX-28: APK-Pfad gesichert: %s → %s", pkg, saved_apk_path)
+
+                # --- Schritt 1: Deinstallation für User 0 ---
                 uninstall_result = await self._adb.shell(
                     f"pm uninstall --user 0 {pkg}", root=True, timeout=15,
                 )
                 uninstall_ok = "Success" in uninstall_result.stdout
 
-                if uninstall_ok:
-                    logger.info("pm uninstall --user 0 %s: OK", pkg)
-
-                    # Schritt 2: Re-Installation aus System-Cache
-                    install_result = await self._adb.shell(
-                        f"pm install-existing --user 0 {pkg}", root=True, timeout=15,
-                    )
-                    install_ok = "installed" in install_result.stdout.lower() or install_result.success
-
-                    if install_ok:
-                        logger.info("pm install-existing %s: OK — Fresh-Install State", pkg)
-                        results[f"fresh_install_{pkg}"] = True
-                    else:
-                        # Fallback: Versuche normales pm clear
-                        logger.warning(
-                            "pm install-existing %s fehlgeschlagen (%s) — Fallback auf pm clear",
-                            pkg, install_result.output[:100],
-                        )
-                        clear_result = await self._adb.shell(f"pm clear {pkg}", root=True)
-                        results[f"fresh_install_{pkg}"] = "Success" in clear_result.stdout
-                else:
-                    # App nicht installiert oder anderer Fehler → pm clear als Fallback
+                if not uninstall_ok:
+                    # Uninstall fehlgeschlagen (App nicht installiert?) → pm clear
                     logger.debug(
-                        "pm uninstall %s: %s — versuche pm clear",
+                        "pm uninstall %s: %s — Fallback auf pm clear",
                         pkg, uninstall_result.output[:100],
                     )
-                    clear_result = await self._adb.shell(f"pm clear {pkg}", root=True)
+                    clear_result = await self._adb.shell(f"pm clear {pkg}", root=True, timeout=15)
                     results[f"fresh_install_{pkg}"] = "Success" in clear_result.stdout
-                    if "Success" in clear_result.stdout:
-                        logger.info("pm clear %s: OK (Fallback)", pkg)
+                    if results[f"fresh_install_{pkg}"]:
+                        logger.info("pm clear %s: OK (Uninstall nicht möglich)", pkg)
+                    continue
+
+                logger.info("pm uninstall --user 0 %s: OK", pkg)
+
+                # --- Schritt 2: pm install-existing versuchen ---
+                install_ok = False
+                install_result = await self._adb.shell(
+                    f"pm install-existing --user 0 {pkg}", root=True, timeout=15,
+                )
+                install_ok = "installed" in install_result.stdout.lower() or install_result.success
+
+                # --- Schritt 3: VERIFIKATION — ist die App noch da? ---
+                if install_ok and await self._verify_app_installed(pkg):
+                    logger.info("pm install-existing %s: OK — Fresh-Install State ✓", pkg)
+                    results[f"fresh_install_{pkg}"] = True
+                    continue
+
+                # install-existing hat nicht geklappt oder Verifikation fehlgeschlagen
+                logger.warning(
+                    "FIX-28: pm install-existing %s fehlgeschlagen oder nicht verifiziert — "
+                    "Rettung via gespeichertem APK-Pfad: %s",
+                    pkg, saved_apk_path,
+                )
+
+                # --- Schritt 4: RETTUNG — APK manuell reinstallieren ---
+                rescue_result = await self._adb.shell(
+                    f"pm install -r --user 0 {saved_apk_path}", root=True, timeout=30,
+                )
+                if await self._verify_app_installed(pkg):
+                    logger.info(
+                        "FIX-28: App %s via APK-Pfad gerettet — Fresh-Install State ✓", pkg,
+                    )
+                    results[f"fresh_install_{pkg}"] = True
+                    continue
+
+                # --- Schritt 5: LETZTER FALLBACK — cmd package install-existing ---
+                logger.warning(
+                    "FIX-28: pm install fehlgeschlagen — letzter Versuch: cmd package install-existing %s",
+                    pkg,
+                )
+                cmd_result = await self._adb.shell(
+                    f"cmd package install-existing {pkg}", root=True, timeout=15,
+                )
+                if await self._verify_app_installed(pkg):
+                    logger.info("FIX-28: cmd package install-existing %s: OK ✓", pkg)
+                    results[f"fresh_install_{pkg}"] = True
+                    continue
+
+                # ALLE Versuche fehlgeschlagen — App ist weg!
+                logger.error(
+                    "FIX-28: KRITISCH — %s konnte nicht reinstalliert werden! "
+                    "APK-Pfad war: %s. App muss manuell installiert werden.",
+                    pkg, saved_apk_path,
+                )
+                results[f"fresh_install_{pkg}"] = False
+
             except ADBError as e:
                 results[f"fresh_install_{pkg}"] = False
                 logger.warning("TikTok Sterilisierung %s fehlgeschlagen: %s", pkg, e)
@@ -1473,6 +1590,250 @@ class TitanShifter:
         success_count = sum(1 for v in results.values() if v)
         logger.info("Tracking-Remnants Cleanup: %d/%d Operationen OK", success_count, len(results))
         return results
+
+    # =========================================================================
+    # FIX-29: Gründlicher State-Wipe für Switch Flow
+    # =========================================================================
+
+    async def prepare_switch_clean(self) -> dict[str, bool]:
+        """
+        FIX-29: Gründlicher State-Wipe vor einem Switch-Restore.
+
+        Bereinigt ALLE TikTok-Daten (App-Daten + Sandbox + Tracking + Caches),
+        damit der Restore in eine saubere Umgebung schreibt. Verhindert
+        Identity-Leakage durch Reste des alten Profils.
+
+        Unterschied zu deep_clean():
+          - KEIN pm uninstall (App muss installiert bleiben für den Restore)
+          - KEIN pm clear (würde Runtime-Permissions löschen — schlechte UX)
+          - Stattdessen: Komplettes Löschen des Datenverzeichnisses auf Filesystem-Ebene
+          - Inkl. Hidden Files (dot-files) die rm -rf <path>/* verpasst
+          - Inkl. ART Profiles, Compiler Cache, Settings-ContentProvider
+
+        Unterschied zu clean_tracking_remnants():
+          - Löscht auch /data/data/<pkg>/ (nicht nur /sdcard/)
+          - Löscht auch Caches, ART Profiles, Compiler Cache
+          - Bereinigt Settings-ContentProvider
+          - Deutlich gründlicher (~5-8s statt ~2-3s)
+
+        Returns:
+            Dict mit Ergebnis pro Operation
+        """
+        logger.info("FIX-29: Switch-Clean — Gründlicher State-Wipe vor Restore...")
+        results: dict[str, bool] = {}
+
+        # --- 1. TikTok App-Daten komplett löschen (inkl. Hidden Files) ---
+        for pkg in TIKTOK_PACKAGES:
+            data_path = f"/data/data/{pkg}"
+            try:
+                # Komplettes Verzeichnis löschen (nicht nur /*!)
+                await self._adb.shell(f"rm -rf {data_path}", root=True, timeout=10)
+                # Leer neu erstellen (tar-Restore braucht den Parent)
+                await self._adb.shell(f"mkdir -p {data_path}", root=True, timeout=5)
+                results[f"wipe_{pkg}"] = True
+                logger.info("FIX-29: %s — komplett gelöscht + neu erstellt", data_path)
+            except (ADBError, ADBTimeoutError) as e:
+                results[f"wipe_{pkg}"] = False
+                logger.warning("FIX-29: Wipe %s fehlgeschlagen: %s", data_path, e)
+
+        # --- 2. TikTok Sandbox-Verzeichnisse komplett löschen ---
+        for sd_dir in TIKTOK_SDCARD_DIRS:
+            try:
+                await self._adb.shell(f"rm -rf {sd_dir}", root=True, timeout=10)
+                results[f"wipe_sd_{sd_dir}"] = True
+            except (ADBError, ADBTimeoutError):
+                results[f"wipe_sd_{sd_dir}"] = False
+
+        # --- 3. Tracking-Dateien auf /sdcard/ (wie clean_tracking_remnants) ---
+        all_globs = TIKTOK_TRACKING_GLOBS + [p for p in BYTEDANCE_DEEP_PATTERNS]
+        for pattern in all_globs:
+            try:
+                await self._adb.shell(f"rm -rf {pattern}", root=True, timeout=5)
+                results[f"rm_{pattern}"] = True
+            except (ADBError, ADBTimeoutError):
+                results[f"rm_{pattern}"] = False
+
+        # --- 4. Dynamische find-basierte Suche auf /sdcard ---
+        for find_pattern in BYTEDANCE_FIND_PATTERNS:
+            try:
+                result = await self._adb.shell(
+                    f"find /sdcard {find_pattern} 2>/dev/null",
+                    root=True, timeout=15,
+                )
+                found_paths = [p.strip() for p in result.stdout.splitlines() if p.strip()]
+                for found in found_paths[:20]:
+                    try:
+                        await self._adb.shell(f"rm -rf '{found}'", root=True, timeout=5)
+                    except (ADBError, ADBTimeoutError):
+                        pass
+                results[f"find_{find_pattern}"] = True
+            except (ADBError, ADBTimeoutError):
+                results[f"find_{find_pattern}"] = False
+
+        # --- 5. ART Compiler Cache Reset ---
+        for pkg in TIKTOK_PACKAGES:
+            try:
+                await self._adb.shell(
+                    f"cmd package compile --reset {pkg} 2>/dev/null",
+                    root=True, timeout=15,
+                )
+                results[f"compiler_reset_{pkg}"] = True
+            except (ADBError, ADBTimeoutError):
+                results[f"compiler_reset_{pkg}"] = False
+
+        # --- 6. ART Runtime Profile Cleanup ---
+        for pkg in TIKTOK_PACKAGES:
+            profile_path = f"/data/misc/profiles/cur/0/{pkg}"
+            try:
+                await self._adb.shell(f"rm -rf {profile_path}", root=True, timeout=5)
+                results[f"art_profile_{pkg}"] = True
+            except (ADBError, ADBTimeoutError):
+                results[f"art_profile_{pkg}"] = False
+
+        # --- 7. Settings-ContentProvider bereinigen (FIX-14) ---
+        settings_patterns = [
+            "tiktok", "bytedance", "musically", "tt_", "ss_android",
+            "zhiliaoapp", "pangle", "tobid",
+        ]
+        for settings_ns in ["secure", "global"]:
+            try:
+                list_result = await self._adb.shell(
+                    f"settings list {settings_ns}", root=True, timeout=10,
+                )
+                if list_result.success:
+                    for line in list_result.output.splitlines():
+                        line_lower = line.lower()
+                        for pattern in settings_patterns:
+                            if pattern in line_lower:
+                                key = line.split("=", 1)[0].strip()
+                                if key:
+                                    try:
+                                        await self._adb.shell(
+                                            f"settings delete {settings_ns} {key}",
+                                            root=True, timeout=5,
+                                        )
+                                        results[f"settings_{settings_ns}_{key}"] = True
+                                    except (ADBError, ADBTimeoutError):
+                                        results[f"settings_{settings_ns}_{key}"] = False
+                                break
+            except (ADBError, ADBTimeoutError):
+                pass
+
+        success_count = sum(1 for v in results.values() if v)
+        logger.info(
+            "FIX-29: Switch-Clean abgeschlossen: %d/%d Operationen OK",
+            success_count, len(results),
+        )
+        return results
+
+    # =========================================================================
+    # FIX-30: Post-Restore Verifikation
+    # =========================================================================
+
+    async def verify_app_data_restored(self, pkg: str = TIKTOK_PRIMARY) -> dict:
+        """
+        FIX-30: Prüft ob App-Daten nach einem Restore tatsächlich vorhanden sind.
+
+        Verhindert Zombie-States wo die Bridge auf eine neue Identität zeigt,
+        aber die App-Daten leer oder fehlend sind.
+
+        Prüft:
+          1. Datenverzeichnis existiert
+          2. Mindestens shared_prefs/ ODER databases/ existiert
+          3. Verzeichnis ist nicht leer (> 0 Dateien)
+
+        Args:
+            pkg: Package-Name (Default: TikTok International)
+
+        Returns:
+            Dict mit:
+              "ok": bool — Gesamtergebnis
+              "dir_exists": bool — /data/data/<pkg>/ existiert
+              "has_prefs": bool — shared_prefs/ vorhanden
+              "has_databases": bool — databases/ vorhanden
+              "has_files": bool — files/ vorhanden
+              "file_count": int — Anzahl Einträge im Verzeichnis
+              "detail": str — Zusammenfassung
+        """
+        data_path = f"/data/data/{pkg}"
+        result = {
+            "ok": False,
+            "dir_exists": False,
+            "has_prefs": False,
+            "has_databases": False,
+            "has_files": False,
+            "file_count": 0,
+            "detail": "",
+        }
+
+        try:
+            # 1. Verzeichnis existiert?
+            dir_check = await self._adb.shell(
+                f"test -d {data_path}", root=True, timeout=5,
+            )
+            result["dir_exists"] = dir_check.success
+            if not dir_check.success:
+                result["detail"] = f"Verzeichnis {data_path} existiert nicht"
+                logger.warning("FIX-30: %s", result["detail"])
+                return result
+
+            # 2. Kritische Unterverzeichnisse prüfen
+            for subdir, key in [
+                ("shared_prefs", "has_prefs"),
+                ("databases", "has_databases"),
+                ("files", "has_files"),
+            ]:
+                try:
+                    sub_check = await self._adb.shell(
+                        f"test -d {data_path}/{subdir}", root=True, timeout=5,
+                    )
+                    result[key] = sub_check.success
+                except (ADBError, ADBTimeoutError):
+                    pass
+
+            # 3. Anzahl Einträge im Verzeichnis
+            try:
+                count_result = await self._adb.shell(
+                    f"ls -1 {data_path} 2>/dev/null | wc -l",
+                    root=True, timeout=5,
+                )
+                if count_result.success:
+                    count_str = count_result.output.strip()
+                    if count_str.isdigit():
+                        result["file_count"] = int(count_str)
+            except (ADBError, ADBTimeoutError):
+                pass
+
+            # Gesamtbewertung
+            has_content = result["has_prefs"] or result["has_databases"] or result["has_files"]
+            has_entries = result["file_count"] > 0
+
+            if has_content and has_entries:
+                result["ok"] = True
+                result["detail"] = (
+                    f"OK — {result['file_count']} Einträge "
+                    f"(prefs={'✓' if result['has_prefs'] else '✗'}, "
+                    f"db={'✓' if result['has_databases'] else '✗'}, "
+                    f"files={'✓' if result['has_files'] else '✗'})"
+                )
+            elif has_entries:
+                # Einträge da, aber keine bekannten Unterordner
+                result["ok"] = True
+                result["detail"] = (
+                    f"WARN — {result['file_count']} Einträge, "
+                    f"aber keine shared_prefs/databases/files erkannt"
+                )
+            else:
+                result["detail"] = (
+                    f"FAIL — Verzeichnis leer oder keine App-Daten "
+                    f"(count={result['file_count']})"
+                )
+
+        except (ADBError, ADBTimeoutError) as e:
+            result["detail"] = f"Verifikation fehlgeschlagen: {e}"
+            logger.warning("FIX-30: %s", result["detail"])
+
+        return result
 
     # =========================================================================
     # Full-State Backup: TikTok + GMS + Account-DBs

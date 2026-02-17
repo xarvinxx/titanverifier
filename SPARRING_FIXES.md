@@ -792,6 +792,100 @@ identity_id INTEGER NOT NULL REFERENCES identities(id) ON DELETE CASCADE
 
 ---
 
+## SPARRING BLOCK 9 — Flow-Robustheit (Genesis + Switch)
+
+### FIX-28: Genesis — Sichere App-Reinstallation (FIX-13 Fallback-Bug) ✅ IMPLEMENTIERT
+**Priorität**: KRITISCH
+**Problem**: FIX-13 (`pm uninstall --user 0` + `pm install-existing`) hat einen kritischen Bug in der Fallback-Kette:
+1. `pm uninstall --user 0 <pkg>` wird ausgeführt → App für User 0 entfernt
+2. `pm install-existing --user 0 <pkg>` schlägt fehl (Pixel 6 / Android 14 — TikTok ist kein System-Package, Cache nicht verfügbar)
+3. Fallback: `pm clear <pkg>` → tut **nichts**, weil die App bereits deinstalliert ist
+4. Ergebnis: TikTok ist nach dem Hard Reset in Step 7 **verschwunden**
+
+**Lösung**: APK-Pfad vor Uninstall sichern + mehrstufige Rettungskette:
+1. **Schritt 0**: `pm path <pkg>` → APK-Pfad sichern (z.B. `/data/app/~~abc/base.apk`)
+2. **Schritt 1**: `pm uninstall --user 0 <pkg>`
+3. **Schritt 2**: `pm install-existing --user 0 <pkg>` versuchen
+4. **Schritt 3**: `pm path <pkg>` → Verifikation ob App noch da ist
+5. **Schritt 4** (Rettung): `pm install -r --user 0 <gespeicherter_pfad>` wenn App weg
+6. **Schritt 5** (Letzter Fallback): `cmd package install-existing <pkg>`
+7. **Sicherer Modus**: Wenn APK-Pfad nicht ermittelbar → kein `pm uninstall`, nur `pm clear`
+
+**Neue Methoden in `shifter.py`**:
+- `_get_apk_path(pkg)` → Ermittelt APK-Pfad via `pm path`
+- `_verify_app_installed(pkg)` → Prüft ob App für User 0 verfügbar ist
+
+**Wo**: `host/engine/shifter.py` → `deep_clean()` Schritt 1 (komplett überarbeitet)
+
+---
+
+### FIX-29: Switch — Gründlicher State-Wipe vor Restore ✅ IMPLEMENTIERT
+**Priorität**: HOCH
+**Problem**: Zwei Schwachstellen im Switch Flow:
+
+**A) Kein Clean vor Restore:**
+Zwischen Safety Kill (Step 3) und Restore (Step 5/6) sitzen die alten App-Daten unangetastet. Der Mini-Clean (FIX-16) bereinigt nur `/sdcard/` Tracking-Dateien, nicht die App-Daten in `/data/data/`. Wenn der Restore nur teilweise überschreibt, leaken alte Profil-Daten durch.
+
+**B) Hidden-File-Bug in Restore-Methoden:**
+`restore()` und `restore_tiktok_dual()` verwenden `rm -rf <path>/*` — der `/*`-Glob verpasst **dot-files** (z.B. `.device_id`, `.tt_session`, `.tobid_v2`). TikTok legt bewusst versteckte Tracking-Dateien an, die so den Restore überleben.
+
+**Lösung**:
+
+**Teil 1 — Neue `prepare_switch_clean()` Methode** (ersetzt FIX-16 Mini-Clean):
+- Löscht `/data/data/<pkg>/` **komplett** (nicht nur `/*`) + neu erstellen
+- Löscht TikTok Sandbox-Verzeichnisse auf `/sdcard/`
+- Bereinigt alle Tracking-Globs + ByteDance Deep-Search Patterns
+- Löscht ART Compiler Cache + Runtime Profiles
+- Bereinigt Settings-ContentProvider (FIX-14 Werte)
+
+**Teil 2 — Hidden-File-Bug Fix in `restore()` + `restore_tiktok_dual()`:**
+```python
+# ALT (verpasst dot-files):
+rm -rf /data/data/<pkg>/*
+
+# NEU (löscht ALLES):
+rm -rf /data/data/<pkg>
+mkdir -p /data/data/<pkg>
+```
+
+**Teil 3 — Switch Flow Step 3 erweitert:**
+`clean_tracking_remnants()` (FIX-16) durch `prepare_switch_clean()` (FIX-29) ersetzt.
+
+**Wo**:
+- `host/engine/shifter.py` → Neue Methode `prepare_switch_clean()`, `restore()` rm-Fix, `restore_tiktok_dual()` rm-Fix
+- `host/flows/switch.py` → Step 3→4 Transition: `prepare_switch_clean()` statt `clean_tracking_remnants()`
+
+---
+
+### FIX-30: Switch — Post-Restore Verifikation + Zombie-Schutz ✅ IMPLEMENTIERT
+**Priorität**: HOCH
+**Problem**: Nach dem Restore gibt es keine Prüfung ob die App-Daten tatsächlich geschrieben wurden. Wenn der Restore stillschweigend fehlschlägt:
+- Bridge zeigt auf Identity B (neu)
+- App-Daten sind leer oder gehören zu Identity A (alt)
+- TikTok startet als "neue App" mit der falschen Identität → Detection
+
+**Lösung**:
+
+**Neue `verify_app_data_restored(pkg)` Methode in `shifter.py`:**
+Prüft drei Kriterien:
+1. `/data/data/<pkg>/` existiert
+2. Mindestens `shared_prefs/`, `databases/` oder `files/` existiert
+3. Verzeichnis hat > 0 Einträge (nicht leer)
+
+Gibt detailliertes Dict zurück: `{ok, dir_exists, has_prefs, has_databases, has_files, file_count, detail}`
+
+**Post-Restore Check im Switch Flow (zwischen Step 6 und 7):**
+- Wird nach TikTok Restore ausgeführt (nur bei Full-State oder profile_name Modus)
+- Bei Fehlschlag: **Zombie-Schutz** — `pm clear <pkg>` um inkonsistenten State zu verhindern
+- Step 6 wird nachträglich als FAILED markiert
+- Klares Error-Logging mit Verifikations-Details
+
+**Wo**:
+- `host/engine/shifter.py` → Neue Methode `verify_app_data_restored()`
+- `host/flows/switch.py` → Neuer Zwischenschritt 6→7: Post-Restore Verifikation
+
+---
+
 ## BEREITS GEFIXTE FINDINGS
 
 ### FIX-8: Genesis Flow meldet FEHLGESCHLAGEN bei SKIPPED Steps
@@ -844,16 +938,21 @@ identity_id INTEGER NOT NULL REFERENCES identities(id) ON DELETE CASCADE
 ### Phase 8: Vorbereitung Multi-App (NIEDRIG — erst wenn Insta/Snap aktiviert) ✅ ABGESCHLOSSEN
 25. **FIX-19** — Bridge-Distribution an Instagram + Snapchat ✅
 
+### Phase 9: Flow-Robustheit — Genesis + Switch (KRITISCH) ✅ ABGESCHLOSSEN
+26. **FIX-28** — Genesis: Sichere App-Reinstallation (APK-Pfad sichern + Verifikation) ✅
+27. **FIX-29** — Switch: Gründlicher State-Wipe vor Restore (Hidden-File-Bug + prepare_switch_clean) ✅
+28. **FIX-30** — Switch: Post-Restore Verifikation + Zombie-Schutz ✅
+
 ---
 
 ## DATEIEN DIE GEÄNDERT WERDEN
 
 | Datei | Fixes |
 |-------|-------|
-| `host/engine/shifter.py` | FIX-1, FIX-2, FIX-3, FIX-4, FIX-5, FIX-13, FIX-14, FIX-16 |
+| `host/engine/shifter.py` | FIX-1, FIX-2, FIX-3, FIX-4, FIX-5, FIX-13, FIX-14, FIX-16, FIX-28, FIX-29, FIX-30 |
 | `host/adb/client.py` | FIX-6, FIX-7 |
 | `host/flows/genesis.py` | FIX-9, FIX-10, FIX-11, FIX-18 |
-| `host/flows/switch.py` | FIX-11, FIX-15, FIX-16, FIX-18 |
+| `host/flows/switch.py` | FIX-11, FIX-15, FIX-16, FIX-18, FIX-29, FIX-30 |
 | `host/engine/auditor.py` | FIX-17 |
 | `host/engine/db_ops.py` | FIX-18 |
 | `host/database.py` | FIX-18 (Indizes aktivieren) |

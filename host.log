@@ -1609,3 +1609,147 @@ sqlite3.DatabaseError: database disk image is malformed
 2026-02-17 06:00:49 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54068)
 2026-02-17 06:00:49 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54142)
 2026-02-17 06:00:50 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54142)
+2026-02-17 06:20:10 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 06:20:10 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 06:20:10 [host.main] INFO: Command Center gestoppt.
+2026-02-17 06:20:10 [host.main] INFO: ============================================================
+2026-02-17 06:20:10 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 06:20:10 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:20:10 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 06:20:10 [host.main] INFO: ============================================================
+2026-02-17 06:20:10 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:20:10 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 06:20:10 [host.main] INFO: Command Center bereit.
+2026-02-17 06:20:15 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 06:20:15 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 06:20:15 [host.main] INFO: Command Center gestoppt.
+2026-02-17 06:20:15 [host.main] INFO: ============================================================
+2026-02-17 06:20:15 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 06:20:15 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:20:15 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 06:20:15 [host.main] INFO: ============================================================
+2026-02-17 06:20:15 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:20:15 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 06:20:15 [host.main] INFO: Command Center bereit.
+2026-02-17 06:20:29 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 06:20:29 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 06:20:29 [host.main] INFO: Command Center gestoppt.
+2026-02-17 06:20:29 [host.main] INFO: ============================================================
+2026-02-17 06:20:29 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 06:20:29 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:20:29 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 06:20:29 [host.main] INFO: ============================================================
+2026-02-17 06:20:29 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:20:29 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 06:20:29 [host.main] INFO: Command Center bereit.
+2026-02-17 06:20:39 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 06:20:39 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 06:20:39 [host.main] INFO: Command Center gestoppt.
+2026-02-17 06:20:39 [host.main] INFO: ============================================================
+2026-02-17 06:20:39 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 06:20:39 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:20:39 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 06:20:39 [host.main] INFO: ============================================================
+2026-02-17 06:20:39 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:20:39 [host.database] INFO: Schema-Migration: 2 neue Spalten hinzugefügt
+2026-02-17 06:20:39 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 06:20:39 [host.main] INFO: Command Center bereit.
+2026-02-17 06:20:52 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 06:20:52 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 06:20:52 [host.main] INFO: Command Center gestoppt.
+2026-02-17 06:20:53 [host.main] INFO: ============================================================
+2026-02-17 06:20:53 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 06:20:53 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:20:53 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 06:20:53 [host.main] INFO: ============================================================
+2026-02-17 06:20:53 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:20:53 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 06:20:53 [host.main] INFO: Command Center bereit.
+2026-02-17 06:21:15 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 06:21:15 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 06:21:15 [host.main] INFO: Command Center gestoppt.
+2026-02-17 06:21:16 [host.main] INFO: ============================================================
+2026-02-17 06:21:16 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 06:21:16 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:21:16 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 06:21:16 [host.main] INFO: ============================================================
+2026-02-17 06:21:16 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:21:16 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 06:21:16 [host.main] INFO: Command Center bereit.
+2026-02-17 06:21:51 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 06:21:51 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 06:21:51 [host.main] INFO: Command Center gestoppt.
+2026-02-17 06:21:51 [host.main] INFO: ============================================================
+2026-02-17 06:21:51 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 06:21:51 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:21:51 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 06:21:51 [host.main] INFO: ============================================================
+2026-02-17 06:21:51 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:21:51 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 06:21:51 [host.main] INFO: Command Center bereit.
+2026-02-17 06:22:04 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 06:22:04 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 06:22:04 [host.main] INFO: Command Center gestoppt.
+2026-02-17 06:22:04 [host.main] INFO: ============================================================
+2026-02-17 06:22:04 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 06:22:04 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:22:04 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 06:22:04 [host.main] INFO: ============================================================
+2026-02-17 06:22:04 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:22:04 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 06:22:04 [host.main] INFO: Command Center bereit.
+2026-02-17 06:22:23 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 06:22:23 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 06:22:23 [host.main] INFO: Command Center gestoppt.
+2026-02-17 06:22:23 [host.main] INFO: ============================================================
+2026-02-17 06:22:23 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 06:22:23 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:22:23 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 06:22:23 [host.main] INFO: ============================================================
+2026-02-17 06:22:23 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:22:23 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 06:22:23 [host.main] INFO: Command Center bereit.
+2026-02-17 06:23:33 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 06:23:33 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 06:23:33 [host.main] INFO: Command Center gestoppt.
+2026-02-17 06:23:34 [host.main] INFO: ============================================================
+2026-02-17 06:23:34 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 06:23:34 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:23:34 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 06:23:34 [host.main] INFO: ============================================================
+2026-02-17 06:23:34 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:23:34 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 06:23:34 [host.main] INFO: Command Center bereit.
+2026-02-17 06:24:00 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 06:24:00 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 06:24:00 [host.main] INFO: Command Center gestoppt.
+2026-02-17 06:24:00 [host.main] INFO: ============================================================
+2026-02-17 06:24:00 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 06:24:00 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:24:00 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 06:24:00 [host.main] INFO: ============================================================
+2026-02-17 06:24:00 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:24:00 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 06:24:00 [host.main] INFO: Command Center bereit.
+2026-02-17 06:24:21 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 06:24:21 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 06:24:21 [host.main] INFO: Command Center gestoppt.
+2026-02-17 06:24:21 [host.main] INFO: ============================================================
+2026-02-17 06:24:21 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 06:24:21 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:24:21 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 06:24:21 [host.main] INFO: ============================================================
+2026-02-17 06:24:21 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:24:21 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 06:24:21 [host.main] INFO: Command Center bereit.
+2026-02-17 06:25:05 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 06:25:05 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 06:25:05 [host.main] INFO: Command Center gestoppt.
+2026-02-17 06:25:06 [host.main] INFO: ============================================================
+2026-02-17 06:25:06 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 06:25:06 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:25:06 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 06:25:06 [host.main] INFO: ============================================================
+2026-02-17 06:25:06 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 06:25:06 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 06:25:06 [host.main] INFO: Command Center bereit.

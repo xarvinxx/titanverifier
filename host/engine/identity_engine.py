@@ -142,10 +142,12 @@ class IdentityGenerator:
             notes=notes,
             # Bridge-Felder durchreichen
             **bridge.model_dump(),
-            # Build-Fingerprint
+            # Build-Fingerprint (FIX-30: pro Identität variabel → Bridge → Zygisk)
             build_id=build["build_id"],
             build_fingerprint=build["fingerprint"],
             security_patch=build["security_patch"],
+            build_incremental=build["incremental"],
+            build_description=build["description"],
             # Timestamps
             created_at=now,
             updated_at=None,

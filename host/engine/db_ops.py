@@ -584,6 +584,7 @@ _IDENTITY_SELECT_COLS = """
     operator_name, sim_operator, sim_operator_name, voicemail_number,
     wifi_mac, gsf_id, widevine_id, imsi, sim_serial,
     build_id, build_fingerprint, security_patch,
+    build_incremental, build_description,
     status, created_at, last_used_at,
     last_public_ip, last_ip_service, last_ip_at,
     last_audit_score, last_audit_at, total_audits, usage_count

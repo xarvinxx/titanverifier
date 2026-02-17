@@ -768,6 +768,24 @@ class AppShifter:
             except Exception as e:
                 logger.warning("TikTok Sanitize fehlgeschlagen (nicht kritisch): %s", e)
 
+        # 4c. FIX-30: Aggressives Deep-Clean (MMKV, DBs, WebView, Cache)
+        # MUSS nach shared_prefs Sanitize laufen, da _deep_clean das
+        # gesamte databases/ und files/mmkv/ löscht. shared_prefs/ bleibt.
+        if results["app_data"]:
+            for clean_pkg in TIKTOK_PACKAGES:
+                try:
+                    deep_results = await self._deep_clean_tiktok_storage(clean_pkg)
+                    deep_ok = sum(1 for v in deep_results.values() if v)
+                    logger.info(
+                        "FIX-30 DeepClean %s: %d Storage-Bereiche bereinigt",
+                        clean_pkg.split(".")[-1], deep_ok,
+                    )
+                except Exception as e:
+                    logger.warning(
+                        "FIX-30 DeepClean %s fehlgeschlagen: %s",
+                        clean_pkg, e,
+                    )
+
         # 5. PERMISSION-SYNC (KRITISCH!)
         if results["app_data"] and uid:
             await self._apply_magic_permissions(uid)
@@ -2677,6 +2695,93 @@ class AppShifter:
         else:
             logger.debug("[DroidGuard] Keine Einträge zum Löschen gefunden")
         return deleted > 0
+
+    # =========================================================================
+    # FIX-30: Deep-Clean TikTok Storage (MMKV, DBs, WebView, no_backup)
+    # =========================================================================
+
+    async def _deep_clean_tiktok_storage(
+        self, pkg: str = TIKTOK_PRIMARY,
+    ) -> dict[str, bool]:
+        """
+        Radikale Bereinigung des TikTok-Datenverzeichnisses nach Restore.
+
+        TikTok speichert Device-Fingerprints NICHT nur in shared_prefs (XML),
+        sondern auch in:
+          - files/mmkv/           → Tencent MMKV (binärer Key-Value Store)
+          - databases/            → SQLite DBs mit install_id, device_id etc.
+          - app_webview/          → WebView LocalStorage & Cookies
+          - no_backup/            → Nicht-gesicherte Tracking-Dateien
+          - files/tracker/        → ByteDance Analytics Tracker
+          - files/cachemgr/       → Cache Manager mit Fingerprints
+          - cache/                → HTTP & Image Cache (kann Tokens enthalten)
+
+        NUR shared_prefs/ überlebt (bereinigt), um den Login-Token zu halten.
+        Alles andere wird gelöscht, damit TikTok beim nächsten Start
+        frische IDs generiert, die zur NEUEN Hardware-Identität passen.
+
+        MUSS NACH dem Restore und NACH _sanitize_shared_prefs() aufgerufen
+        werden, aber VOR dem Permission-Fix (_apply_magic_permissions).
+
+        Args:
+            pkg: TikTok Package Name
+
+        Returns:
+            Dict mit Ergebnis pro gelöschtem Pfad
+        """
+        data_path = f"/data/data/{pkg}"
+        results: dict[str, bool] = {}
+
+        # Verzeichnisse die RADIKAL gelöscht werden
+        dangerous_dirs = [
+            "files/mmkv",           # Tencent MMKV — binäre install_id, device_id
+            "databases",            # SQLite DBs mit gecachten IDs
+            "app_webview",          # WebView LocalStorage, Cookies, IndexedDB
+            "no_backup",            # Tracking-Dateien die Android nicht sichert
+            "files/tracker",        # ByteDance Analytics SDK
+            "files/cachemgr",       # Cache Manager mit Fingerprints
+            "cache",                # HTTP/Image Cache (kann Auth-Tokens leaken)
+            "code_cache",           # DEX/OAT Cache (verrät alte Package-Version)
+            "files/recently_attached_image", # Medien-Metadaten
+        ]
+
+        for dir_name in dangerous_dirs:
+            full_path = f"{data_path}/{dir_name}"
+            try:
+                result = await self._adb.shell(
+                    f"rm -rf {full_path}", root=True, timeout=5,
+                )
+                results[dir_name] = result.success
+                if result.success:
+                    logger.debug("[DeepClean] Gelöscht: %s", full_path)
+            except (ADBError, ADBTimeoutError):
+                results[dir_name] = False
+
+        # Einzelne Tracking-Dateien im files/ Ordner
+        dangerous_files = [
+            "files/.tiktok_device_id",
+            "files/.apollo_device_id",
+            "files/device_id",
+            "files/ies_sdk_iid",
+        ]
+        for file_name in dangerous_files:
+            full_path = f"{data_path}/{file_name}"
+            try:
+                result = await self._adb.shell(
+                    f"rm -f {full_path}", root=True, timeout=3,
+                )
+                results[file_name] = result.success
+            except (ADBError, ADBTimeoutError):
+                results[file_name] = False
+
+        deleted = sum(1 for v in results.values() if v)
+        total = len(results)
+        logger.info(
+            "[FIX-30 DeepClean] %s: %d/%d Tracking-Speicher gelöscht "
+            "(MMKV, DBs, WebView, Cache — shared_prefs bleibt erhalten)",
+            pkg, deleted, total,
+        )
+        return results
 
     # =========================================================================
     # TikTok Shared-Prefs Sanitizing: Instance-IDs entfernen

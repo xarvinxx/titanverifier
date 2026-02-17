@@ -624,16 +624,36 @@ async def adb_reconnect():
     # ── Phase 6: Auf Gerät warten ──
     logger.info("USB-Cycle: Phase 6 — wait-for-device (max 15s)...")
     rc, _ = await _run_adb("wait-for-device", timeout=15)
-    if rc != 0:
-        logger.warning("USB-Cycle: wait-for-device Timeout")
-        return {
-            "status": "failed",
-            "message": "USB-Cycle: Kein Gerät gefunden nach 15s. Kabel prüfen!",
-        }
 
     # ── Phase 7: Verbindung verifizieren ──
     await asyncio.sleep(1)
     adb = ADBClient()
+
+    if rc != 0 or not await adb.is_connected():
+        # USB hat nicht geklappt — versuche wadbd Wireless Fallback
+        logger.warning("USB-Cycle: Kein USB-Gerät — versuche wadbd Wireless Fallback...")
+        try:
+            wadbd = await adb.check_wadbd_available()
+            if wadbd["available"]:
+                logger.info("USB-Cycle: wadbd gefunden: %s", wadbd["detail"])
+                connected = await adb.connect_wireless(wadbd["ip"], wadbd["port"])
+                if connected:
+                    result = await adb.shell("getprop ro.serialno", timeout=5)
+                    serial = result.output.strip() if result.success else "?"
+                    return {
+                        "status": "connected",
+                        "serial": serial,
+                        "connection": "wireless",
+                        "message": f"Wireless ADB verbunden (wadbd): {serial} @ {wadbd['ip']}:{wadbd['port']}",
+                    }
+        except Exception as e:
+            logger.debug("wadbd Fallback fehlgeschlagen: %s", e)
+
+        return {
+            "status": "failed",
+            "message": "USB-Cycle: Kein Gerät gefunden (USB + Wireless). Kabel prüfen!",
+        }
+
     try:
         result = await adb.shell("getprop ro.serialno", timeout=5)
         serial = result.output.strip() if result.success else "?"
@@ -642,6 +662,7 @@ async def adb_reconnect():
         return {
             "status": "connected",
             "serial": serial,
+            "connection": "usb",
             "message": f"USB-Reconnect erfolgreich! Gerät: {serial}",
         }
     except Exception as e:

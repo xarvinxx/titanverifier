@@ -745,6 +745,110 @@ class ADBClient:
         except (ADBError, ADBTimeoutError):
             return False
 
+    async def check_wadbd_available(self) -> dict:
+        """
+        Prüft ob ADB over WiFi via wadbd (Magisk-Modul) verfügbar ist.
+
+        Wadbd ermöglicht drahtlose ADB-Verbindung als Fallback wenn
+        USB-Kabel getrennt wird. Prüft:
+          1. Ob das wadbd-Modul installiert ist
+          2. Ob der adbd-Daemon auf TCP lauscht
+          3. Die aktuelle WiFi-IP des Geräts
+
+        Returns:
+            {"available": bool, "ip": str, "port": int, "detail": str}
+        """
+        result = {
+            "available": False,
+            "ip": "",
+            "port": 5555,
+            "detail": "",
+        }
+
+        try:
+            # 1. Prüfe ob wadbd-Modul installiert ist
+            mod_check = await self.shell(
+                "test -d /data/adb/modules/wadbd && echo OK",
+                root=True, timeout=5,
+            )
+            has_module = mod_check.success and "OK" in mod_check.output
+
+            # 2. Prüfe ob TCP-Port aktiv ist (adbd lauscht)
+            port_check = await self.shell(
+                "getprop service.adb.tcp.port", timeout=5,
+            )
+            tcp_port = 0
+            if port_check.success and port_check.output.strip().isdigit():
+                tcp_port = int(port_check.output.strip())
+
+            # 3. WiFi-IP ermitteln
+            ip_check = await self.shell(
+                "ip -4 addr show wlan0 2>/dev/null"
+                " | grep -oP '(?<=inet )\\d+\\.\\d+\\.\\d+\\.\\d+'",
+                timeout=5,
+            )
+            wifi_ip = ""
+            if ip_check.success and ip_check.output.strip():
+                wifi_ip = ip_check.output.strip().split("\n")[0]
+
+            if has_module and tcp_port > 0 and wifi_ip:
+                result["available"] = True
+                result["ip"] = wifi_ip
+                result["port"] = tcp_port
+                result["detail"] = (
+                    f"wadbd aktiv: {wifi_ip}:{tcp_port}"
+                )
+                logger.info(
+                    "[wadbd] Wireless ADB verfügbar: %s:%d",
+                    wifi_ip, tcp_port,
+                )
+            elif has_module and wifi_ip:
+                result["ip"] = wifi_ip
+                result["detail"] = (
+                    f"wadbd installiert aber TCP-Port nicht aktiv "
+                    f"(port={tcp_port}, ip={wifi_ip})"
+                )
+                logger.debug("[wadbd] Modul vorhanden, TCP nicht aktiv")
+            elif has_module:
+                result["detail"] = "wadbd installiert, kein WiFi"
+            else:
+                result["detail"] = "wadbd-Modul nicht installiert"
+
+        except (ADBError, ADBTimeoutError) as e:
+            result["detail"] = f"Prüfung fehlgeschlagen: {e}"
+            logger.debug("[wadbd] Check fehlgeschlagen: %s", e)
+
+        return result
+
+    async def connect_wireless(self, ip: str, port: int = 5555) -> bool:
+        """
+        Verbindet sich via TCP/IP mit dem Gerät (wadbd Fallback).
+
+        Args:
+            ip:   WiFi-IP des Geräts
+            port: TCP-Port (Standard: 5555)
+
+        Returns:
+            True wenn Verbindung hergestellt
+        """
+        target = f"{ip}:{port}"
+        try:
+            result = await self._exec(
+                ["connect", target], timeout=10, retries=1,
+            )
+            connected = result.success and "connected" in result.stdout.lower()
+            if connected:
+                logger.info("[wadbd] Wireless ADB verbunden: %s", target)
+            else:
+                logger.warning(
+                    "[wadbd] Verbindung fehlgeschlagen: %s — %s",
+                    target, result.stdout,
+                )
+            return connected
+        except (ADBError, ADBTimeoutError) as e:
+            logger.warning("[wadbd] Connect Fehler: %s", e)
+            return False
+
     async def wait_for_device(
         self,
         timeout: int = TIMING.BOOT_WAIT_SECONDS,

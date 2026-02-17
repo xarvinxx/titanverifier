@@ -1095,6 +1095,7 @@ class GenesisFlow:
                     imsi, sim_serial, operator_name, phone_number,
                     sim_operator, sim_operator_name, voicemail_number,
                     build_id, build_fingerprint, security_patch,
+                    build_incremental, build_description,
                     created_at, last_used_at, usage_count
                 ) VALUES (
                     ?, 'active', ?,
@@ -1103,6 +1104,7 @@ class GenesisFlow:
                     ?, ?, ?, ?,
                     ?, ?, ?,
                     ?, ?, ?,
+                    ?, ?,
                     ?, ?, 1
                 )""",
                 (
@@ -1117,6 +1119,7 @@ class GenesisFlow:
                     identity.voicemail_number,
                     identity.build_id, identity.build_fingerprint,
                     identity.security_patch,
+                    identity.build_incremental, identity.build_description,
                     datetime.now(LOCAL_TZ).isoformat(),
                     datetime.now(LOCAL_TZ).isoformat(),
                 ),

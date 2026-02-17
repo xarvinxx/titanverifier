@@ -404,10 +404,14 @@ def save_db(db: Dict[str, Dict]) -> None:
 
 
 def get_bridge_fields(identity: Dict) -> Dict[str, str]:
-    """Extrahiert nur die Bridge-relevanten Felder (keine Metadaten)."""
-    skip_keys = {"_name", "_created", "_carrier", "_build",
-                 "build_id", "build_fingerprint", "build_description",
-                 "build_incremental", "security_patch"}
+    """
+    Extrahiert die Bridge-relevanten Felder (keine internen Metadaten).
+
+    FIX-30: build_id, build_fingerprint, security_patch, build_incremental,
+    build_description werden EINGESCHLOSSEN — das Zygisk-Modul braucht sie
+    für dynamische Build-Props pro Identität.
+    """
+    skip_keys = {"_name", "_created", "_carrier", "_build"}
     return {k: v for k, v in identity.items() if k not in skip_keys}
 
 

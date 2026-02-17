@@ -63,10 +63,12 @@ CREATE TABLE IF NOT EXISTS identities (
     sim_operator_name   TEXT NOT NULL DEFAULT 'o2 - de',
     voicemail_number    TEXT NOT NULL DEFAULT '+4917610',
 
-    -- Build Fingerprint
+    -- Build Fingerprint (FIX-30: pro Identität variabel)
     build_id            TEXT,
     build_fingerprint   TEXT,
     security_patch      TEXT,
+    build_incremental   TEXT,
+    build_description   TEXT,
 
     -- Netzwerk-Tracking
     last_public_ip      TEXT,
@@ -357,6 +359,9 @@ _SQL_MIGRATIONS = [
     # profiles: General Contact Email (v2.1)
     "ALTER TABLE profiles ADD COLUMN contact_email TEXT",
     "ALTER TABLE profiles ADD COLUMN contact_password TEXT",
+    # FIX-30: Dynamic Build Props pro Identität
+    "ALTER TABLE identities ADD COLUMN build_incremental TEXT",
+    "ALTER TABLE identities ADD COLUMN build_description TEXT",
 ]
 
 

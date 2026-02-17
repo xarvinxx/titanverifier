@@ -269,10 +269,17 @@ class IdentityRead(IdentityBridge):
     status: IdentityStatus = Field(default=IdentityStatus.READY)
     notes: Optional[str] = Field(default=None)
 
-    # Build-Fingerprint (intern konsistent)
-    build_id: Optional[str] = Field(default=None)
-    build_fingerprint: Optional[str] = Field(default=None)
-    security_patch: Optional[str] = Field(default=None)
+    # Build-Fingerprint (intern konsistent — FIX-30: pro Identität variabel)
+    build_id: Optional[str] = Field(default=None,
+                                    description="z.B. AP2A.241005.015")
+    build_fingerprint: Optional[str] = Field(default=None,
+                                             description="Vollständiger Build-Fingerprint")
+    security_patch: Optional[str] = Field(default=None,
+                                          description="z.B. 2024-10-05")
+    build_incremental: Optional[str] = Field(default=None,
+                                             description="Build Incremental Number z.B. 12298734")
+    build_description: Optional[str] = Field(default=None,
+                                             description="Build Description String")
 
     # --- Netzwerk-Tracking ---
     last_public_ip: Optional[str] = Field(default=None,

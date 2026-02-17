@@ -384,17 +384,15 @@ static void loadBridge() {
     if (loadBridgeFromFile(BRIDGE_FILE_PATH)) {
         LOGI("Config loaded from primary path");
         g_bridgeLoaded = true;
+    } else if (loadBridgeFromFile("/data/system/.hw_config")) {
+        LOGI("Config loaded from fallback (system)");
+        g_bridgeLoaded = true;
+    } else if (loadBridgeFromFile("/data/local/tmp/.hw_config")) {
+        LOGI("Config loaded from fallback (local/tmp)");
+        g_bridgeLoaded = true;
     } else {
-        // =================================================================
-        // FIX-20: Hooks DEAKTIVIEREN statt Defaults verwenden
-        // =================================================================
-        // Alte Logik: applyDefaults() → alle Apps bekommen dieselben
-        // statischen IDs → sofortige Cross-App Correlation.
-        // Neue Logik: Bridge nicht geladen → Hooks bleiben inaktiv →
-        // echte Geräte-Werte werden durchgelassen → kein Fingerprint.
-        // =================================================================
         LOGW("[HW] Bridge not found — Hooks DEAKTIVIERT (kein Spoofing)");
-        g_bridgeLoaded = false;  // Hooks bleiben inaktiv
+        g_bridgeLoaded = false;
     }
     
     // Cache MAC bytes

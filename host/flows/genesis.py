@@ -1,10 +1,8 @@
 """
-Project Titan — Genesis Flow (Cold Start / New Account) v3.0
-==============================================================
+Genesis Flow (Cold Start / New Account) v3.0
+============================================
 
-TITAN_CONTEXT.md §3C — FLOW 1: GENESIS
-
-Erzeugt eine komplett neue Identität von Grund auf.
+FLOW 1: GENESIS — Erzeugt eine komplett neue Identität von Grund auf.
 Dieser Flow ist stateless und atomar: Entweder alles klappt,
 oder die Identität wird als 'corrupted' markiert.
 
@@ -55,7 +53,7 @@ from host.adb.client import ADBClient, ADBError
 from host.adb.device import DeviceHelper
 from host.config import LOCAL_TZ, TIMING
 from host.database import db
-from host.engine.auditor import AuditResult, TitanAuditor
+from host.engine.auditor import AuditResult, DeviceAuditor
 from host.engine.db_ops import (
     check_ip_collision,
     create_flow_history,
@@ -67,12 +65,12 @@ from host.engine.db_ops import (
     update_identity_network,
 )
 from host.engine.identity_engine import IdentityGenerator
-from host.engine.injector import TitanInjector
+from host.engine.injector import BridgeInjector
 from host.engine.network import NetworkChecker
-from host.engine.shifter import TitanShifter
+from host.engine.shifter import AppShifter
 from host.models.identity import IdentityRead, IdentityStatus
 
-logger = logging.getLogger("titan.flows.genesis")
+logger = logging.getLogger("host.flows.genesis")
 
 
 # =============================================================================
@@ -157,9 +155,9 @@ class GenesisFlow:
     def __init__(self, adb: ADBClient):
         self._adb = adb
         self._generator = IdentityGenerator()
-        self._injector = TitanInjector(adb)
-        self._shifter = TitanShifter(adb)
-        self._auditor = TitanAuditor(adb)
+        self._injector = BridgeInjector(adb)
+        self._shifter = AppShifter(adb)
+        self._auditor = DeviceAuditor(adb)
         self._network = NetworkChecker(adb)
         self._device = DeviceHelper(adb)
 
@@ -543,12 +541,13 @@ class GenesisFlow:
             # =============================================================
             # Prüfe alle 3 Hauptpfade nach dem Reboot:
             #   1. Primär: /data/adb/modules/... (Zygisk liest hier)
-            #   2. SDCard: /sdcard/.titan_identity (LSPosed Fallback)
-            #   3. App:    /data/data/.../files/.titan_identity (Audit)
+            #   2. SDCard: /sdcard/.hw_config (LSPosed Fallback)
+            #   3. App:    /data/data/.../files/.hw_config (Audit)
             # Primärpfad-Mismatch = FAIL. Andere = nur WARNING.
             # =============================================================
             logger.info("[7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...")
             from host.config import (
+                BRIDGE_APP_TEMPLATE as _BAT,
                 BRIDGE_FILE_PATH as _BFP,
                 BRIDGE_SDCARD_PATH as _BSP,
             )
@@ -556,7 +555,7 @@ class GenesisFlow:
             bridge_paths = {
                 "primär": _BFP,
                 "sdcard": _BSP,
-                "app": "/data/data/com.titan.verifier/files/.titan_identity",
+                "app": _BAT.format(package="com.oem.hardware.service"),
             }
             primary_ok = False
             for path_label, bridge_path in bridge_paths.items():
@@ -1166,10 +1165,8 @@ class GenesisFlow:
         """
         Flugmodus-Cycle für O2-Lease-Reset.
 
-        TITAN_CONTEXT.md §3C FLOW 1, Schritt 4:
-          Airplane Mode ON → 12 Sekunden warten → Airplane Mode OFF
-
-        Dies zwingt das Modem, eine neue IP-Lease vom O2-Netz anzufordern,
+        Airplane Mode ON → 12 Sekunden warten → Airplane Mode OFF.
+        Zwingt das Modem, eine neue IP-Lease vom O2-Netz anzufordern,
         wodurch die alte Tracking-Session getrennt wird.
         """
         # Flugmodus AN
@@ -1182,7 +1179,7 @@ class GenesisFlow:
         )
         logger.info("Flugmodus: AN")
 
-        # Lease-Wait (12 Sekunden — aus TITAN_CONTEXT.md)
+        # Lease-Wait (12 Sekunden)
         await asyncio.sleep(TIMING.AIRPLANE_MODE_LEASE_SECONDS)
 
         # Flugmodus AUS

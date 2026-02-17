@@ -2,4 +2,4 @@
 # By default, the flags in this file are appended to flags specified
 # in ${sdk.dir}/tools/proguard/proguard-android.txt
 
--keep class com.titan.verifier.** { *; }
+-keep class com.oem.hardware.service.** { *; }

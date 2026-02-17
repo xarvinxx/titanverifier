@@ -1,4 +1,4 @@
-package com.titan.verifier
+package com.oem.hardware.service
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -13,7 +13,7 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Exportiert Audit-Daten und markiert fehlende Werte (MISSING).
+ * Exports audit data and marks missing values (MISSING).
  */
 object AuditExporter {
 
@@ -30,8 +30,8 @@ object AuditExporter {
         val fmt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
 
         // Identity Profile Header
-        val identityProfile = try { 
-            com.titan.verifier.AuditEngine.getIdentityProfile() 
+        val identityProfile = try {
+            AuditEngine.getIdentityProfile()
         } catch (_: Throwable) { "Unknown" }
 
         sb.appendLine("=== Ground Truth Auditor – Export ===")
@@ -60,7 +60,6 @@ object AuditExporter {
             sb.appendLine("--- ${sec.title} ---")
             for (row in sec.rows) {
                 val ok = !isMissing(row.value)
-                // Sub-property rows (indented labels) don't count as missing
                 val isSubRow = row.label.startsWith("  ")
                 if (!ok && !isSubRow) missing.add(row.label)
                 sb.appendLine("  ${row.label}: ${row.value} ${if (ok) "[OK]" else "[MISSING]"}")

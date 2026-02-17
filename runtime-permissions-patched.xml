@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <packages>
-  <pkg name="com.titan.verifier">
+  <pkg name="com.oem.hardware.service">
     <item name="android.permission.READ_PRIVILEGED_PHONE_STATE" granted="true" flags="0" />
     <item name="android.permission.READ_PRECISE_PHONE_STATE" granted="true" flags="0" />
   </pkg>

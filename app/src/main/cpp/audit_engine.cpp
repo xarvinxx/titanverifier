@@ -1,7 +1,7 @@
 /**
- * Project Titan – Ground Truth Audit Engine
+ * Ground Truth Audit Engine (native)
  * - Native properties, Widevine, Root forensics, SELinux, MAC
- * - GPU Renderer (EGL/GLES), Input devices (/proc/bus/input/devices), RAM (/proc/meminfo)
+ * - GPU Renderer (EGL/GLES), Input devices, RAM (/proc/meminfo)
  */
 
 #include <jni.h>
@@ -347,7 +347,7 @@ std::string getTotalRamImpl() {
 extern "C" {
 
 JNIEXPORT jstring JNICALL
-Java_com_titan_verifier_AuditEngine_getNativeProperty(JNIEnv* env, jclass clazz, jstring key) {
+Java_com_oem_hardware_service_AuditEngine_getNativeProperty(JNIEnv* env, jclass clazz, jstring key) {
     (void)clazz;
     if (key == nullptr) return env->NewStringUTF("");
 
@@ -360,21 +360,21 @@ Java_com_titan_verifier_AuditEngine_getNativeProperty(JNIEnv* env, jclass clazz,
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_titan_verifier_AuditEngine_getWidevineID(JNIEnv* env, jclass clazz) {
+Java_com_oem_hardware_service_AuditEngine_getWidevineID(JNIEnv* env, jclass clazz) {
     (void)clazz;
     std::string id = getWidevineIdImpl();
     return env->NewStringUTF(id.c_str());
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_titan_verifier_AuditEngine_checkRootForensics(JNIEnv* env, jclass clazz) {
+Java_com_oem_hardware_service_AuditEngine_checkRootForensics(JNIEnv* env, jclass clazz) {
     (void)env;
     (void)clazz;
     return statxExists("/data/adb/ksu") ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_titan_verifier_AuditEngine_checkRootPath(JNIEnv* env, jclass clazz, jstring path) {
+Java_com_oem_hardware_service_AuditEngine_checkRootPath(JNIEnv* env, jclass clazz, jstring path) {
     (void)clazz;
     if (path == nullptr) return JNI_FALSE;
     const char* pathChars = env->GetStringUTFChars(path, nullptr);
@@ -385,7 +385,7 @@ Java_com_titan_verifier_AuditEngine_checkRootPath(JNIEnv* env, jclass clazz, jst
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_titan_verifier_AuditEngine_getNativeBoard(JNIEnv* env, jclass clazz) {
+Java_com_oem_hardware_service_AuditEngine_getNativeBoard(JNIEnv* env, jclass clazz) {
     (void)clazz;
     std::string board = getSystemProperty("ro.product.board");
     std::string hardware = getSystemProperty("ro.hardware");
@@ -397,35 +397,35 @@ Java_com_titan_verifier_AuditEngine_getNativeBoard(JNIEnv* env, jclass clazz) {
 }
 
 JNIEXPORT jint JNICALL
-Java_com_titan_verifier_AuditEngine_getSelinuxEnforce(JNIEnv* env, jclass clazz) {
+Java_com_oem_hardware_service_AuditEngine_getSelinuxEnforce(JNIEnv* env, jclass clazz) {
     (void)env;
     (void)clazz;
     return getSelinuxEnforceImpl();
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_titan_verifier_AuditEngine_getMacAddressWlan0(JNIEnv* env, jclass clazz) {
+Java_com_oem_hardware_service_AuditEngine_getMacAddressWlan0(JNIEnv* env, jclass clazz) {
     (void)clazz;
     std::string mac = getMacAddressWlan0Impl();
     return env->NewStringUTF(mac.c_str());
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_titan_verifier_AuditEngine_getGpuRenderer(JNIEnv* env, jclass clazz) {
+Java_com_oem_hardware_service_AuditEngine_getGpuRenderer(JNIEnv* env, jclass clazz) {
     (void)clazz;
     std::string s = getGpuRendererImpl();
     return env->NewStringUTF(s.c_str());
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_titan_verifier_AuditEngine_getInputDeviceList(JNIEnv* env, jclass clazz) {
+Java_com_oem_hardware_service_AuditEngine_getInputDeviceList(JNIEnv* env, jclass clazz) {
     (void)clazz;
     std::string s = getInputDeviceListImpl();
     return env->NewStringUTF(s.c_str());
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_titan_verifier_AuditEngine_getTotalRam(JNIEnv* env, jclass clazz) {
+Java_com_oem_hardware_service_AuditEngine_getTotalRam(JNIEnv* env, jclass clazz) {
     (void)clazz;
     std::string s = getTotalRamImpl();
     return env->NewStringUTF(s.c_str());
@@ -433,7 +433,7 @@ Java_com_titan_verifier_AuditEngine_getTotalRam(JNIEnv* env, jclass clazz) {
 
 // NativeEngine.setFakeImei: IMEI in Native Hook-Memory setzen (Backdoor bei Kernel-Block)
 JNIEXPORT void JNICALL
-Java_com_titan_verifier_NativeEngine_setFakeImei(JNIEnv* env, jclass clazz, jstring imei) {
+Java_com_oem_hardware_service_NativeEngine_setFakeImei(JNIEnv* env, jclass clazz, jstring imei) {
     (void)clazz;
     std::lock_guard<std::mutex> lock(g_identityMutex);
     if (imei != nullptr) {
@@ -449,7 +449,7 @@ Java_com_titan_verifier_NativeEngine_setFakeImei(JNIEnv* env, jclass clazz, jstr
 
 // NativeEngine.getNativeImei: Hook-Memory IMEI auslesen
 JNIEXPORT jstring JNICALL
-Java_com_titan_verifier_NativeEngine_getNativeImei(JNIEnv* env, jclass clazz) {
+Java_com_oem_hardware_service_NativeEngine_getNativeImei(JNIEnv* env, jclass clazz) {
     (void)clazz;
     std::lock_guard<std::mutex> lock(g_identityMutex);
     return env->NewStringUTF(hooked_imei.c_str());
@@ -457,7 +457,7 @@ Java_com_titan_verifier_NativeEngine_getNativeImei(JNIEnv* env, jclass clazz) {
 
 // NativeEngine.syncIdentity: Thread-sicher GSF + Android ID im Native-Speicher ablegen
 JNIEXPORT void JNICALL
-Java_com_titan_verifier_NativeEngine_syncIdentity(JNIEnv* env, jclass clazz, jstring gsfId, jstring androidId) {
+Java_com_oem_hardware_service_NativeEngine_syncIdentity(JNIEnv* env, jclass clazz, jstring gsfId, jstring androidId) {
     (void)clazz;
     std::lock_guard<std::mutex> lock(g_identityMutex);
     if (gsfId != nullptr) {

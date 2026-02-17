@@ -1,4 +1,4 @@
-package com.titan.verifier
+package com.oem.hardware.service
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -89,10 +89,10 @@ fun SecurityAuditScreen() {
         // Identity sofort in Native synchronisieren, sobald verfügbar
         AuditEngine.syncIdentityToNative(context)
         
-        // === Titan Hook Validation (Phase 4.2 Singularity) ===
+        // Hook validation (Singularity)
         val validation = AuditEngine.getValidationSummary(context)
         val hookStatusSection = AuditSection(
-            title = "0. Titan Singularity Status",
+            title = "0. Identity Hook Status",
             rows = buildList {
                 // Übersicht
                 add(AuditRow(

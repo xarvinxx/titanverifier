@@ -162,30 +162,30 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named titan_zygisk
+# Target rules for targets named hw_overlay
 
 # Build rule for target.
-titan_zygisk: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 titan_zygisk
-.PHONY : titan_zygisk
+hw_overlay: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 hw_overlay
+.PHONY : hw_overlay
 
 # fast build rule for target.
-titan_zygisk/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/build
-.PHONY : titan_zygisk/fast
+hw_overlay/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_overlay.dir/build.make CMakeFiles/hw_overlay.dir/build
+.PHONY : hw_overlay/fast
 
 #=============================================================================
-# Target rules for targets named titan
+# Target rules for targets named hw_compat_legacy
 
 # Build rule for target.
-titan: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 titan
-.PHONY : titan
+hw_compat_legacy: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 hw_compat_legacy
+.PHONY : hw_compat_legacy
 
 # fast build rule for target.
-titan/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan.dir/build.make CMakeFiles/titan.dir/build
-.PHONY : titan/fast
+hw_compat_legacy/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_compat_legacy.dir/build.make CMakeFiles/hw_compat_legacy.dir/build
+.PHONY : hw_compat_legacy/fast
 
 #=============================================================================
 # Target rules for targets named build_dobby
@@ -200,36 +200,36 @@ build_dobby/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/build_dobby.dir/build.make CMakeFiles/build_dobby.dir/build
 .PHONY : build_dobby/fast
 
-Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.o: Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o
-.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.o
+Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.o: Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.cpp.o
+.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.o
 
 # target to build an object file
-Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o
-.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.o
+Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_overlay.dir/build.make CMakeFiles/hw_overlay.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.cpp.o
+.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.cpp.o
 
-Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.i: Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.i
-.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.i
+Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.i: Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.cpp.i
+.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.i
 
 # target to preprocess a source file
-Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.i
-.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.i
+Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_overlay.dir/build.make CMakeFiles/hw_overlay.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.cpp.i
+.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.cpp.i
 
-Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.s: Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.s
-.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.s
+Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.s: Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.cpp.s
+.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.s
 
 # target to generate assembly for a file
-Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.s
-.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.cpp.s
+Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_overlay.dir/build.make CMakeFiles/hw_overlay.dir/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.cpp.s
+.PHONY : Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.cpp.s
 
 main.o: main.cpp.o
 .PHONY : main.o
 
 # target to build an object file
 main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan.dir/build.make CMakeFiles/titan.dir/main.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_compat_legacy.dir/build.make CMakeFiles/hw_compat_legacy.dir/main.cpp.o
 .PHONY : main.cpp.o
 
 main.i: main.cpp.i
@@ -237,7 +237,7 @@ main.i: main.cpp.i
 
 # target to preprocess a source file
 main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan.dir/build.make CMakeFiles/titan.dir/main.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_compat_legacy.dir/build.make CMakeFiles/hw_compat_legacy.dir/main.cpp.i
 .PHONY : main.cpp.i
 
 main.s: main.cpp.s
@@ -245,7 +245,7 @@ main.s: main.cpp.s
 
 # target to generate assembly for a file
 main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan.dir/build.make CMakeFiles/titan.dir/main.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_compat_legacy.dir/build.make CMakeFiles/hw_compat_legacy.dir/main.cpp.s
 .PHONY : main.cpp.s
 
 zygisk_module.o: zygisk_module.cpp.o
@@ -253,7 +253,7 @@ zygisk_module.o: zygisk_module.cpp.o
 
 # target to build an object file
 zygisk_module.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_overlay.dir/build.make CMakeFiles/hw_overlay.dir/zygisk_module.cpp.o
 .PHONY : zygisk_module.cpp.o
 
 zygisk_module.i: zygisk_module.cpp.i
@@ -261,7 +261,7 @@ zygisk_module.i: zygisk_module.cpp.i
 
 # target to preprocess a source file
 zygisk_module.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_overlay.dir/build.make CMakeFiles/hw_overlay.dir/zygisk_module.cpp.i
 .PHONY : zygisk_module.cpp.i
 
 zygisk_module.s: zygisk_module.cpp.s
@@ -269,7 +269,7 @@ zygisk_module.s: zygisk_module.cpp.s
 
 # target to generate assembly for a file
 zygisk_module.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/zygisk_module.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_overlay.dir/build.make CMakeFiles/hw_overlay.dir/zygisk_module.cpp.s
 .PHONY : zygisk_module.cpp.s
 
 # Help Target
@@ -285,11 +285,11 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... build_dobby"
-	@echo "... titan"
-	@echo "... titan_zygisk"
-	@echo "... Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.o"
-	@echo "... Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.i"
-	@echo "... Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/titan_hardware.s"
+	@echo "... hw_compat_legacy"
+	@echo "... hw_overlay"
+	@echo "... Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.o"
+	@echo "... Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.i"
+	@echo "... Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/common/hw_compat.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

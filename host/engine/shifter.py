@@ -1,6 +1,6 @@
 """
-Project Titan — TitanShifter v3.0 ("Golden Baseline")
-=======================================================
+App Shifter v3.0 ("Golden Baseline")
+====================================
 
 Verwaltet App-Daten (TikTok + GMS) für Profile-Switching.
 
@@ -17,7 +17,7 @@ Operationen:
   - backup_full_state:       Kompletter Session-State (TikTok + GMS + Accounts)
   - restore_full_state:      Kompletter Session-Restore mit SQLite Safety
 
-KRITISCH — Magic Permission Fix (aus TITAN_CONTEXT.md §3B):
+KRITISCH — Magic Permission Fix:
   Nach jedem Restore MUSS die UID der App ermittelt und
   chown -R UID:UID auf den gesamten Datenordner ausgeführt werden.
   Ohne diesen Fix verliert die App den Zugriff auf ihre Daten
@@ -56,7 +56,7 @@ from host.config import (
     TIKTOK_SANDBOX_PATHS,
 )
 
-logger = logging.getLogger("titan.engine.shifter")
+logger = logging.getLogger("host.shifter")
 
 # =============================================================================
 # Konstanten
@@ -110,7 +110,7 @@ TIKTOK_RESIDUAL_CACHE_PATHS = [
 ]
 
 
-class TitanShifter:
+class AppShifter:
     """
     App-Data Manager für Profile-Switching.
 
@@ -119,7 +119,7 @@ class TitanShifter:
 
     Usage:
         adb = ADBClient()
-        shifter = TitanShifter(adb)
+        shifter = AppShifter(adb)
 
         # Backup
         path, size = await shifter.backup("profile_001")
@@ -991,12 +991,11 @@ class TitanShifter:
         """
         Wendet den Magic Permission Fix an.
 
-        TITAN_CONTEXT.md §3B — CRITICAL FIX:
-          Nach Restore MUSS chown -R UID:UID auf dem Datenordner
-          ausgeführt werden, damit die App ihre Daten lesen kann
-          und der Login erhalten bleibt.
+        Nach Restore MUSS chown -R UID:UID auf dem Datenordner
+        ausgeführt werden, damit die App ihre Daten lesen kann
+        und der Login erhalten bleibt.
 
-          KEIN restorecon (Bootloop-Gefahr auf Android 14).
+        KEIN restorecon (Bootloop-Gefahr auf Android 14).
 
         Args:
             uid: App-UID (z.B. "10245")
@@ -1086,7 +1085,7 @@ class TitanShifter:
         """
         Führt eine Sterilisierung der Target-Apps durch.
 
-        TITAN_CONTEXT.md §3C — FLOW 1 (GENESIS), Schritt 1:
+        FLOW 1 (GENESIS), Schritt 1:
           1. pm clear TikTok (beide Pakete)
           2. pm clear GMS — NUR wenn include_gms=True (⚠️ DEPRECATED!)
           3. Lösche /sdcard/Android/data/<tiktok>/

@@ -1,6 +1,6 @@
 """
-Project Titan — Device Helper (GMS Readiness) v4.0
-====================================================
+Device Helper (GMS Readiness) v4.0
+====================================
 
 Stellt Hilfsmethoden bereit, die den Device-State abfragen,
 ohne Netzwerk-Requests an Google-Server auszulösen.
@@ -40,7 +40,7 @@ from typing import Optional
 from host.adb.client import ADBClient, ADBError, ADBTimeoutError
 from host.config import TIMING
 
-logger = logging.getLogger("titan.adb.device")
+logger = logging.getLogger("host.adb.device")
 
 
 # =============================================================================
@@ -54,7 +54,7 @@ class GSFReadyResult:
 
     gsf_id:         Hex-String der GSF-ID (z.B. "3a4b5c6d7e8f9a0b")
     gsf_id_decimal: Dezimal-String der GSF-ID (z.B. "42068372154961xxxx")
-                    → Das Format das in der titan.db / Bridge-Datei steht.
+                    → Das Format das in der DB / Bridge-Datei steht.
     """
     success: bool
     gsf_id: Optional[str] = None

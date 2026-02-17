@@ -1,10 +1,8 @@
 """
-Project Titan — Host-Side Orchestrator: Zentrale Konfiguration
-==============================================================
+Host-Side Orchestrator: Zentrale Konfiguration
+===============================================
 
 Single Source of Truth für alle Konstanten, Pfade und Carrier-Regeln.
-Abgeleitet aus TITAN_CONTEXT.md (Abschnitt 3A: Identity Engine).
-
 KEINE Zufallswerte hier — nur deterministische Regeln und Constraints.
 """
 
@@ -23,11 +21,11 @@ LOCAL_TZ = ZoneInfo("Europe/Berlin")
 # 1. Projekt-Pfade (Host-Seite)
 # =============================================================================
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent          # titanverifier/
-HOST_ROOT = Path(__file__).resolve().parent                    # titanverifier/host/
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+HOST_ROOT = Path(__file__).resolve().parent
 
 # SQLite Datenbank — liegt im Projekt-Root, nicht im host/ Ordner
-DATABASE_PATH = PROJECT_ROOT / "titan.db"
+DATABASE_PATH = PROJECT_ROOT / "device_manager.db"
 DATABASE_URL = f"sqlite+aiosqlite:///{DATABASE_PATH}"
 
 # Backup-Verzeichnis für tar-Streams (App-Data)
@@ -50,16 +48,15 @@ TIKTOK_SANDBOX_PATHS = [
 # =============================================================================
 
 # Primärer Bridge-Pfad (Boot-sicher, von Zygisk gelesen)
-# Quelle: module/zygisk_module.cpp Zeile 63, automate_titan.py Zeile 54
-BRIDGE_MODULE_PATH = "/data/adb/modules/titan_verifier"
-BRIDGE_FILE_PATH = f"{BRIDGE_MODULE_PATH}/titan_identity"
+BRIDGE_MODULE_PATH = "/data/adb/modules/hw_overlay"
+BRIDGE_FILE_PATH = f"{BRIDGE_MODULE_PATH}/.hw_config"
 
 # Fallback-Pfade (für LSPosed/App-interne Reader)
-BRIDGE_SDCARD_PATH = "/sdcard/.titan_identity"
-BRIDGE_APP_TEMPLATE = "/data/data/{package}/files/.titan_identity"
+BRIDGE_SDCARD_PATH = "/sdcard/.hw_config"
+BRIDGE_APP_TEMPLATE = "/data/data/{package}/files/.hw_config"
 
 # Kill-Switch (deaktiviert Hooks wenn vorhanden)
-KILL_SWITCH_PATH = "/data/local/tmp/titan_stop"
+KILL_SWITCH_PATH = "/data/local/tmp/.hw_disabled"
 
 # SELinux Context für Bridge-Dateien (Zygote-Zugriff!)
 SELINUX_CONTEXT = "u:object_r:system_file:s0"
@@ -76,7 +73,6 @@ API_LEVEL = 34
 
 # =============================================================================
 # 4. O2 Germany Carrier Spezifikation
-#    Quelle: TITAN_CONTEXT.md Abschnitt 3A (Telephony)
 # =============================================================================
 
 class O2_DE:
@@ -120,7 +116,6 @@ class O2_DE:
 
 # =============================================================================
 # 5. Pixel 6 IMEI/TAC Spezifikation
-#    Quelle: TITAN_CONTEXT.md Abschnitt 3A (Hardware Identifiers)
 # =============================================================================
 
 class PIXEL6_TAC:
@@ -128,7 +123,7 @@ class PIXEL6_TAC:
     Type Allocation Codes für Google Pixel 6 (Oriole).
     
     TAC = erste 8 Ziffern der IMEI.
-    TITAN_CONTEXT.md: "TAC: Must begin with 355543"
+    TAC must begin with 355543.
     
     Verifizierte 8-stellige TACs die mit 355543 beginnen:
     """
@@ -317,7 +312,7 @@ PIXEL6_PIF_POOL = PIF_SPOOF_POOL
 #     Gibt die Liste der validen Einträge zurück.
 # =============================================================================
 
-_config_logger = logging.getLogger("titan.config")
+_config_logger = logging.getLogger("host.config")
 
 # Pflichtfelder für einen gültigen PIF-Eintrag
 PIF_REQUIRED_KEYS = frozenset({
@@ -466,7 +461,7 @@ SOCIAL_MEDIA_PACKAGES = [
 BRIDGE_TARGET_APPS = [
     *SOCIAL_MEDIA_PACKAGES,
     *GMS_PACKAGES,
-    "com.titan.verifier",               # Unsere eigene App (Audit)
+    "com.oem.hardware.service",          # Verifier App
     "tw.reh.deviceid",                  # Device ID Checker
     "com.androidfung.drminfo",          # DRM Info Checker
 ]
@@ -503,7 +498,7 @@ ACCOUNTS_DB_MODE = "660"                 # rw-rw---- (system:system)
 
 
 # =============================================================================
-# 10. Flow-Timing Konstanten (aus TITAN_CONTEXT.md Abschnitt 3C)
+# 10. Flow-Timing Konstanten
 # =============================================================================
 
 class TIMING:
@@ -530,5 +525,5 @@ class TIMING:
 
 API_HOST = "0.0.0.0"
 API_PORT = 8000
-API_TITLE = "Project Titan — Command Center"
+API_TITLE = "Device Manager"
 API_VERSION = "1.0.0"

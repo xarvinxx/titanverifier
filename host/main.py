@@ -1,9 +1,9 @@
 """
-Project Titan — FastAPI Entrypoint
-====================================
+Host-Side FastAPI Entrypoint
+=============================
 
 Startet den Host-Side Orchestrator mit:
-  - SQLite DB Initialisierung (titan.db)
+  - SQLite DB Initialisierung
   - API-Router (Control, Dashboard)
   - WebSocket (Live-Logs)
   - Jinja2 Templates (Dashboard UI)
@@ -60,7 +60,7 @@ logging.root.setLevel(logging.INFO)
 # =============================================================================
 # FIX-25: Persistenter File-Logger mit Rotation
 # =============================================================================
-# Logs werden zusätzlich in titan.log geschrieben (max ~40MB Disk):
+# Logs werden zusätzlich in host.log geschrieben (max ~40MB Disk):
 #   - 10 MB pro Datei, 3 alte Dateien behalten
 #   - DEBUG-Level (mehr Details als Console/WebSocket)
 #   - Post-Mortem bei Crashes möglich
@@ -69,12 +69,12 @@ logging.root.setLevel(logging.INFO)
 from logging.handlers import RotatingFileHandler  # noqa: E402
 
 _log_dir = Path(__file__).resolve().parent.parent  # Projekt-Root
-_log_file = _log_dir / "titan.log"
+_log_file = _log_dir / "host.log"
 
 _file_handler = RotatingFileHandler(
     str(_log_file),
     maxBytes=10_000_000,   # 10 MB pro Datei
-    backupCount=3,          # 3 alte Dateien behalten (titan.log.1, .2, .3)
+    backupCount=3,          # 3 alte Dateien behalten (host.log.1, .2, .3)
     encoding="utf-8",
 )
 _file_handler.setFormatter(
@@ -86,17 +86,17 @@ _file_handler.setFormatter(
 _file_handler.setLevel(logging.DEBUG)  # Alles loggen, auch DEBUG
 logging.root.addHandler(_file_handler)
 
-logger = logging.getLogger("titan.main")
+logger = logging.getLogger("host.main")
 
 # =============================================================================
 # WebSocket Log-Handler registrieren
-# Fängt alle "titan.*" Logs ab und streamt sie an WS-Clients
+# Fängt alle "host.*" Logs ab und streamt sie an WS-Clients
 # =============================================================================
 
 from host.api.dashboard import ws_log_handler, websocket_logs  # noqa: E402
 
-_titan_root_logger = logging.getLogger("titan")
-_titan_root_logger.addHandler(ws_log_handler)
+_host_root_logger = logging.getLogger("host")
+_host_root_logger.addHandler(ws_log_handler)
 
 
 # =============================================================================
@@ -122,7 +122,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     # --- Startup ---
     logger.info("=" * 60)
-    logger.info("  Project Titan — Command Center v%s", API_VERSION)
+    logger.info("  Device Manager v%s", API_VERSION)
     logger.info("  Database: %s", DATABASE_PATH)
     logger.info("  Dashboard: http://%s:%d", API_HOST, API_PORT)
     logger.info("=" * 60)
@@ -133,14 +133,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from host.config import BACKUP_DIR
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
-    logger.info("Titan Command Center bereit.")
+    logger.info("Command Center bereit.")
 
     yield
 
     # --- Shutdown ---
     logger.info("Shutdown: Schliesse Datenbank...")
     await db.close()
-    logger.info("Titan Command Center gestoppt.")
+    logger.info("Command Center gestoppt.")
 
 
 # =============================================================================
@@ -151,7 +151,7 @@ app = FastAPI(
     title=API_TITLE,
     version=API_VERSION,
     description=(
-        "Project Titan — Host-Side Identity Orchestration Platform. "
+        "Host-Side Identity Orchestration Platform. "
         "Verwaltet 1000+ O2-DE Hardware-Identitäten auf Pixel 6 via ADB Root."
     ),
     lifespan=lifespan,
@@ -187,7 +187,7 @@ async def ws_logs_endpoint(ws: WebSocket):
 
 @app.get("/", response_class=HTMLResponse, tags=["UI"])
 async def dashboard(request: Request):
-    """Haupt-Dashboard — Titan Command Center."""
+    """Haupt-Dashboard — Device Manager."""
     return templates.TemplateResponse(
         "dashboard.html",
         {"request": request, "version": API_VERSION},

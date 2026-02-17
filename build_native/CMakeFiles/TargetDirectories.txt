@@ -1,5 +1,5 @@
-/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles/titan_zygisk.dir
-/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles/titan.dir
+/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles/hw_overlay.dir
+/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles/hw_compat_legacy.dir
 /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles/build_dobby.dir
 /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles/edit_cache.dir
 /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles/rebuild_cache.dir

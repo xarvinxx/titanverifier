@@ -43,25 +43,25 @@ if(NOT DEFINED CMAKE_OBJDUMP)
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  if(EXISTS "$ENV{DESTDIR}/usr/local/zygisk/arm64-v8a/libtitan_zygisk.so" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}/usr/local/zygisk/arm64-v8a/libtitan_zygisk.so")
+  if(EXISTS "$ENV{DESTDIR}/usr/local/zygisk/arm64-v8a/libhw_overlay.so" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}/usr/local/zygisk/arm64-v8a/libhw_overlay.so")
     file(RPATH_CHECK
-         FILE "$ENV{DESTDIR}/usr/local/zygisk/arm64-v8a/libtitan_zygisk.so"
+         FILE "$ENV{DESTDIR}/usr/local/zygisk/arm64-v8a/libhw_overlay.so"
          RPATH "")
   endif()
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "/usr/local/zygisk/arm64-v8a/libtitan_zygisk.so")
+   "/usr/local/zygisk/arm64-v8a/libhw_overlay.so")
   if(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
   if(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
-  file(INSTALL DESTINATION "/usr/local/zygisk/arm64-v8a" TYPE SHARED_LIBRARY FILES "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/lib/arm64-v8a/libtitan_zygisk.so")
-  if(EXISTS "$ENV{DESTDIR}/usr/local/zygisk/arm64-v8a/libtitan_zygisk.so" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}/usr/local/zygisk/arm64-v8a/libtitan_zygisk.so")
+  file(INSTALL DESTINATION "/usr/local/zygisk/arm64-v8a" TYPE SHARED_LIBRARY FILES "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/lib/arm64-v8a/libhw_overlay.so")
+  if(EXISTS "$ENV{DESTDIR}/usr/local/zygisk/arm64-v8a/libhw_overlay.so" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}/usr/local/zygisk/arm64-v8a/libhw_overlay.so")
     if(CMAKE_INSTALL_DO_STRIP)
-      execute_process(COMMAND "/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip" "$ENV{DESTDIR}/usr/local/zygisk/arm64-v8a/libtitan_zygisk.so")
+      execute_process(COMMAND "/Users/arvin/Library/Android/sdk/ndk/25.1.8937393/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-strip" "$ENV{DESTDIR}/usr/local/zygisk/arm64-v8a/libhw_overlay.so")
     endif()
   endif()
 endif()

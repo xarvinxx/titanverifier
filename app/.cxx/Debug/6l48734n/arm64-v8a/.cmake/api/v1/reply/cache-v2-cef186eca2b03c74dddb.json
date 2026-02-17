@@ -935,7 +935,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "titan-verifier-native"
+			"value" : "hw-service-native"
 		},
 		{
 			"name" : "CMAKE_RANLIB",
@@ -1266,7 +1266,7 @@
 			"value" : "FALSE"
 		},
 		{
-			"name" : "titan-verifier-native_BINARY_DIR",
+			"name" : "hw-service-native_BINARY_DIR",
 			"properties" : 
 			[
 				{
@@ -1278,7 +1278,7 @@
 			"value" : "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/.cxx/Debug/6l48734n/arm64-v8a"
 		},
 		{
-			"name" : "titan-verifier-native_IS_TOP_LEVEL",
+			"name" : "hw-service-native_IS_TOP_LEVEL",
 			"properties" : 
 			[
 				{
@@ -1290,7 +1290,7 @@
 			"value" : "ON"
 		},
 		{
-			"name" : "titan-verifier-native_SOURCE_DIR",
+			"name" : "hw-service-native_SOURCE_DIR",
 			"properties" : 
 			[
 				{

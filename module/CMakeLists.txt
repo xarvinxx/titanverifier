@@ -1,14 +1,10 @@
 # ==============================================================================
-# Project Titan – Native Module Build Configuration
-# Phase 3.3 Convergence: Dobby Integration + Stealth Optimization
-#
-# Target: libtitan_zygisk.so für Zygisk Next (arm64-v8a)
-# Hardware: Google Pixel 6 (Oriole), Tensor G1
-# Environment: Android 14 (API 34), KernelSU
+# Hardware Overlay – Native Module Build Configuration
+# Target: libhw_overlay.so for Zygisk Next (arm64-v8a)
 # ==============================================================================
 
 cmake_minimum_required(VERSION 3.22.1)
-project(titan-module LANGUAGES CXX C)
+project(hw-overlay-module LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,27 +14,22 @@ set(CMAKE_C_STANDARD 17)
 # Build Configuration
 # ==============================================================================
 
-# Stealth-Mode: Deaktiviert Logging in Release-Builds
-option(TITAN_STEALTH_MODE "Disable all logging for stealth" OFF)
+option(HW_STEALTH_MODE "Disable all logging for stealth" OFF)
 
-# Debug-Build erkennen
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(TITAN_DEBUG ON)
+    set(HW_DEBUG ON)
 else()
-    set(TITAN_DEBUG OFF)
-    # Stealth-Mode bleibt wie vom User gewählt (nicht erzwungen)
+    set(HW_DEBUG OFF)
 endif()
 
 # ==============================================================================
 # Dobby Integration (Inline-Hooking Engine)
 # ==============================================================================
 
-# Pfad zur Dobby prebuilt library
 set(DOBBY_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../libs/dobby)
-set(DOBBY_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../include)  # Header in include/dobby.h
+set(DOBBY_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 set(DOBBY_LIB_DIR ${DOBBY_ROOT}/${ANDROID_ABI})
 
-# Prüfe ob Dobby vorhanden ist
 if(EXISTS "${DOBBY_LIB_DIR}/libdobby.a")
     set(DOBBY_AVAILABLE ON)
     message(STATUS "Dobby found at: ${DOBBY_LIB_DIR}/libdobby.a")
@@ -50,7 +41,6 @@ else()
     message(WARNING "  # Copy libdobby.a to that directory")
 endif()
 
-# Importiere Dobby als statische Library
 if(DOBBY_AVAILABLE)
     add_library(dobby STATIC IMPORTED)
     set_target_properties(dobby PROPERTIES
@@ -63,137 +53,122 @@ endif()
 # Compiler Flags (Stealth + Performance)
 # ==============================================================================
 
-# Basis-Flags für alle Targets
-set(TITAN_COMMON_FLAGS
+set(HW_COMMON_FLAGS
     -Wall
     -Wextra
     -Werror=return-type
-    -fno-exceptions        # Keine C++ Exceptions (Footprint reduzieren)
-    -fno-rtti              # Keine RTTI (Footprint + Anti-Forensics)
-    -fvisibility=hidden    # Alle Symbole hidden by default
+    -fno-exceptions
+    -fno-rtti
+    -fvisibility=hidden
     -fvisibility-inlines-hidden
-    -ffunction-sections    # Ermöglicht --gc-sections
+    -ffunction-sections
     -fdata-sections
 )
 
-# Release/Stealth-Flags
-set(TITAN_RELEASE_FLAGS
-    -O3                    # Maximale Optimierung
+set(HW_RELEASE_FLAGS
+    -O3
     -DNDEBUG
-    # LTO deaktiviert - verursacht Probleme mit Zygisk-Runtime-Symbolen
-    # -flto=thin
-    -fomit-frame-pointer   # Spart Instruktionen
+    -fomit-frame-pointer
 )
 
-# Debug-Flags
-set(TITAN_DEBUG_FLAGS
+set(HW_DEBUG_FLAGS
     -O0
     -g
     -DDEBUG
 )
 
-# Linker-Flags
-set(TITAN_LINKER_FLAGS
-    -Wl,--gc-sections           # Entferne unbenutzte Sections
-    -Wl,--exclude-libs,ALL      # Exportiere keine Symbole aus statischen Libs
-    -Wl,-z,relro                # Relocation Read-Only (Security)
-    -Wl,-z,now                  # Full RELRO
-    -Wl,--hash-style=gnu        # Schnellere Symbol-Lookups
-    -Wl,--allow-shlib-undefined # Erlaube unaufgelöste Symbole (Zygisk-Runtime)
+set(HW_LINKER_FLAGS
+    -Wl,--gc-sections
+    -Wl,--exclude-libs,ALL
+    -Wl,-z,relro
+    -Wl,-z,now
+    -Wl,--hash-style=gnu
+    -Wl,--allow-shlib-undefined
 )
 
-# Strip-Flags für Release
-if(NOT TITAN_DEBUG)
-    list(APPEND TITAN_LINKER_FLAGS
-        -Wl,--strip-all    # Entferne alle Symbole
+if(NOT HW_DEBUG)
+    list(APPEND HW_LINKER_FLAGS
+        -Wl,--strip-all
     )
 endif()
 
 # ==============================================================================
-# Target: libtitan_zygisk.so (Hauptmodul)
+# Target: libhw_overlay.so (Main Module)
 # ==============================================================================
 
-add_library(titan_zygisk SHARED
+add_library(hw_overlay SHARED
     zygisk_module.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../common/titan_hardware.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/hw_compat.cpp
 )
 
-target_include_directories(titan_zygisk PRIVATE
+target_include_directories(hw_overlay PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../include
     ${CMAKE_CURRENT_SOURCE_DIR}/../common
 )
 
-target_compile_options(titan_zygisk PRIVATE
-    ${TITAN_COMMON_FLAGS}
-    $<$<CONFIG:Release>:${TITAN_RELEASE_FLAGS}>
-    $<$<CONFIG:Debug>:${TITAN_DEBUG_FLAGS}>
+target_compile_options(hw_overlay PRIVATE
+    ${HW_COMMON_FLAGS}
+    $<$<CONFIG:Release>:${HW_RELEASE_FLAGS}>
+    $<$<CONFIG:Debug>:${HW_DEBUG_FLAGS}>
 )
 
-target_link_options(titan_zygisk PRIVATE
-    ${TITAN_LINKER_FLAGS}
+target_link_options(hw_overlay PRIVATE
+    ${HW_LINKER_FLAGS}
 )
 
-# Stealth-Modus definieren
-if(TITAN_STEALTH_MODE)
-    target_compile_definitions(titan_zygisk PRIVATE TITAN_STEALTH)
+if(HW_STEALTH_MODE)
+    target_compile_definitions(hw_overlay PRIVATE STEALTH_MODE)
 endif()
 
-# Link gegen Android Libraries
-target_link_libraries(titan_zygisk PRIVATE
+target_link_libraries(hw_overlay PRIVATE
     android
     log
 )
 
-# Link gegen Dobby (wenn verfügbar)
 if(DOBBY_AVAILABLE)
-    target_link_libraries(titan_zygisk PRIVATE dobby)
-    target_compile_definitions(titan_zygisk PRIVATE USE_DOBBY=1)
+    target_link_libraries(hw_overlay PRIVATE dobby)
+    target_compile_definitions(hw_overlay PRIVATE USE_DOBBY=1)
 else()
-    target_compile_definitions(titan_zygisk PRIVATE USE_DOBBY=0)
+    target_compile_definitions(hw_overlay PRIVATE USE_DOBBY=0)
     message(WARNING "Building without Dobby - hooks will not work!")
 endif()
 
-# Output-Konfiguration
-set_target_properties(titan_zygisk PROPERTIES
-    OUTPUT_NAME "titan_zygisk"
+set_target_properties(hw_overlay PROPERTIES
+    OUTPUT_NAME "hw_overlay"
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/${ANDROID_ABI}
-    # Entferne lib-Prefix für Zygisk-Kompatibilität (optional)
-    # PREFIX ""
 )
 
 # ==============================================================================
-# Target: libtitan.so (Legacy-Kompatibilität)
+# Target: libhw_compat.so (Legacy)
 # ==============================================================================
 
-# Prüfe ob main.cpp existiert
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
-    add_library(titan SHARED main.cpp)
+    add_library(hw_compat_legacy SHARED main.cpp)
     
-    target_include_directories(titan PRIVATE
+    target_include_directories(hw_compat_legacy PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/../include
         ${CMAKE_CURRENT_SOURCE_DIR}/../common
     )
     
-    target_compile_options(titan PRIVATE
-        ${TITAN_COMMON_FLAGS}
-        $<$<CONFIG:Release>:${TITAN_RELEASE_FLAGS}>
-        $<$<CONFIG:Debug>:${TITAN_DEBUG_FLAGS}>
+    target_compile_options(hw_compat_legacy PRIVATE
+        ${HW_COMMON_FLAGS}
+        $<$<CONFIG:Release>:${HW_RELEASE_FLAGS}>
+        $<$<CONFIG:Debug>:${HW_DEBUG_FLAGS}>
     )
     
-    target_link_libraries(titan PRIVATE android log)
+    target_link_libraries(hw_compat_legacy PRIVATE android log)
     
-    set_target_properties(titan PROPERTIES
-        OUTPUT_NAME "titan"
+    set_target_properties(hw_compat_legacy PROPERTIES
+        OUTPUT_NAME "hw_compat"
         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/${ANDROID_ABI}
     )
 endif()
 
 # ==============================================================================
-# Install Rules (für Deployment-Script)
+# Install Rules
 # ==============================================================================
 
-# Installiere SO in standardmäßiges Output-Verzeichnis
-install(TARGETS titan_zygisk
+install(TARGETS hw_overlay
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/zygisk/${ANDROID_ABI}
 )
 
@@ -201,7 +176,6 @@ install(TARGETS titan_zygisk
 # Custom Targets
 # ==============================================================================
 
-# Target zum Bauen von Dobby (optional)
 add_custom_target(build_dobby
     COMMAND ${CMAKE_COMMAND} -E echo "Building Dobby..."
     COMMAND ${CMAKE_COMMAND} -E make_directory ${DOBBY_ROOT}
@@ -221,12 +195,12 @@ add_custom_target(build_dobby
 # ==============================================================================
 
 message(STATUS "===============================================")
-message(STATUS "Project Titan - Native Module Configuration")
+message(STATUS "HW Overlay - Native Module Configuration")
 message(STATUS "===============================================")
 message(STATUS "Build Type:     ${CMAKE_BUILD_TYPE}")
 message(STATUS "Android ABI:    ${ANDROID_ABI}")
 message(STATUS "Android API:    ${ANDROID_NATIVE_API_LEVEL}")
-message(STATUS "Stealth Mode:   ${TITAN_STEALTH_MODE}")
+message(STATUS "Stealth Mode:   ${HW_STEALTH_MODE}")
 message(STATUS "Dobby:          ${DOBBY_AVAILABLE}")
 message(STATUS "Output:         ${CMAKE_BINARY_DIR}/lib/${ANDROID_ABI}/")
 message(STATUS "===============================================")

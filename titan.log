@@ -838,3 +838,211 @@
 2026-02-17 01:24:49 [titan.flows.genesis] INFO:   GENESIS ERFOLG: Account 1 (120177 ms)
 2026-02-17 01:24:49 [titan.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
 2026-02-17 01:24:49 [titan.flows.genesis] INFO: ============================================================
+2026-02-17 03:02:41 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=65388)
+2026-02-17 03:02:41 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:02:41 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:02:41 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:02:42 [titan.main] INFO: ============================================================
+2026-02-17 03:02:42 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:02:42 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/titan.db
+2026-02-17 03:02:42 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:02:42 [titan.main] INFO: ============================================================
+2026-02-17 03:02:42 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/titan.db
+2026-02-17 03:02:42 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:02:42 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:02:44 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52997)
+2026-02-17 03:02:45 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=52997)
+2026-02-17 03:02:45 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:02:45 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:02:45 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:02:46 [titan.main] INFO: ============================================================
+2026-02-17 03:02:46 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:02:46 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:02:46 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:02:46 [titan.main] INFO: ============================================================
+2026-02-17 03:02:46 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:02:46 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:02:46 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:02:48 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53018)
+2026-02-17 03:02:55 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53018)
+2026-02-17 03:02:55 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:02:55 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:02:55 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:02:55 [titan.main] INFO: ============================================================
+2026-02-17 03:02:55 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:02:55 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:02:55 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:02:55 [titan.main] INFO: ============================================================
+2026-02-17 03:02:55 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:02:55 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:02:55 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:02:58 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53036)
+2026-02-17 03:02:59 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53036)
+2026-02-17 03:02:59 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:02:59 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:02:59 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:02:59 [titan.main] INFO: ============================================================
+2026-02-17 03:02:59 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:02:59 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:02:59 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:02:59 [titan.main] INFO: ============================================================
+2026-02-17 03:02:59 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:02:59 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:02:59 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:03:02 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53052)
+2026-02-17 03:03:03 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53052)
+2026-02-17 03:03:03 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:03:03 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:03:03 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:03:03 [titan.main] INFO: ============================================================
+2026-02-17 03:03:03 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:03:03 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:03:03 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:03:03 [titan.main] INFO: ============================================================
+2026-02-17 03:03:03 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:03:03 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:03:03 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:03:06 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53068)
+2026-02-17 03:03:07 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53068)
+2026-02-17 03:03:07 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:03:07 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:03:07 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:03:07 [titan.main] INFO: ============================================================
+2026-02-17 03:03:07 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:03:07 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:03:07 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:03:07 [titan.main] INFO: ============================================================
+2026-02-17 03:03:07 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:03:07 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:03:07 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:03:10 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53071)
+2026-02-17 03:03:13 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53071)
+2026-02-17 03:03:13 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:03:13 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:03:13 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:03:13 [titan.main] INFO: ============================================================
+2026-02-17 03:03:13 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:03:13 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:03:13 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:03:13 [titan.main] INFO: ============================================================
+2026-02-17 03:03:13 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:03:13 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:03:13 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:03:16 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53097)
+2026-02-17 03:03:17 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53097)
+2026-02-17 03:03:17 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:03:17 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:03:17 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:03:17 [titan.main] INFO: ============================================================
+2026-02-17 03:03:17 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:03:17 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:03:17 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:03:17 [titan.main] INFO: ============================================================
+2026-02-17 03:03:17 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:03:17 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:03:17 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:03:20 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53104)
+2026-02-17 03:03:22 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53104)
+2026-02-17 03:03:22 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:03:22 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:03:22 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:03:22 [titan.main] INFO: ============================================================
+2026-02-17 03:03:22 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:03:22 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:03:22 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:03:22 [titan.main] INFO: ============================================================
+2026-02-17 03:03:22 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:03:22 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:03:22 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:03:25 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53120)
+2026-02-17 03:03:26 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53120)
+2026-02-17 03:03:26 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:03:26 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:03:26 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:03:26 [titan.main] INFO: ============================================================
+2026-02-17 03:03:26 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:03:26 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:03:26 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:03:26 [titan.main] INFO: ============================================================
+2026-02-17 03:03:26 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:03:26 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:03:26 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:03:29 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53138)
+2026-02-17 03:03:43 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53138)
+2026-02-17 03:03:43 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:03:43 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:03:43 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:03:44 [titan.main] INFO: ============================================================
+2026-02-17 03:03:44 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:03:44 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:03:44 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:03:44 [titan.main] INFO: ============================================================
+2026-02-17 03:03:44 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:03:44 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:03:44 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:03:46 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53169)
+2026-02-17 03:04:45 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53169)
+2026-02-17 03:04:45 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:04:45 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:04:45 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:04:45 [titan.main] INFO: ============================================================
+2026-02-17 03:04:45 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:04:45 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:04:45 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:04:45 [titan.main] INFO: ============================================================
+2026-02-17 03:04:45 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:04:45 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:04:45 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:04:46 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:04:46 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:04:46 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:04:46 [titan.main] INFO: ============================================================
+2026-02-17 03:04:46 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:04:46 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:04:46 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:04:46 [titan.main] INFO: ============================================================
+2026-02-17 03:04:46 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:04:46 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:04:46 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:04:47 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:04:47 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:04:47 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:05:45 [titan.main] INFO: ============================================================
+2026-02-17 03:05:45 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:05:45 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:05:45 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:05:45 [titan.main] INFO: ============================================================
+2026-02-17 03:05:45 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:05:45 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:05:45 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:05:45 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53199)
+2026-02-17 03:05:46 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53199)
+2026-02-17 03:05:46 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:05:46 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:05:46 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:05:46 [titan.main] INFO: ============================================================
+2026-02-17 03:05:46 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:05:46 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:05:46 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:05:46 [titan.main] INFO: ============================================================
+2026-02-17 03:05:46 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:05:46 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:05:46 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:05:49 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53223)
+2026-02-17 03:06:58 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53223)
+2026-02-17 03:06:58 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:06:58 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:06:58 [titan.main] INFO: Titan Command Center gestoppt.
+2026-02-17 03:06:58 [titan.main] INFO: ============================================================
+2026-02-17 03:06:58 [titan.main] INFO:   Project Titan — Command Center v1.0.0
+2026-02-17 03:06:58 [titan.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:06:58 [titan.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 03:06:58 [titan.main] INFO: ============================================================
+2026-02-17 03:06:58 [titan.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 03:06:58 [titan.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 03:06:58 [titan.main] INFO: Titan Command Center bereit.
+2026-02-17 03:07:01 [titan.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53297)
+2026-02-17 03:07:02 [titan.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53297)
+2026-02-17 03:07:02 [titan.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 03:07:02 [titan.database] INFO: Datenbank geschlossen.
+2026-02-17 03:07:02 [titan.main] INFO: Titan Command Center gestoppt.

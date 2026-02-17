@@ -1,6 +1,6 @@
 """
-Project Titan — Account / Profile Models (v2.0)
-=================================================
+Account / Profile Models (v2.0)
+=================================
 
 Pydantic-Modelle für das "Vault" (Account-Management).
 

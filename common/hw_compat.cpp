@@ -1,80 +1,68 @@
 /**
- * Project Titan – TitanHardware Singleton Implementierung (Phase 4.1)
- * 
- * Liest Hardware-Identifikatoren aus der Bridge-Datei:
- *   /data/local/tmp/.titan_identity (Key=Value Format)
- * 
- * Unterstützte Keys:
- *   serial, boot_serial, imei1, imei2, gsf_id, android_id,
- *   wifi_mac, widevine_id, imsi, sim_serial
+ * HwCompat Singleton Implementation
+ * Reads hardware identifiers from bridge config file (Key=Value format).
  */
-#include "titan_hardware.h"
+#include "hw_compat.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cerrno>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/syscall.h>  // FIX-24B: Raw Syscalls
+#include <sys/syscall.h>
 
-// =============================================================================
-// FIX-24A: XOR-verschlüsselte Bridge-Pfade
-// =============================================================================
-#define TITAN_XOR_KEY 0x5A
+// String obfuscation
+#define _XK 0x5A
 
-static inline void _hw_xor_decode(char* out, const unsigned char* enc, size_t len) {
-    for (size_t i = 0; i < len; i++) out[i] = (char)(enc[i] ^ TITAN_XOR_KEY);
+static inline void _hw_xdec(char* out, const unsigned char* enc, size_t len) {
+    for (size_t i = 0; i < len; i++) out[i] = (char)(enc[i] ^ _XK);
     out[len] = '\0';
 }
 
-// "/data/local/tmp/.titan_identity" (len=31)
-static const unsigned char _ENC_HW_PATH[] = {
-    0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x36,0x35,0x39,0x3b,0x36,0x75,
-    0x2e,0x37,0x2a,0x75,0x74,0x2e,0x33,0x2e,0x3b,0x34,0x05,0x33,
-    0x3e,0x3f,0x34,0x2e,0x33,0x2e,0x23
-};
-// "/data/adb/modules/titan_verifier/titan_identity" (len=47)
-static const unsigned char _ENC_HW_FALLBACK[] = {
+// "/data/adb/modules/hw_overlay/.hw_config" (len=39)
+static const unsigned char _ENC_HW_PRIMARY[] = {
     0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x3b,0x3e,0x38,0x75,0x37,0x35,
-    0x3e,0x2f,0x36,0x3f,0x29,0x75,0x2e,0x33,0x2e,0x3b,0x34,0x05,
-    0x2c,0x3f,0x28,0x33,0x3c,0x33,0x3f,0x28,0x75,0x2e,0x33,0x2e,
-    0x3b,0x34,0x05,0x33,0x3e,0x3f,0x34,0x2e,0x33,0x2e,0x23
+    0x3e,0x2f,0x36,0x3f,0x29,0x75,0x32,0x2d,0x05,0x35,0x2c,0x3f,
+    0x28,0x36,0x3b,0x23,0x75,0x74,0x32,0x2d,0x05,0x39,0x35,0x34,
+    0x3c,0x33,0x3d
 };
-// "/data/local/tmp/.titan_state" (len=28)
+// "/sdcard/.hw_config" (len=18)
+static const unsigned char _ENC_HW_FALLBACK[] = {
+    0x75,0x29,0x3e,0x39,0x3b,0x28,0x3e,0x75,0x74,0x32,0x2d,0x05,
+    0x39,0x35,0x34,0x3c,0x33,0x3d
+};
+// "/data/local/tmp/.hw_config" (len=26)
 static const unsigned char _ENC_HW_LEGACY[] = {
     0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x36,0x35,0x39,0x3b,0x36,0x75,
-    0x2e,0x37,0x2a,0x75,0x74,0x2e,0x33,0x2e,0x3b,0x34,0x05,0x29,
-    0x2e,0x3b,0x2e,0x3f
+    0x2e,0x37,0x2a,0x75,0x74,0x32,0x2d,0x05,0x39,0x35,0x34,0x3c,
+    0x33,0x3d
 };
 
-// Einmalig entschlüsselte Pfade
-static char g_hwPath[32] = {};
-static char g_hwFallback[48] = {};
+static char g_hwPath[48] = {};
+static char g_hwFallback[24] = {};
 static char g_hwLegacy[32] = {};
 static bool g_hwPathsDecoded = false;
 
 static void _decodeBridgePaths() {
     if (g_hwPathsDecoded) return;
-    _hw_xor_decode(g_hwPath,     _ENC_HW_PATH,     31);
-    _hw_xor_decode(g_hwFallback, _ENC_HW_FALLBACK,  47);
-    _hw_xor_decode(g_hwLegacy,   _ENC_HW_LEGACY,    28);
+    _hw_xdec(g_hwPath,     _ENC_HW_PRIMARY,  39);
+    _hw_xdec(g_hwFallback, _ENC_HW_FALLBACK, 18);
+    _hw_xdec(g_hwLegacy,   _ENC_HW_LEGACY,   26);
     g_hwPathsDecoded = true;
 }
 
-// Exportierte Pfad-Pointer (werden von titan_hardware.h referenziert)
-const char* TITAN_BRIDGE_PATH_DEC     = nullptr;
-const char* TITAN_BRIDGE_FALLBACK_DEC = nullptr;
-const char* TITAN_BRIDGE_LEGACY_DEC   = nullptr;
+const char* HW_BRIDGE_PATH_DEC     = nullptr;
+const char* HW_BRIDGE_FALLBACK_DEC = nullptr;
+const char* HW_BRIDGE_LEGACY_DEC   = nullptr;
 
-// Initialisierung beim Laden der Shared Library
 __attribute__((constructor))
 static void _initBridgePaths() {
     _decodeBridgePaths();
-    TITAN_BRIDGE_PATH_DEC     = g_hwPath;
-    TITAN_BRIDGE_FALLBACK_DEC = g_hwFallback;
-    TITAN_BRIDGE_LEGACY_DEC   = g_hwLegacy;
+    HW_BRIDGE_PATH_DEC     = g_hwPath;
+    HW_BRIDGE_FALLBACK_DEC = g_hwFallback;
+    HW_BRIDGE_LEGACY_DEC   = g_hwLegacy;
 }
 
-// FIX-24B: Raw Syscall Wrappers für titan_hardware
+// Raw Syscall Wrappers
 static inline int _hw_raw_openat(const char* path, int flags) {
     return (int)syscall(__NR_openat, AT_FDCWD, path, flags, 0);
 }
@@ -86,11 +74,10 @@ static inline int _hw_raw_close(int fd) {
 }
 
 // ============================================================================
-// TitanHardware Singleton Implementation
+// HwCompat Singleton Implementation
 // ============================================================================
 
-TitanHardware::TitanHardware() {
-    // Zero-Initialize alle Buffer
+HwCompat::HwCompat() {
     std::memset(m_serial, 0, sizeof(m_serial));
     std::memset(m_bootSerial, 0, sizeof(m_bootSerial));
     std::memset(m_imei1, 0, sizeof(m_imei1));
@@ -103,13 +90,12 @@ TitanHardware::TitanHardware() {
     std::memset(m_simSerial, 0, sizeof(m_simSerial));
 }
 
-TitanHardware& TitanHardware::getInstance() {
-    // Meyer's Singleton - thread-safe in C++11+
-    static TitanHardware instance;
+HwCompat& HwCompat::getInstance() {
+    static HwCompat instance;
     return instance;
 }
 
-void TitanHardware::safeCopy(char* dest, size_t destSize, const char* src) {
+void HwCompat::safeCopy(char* dest, size_t destSize, const char* src) {
     if (!dest || destSize == 0) return;
     if (!src) {
         dest[0] = '\0';
@@ -118,7 +104,6 @@ void TitanHardware::safeCopy(char* dest, size_t destSize, const char* src) {
     std::strncpy(dest, src, destSize - 1);
     dest[destSize - 1] = '\0';
     
-    // Strip trailing whitespace/newlines
     size_t len = std::strlen(dest);
     while (len > 0 && (dest[len - 1] == '\n' || dest[len - 1] == '\r' || 
                        dest[len - 1] == ' ' || dest[len - 1] == '\t')) {
@@ -126,10 +111,9 @@ void TitanHardware::safeCopy(char* dest, size_t destSize, const char* src) {
     }
 }
 
-bool TitanHardware::parseKeyValue(const char* key, const char* value) {
+bool HwCompat::parseKeyValue(const char* key, const char* value) {
     if (!key || !value) return false;
     
-    // Serial
     if (std::strcmp(key, "serial") == 0) {
         safeCopy(m_serial, sizeof(m_serial), value);
         return true;
@@ -138,8 +122,6 @@ bool TitanHardware::parseKeyValue(const char* key, const char* value) {
         safeCopy(m_bootSerial, sizeof(m_bootSerial), value);
         return true;
     }
-    
-    // IMEI (Dual SIM)
     if (std::strcmp(key, "imei1") == 0 || std::strcmp(key, "imei") == 0) {
         safeCopy(m_imei1, sizeof(m_imei1), value);
         return true;
@@ -148,8 +130,6 @@ bool TitanHardware::parseKeyValue(const char* key, const char* value) {
         safeCopy(m_imei2, sizeof(m_imei2), value);
         return true;
     }
-    
-    // IDs
     if (std::strcmp(key, "gsf_id") == 0 || std::strcmp(key, "gsfid") == 0) {
         safeCopy(m_gsfId, sizeof(m_gsfId), value);
         return true;
@@ -158,20 +138,14 @@ bool TitanHardware::parseKeyValue(const char* key, const char* value) {
         safeCopy(m_androidId, sizeof(m_androidId), value);
         return true;
     }
-    
-    // Network
     if (std::strcmp(key, "wifi_mac") == 0 || std::strcmp(key, "mac_wlan0") == 0) {
         safeCopy(m_wifiMac, sizeof(m_wifiMac), value);
         return true;
     }
-    
-    // DRM
     if (std::strcmp(key, "widevine_id") == 0) {
         safeCopy(m_widevineId, sizeof(m_widevineId), value);
         return true;
     }
-    
-    // SIM
     if (std::strcmp(key, "imsi") == 0) {
         safeCopy(m_imsi, sizeof(m_imsi), value);
         return true;
@@ -181,17 +155,15 @@ bool TitanHardware::parseKeyValue(const char* key, const char* value) {
         return true;
     }
     
-    return false;  // Unbekannter Key
+    return false;
 }
 
-bool TitanHardware::loadFromFile(const char* path) {
-    // FIX-24B: Raw Syscalls statt libc open/read/close
+bool HwCompat::loadFromFile(const char* path) {
     int fd = _hw_raw_openat(path, O_RDONLY);
     if (fd < 0) {
         return false;
     }
     
-    // Lese gesamte Datei (max 2KB für alle Keys)
     char buffer[2048] = {};
     ssize_t bytesRead = _hw_raw_read(fd, buffer, sizeof(buffer) - 1);
     _hw_raw_close(fd);
@@ -202,8 +174,6 @@ bool TitanHardware::loadFromFile(const char* path) {
     buffer[bytesRead] = '\0';
     
     bool foundAny = false;
-    
-    // Parse Key=Value Zeilen
     char* savePtr = nullptr;
     char* line;
     char* bufPtr = buffer;
@@ -211,29 +181,22 @@ bool TitanHardware::loadFromFile(const char* path) {
     while ((line = strtok_r(bufPtr, "\n", &savePtr)) != nullptr) {
         bufPtr = nullptr;
         
-        // Skip leere Zeilen und Kommentare
         while (*line == ' ' || *line == '\t') line++;
         if (*line == '\0' || *line == '#') continue;
         
-        // Finde '=' Trenner
         char* eq = std::strchr(line, '=');
         if (!eq) {
-            // Legacy-Format (nur Werte, zeilenweise)
-            // Fallback für alte .titan_state Dateien
             continue;
         }
         
-        // Split in Key und Value
         *eq = '\0';
         char* key = line;
         char* value = eq + 1;
         
-        // Trim Key
         while (*key == ' ' || *key == '\t') key++;
         char* keyEnd = eq - 1;
         while (keyEnd > key && (*keyEnd == ' ' || *keyEnd == '\t')) *keyEnd-- = '\0';
         
-        // Trim Value
         while (*value == ' ' || *value == '\t') value++;
         
         if (parseKeyValue(key, value)) {
@@ -244,23 +207,20 @@ bool TitanHardware::loadFromFile(const char* path) {
     return foundAny;
 }
 
-bool TitanHardware::refreshFromBridge() {
+bool HwCompat::refreshFromBridge() {
     std::lock_guard<std::mutex> lock(m_mutex);
     
-    // Versuche primären Pfad
-    if (loadFromFile(TITAN_BRIDGE_PATH)) {
+    if (loadFromFile(HW_BRIDGE_PATH)) {
         m_loaded = true;
         return true;
     }
     
-    // Fallback Pfad
-    if (loadFromFile(TITAN_BRIDGE_FALLBACK)) {
+    if (loadFromFile(HW_BRIDGE_FALLBACK)) {
         m_loaded = true;
         return true;
     }
     
-    // Legacy-Pfad (altes Format: Zeilen ohne Keys)
-    if (loadFromFile(TITAN_BRIDGE_LEGACY)) {
+    if (loadFromFile(HW_BRIDGE_LEGACY)) {
         m_loaded = (m_serial[0] != '\0');
         return m_loaded;
     }
@@ -269,122 +229,115 @@ bool TitanHardware::refreshFromBridge() {
     return false;
 }
 
-bool TitanHardware::isLoaded() const {
+bool HwCompat::isLoaded() const {
     return m_loaded.load();
 }
 
 // ============================================================================
-// Getter/Setter Implementierungen
+// Getter/Setter
 // ============================================================================
 
-// Serial
-void TitanHardware::getSerial(char* buf, size_t len) const {
+void HwCompat::getSerial(char* buf, size_t len) const {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(buf, len, m_serial);
 }
-void TitanHardware::setSerial(const char* value) {
+void HwCompat::setSerial(const char* value) {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(m_serial, sizeof(m_serial), value);
 }
 
-void TitanHardware::getBootSerial(char* buf, size_t len) const {
+void HwCompat::getBootSerial(char* buf, size_t len) const {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(buf, len, m_bootSerial);
 }
-void TitanHardware::setBootSerial(const char* value) {
+void HwCompat::setBootSerial(const char* value) {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(m_bootSerial, sizeof(m_bootSerial), value);
 }
 
-// IMEI
-void TitanHardware::getImei1(char* buf, size_t len) const {
+void HwCompat::getImei1(char* buf, size_t len) const {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(buf, len, m_imei1);
 }
-void TitanHardware::setImei1(const char* value) {
+void HwCompat::setImei1(const char* value) {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(m_imei1, sizeof(m_imei1), value);
 }
 
-void TitanHardware::getImei2(char* buf, size_t len) const {
+void HwCompat::getImei2(char* buf, size_t len) const {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(buf, len, m_imei2);
 }
-void TitanHardware::setImei2(const char* value) {
+void HwCompat::setImei2(const char* value) {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(m_imei2, sizeof(m_imei2), value);
 }
 
-// IDs
-void TitanHardware::getGsfId(char* buf, size_t len) const {
+void HwCompat::getGsfId(char* buf, size_t len) const {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(buf, len, m_gsfId);
 }
-void TitanHardware::setGsfId(const char* value) {
+void HwCompat::setGsfId(const char* value) {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(m_gsfId, sizeof(m_gsfId), value);
 }
 
-void TitanHardware::getAndroidId(char* buf, size_t len) const {
+void HwCompat::getAndroidId(char* buf, size_t len) const {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(buf, len, m_androidId);
 }
-void TitanHardware::setAndroidId(const char* value) {
+void HwCompat::setAndroidId(const char* value) {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(m_androidId, sizeof(m_androidId), value);
 }
 
-// Network
-void TitanHardware::getWifiMac(char* buf, size_t len) const {
+void HwCompat::getWifiMac(char* buf, size_t len) const {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(buf, len, m_wifiMac);
 }
-void TitanHardware::setWifiMac(const char* value) {
+void HwCompat::setWifiMac(const char* value) {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(m_wifiMac, sizeof(m_wifiMac), value);
 }
 
-// DRM
-void TitanHardware::getWidevineId(char* buf, size_t len) const {
+void HwCompat::getWidevineId(char* buf, size_t len) const {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(buf, len, m_widevineId);
 }
-void TitanHardware::setWidevineId(const char* value) {
+void HwCompat::setWidevineId(const char* value) {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(m_widevineId, sizeof(m_widevineId), value);
 }
 
-// SIM
-void TitanHardware::getImsi(char* buf, size_t len) const {
+void HwCompat::getImsi(char* buf, size_t len) const {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(buf, len, m_imsi);
 }
-void TitanHardware::setImsi(const char* value) {
+void HwCompat::setImsi(const char* value) {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(m_imsi, sizeof(m_imsi), value);
 }
 
-void TitanHardware::getSimSerial(char* buf, size_t len) const {
+void HwCompat::getSimSerial(char* buf, size_t len) const {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(buf, len, m_simSerial);
 }
-void TitanHardware::setSimSerial(const char* value) {
+void HwCompat::setSimSerial(const char* value) {
     std::lock_guard<std::mutex> lock(m_mutex);
     safeCopy(m_simSerial, sizeof(m_simSerial), value);
 }
 
 // ============================================================================
-// C-kompatible API (delegiert an Singleton)
+// C API
 // ============================================================================
 
 extern "C" {
 
-void TitanHardwareState_Init(struct TitanHardwareState* s) {
+void HwState_Init(struct HwState* s) {
     if (!s) return;
-    std::memset(s, 0, sizeof(TitanHardwareState));
+    std::memset(s, 0, sizeof(HwState));
     
-    // Synchronisiere mit Singleton
-    TitanHardware& hw = TitanHardware::getInstance();
+    HwCompat& hw = HwCompat::getInstance();
     hw.getSerial(s->serial, sizeof(s->serial));
     hw.getBootSerial(s->boot_serial, sizeof(s->boot_serial));
     hw.getImei1(s->imei1, sizeof(s->imei1));
@@ -397,136 +350,135 @@ void TitanHardwareState_Init(struct TitanHardwareState* s) {
     hw.getSimSerial(s->sim_serial, sizeof(s->sim_serial));
 }
 
-void TitanHardwareState_SetSerial(struct TitanHardwareState* s, const char* v) {
-    TitanHardware::getInstance().setSerial(v);
+void HwState_SetSerial(struct HwState* s, const char* v) {
+    HwCompat::getInstance().setSerial(v);
     if (s && v) {
         std::strncpy(s->serial, v, sizeof(s->serial) - 1);
         s->serial[sizeof(s->serial) - 1] = '\0';
     }
 }
 
-void TitanHardwareState_SetBootSerial(struct TitanHardwareState* s, const char* v) {
-    TitanHardware::getInstance().setBootSerial(v);
+void HwState_SetBootSerial(struct HwState* s, const char* v) {
+    HwCompat::getInstance().setBootSerial(v);
     if (s && v) {
         std::strncpy(s->boot_serial, v, sizeof(s->boot_serial) - 1);
         s->boot_serial[sizeof(s->boot_serial) - 1] = '\0';
     }
 }
 
-void TitanHardwareState_SetImei1(struct TitanHardwareState* s, const char* v) {
-    TitanHardware::getInstance().setImei1(v);
+void HwState_SetImei1(struct HwState* s, const char* v) {
+    HwCompat::getInstance().setImei1(v);
     if (s && v) {
         std::strncpy(s->imei1, v, sizeof(s->imei1) - 1);
         s->imei1[sizeof(s->imei1) - 1] = '\0';
     }
 }
 
-void TitanHardwareState_SetImei2(struct TitanHardwareState* s, const char* v) {
-    TitanHardware::getInstance().setImei2(v);
+void HwState_SetImei2(struct HwState* s, const char* v) {
+    HwCompat::getInstance().setImei2(v);
     if (s && v) {
         std::strncpy(s->imei2, v, sizeof(s->imei2) - 1);
         s->imei2[sizeof(s->imei2) - 1] = '\0';
     }
 }
 
-// Legacy-Kompatibilität
-void TitanHardwareState_SetImei(struct TitanHardwareState* s, const char* v) {
-    TitanHardwareState_SetImei1(s, v);
+void HwState_SetImei(struct HwState* s, const char* v) {
+    HwState_SetImei1(s, v);
 }
 
-void TitanHardwareState_SetGsfId(struct TitanHardwareState* s, const char* v) {
-    TitanHardware::getInstance().setGsfId(v);
+void HwState_SetGsfId(struct HwState* s, const char* v) {
+    HwCompat::getInstance().setGsfId(v);
     if (s && v) {
         std::strncpy(s->gsf_id, v, sizeof(s->gsf_id) - 1);
         s->gsf_id[sizeof(s->gsf_id) - 1] = '\0';
     }
 }
 
-void TitanHardwareState_SetAndroidId(struct TitanHardwareState* s, const char* v) {
-    TitanHardware::getInstance().setAndroidId(v);
+void HwState_SetAndroidId(struct HwState* s, const char* v) {
+    HwCompat::getInstance().setAndroidId(v);
     if (s && v) {
         std::strncpy(s->android_id, v, sizeof(s->android_id) - 1);
         s->android_id[sizeof(s->android_id) - 1] = '\0';
     }
 }
 
-void TitanHardwareState_SetWifiMac(struct TitanHardwareState* s, const char* v) {
-    TitanHardware::getInstance().setWifiMac(v);
+void HwState_SetWifiMac(struct HwState* s, const char* v) {
+    HwCompat::getInstance().setWifiMac(v);
     if (s && v) {
         std::strncpy(s->wifi_mac, v, sizeof(s->wifi_mac) - 1);
         s->wifi_mac[sizeof(s->wifi_mac) - 1] = '\0';
     }
 }
 
-void TitanHardwareState_SetWidevineId(struct TitanHardwareState* s, const char* v) {
-    TitanHardware::getInstance().setWidevineId(v);
+void HwState_SetWidevineId(struct HwState* s, const char* v) {
+    HwCompat::getInstance().setWidevineId(v);
     if (s && v) {
         std::strncpy(s->widevine_id, v, sizeof(s->widevine_id) - 1);
         s->widevine_id[sizeof(s->widevine_id) - 1] = '\0';
     }
 }
 
-void TitanHardwareState_SetImsi(struct TitanHardwareState* s, const char* v) {
-    TitanHardware::getInstance().setImsi(v);
+void HwState_SetImsi(struct HwState* s, const char* v) {
+    HwCompat::getInstance().setImsi(v);
     if (s && v) {
         std::strncpy(s->imsi, v, sizeof(s->imsi) - 1);
         s->imsi[sizeof(s->imsi) - 1] = '\0';
     }
 }
 
-void TitanHardwareState_SetSimSerial(struct TitanHardwareState* s, const char* v) {
-    TitanHardware::getInstance().setSimSerial(v);
+void HwState_SetSimSerial(struct HwState* s, const char* v) {
+    HwCompat::getInstance().setSimSerial(v);
     if (s && v) {
         std::strncpy(s->sim_serial, v, sizeof(s->sim_serial) - 1);
         s->sim_serial[sizeof(s->sim_serial) - 1] = '\0';
     }
 }
 
-const char* TitanHardwareState_GetSerial(struct TitanHardwareState* s) {
+const char* HwState_GetSerial(struct HwState* s) {
     (void)s;
-    return TitanHardware::getInstance().serialPtr();
+    return HwCompat::getInstance().serialPtr();
 }
 
-const char* TitanHardwareState_GetBootSerial(struct TitanHardwareState* s) {
+const char* HwState_GetBootSerial(struct HwState* s) {
     (void)s;
-    return TitanHardware::getInstance().bootSerialPtr();
+    return HwCompat::getInstance().bootSerialPtr();
 }
 
-const char* TitanHardwareState_GetImei1(struct TitanHardwareState* s) {
+const char* HwState_GetImei1(struct HwState* s) {
     (void)s;
-    return TitanHardware::getInstance().imei1Ptr();
+    return HwCompat::getInstance().imei1Ptr();
 }
 
-const char* TitanHardwareState_GetImei2(struct TitanHardwareState* s) {
+const char* HwState_GetImei2(struct HwState* s) {
     (void)s;
-    return TitanHardware::getInstance().imei2Ptr();
+    return HwCompat::getInstance().imei2Ptr();
 }
 
-const char* TitanHardwareState_GetImei(struct TitanHardwareState* s) {
-    return TitanHardwareState_GetImei1(s);
+const char* HwState_GetImei(struct HwState* s) {
+    return HwState_GetImei1(s);
 }
 
-const char* TitanHardwareState_GetGsfId(struct TitanHardwareState* s) {
+const char* HwState_GetGsfId(struct HwState* s) {
     (void)s;
-    return TitanHardware::getInstance().gsfIdPtr();
+    return HwCompat::getInstance().gsfIdPtr();
 }
 
-const char* TitanHardwareState_GetAndroidId(struct TitanHardwareState* s) {
+const char* HwState_GetAndroidId(struct HwState* s) {
     (void)s;
-    return TitanHardware::getInstance().androidIdPtr();
+    return HwCompat::getInstance().androidIdPtr();
 }
 
-const char* TitanHardwareState_GetWifiMac(struct TitanHardwareState* s) {
+const char* HwState_GetWifiMac(struct HwState* s) {
     (void)s;
-    return TitanHardware::getInstance().wifiMacPtr();
+    return HwCompat::getInstance().wifiMacPtr();
 }
 
-int TitanHardware_RefreshFromBridge(void) {
-    return TitanHardware::getInstance().refreshFromBridge() ? 1 : 0;
+int HwCompat_RefreshFromBridge(void) {
+    return HwCompat::getInstance().refreshFromBridge() ? 1 : 0;
 }
 
-int TitanHardware_IsLoaded(void) {
-    return TitanHardware::getInstance().isLoaded() ? 1 : 0;
+int HwCompat_IsLoaded(void) {
+    return HwCompat::getInstance().isLoaded() ? 1 : 0;
 }
 
 } // extern "C"

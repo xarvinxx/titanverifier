@@ -1,6 +1,6 @@
 """
-Project Titan — Device Auditor ("The Judge")
-===============================================
+Device Auditor ("The Judge")
+=============================
 
 Prüft ob eine Identitäts-Injektion erfolgreich war.
 
@@ -37,7 +37,7 @@ from host.adb.client import ADBClient, ADBError
 from host.config import BRIDGE_FILE_PATH
 from host.models.identity import IdentityRead
 
-logger = logging.getLogger("titan.engine.auditor")
+logger = logging.getLogger("host.auditor")
 
 
 # =============================================================================
@@ -122,7 +122,7 @@ class AuditResult:
 # Auditor
 # =============================================================================
 
-class TitanAuditor:
+class DeviceAuditor:
     """
     Führt Device-Audits nach Injektion durch.
 
@@ -131,7 +131,7 @@ class TitanAuditor:
 
     Usage:
         adb = ADBClient()
-        auditor = TitanAuditor(adb)
+        auditor = DeviceAuditor(adb)
         result = await auditor.audit_device(expected_identity)
         print(result.summary())  # "Audit [DE_001]: 100% (4/4 passed)"
     """

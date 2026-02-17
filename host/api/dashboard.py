@@ -1,6 +1,6 @@
 """
-Project Titan — Dashboard API ("The Monitor") v2.0
-====================================================
+Dashboard API ("The Monitor") v2.0
+====================================
 
 Live-Daten, Echtzeit-Logs und History-Endpoints.
 
@@ -38,7 +38,7 @@ from host.engine.db_ops import (
     parse_bridge_file,
 )
 
-logger = logging.getLogger("titan.api.dashboard")
+logger = logging.getLogger("host.api.dashboard")
 
 
 # =============================================================================
@@ -81,7 +81,7 @@ router = APIRouter(prefix="/api/dashboard", tags=["Dashboard"])
 
 
 # =============================================================================
-# WebSocket Log-Handler (fängt Titan-Logs ab und broadcastet sie)
+# WebSocket Log-Handler (fängt Host-Logs ab und broadcastet sie)
 # =============================================================================
 
 class WebSocketLogHandler(logging.Handler):

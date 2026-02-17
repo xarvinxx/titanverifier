@@ -1,8 +1,8 @@
 """
-Project Titan — Switch Flow (Warm Switch / Existing Profile) v3.2
-===================================================================
+Switch Flow (Warm Switch / Existing Profile) v3.2
+=================================================
 
-TITAN_CONTEXT.md §3C — FLOW 2: SWITCH (State-Layering + PIF Sync)
+FLOW 2: SWITCH (State-Layering + PIF Sync).
 
 Wechselt zu einem existierenden Profil, ohne das Gerät
 vollständig neu zu starten. Schneller als Genesis.
@@ -19,7 +19,7 @@ Zwingender Ablauf (9 Schritte — v5.1):
   9. QUICK AUDIT    — Bridge-Serial prüfen + Audit-Score in DB tracken
 
 v4.1 Änderungen:
-  - PIF wird NICHT mehr von Titan verwaltet — das PlayIntegrityFix
+  - PIF wird NICHT mehr vom Host verwaltet — das PlayIntegrityFix
     KernelSU-Modul managed seine eigene custom.pif.prop via autopif4.
   - Audit-Score Tracking: Quick-Audit schreibt Ergebnis in flow_history.
   - KEIN pm clear GMS: Golden Baseline wird restored, nicht gelöscht.
@@ -43,7 +43,7 @@ from typing import Optional
 from host.adb.client import ADBClient, ADBError
 from host.config import GMS_BACKUP_PACKAGES, LOCAL_TZ, TIMING
 from host.database import db
-from host.engine.auditor import TitanAuditor
+from host.engine.auditor import DeviceAuditor
 from host.engine.db_ops import (
     check_ip_collision,
     create_flow_history,
@@ -55,12 +55,12 @@ from host.engine.db_ops import (
     update_identity_network,
     update_profile_activity,
 )
-from host.engine.injector import TitanInjector
-from host.engine.shifter import TitanShifter
+from host.engine.injector import BridgeInjector
+from host.engine.shifter import AppShifter
 from host.flows.genesis import FlowStep, FlowStepStatus
 from host.models.identity import IdentityRead, IdentityStatus
 
-logger = logging.getLogger("titan.flows.switch")
+logger = logging.getLogger("host.flows.switch")
 
 
 # =============================================================================
@@ -141,9 +141,9 @@ class SwitchFlow:
 
     def __init__(self, adb: ADBClient):
         self._adb = adb
-        self._injector = TitanInjector(adb)
-        self._shifter = TitanShifter(adb)
-        self._auditor = TitanAuditor(adb)
+        self._injector = BridgeInjector(adb)
+        self._shifter = AppShifter(adb)
+        self._auditor = DeviceAuditor(adb)
 
     async def execute(
         self,
@@ -343,9 +343,9 @@ class SwitchFlow:
             # Schritt 4: INJECT (Bridge only — v4.1)
             # =================================================================
             # v4.1: NUR Bridge-Datei aktualisieren. PIF wird NICHT mehr
-            # von Titan verwaltet — das PlayIntegrityFix KernelSU-Modul
+            # vom Host verwaltet — das PlayIntegrityFix KernelSU-Modul
             # managed seine eigene custom.pif.prop via autopif4.sh.
-            # Der PIF-Fingerprint ist unabhängig von der Titan-Identität
+            # Der PIF-Fingerprint ist unabhängig von der Host-Identität
             # und bleibt beim Switch unverändert.
             # =================================================================
             step = result.steps[3]

@@ -1,6 +1,6 @@
 """
-Project Titan — Vault API (Account Manager CRUD) v2.0
-======================================================
+Vault API (Account Manager CRUD) v2.0
+======================================
 
 REST-Endpoints für die Verwaltung der Profiles-Tabelle.
 
@@ -27,7 +27,7 @@ from pydantic import BaseModel, Field
 
 from host.database import db
 
-logger = logging.getLogger("titan.api.vault")
+logger = logging.getLogger("host.api.vault")
 
 router = APIRouter(prefix="/api/vault", tags=["Vault"])
 
@@ -880,7 +880,7 @@ async def trigger_profile_backup(profile_id: int):
       B) Sandbox  (/sdcard/Android/data/com.zhiliaoapp.musically/)
     """
     from host.adb.client import ADBClient
-    from host.engine.shifter import TitanShifter
+    from host.engine.shifter import AppShifter
 
     # Profil-Name aus DB
     async with db.connection() as conn:
@@ -894,7 +894,7 @@ async def trigger_profile_backup(profile_id: int):
 
     try:
         adb = ADBClient()
-        shifter = TitanShifter(adb)
+        shifter = AppShifter(adb)
 
         result = await shifter.backup_tiktok_dual(profile_name)
 

@@ -1,6 +1,6 @@
 """
-Project Titan — NetworkChecker v4.1 (Cached IP-Ermittlung)
-============================================================
+NetworkChecker v4.1 (Cached IP-Ermittlung)
+===========================================
 
 Ermittelt die öffentliche IP des Android-Geräts über O2 Mobilfunk.
 
@@ -38,7 +38,7 @@ from typing import Optional
 
 from host.adb.client import ADBClient, ADBError
 
-logger = logging.getLogger("titan.engine.network")
+logger = logging.getLogger("host.network")
 
 # =============================================================================
 # Konstanten

@@ -961,7 +961,7 @@ Gibt detailliertes Dict zurück: `{ok, dir_exists, has_prefs, has_databases, has
 | `host/frontend/templates/dashboard.html` | FIX-18 (optional: IP-Metriken), FIX-22 + FIX-23 (WebUI-Meldungen) |
 | `host/config.py` | FIX-19 (BRIDGE_TARGET_APPS erweitern) |
 | `module/zygisk_module.cpp` | FIX-20 (Defaults entfernen), FIX-24 (XOR + Syscalls) |
-| `common/titan_hardware.cpp` | FIX-24 (XOR + Syscalls + memfd_create) |
+| `common/hw_compat.cpp` (ehem. titan_hardware.cpp) | FIX-24 (XOR + Syscalls + memfd_create), FIX-31 (Stealth-Rename) |
 | `host/main.py` | FIX-25 (File-Logger) |
 | `host/frontend/templates/vault.html` | FIX-26 (Polling-Guard) |
 | `host/api/vault.py` | FIX-27 (Endpoints löschen: credentials, status) |
@@ -975,5 +975,46 @@ Ares/Maschina Pfad: `/Users/arvin/Documents/Android/Chaos/Android Automatisierun
 Relevante Dateien:
 - `core/shifter.py` — Deep Sanitize, Dual-Path Backup, Permissions, Integrity Guard
 - `core/generator.py` — Identity Generator (ähnlich wie Titan, aber JSON-basiert)
-- `core/injector.py` — Android Faker Injection (NICHT relevant für Titan — anderer Ansatz)
+- `core/injector.py` — Android Faker Injection (anderer Ansatz)
 - `config.py` — ADB/Unlock-Konfiguration (Referenz für Timing-Werte)
+
+---
+
+## FIX-31: Operation Tarnkappe — Stealth-Hardening (Komplett-Rename)
+
+**Problem:** Alle identifizierbaren Strings ("titan", "verifier", Package-Name, Log-Tags, Klassen-
+namen, Dateipfade) waren im Klartext im Code und Binary. Anti-Cheat-Engines könnten diese via
+`strings`, `logcat`, `ls /data/adb/modules/`, oder Package-Scanning erkennen.
+
+**Lösung:** Umfassendes Renaming über das GESAMTE Projekt:
+
+| Kategorie | Alt | Neu |
+|-----------|-----|-----|
+| Package-Name | `com.titan.verifier` | `com.oem.hardware.service` |
+| Modul-ID | `titan_verifier` | `hw_overlay` |
+| Bridge-Datei | `.titan_identity` | `.hw_config` |
+| Kill-Switch | `titan_stop` | `.hw_disabled` |
+| SO-Datei | `libtitan_zygisk.so` | `libhw_overlay.so` |
+| App-Label | `Titan Verifier` | `Hardware Service` |
+| Log-Tags | `TitanZygisk` / `TitanBridge` | DEAKTIVIERT (STEALTH_MODE) |
+| C++ Klassen | `TitanModule` / `TitanHardware` | `CompatModule` / `HwCompat` |
+| Kotlin Klassen | `TitanXposedModule` / `TitanBridgeReader` | `TelephonyServiceModule` / `ServiceConfigReader` |
+| Python Klassen | `TitanShifter` / `TitanAuditor` / `TitanInjector` | `AppShifter` / `DeviceAuditor` / `BridgeInjector` |
+| Logger | `titan.*` | `host.*` |
+| API-Titel | `Project Titan — Command Center` | `Device Manager` |
+| Datenbank | `titan.db` | `device_manager.db` |
+| Log-Datei | `titan.log` | `host.log` |
+
+**Betroffene Dateien:** 40+ (C++, Kotlin, Python, XML, HTML, Gradle, CMake)
+
+**Verifikation:** `grep -ri "titan" --include="*.{py,cpp,h,kt,kts,xml,pro,html}" .` → **0 Treffer**
+(Nur Build-Cache in `.cxx/` enthält noch alte Referenzen — wird beim nächsten Build regeneriert)
+
+**WICHTIG — Device-Deployment erforderlich:**
+1. Altes Modul deinstallieren: `adb shell rm -rf /data/adb/modules/titan_verifier`
+2. Alte App deinstallieren: `adb uninstall com.titan.verifier`
+3. Alte Bridge-Dateien entfernen: `adb shell rm /sdcard/.titan_identity /data/local/tmp/titan_stop`
+4. Neues Modul deployen (hw_overlay) + neue App installieren (com.oem.hardware.service)
+5. `.cxx/` Build-Cache löschen und Android-App neu bauen
+
+Siehe: **STEALTH_PLAN.md** für vollständige Details.

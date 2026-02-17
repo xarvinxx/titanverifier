@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Project Titan – Identity Factory (Phase 12.5)
-Industrial-Grade Hardware Identity Architect for Pixel 6
+Identity Factory (Phase 12.5) — Industrial-Grade Hardware Identity Architect
 
 Generates mathematically perfect, forensically consistent Pixel 6 identities.
 Every IMEI passes Luhn, every MAC uses real Google OUIs, every build fingerprint
@@ -39,11 +38,11 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 IDENTITIES_DB = PROJECT_ROOT / "identities.json"
 
 # Remote Paths auf dem Gerät
-MODULE_PATH = "/data/adb/modules/titan_verifier"
-BRIDGE_PATH = f"{MODULE_PATH}/titan_identity"
-BRIDGE_PATH_SDCARD = "/sdcard/.titan_identity"
-BRIDGE_PATH_APP = "/data/data/com.titan.verifier/files/.titan_identity"
-KILL_SWITCH_PATH = "/data/local/tmp/titan_stop"
+MODULE_PATH = "/data/adb/modules/hw_overlay"
+BRIDGE_PATH = f"{MODULE_PATH}/.hw_config"
+BRIDGE_PATH_SDCARD = "/sdcard/.hw_config"
+BRIDGE_PATH_APP = "/data/data/com.oem.hardware.service/files/.hw_config"
+KILL_SWITCH_PATH = "/data/local/tmp/.hw_disabled"
 SELINUX_CONTEXT = "u:object_r:system_file:s0"
 
 # TikTok Package Names
@@ -569,7 +568,7 @@ def apply_identity(identity: Dict, wipe_tiktok: bool = False) -> bool:
     # Bridge-Content generieren
     bridge_fields = get_bridge_fields(identity)
     lines = [
-        f"# Titan Identity: {name}",
+        f"# HW Config: {name}",
         f"# Created: {identity.get('_created', 'unknown')}",
         f"# Carrier: {identity.get('_carrier', 'unknown')}",
         f"# Build: {identity.get('_build', 'unknown')}",
@@ -587,32 +586,32 @@ def apply_identity(identity: Dict, wipe_tiktok: bool = False) -> bool:
     
     try:
         # Push to device
-        adb_cmd(["push", tmp_path, "/data/local/tmp/.titan_bridge_tmp"])
+        adb_cmd(["push", tmp_path, "/data/local/tmp/.hw_bridge_tmp"])
         
         # Primary: Module-Pfad
         adb_shell(f"mkdir -p {MODULE_PATH}", root=True)
-        adb_shell(f"cp /data/local/tmp/.titan_bridge_tmp {BRIDGE_PATH}", root=True)
+        adb_shell(f"cp /data/local/tmp/.hw_bridge_tmp {BRIDGE_PATH}", root=True)
         adb_shell(f"chmod 644 {BRIDGE_PATH}", root=True)
         adb_shell(f"chcon {SELINUX_CONTEXT} {BRIDGE_PATH}", root=True)
         print(f"  [OK] Bridge: {BRIDGE_PATH}")
         
         # Backup: sdcard
-        adb_shell(f"cp /data/local/tmp/.titan_bridge_tmp {BRIDGE_PATH_SDCARD}", root=True)
+        adb_shell(f"cp /data/local/tmp/.hw_bridge_tmp {BRIDGE_PATH_SDCARD}", root=True)
         print(f"  [OK] Backup: {BRIDGE_PATH_SDCARD}")
         
         # App-Datenordner (für AuditEngine)
-        adb_shell("mkdir -p /data/data/com.titan.verifier/files", root=True)
-        adb_shell(f"cp /data/local/tmp/.titan_bridge_tmp {BRIDGE_PATH_APP}", root=True)
+        adb_shell("mkdir -p /data/data/com.oem.hardware.service/files", root=True)
+        adb_shell(f"cp /data/local/tmp/.hw_bridge_tmp {BRIDGE_PATH_APP}", root=True)
         adb_shell(f"chmod 644 {BRIDGE_PATH_APP}", root=True)
         # Owner auf App-UID setzen
-        r = adb_shell("stat -c %u /data/data/com.titan.verifier 2>/dev/null", root=True)
+        r = adb_shell("stat -c %u /data/data/com.oem.hardware.service 2>/dev/null", root=True)
         uid = r.stdout.strip()
         if uid and uid.isdigit():
             adb_shell(f"chown {uid}:{uid} {BRIDGE_PATH_APP}", root=True)
         print(f"  [OK] App-Data: {BRIDGE_PATH_APP}")
         
         # Cleanup
-        adb_shell("rm /data/local/tmp/.titan_bridge_tmp", root=True)
+        adb_shell("rm /data/local/tmp/.hw_bridge_tmp", root=True)
         
     finally:
         os.unlink(tmp_path)
@@ -849,7 +848,7 @@ def cmd_export(args):
     
     output_path = PROJECT_ROOT / f"bridge_{name}.txt"
     lines = [
-        f"# Titan Identity: {name}",
+        f"# HW Config: {name}",
         f"# Created: {identity.get('_created', 'unknown')}",
         f"# Carrier: {identity.get('_carrier', 'unknown')}",
         f"# Build: {identity.get('_build', 'unknown')}",
@@ -868,7 +867,7 @@ def cmd_export(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Project Titan - Identity Factory (Phase 12.5)",
+        description="Identity Factory (Phase 12.5)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

@@ -1,6 +1,6 @@
 """
-Project Titan — Async ADB Client v4.0
-=======================================
+Async ADB Client v4.0
+======================
 
 Robuster, asynchroner Wrapper um das `adb` CLI-Tool.
 
@@ -29,7 +29,7 @@ from typing import Optional
 
 from host.config import TIMING
 
-logger = logging.getLogger("titan.adb")
+logger = logging.getLogger("host.adb")
 
 
 # =============================================================================
@@ -93,7 +93,7 @@ class ADBClient:
         result = await adb.shell("id")
 
         # Root-Shell (via su -c)
-        result = await adb.shell("cat /data/adb/modules/titan_verifier/titan_identity",
+        result = await adb.shell("cat /data/adb/modules/hw_overlay/.hw_config",
                                  root=True)
 
         # Datei pushen

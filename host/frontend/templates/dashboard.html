@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Titan — Command Center</title>
+    <title>Device Manager</title>
 
     <!-- TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,7 +12,7 @@
             theme: {
                 extend: {
                     colors: {
-                        titan: {
+                        accent: {
                             50:  '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0',
                             300: '#86efac', 400: '#4ade80', 500: '#22c55e',
                             600: '#16a34a', 700: '#15803d', 800: '#166534',
@@ -175,7 +175,7 @@
                 <div class="space-y-2">
                     <input type="text" id="genesis-name" placeholder="Identity Name (z.B. DE_Berlin_001)"
                            class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200
-                                  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-titan-500/50 focus:border-titan-500">
+                                  placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-accent-500/50 focus:border-accent-500">
                     <label class="flex items-center gap-2 text-xs text-gray-400 cursor-pointer select-none pl-1">
                         <input type="checkbox" id="genesis-backup"
                                class="w-3.5 h-3.5 rounded border-gray-600 bg-gray-800 text-cyan-500
@@ -185,10 +185,10 @@
                     <button id="btn-genesis"
                             onclick="startGenesis()"
                             class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
-                                   bg-gradient-to-r from-titan-600 to-emerald-600
-                                   hover:from-titan-500 hover:to-emerald-500
+                                   bg-gradient-to-r from-accent-600 to-emerald-600
+                                   hover:from-accent-500 hover:to-emerald-500
                                    text-white font-semibold text-sm
-                                   transition-all duration-200 shadow-lg shadow-titan-500/20
+                                   transition-all duration-200 shadow-lg shadow-accent-500/20
                                    disabled:opacity-40 disabled:cursor-not-allowed">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -267,7 +267,7 @@
                         <h2 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Identity Vault</h2>
                         <span id="vault-count" class="text-xs text-gray-600 ml-1">(0)</span>
                     </div>
-                    <button onclick="loadVault()" class="text-xs text-titan-400 hover:text-titan-300 transition-colors">Refresh</button>
+                    <button onclick="loadVault()" class="text-xs text-accent-400 hover:text-accent-300 transition-colors">Refresh</button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
@@ -369,7 +369,7 @@
             <!-- Header -->
             <div class="flex items-center justify-between px-5 py-3.5 border-b border-gray-800 sticky top-0 bg-gray-900 z-10">
                 <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-titan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0"/>
                     </svg>
@@ -391,7 +391,7 @@
     <!-- =============================================================== -->
     <footer class="border-t border-gray-800/50 py-3">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-            <p class="text-[10px] text-gray-700">Project Titan v1.0.0 &mdash; O2-DE / Pixel 6 / KernelSU</p>
+            <p class="text-[10px] text-gray-700">Device Manager v1.0.0</p>
             <p class="text-[10px] text-gray-700" id="footer-clock"></p>
         </div>
     </footer>
@@ -602,11 +602,11 @@
                 idEl.innerHTML = `
                     <div class="cursor-pointer select-none group" onclick="openActiveIdentityPopup()">
                         <div class="flex items-center justify-between">
-                            <span class="text-lg font-bold text-titan-400 group-hover:text-titan-300 transition-colors">${escapeHtml(id.name)}</span>
+                            <span class="text-lg font-bold text-accent-400 group-hover:text-accent-300 transition-colors">${escapeHtml(id.name)}</span>
                             <div class="flex items-center gap-2">
                                 ${dnaBadgeHtml}
                                 <span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider
-                                             bg-titan-500/10 text-titan-400 border border-titan-500/30">${id.status}</span>
+                                             bg-accent-500/10 text-accent-400 border border-accent-500/30">${id.status}</span>
                             </div>
                         </div>
                         <p class="text-[10px] text-gray-600 mt-1 group-hover:text-gray-400 transition-colors">Klicken für Details</p>
@@ -640,7 +640,7 @@
                             KEINE BRIDGE-DATEI
                         </div>
                         <p class="text-xs text-gray-500 mb-1">Serial: <span class="font-mono text-gray-400">${escapeHtml(data.device_serial || '—')}</span></p>
-                        <p class="text-[10px] text-gray-600 mt-2">Kein Titan Identity Bridge-File auf dem Gerät.<br>Starte einen Genesis-Flow.</p>
+                        <p class="text-[10px] text-gray-600 mt-2">Kein Bridge-File auf dem Gerät.<br>Starte einen Genesis-Flow.</p>
                     </div>`;
             } else {
                 idEl.innerHTML = '<div class="text-center py-6 text-gray-600"><p class="text-sm">Keine aktive Identität</p><p class="text-xs mt-1">Starte einen Genesis-Flow</p></div>';
@@ -901,7 +901,7 @@
 
             tbody.innerHTML = flows.map(f => {
                 const typeBadge = {
-                    genesis: 'bg-titan-500/10 text-titan-400 border-titan-500/30',
+                    genesis: 'bg-accent-500/10 text-accent-400 border-accent-500/30',
                     switch:  'bg-blue-500/10 text-blue-400 border-blue-500/30',
                     backup:  'bg-purple-500/10 text-purple-400 border-purple-500/30',
                 }[f.flow_type] || 'bg-gray-500/10 text-gray-400 border-gray-500/30';
@@ -983,7 +983,7 @@
         body.innerHTML = `
             <div class="flex items-center justify-between mb-2">
                 <span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider
-                             bg-titan-500/10 text-titan-400 border border-titan-500/30">${d.status}</span>
+                             bg-accent-500/10 text-accent-400 border border-accent-500/30">${d.status}</span>
                 <span class="text-[10px] text-gray-500">ID #${d.id}</span>
             </div>
 
@@ -1081,7 +1081,7 @@
 
     function popupRow(label, value, mono, showHex) {
         const val = value || '—';
-        const cls = mono ? 'font-mono text-titan-400' : 'text-gray-300';
+        const cls = mono ? 'font-mono text-accent-400' : 'text-gray-300';
         const isHtml = typeof val === 'string' && val.startsWith('<');
         const display = isHtml ? val : escapeHtml(String(val));
 
@@ -1405,7 +1405,7 @@
 
     function flowTypeBadge(type) {
         const c = {
-            genesis: 'bg-titan-500/10 text-titan-400 border-titan-500/30',
+            genesis: 'bg-accent-500/10 text-accent-400 border-accent-500/30',
             switch:  'bg-blue-500/10 text-blue-400 border-blue-500/30',
             backup:  'bg-purple-500/10 text-purple-400 border-purple-500/30',
         }[type] || 'bg-gray-500/10 text-gray-400 border-gray-500/30';

@@ -1,4 +1,4 @@
-package com.titan.verifier.xposed
+package com.oem.hardware.service.xposed
 
 import android.accounts.Account
 import android.content.ContentResolver
@@ -26,25 +26,16 @@ import java.io.FileInputStream
 import java.net.NetworkInterface
 
 /**
- * Project Titan - LSPosed Module (Phase 10.0 - Full Spectrum Stealth)
- * 
- * v4.0 GMS-SCHUTZ: Scope NUR für Target-Apps (TikTok, Instagram, Snapchat, etc.)
- * GMS/GSF/Vending sind BEWUSST AUSGESCHLOSSEN — Google muss echte Werte sehen
- * für Play Integrity (BASIC+DEVICE). TikTok sieht nur seine Sandbox-Daten.
- * FULL COVERAGE: Build Props, Display, Sensors, Battery, GSF, Widevine, MAC, All IDs
+ * LSPosed module: hardware identity spoofing for target apps.
+ * Scope limited to target apps (TikTok, Instagram, etc.); GMS/GSF excluded for Play Integrity.
  */
-class TitanXposedModule : IXposedHookLoadPackage {
+class TelephonyServiceModule : IXposedHookLoadPackage {
 
     companion object {
-        private const val TAG = "TITAN-TOTAL"
-        
-        // v4.0 GMS-SCHUTZ: NUR Target-Apps hooken, KEIN GMS/GSF/Vending!
-        // GMS muss die ECHTEN Device-IDs sehen für Play Integrity (BASIC+DEVICE).
-        // Hooks in GMS spoofen die GSF-ID → Google sieht "unbekanntes Gerät"
-        // → Checkin bricht ab → Play Integrity nur noch DEVICE → Setup zerstört.
-        // TikTok/Instagram sehen NUR ihre eigenen Sandbox-Daten, nicht was GMS hat.
+        private const val TAG = "HwService"
+
         private val TARGET_PACKAGES = setOf(
-            "com.titan.verifier",           // Unser Auditor
+            "com.oem.hardware.service",    // Auditor
             "com.zhiliaoapp.musically",     // TikTok International
             "com.ss.android.ugc.trill",     // TikTok
             "com.instagram.android",        // Instagram
@@ -91,8 +82,7 @@ class TitanXposedModule : IXposedHookLoadPackage {
             "com.github.capntrips.kernelflasher",   // Kernel Flasher
             "gr.nikolasspyr.integritycheck",        // Play Integrity Checker
             "io.github.vvb2060.keyattestation",     // Key Attestation
-            // Titan eigene Module
-            "com.titan.verifier",                   // Unsere App (vor Targets verstecken)
+            "com.oem.hardware.service",             // This app (hidden from targets)
             // Weitere bekannte Root/Mod Apps
             "eu.chainfire.supersu",                 // SuperSU
             "com.noshufou.android.su",              // Superuser
@@ -282,20 +272,20 @@ class TitanXposedModule : IXposedHookLoadPackage {
     private fun ensureBridgeLoaded() {
         if (bridgeLoaded) return
         try {
-            cachedGsfId = TitanBridgeReader.getGsfId()
-            cachedAndroidId = TitanBridgeReader.getAndroidId()
-            cachedImei1 = TitanBridgeReader.getImei1()
-            cachedImei2 = TitanBridgeReader.getImei2()
-            cachedMac = TitanBridgeReader.getWifiMac()
-            cachedWidevine = TitanBridgeReader.getWidevineId()
-            cachedImsi = TitanBridgeReader.getImsi()
-            cachedSimSerial = TitanBridgeReader.getSimSerial()
-            cachedSerial = TitanBridgeReader.getSerial()
-            cachedOperator = TitanBridgeReader.getOperatorName()
-            cachedPhoneNumber = TitanBridgeReader.getPhoneNumber()
-            cachedSimOperator = TitanBridgeReader.getSimOperator()
-            cachedSimOperatorName = TitanBridgeReader.getSimOperatorName()
-            cachedVoicemailNumber = TitanBridgeReader.getVoicemailNumber()
+            cachedGsfId = ServiceConfigReader.getGsfId()
+            cachedAndroidId = ServiceConfigReader.getAndroidId()
+            cachedImei1 = ServiceConfigReader.getImei1()
+            cachedImei2 = ServiceConfigReader.getImei2()
+            cachedMac = ServiceConfigReader.getWifiMac()
+            cachedWidevine = ServiceConfigReader.getWidevineId()
+            cachedImsi = ServiceConfigReader.getImsi()
+            cachedSimSerial = ServiceConfigReader.getSimSerial()
+            cachedSerial = ServiceConfigReader.getSerial()
+            cachedOperator = ServiceConfigReader.getOperatorName()
+            cachedPhoneNumber = ServiceConfigReader.getPhoneNumber()
+            cachedSimOperator = ServiceConfigReader.getSimOperator()
+            cachedSimOperatorName = ServiceConfigReader.getSimOperatorName()
+            cachedVoicemailNumber = ServiceConfigReader.getVoicemailNumber()
             bridgeLoaded = true
             log("Bridge loaded: GSF=$cachedGsfId, MAC=$cachedMac, WV=$cachedWidevine, Phone=$cachedPhoneNumber")
         } catch (e: Throwable) {
@@ -754,7 +744,7 @@ class TitanXposedModule : IXposedHookLoadPackage {
                 if (file.absolutePath in MAC_PATHS || (file.absolutePath.contains("/sys/class/net/") && file.absolutePath.endsWith("/address"))) {
                     ensureBridgeLoaded()
                     cachedMac?.let { mac ->
-                        val tempFile = File.createTempFile("titan_", ".tmp")
+                        val tempFile = File.createTempFile("hw_", ".tmp")
                         tempFile.writeText("$mac\n")
                         tempFile.deleteOnExit()
                         param.args[0] = tempFile
@@ -771,7 +761,7 @@ class TitanXposedModule : IXposedHookLoadPackage {
                 if (path in MAC_PATHS || (path.contains("/sys/class/net/") && path.endsWith("/address"))) {
                     ensureBridgeLoaded()
                     cachedMac?.let { mac ->
-                        val tempFile = File.createTempFile("titan_", ".tmp")
+                        val tempFile = File.createTempFile("hw_", ".tmp")
                         tempFile.writeText("$mac\n")
                         tempFile.deleteOnExit()
                         param.args[0] = tempFile.absolutePath
@@ -1664,7 +1654,7 @@ class TitanXposedModule : IXposedHookLoadPackage {
     
     private fun hookPackageManagerHide(lpparam: XC_LoadPackage.LoadPackageParam) {
         // Nicht in unserer eigenen App verstecken (für Audit)
-        if (lpparam.packageName == "com.titan.verifier") return
+        if (lpparam.packageName == "com.oem.hardware.service") return
         
         // ---- getInstalledPackages() → Filtere Root/Xposed Apps ----
         XposedHelpers.findAndHookMethod(
@@ -1776,7 +1766,7 @@ class TitanXposedModule : IXposedHookLoadPackage {
     
     private fun hookAccountManager(lpparam: XC_LoadPackage.LoadPackageParam) {
         // Nicht in unserer eigenen App oder GMS-Apps verstecken
-        if (lpparam.packageName == "com.titan.verifier") return
+        if (lpparam.packageName == "com.oem.hardware.service") return
         
         // ---- getAccounts() → Leeres Array ----
         try {
@@ -2053,8 +2043,8 @@ class TitanXposedModule : IXposedHookLoadPackage {
     // =========================================================================
     
     private fun hookDebugDetection(lpparam: XC_LoadPackage.LoadPackageParam) {
-        // NICHT in unserer eigenen App! Titan Verifier braucht su für Root-Layer-Audit
-        if (lpparam.packageName == "com.titan.verifier") {
+        // NICHT in unserer eigenen App — braucht su für Root-Layer-Audit
+        if (lpparam.packageName == "com.oem.hardware.service") {
             log("Debug/Root: Skipped for own app (needs su for audit)")
             return
         }
@@ -2184,7 +2174,7 @@ class TitanXposedModule : IXposedHookLoadPackage {
     
     private fun hookAccessibilityHide(lpparam: XC_LoadPackage.LoadPackageParam) {
         // Nicht in unserer eigenen App
-        if (lpparam.packageName == "com.titan.verifier") return
+        if (lpparam.packageName == "com.oem.hardware.service") return
         
         // Accessibility-spezifischer Hook für getEnabledAccessibilityServiceList
         try {

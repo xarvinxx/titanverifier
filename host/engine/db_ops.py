@@ -1,6 +1,6 @@
 """
-Project Titan — Database Operations Layer
-============================================
+Database Operations Layer
+==========================
 
 Zentralisierte DB-Operationen für alle Flows.
 Jede Funktion ist eine atomare Transaktion.
@@ -27,7 +27,7 @@ from typing import Any, Optional
 
 from host.database import db
 
-logger = logging.getLogger("titan.db_ops")
+logger = logging.getLogger("host.db_ops")
 
 
 def _now() -> str:
@@ -565,10 +565,9 @@ async def get_audit_history(
 # DNA Fingerprint — Automatische Identity-Erkennung via Bridge-Datei
 # =============================================================================
 
-# Die Bridge-Datei (/data/adb/modules/titan_verifier/titan_identity) enthält
-# die aktuell auf dem Gerät gespooften Werte im Key=Value Format.
-# Diese Werte sind identisch mit dem, was die Titan Verifier App auf allen
-# Ebenen (Java/Native/Root) sieht — sie sind die "DNA" des Geräts.
+# Die Bridge-Datei enthält die aktuell auf dem Gerät gespooften Werte
+# im Key=Value Format. Diese Werte sind identisch mit dem, was die
+# Verifier-App auf allen Ebenen (Java/Native/Root) sieht — die "DNA" des Geräts.
 #
 # Matching-Strategie (abgestuft):
 #   1. serial + imei1 + android_id  → Exakt (3/3 Treffer)

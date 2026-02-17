@@ -15,7 +15,7 @@
         <item>com.zhiliaoapp.musically</item>
         <item>com.ss.android.ugc.trill</item>
         
-        <!-- Unser Verifier (für Testing) -->
-        <item>com.titan.verifier</item>
+        <!-- Auditor (testing) -->
+        <item>com.oem.hardware.service</item>
     </string-array>
 </resources>

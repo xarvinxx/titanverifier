@@ -1,13 +1,13 @@
 """
-Project Titan — Identity Engine
-=================================
+Identity Engine
+================
 
 Herzstück der Hardware-Identitäts-Generierung.
 
 Generiert forensisch konsistente, O2-Germany-konforme Pixel 6 Identitäten.
 Jeder Wert wird mathematisch validiert bevor er zurückgegeben wird.
 
-Hard Constraints (aus TITAN_CONTEXT.md §3A):
+Hard Constraints:
   - IMEI:  TAC beginnt mit 355543, Luhn-valide
   - IMSI:  beginnt mit 26207, exakt 15 Ziffern
   - ICCID: beginnt mit 894922, Luhn-valide, 20 Ziffern
@@ -44,7 +44,7 @@ from host.config import (
 )
 from host.models.identity import IdentityBridge, IdentityRead, IdentityStatus
 
-logger = logging.getLogger("titan.engine.identity")
+logger = logging.getLogger("host.identity")
 
 
 class IdentityGenerator:

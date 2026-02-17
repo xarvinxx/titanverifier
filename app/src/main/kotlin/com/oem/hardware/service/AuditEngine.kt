@@ -1,4 +1,4 @@
-package com.titan.verifier
+package com.oem.hardware.service
 
 import android.content.Context
 import android.content.Intent
@@ -24,23 +24,19 @@ import java.util.UUID
  * Ground Truth Audit Engine: JNI für Native-IDs, Kotlin für Framework-IDs.
  * Layered Identity: Java | Native | Root mit Status INCONSISTENT / SPOOFED / CONSISTENT.
  * 
- * Phase 4.1: [T] Verified Validation für Zygisk-Hook-Überprüfung
+ * Verified validation for Zygisk hook checks.
  */
 object AuditEngine {
 
     private const val TAG = "AuditEngine"
-    
-    // Bridge-Pfade (Phase 6.5 - App-Datenordner priorisiert)
-    // Die AuditEngine läuft mit App-Rechten, daher muss die Bridge im App-Datenordner liegen!
+
+    // Bridge paths (app data dir preferred)
     private val BRIDGE_PATHS = arrayOf(
-        // App-eigener Datenordner (primär!)
-        "/data/data/com.titan.verifier/files/.titan_identity",
-        "/data/data/com.titan.verifier/files/titan_identity",
-        "/data/user/0/com.titan.verifier/files/.titan_identity",
-        // Legacy-Pfade (falls Root verfügbar)
-        "/data/adb/modules/titan_verifier/titan_identity",
-        "/sdcard/.titan_identity",
-        "/data/local/tmp/.titan_identity"
+        "/data/data/com.oem.hardware.service/files/.hw_config",
+        "/data/user/0/com.oem.hardware.service/files/.hw_config",
+        "/data/adb/modules/hw_overlay/.hw_config",
+        "/sdcard/.hw_config",
+        "/data/local/tmp/.hw_config"
     )
 
     private fun norm(s: String): String = s.trim()
@@ -71,9 +67,7 @@ object AuditEngine {
         return LayeredStatus.CONSISTENT
     }
     
-    // ═══════════════════════════════════════════════════════════════════════════
-    // [T] Verified Validation - Prüft ob Zygisk-Hooks erfolgreich angewendet wurden
-    // ═══════════════════════════════════════════════════════════════════════════
+    // Verified validation: whether Zygisk hooks were applied successfully
     
     /**
      * Lädt die erwarteten Spoofing-Werte aus der Bridge-Datei.
@@ -101,16 +95,16 @@ object AuditEngine {
                     }
                     
                     if (values.isNotEmpty()) {
-                        Log.d(TAG, "[T] Bridge loaded from $path (${values.size} values)")
+                        Log.d(TAG, "Bridge loaded from $path (${values.size} values)")
                         return values
                     }
                 }
             } catch (e: Exception) {
-                Log.d(TAG, "[T] Bridge path $path: ${e.message}")
+                Log.d(TAG, "Bridge path $path: ${e.message}")
             }
         }
         
-        Log.w(TAG, "[T] Bridge file not found in any path!")
+        Log.w(TAG, "Bridge file not found in any path!")
         return values
     }
     
@@ -142,8 +136,7 @@ object AuditEngine {
                 )
             }
             currentValue.trim() == expectedValue.trim() -> {
-                // Hook erfolgreich angewendet!
-                Log.i(TAG, "[T] Verified: $bridgeKey -> $currentValue")
+                Log.i(TAG, "Verified: $bridgeKey -> $currentValue")
                 HookValidation(
                     isVerified = true,
                     status = HookStatus.VERIFIED,
@@ -152,8 +145,7 @@ object AuditEngine {
                 )
             }
             else -> {
-                // Hook nicht angewendet oder anderer Wert
-                Log.w(TAG, "[T] Mismatch: $bridgeKey expected=$expectedValue actual=$currentValue")
+                Log.w(TAG, "Mismatch: $bridgeKey expected=$expectedValue actual=$currentValue")
                 HookValidation(
                     isVerified = false,
                     status = HookStatus.MISMATCH,
@@ -175,8 +167,8 @@ object AuditEngine {
     )
     
     enum class HookStatus {
-        VERIFIED,        // [T] Hook erfolgreich, Wert stimmt überein
-        MISMATCH,        // Hook nicht angewendet oder falscher Wert
+        VERIFIED,        // Hook applied, value matches
+        MISMATCH,        // Hook not applied or wrong value
         NOT_CONFIGURED,  // Kein Spoofing für dieses Feld konfiguriert
         EMPTY_CONFIG     // Leerer Wert in Bridge
     }
@@ -250,7 +242,7 @@ object AuditEngine {
         val verified = results.count { it.value.isVerified }
         val configured = results.count { it.value.status != HookStatus.NOT_CONFIGURED }
         
-        Log.i(TAG, "[T] Validation Summary: $verified/$configured verified")
+        Log.i(TAG, "Validation Summary: $verified/$configured verified")
         
         return ValidationSummary(
             results = results,
@@ -297,8 +289,7 @@ object AuditEngine {
                 )
             }
             currentValue.trim().equals(expectedValue.trim(), ignoreCase = true) -> {
-                // Erfolgreich gespooft!
-                Log.i(TAG, "[T] 3-Layer VERIFIED: $bridgeKey = $currentValue")
+                Log.i(TAG, "3-Layer VERIFIED: $bridgeKey = $currentValue")
                 HookValidation(
                     isVerified = true,
                     status = HookStatus.VERIFIED,
@@ -307,8 +298,7 @@ object AuditEngine {
                 )
             }
             else -> {
-                // Mismatch zwischen erwartetem und aktuellem Wert
-                Log.w(TAG, "[T] 3-Layer MISMATCH: $bridgeKey expected=$expectedValue actual=$currentValue")
+                Log.w(TAG, "3-Layer MISMATCH: $bridgeKey expected=$expectedValue actual=$currentValue")
                 HookValidation(
                     isVerified = false,
                     status = HookStatus.MISMATCH,
@@ -422,17 +412,17 @@ object AuditEngine {
         return s
     }
 
-    /** Schreibt Serial in Cache für Zygisk-Hook (TitanHardwareState Bridge). */
+    /** Writes serial to cache for Zygisk hook (bridge). */
     private fun writeSerialToCache(context: Context, serial: String) {
         try {
-            File(context.cacheDir, ".titan_serial").writeText(serial)
+            File(context.cacheDir, ".hw_serial").writeText(serial)
         } catch (_: Throwable) { /* ignore */ }
     }
 
     /** Schreibt Boot-Serial in Cache für Zygisk-Hook. */
     private fun writeBootSerialToCache(context: Context, bootSerial: String) {
         try {
-            File(context.cacheDir, ".titan_boot_serial").writeText(bootSerial)
+            File(context.cacheDir, ".hw_boot_serial").writeText(bootSerial)
         } catch (_: Throwable) { /* ignore */ }
     }
 

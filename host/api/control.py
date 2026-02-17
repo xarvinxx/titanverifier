@@ -1,6 +1,6 @@
 """
-Project Titan — Control API ("The Trigger") v2.0
-==================================================
+Control API ("The Trigger") v2.0
+==================================
 
 REST-Endpoints zum Starten und Überwachen der Orchestrator-Flows.
 
@@ -39,11 +39,11 @@ from host.engine.db_ops import (
     update_profile_gms_backup,
     update_profile_tiktok_backup,
 )
-from host.engine.shifter import TitanShifter
+from host.engine.shifter import AppShifter
 from host.flows.genesis import GenesisFlow, GenesisResult
 from host.flows.switch import SwitchFlow, SwitchResult
 
-logger = logging.getLogger("titan.api.control")
+logger = logging.getLogger("host.api.control")
 
 router = APIRouter(prefix="/api/control", tags=["Control"])
 
@@ -324,7 +324,7 @@ async def _run_backup(profile_name: str) -> None:
                 logger.warning("Flow-History für Backup fehlgeschlagen: %s", e)
 
             adb = ADBClient()
-            shifter = TitanShifter(adb)
+            shifter = AppShifter(adb)
             results = await shifter.backup_full_state(profile_name)
 
             # Ergebnis für API

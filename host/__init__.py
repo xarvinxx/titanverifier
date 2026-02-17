@@ -1,2 +1,2 @@
-# Project Titan — Host-Side Orchestrator
+# Host-Side Orchestrator
 # Phase 1: Core & Database

@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.titan.verifier"
+    namespace = "com.oem.hardware.service"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.titan.verifier"
+        applicationId = "com.oem.hardware.service"
         minSdk = 31
         targetSdk = 34
         versionCode = 1

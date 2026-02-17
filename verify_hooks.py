@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 """
-Project Titan - Independent Hook Verification Tool
-===================================================
-Dieses Script verifiziert, dass die Titan-Hooks TATSÄCHLICH greifen,
-indem es:
+Independent Hook Verification Tool
+==================================
+Verifiziert, dass die Hooks tatsächlich greifen, indem es:
 
-1. Die Bridge-Werte liest (was wir vortäuschen WOLLEN)
+1. Die Bridge-Werte liest (was wir vortäuschen wollen)
 2. Eine Drittanbieter-App startet und den Logcat auswertet
-3. Jeden API-Aufruf zeigt, der von unseren Hooks abgefangen wurde
+3. Jeden API-Aufruf zeigt, der von den Hooks abgefangen wurde
 4. Getprop-Werte vom NICHT-gehookten Shell-Prozess vergleicht
 
-Ergebnis: Ein unabhängiger Beweis, dass die Hooks greifen.
+Ergebnis: Unabhängiger Beweis, dass die Hooks greifen.
 
 Usage:
     python3 verify_hooks.py [--app tw.reh.deviceid]
@@ -27,7 +26,7 @@ from pathlib import Path
 
 # ===== Konfiguration =====
 DEFAULT_APP = "tw.reh.deviceid"
-BRIDGE_PATH = "/data/adb/modules/titan_verifier/titan_identity"
+BRIDGE_PATH = "/data/adb/modules/hw_overlay/.hw_config"
 
 # Alle 55+ Properties die wir spoofen
 EXPECTED_PROPS = {
@@ -172,19 +171,19 @@ def verify_app_hooks(target_app, bridge):
     result = adb(["shell", "logcat", "-d"], check=False)
     lines = result.stdout.splitlines()
     
-    # Parse Titan-Logs
+    # Parse Hook-Logs (Zygisk/LSPosed tags)
     hooks_fired = defaultdict(list)
     zygisk_hooks = []
     lsposed_hooks = []
     spoofed_values = {}
     
     for line in lines:
-        if "TITAN" not in line and "TitanBridge" not in line:
+        if "HwOverlay" not in line:
             continue
         
         # Zygisk Native Hooks
-        if "[TITAN]" in line and "hook OK" in line:
-            hook_name = line.split("[TITAN]")[-1].strip()
+        if ("[TITAN]" in line or "[HwOverlay]" in line) and "hook OK" in line:
+            hook_name = line.split("[TITAN]")[-1].split("[HwOverlay]")[-1].strip()
             zygisk_hooks.append(hook_name)
         
         # LSPosed Java Hooks
@@ -279,25 +278,26 @@ def verify_app_hooks(target_app, bridge):
     return spoofed_values, zygisk_hooks, lsposed_hooks
 
 def verify_cross_app_consistency(bridge):
-    """Vergleicht Werte zwischen Titan Verifier und Device ID."""
+    """Vergleicht Werte zwischen Verifier-App und Device ID."""
     print("\n" + "=" * 70)
     print("TEST 3: Cross-App Consistency Check")
     print("=" * 70)
-    print("  Vergleiche: Titan Verifier API-Werte vs Device ID API-Werte")
+    print("  Vergleiche: Verifier API-Werte vs Device ID API-Werte")
     print("  Beide Apps laufen unter verschiedenen UIDs,")
     print("  aber müssen identische Werte sehen.\n")
     
     # Starte Verifier
+    verifier_pkg = "com.oem.hardware.service"
     adb(["shell", "logcat", "-c"], check=False)
-    adb(["shell", "am force-stop com.titan.verifier"], check=False)
+    adb(["shell", "am force-stop", verifier_pkg], check=False)
     time.sleep(1)
-    adb(["shell", "am start -n com.titan.verifier/.MainActivity"], check=False)
+    adb(["shell", "am start", "-n", f"{verifier_pkg}/.MainActivity"], check=False)
     time.sleep(5)
     
     result = adb(["shell", "logcat", "-d"], check=False)
     verifier_vals = {}
     for line in result.stdout.splitlines():
-        if "TITAN" not in line:
+        if "TITAN" not in line and "HwOverlay" not in line:
             continue
         if "Spoofed ANDROID_ID" in line:
             verifier_vals["Android ID"] = line.split("->")[-1].strip()
@@ -320,7 +320,7 @@ def verify_cross_app_consistency(bridge):
     result = adb(["shell", "logcat", "-d"], check=False)
     deviceid_vals = {}
     for line in result.stdout.splitlines():
-        if "TITAN" not in line:
+        if "TITAN" not in line and "HwOverlay" not in line:
             continue
         if "Spoofed ANDROID_ID" in line:
             deviceid_vals["Android ID"] = line.split("->")[-1].strip()
@@ -401,13 +401,13 @@ def print_trust_model():
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Titan Hook Verification Tool")
+    parser = argparse.ArgumentParser(description="Hook Verification Tool")
     parser.add_argument("--app", default=DEFAULT_APP, help="Target app package")
     parser.add_argument("--quick", action="store_true", help="Nur schnelle Checks")
     args = parser.parse_args()
     
     print("=" * 70)
-    print("  PROJECT TITAN - Independent Hook Verification")
+    print("  Independent Hook Verification")
     print("  Unabhängiger Beweis dass die Hooks greifen")
     print("=" * 70)
     

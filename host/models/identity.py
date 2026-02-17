@@ -1,6 +1,6 @@
 """
-Project Titan — Identity Models
-================================
+Identity Models
+================
 
 Pydantic-Modelle für Hardware-Identitäten (O2 Germany / Pixel 6).
 
@@ -46,7 +46,7 @@ class IdentityStatus(str, Enum):
 
 
 # =============================================================================
-# Bridge Model — Exakt die Felder für /data/adb/.../titan_identity
+# Bridge Model — Exakt die Felder für die Bridge-Datei (.hw_config)
 # =============================================================================
 
 class IdentityBridge(BaseModel):
@@ -60,9 +60,9 @@ class IdentityBridge(BaseModel):
         ...
 
     Muss kompatibel sein mit:
-      - common/titan_hardware.h  (C++ Parser)
-      - TitanBridgeReader.kt     (Kotlin Parser)
-      - module/zygisk_module.cpp  (Zygisk Reader)
+      - Native C++ Parser (Hardware-Bridge)
+      - Kotlin Bridge-Reader
+      - Zygisk-Modul (zygisk_module.cpp)
     """
 
     # --- Core Hardware ---
@@ -207,7 +207,7 @@ class IdentityBridge(BaseModel):
         """
         Erzeugt den Inhalt der Bridge-Datei im Key=Value Format.
 
-        Kompatibel mit titan_hardware.h Parser:
+        Kompatibel mit Bridge-Parser:
             - Kommentarzeilen beginnen mit #
             - Leerzeilen werden ignoriert
             - Format: key=value (kein Whitespace um =)
@@ -220,7 +220,7 @@ class IdentityBridge(BaseModel):
           3. Nicht von den Hooks benötigt werden
         """
         lines = [
-            f"# Titan Identity Bridge — {label or self.serial}",
+            f"# Identity Bridge — {label or self.serial}",
             f"# Generated: {datetime.now(LOCAL_TZ).isoformat()}",
             f"# Carrier: O2-DE ({O2_DE.MCC_MNC})",
             "",

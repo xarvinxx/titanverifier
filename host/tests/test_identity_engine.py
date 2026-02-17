@@ -1,9 +1,9 @@
 """
-Project Titan — Unit Tests: Identity Engine
-=============================================
+Unit Tests: Identity Engine
+============================
 
 Stress-Test: Generiert 100 Identitäten und prüft ALLE Hard Constraints
-aus TITAN_CONTEXT.md §3A.
+aus dem Kontext-Dokument §3A.
 
 Prüfungen:
   - IMEI:    Luhn-valide, TAC beginnt mit 355543, 15 Ziffern
@@ -111,7 +111,7 @@ class TestGeneratorBasics:
 # =============================================================================
 
 class TestIMEI:
-    """Alle IMEI-Constraints aus TITAN_CONTEXT.md."""
+    """Alle IMEI-Constraints aus dem Kontext-Dokument."""
 
     def test_imei1_length(self, identities: list[IdentityRead]):
         """Alle IMEI1 müssen exakt 15 Ziffern haben."""

@@ -1,15 +1,9 @@
 /*
- * Project Titan - Zygisk Module (Phase 6.0 - Total Stealth)
- * 
- * KERNEL-LEVEL IDENTITY SPOOFING:
- * - __system_property_get: Serial, IMEI, GSF, Android ID
- * - getifaddrs: MAC via AF_PACKET
- * - ioctl SIOCGIFHWADDR: MAC via ioctl
- * - recvmsg: Netlink RTM_NEWLINK MAC spoofing (für libsscronet.so)
- * - open/read: /sys/class/net/wlan0/address shadowing
- * 
- * Target: Google Pixel 6, Android 14, KernelSU + Zygisk Next
+ * Hardware Compatibility Overlay - Zygisk Module
  */
+
+// Release mode: disable all logging output
+#define STEALTH_MODE
 
 #include <jni.h>
 #include <unistd.h>
@@ -44,41 +38,25 @@
 
 #include "../include/zygisk.hpp"
 #include "../include/dobby.h"
-#include "../common/titan_hardware.h"
+#include "../common/hw_compat.h"
 
 // =============================================================================
-// FIX-24A: Compile-Time XOR String Obfuscation
+// String Obfuscation
 // =============================================================================
-// Verhindert dass `strings libtitan_zygisk.so` sensitive Pfade und
-// Package-Namen im Klartext enthüllt.
-//
-// Verwendung:
-//   XOR_STR("klartext") → verschlüsseltes char-Array (stack-allocated)
-//   Wird zur Laufzeit on-the-fly entschlüsselt, nie im Klartext im RAM
-// =============================================================================
-#define TITAN_XOR_KEY 0x5A
+#define _XK 0x5A
 
-// Helper: XOR-Entschlüsselung auf dem Stack (alloca = kein Heap-Leak)
-static inline void _titan_xor_decode(char* out, const unsigned char* enc, size_t len) {
+static inline void _xdec(char* out, const unsigned char* enc, size_t len) {
     for (size_t i = 0; i < len; i++) {
-        out[i] = (char)(enc[i] ^ TITAN_XOR_KEY);
+        out[i] = (char)(enc[i] ^ _XK);
     }
     out[len] = '\0';
 }
 
-// Macro für verschlüsselte Strings — erzeugt lokale Variable
-// Beispiel: TITAN_DEC(path, "\x36\x2e\x3e\x2e", 4) → path = "/dat"
-#define TITAN_DEC(varname, enc_bytes, enc_len) \
+#define DEC_STR(varname, enc_bytes, enc_len) \
     char varname[enc_len + 1]; \
-    _titan_xor_decode(varname, (const unsigned char*)enc_bytes, enc_len)
+    _xdec(varname, (const unsigned char*)enc_bytes, enc_len)
 
-// =============================================================================
-// FIX-24B: Raw Syscall Wrappers
-// =============================================================================
-// Umgeht libc-Interception durch Anti-Cheat-Engines.
-// TikToks libsscronet.so hooked libc open/read/close über PLT.
-// Raw Syscalls gehen direkt zum Kernel, kein PLT involviert.
-// =============================================================================
+// Raw Syscall Wrappers
 static inline int _raw_openat(const char* path, int flags) {
     return (int)syscall(__NR_openat, AT_FDCWD, path, flags, 0);
 }
@@ -91,87 +69,58 @@ static inline int _raw_close(int fd) {
     return (int)syscall(__NR_close, fd);
 }
 
-// FIX-24C: memfd_create — anonymer RAM-FD ohne Dateisystem-Eintrag
+// Anonymous RAM-FD
 static inline int _memfd_create(unsigned int flags) {
     return (int)syscall(__NR_memfd_create, "", flags);
 }
 
-// FIX-24A: Log-Tag nicht im Klartext im Binary
-// Klartext: "TitanZygisk" → XOR 0x5A
-static const unsigned char _ENC_LOG_TAG[] = {
-    0x0e,0x33,0x2e,0x3b,0x34,0x00,0x23,0x3d,0x33,0x29,0x31
-};
-#define LOG_TAG_LEN 11
-
-// Einmalig entschlüsselter Log-Tag (lazy init)
-static char g_logTag[LOG_TAG_LEN + 1] = {};
-static std::once_flag g_logTagDecoded;
-static const char* _getLogTag() {
-    std::call_once(g_logTagDecoded, []() {
-        _titan_xor_decode(g_logTag, _ENC_LOG_TAG, LOG_TAG_LEN);
-    });
-    return g_logTag;
-}
-#define LOG_TAG _getLogTag()
-
-#ifdef TITAN_STEALTH
+#ifdef STEALTH_MODE
     #define LOGI(...) ((void)0)
     #define LOGW(...) ((void)0)
     #define LOGE(...) ((void)0)
 #else
-    #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,  LOG_TAG, __VA_ARGS__)
-    #define LOGW(...) __android_log_print(ANDROID_LOG_WARN,  LOG_TAG, __VA_ARGS__)
-    #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+    #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,  "HwOverlay", __VA_ARGS__)
+    #define LOGW(...) __android_log_print(ANDROID_LOG_WARN,  "HwOverlay", __VA_ARGS__)
+    #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "HwOverlay", __VA_ARGS__)
 #endif
 
 // ==============================================================================
 // Konfiguration
 // ==============================================================================
 
-// FIX-24A: Pfade als XOR-verschlüsselte Byte-Arrays
-// Klartext: "/data/local/tmp/titan_stop"
-// XOR mit 0x5A:
 static const unsigned char _ENC_KILL_SWITCH[] = {
-    0x75,0x6e,0x6b,0x7e,0x6b,0x75,0x36,0x39,0x63,0x6b,0x36,0x75,
-    0x2e,0x37,0x32,0x75,0x2e,0x3f,0x2e,0x6b,0x3c,0x7f,0x2b,0x2e,0x39,0x32
+    0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x36,0x35,0x39,0x3b,0x36,0x75,
+    0x2e,0x37,0x2a,0x75,0x74,0x32,0x2d,0x05,0x3e,0x33,0x29,0x3b,
+    0x38,0x36,0x3f,0x3e
 };
-#define TITAN_KILL_SWITCH_LEN 26
+#define KILL_SWITCH_LEN 28
 
-// Klartext: "/data/adb/modules/titan_verifier/titan_identity"
 static const unsigned char _ENC_BRIDGE_PATH[] = {
-    0x75,0x6e,0x6b,0x7e,0x6b,0x75,0x6b,0x6e,0x62,0x75,0x37,0x39,
-    0x6e,0x3f,0x36,0x69,0x2b,0x75,0x2e,0x3f,0x2e,0x6b,0x3c,0x7f,
-    0x28,0x69,0x2a,0x3f,0x68,0x3f,0x69,0x2a,0x75,0x2e,0x3f,0x2e,
-    0x6b,0x3c,0x7f,0x3f,0x6e,0x69,0x3c,0x2e,0x3f,0x2e,0x2d
+    0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x3b,0x3e,0x38,0x75,0x37,0x35,
+    0x3e,0x2f,0x36,0x3f,0x29,0x75,0x32,0x2d,0x05,0x35,0x2c,0x3f,
+    0x28,0x36,0x3b,0x23,0x75,0x74,0x32,0x2d,0x05,0x39,0x35,0x34,
+    0x3c,0x33,0x3d
 };
-#define TITAN_BRIDGE_PATH_LEN 47
+#define BRIDGE_PATH_LEN 39
 
-// Lazy-Init decoded paths (einmalig beim ersten Zugriff)
-static char g_killSwitchPath[TITAN_KILL_SWITCH_LEN + 1] = {};
-static char g_bridgePath[TITAN_BRIDGE_PATH_LEN + 1] = {};
+static char g_killSwitchPath[KILL_SWITCH_LEN + 1] = {};
+static char g_bridgePath[BRIDGE_PATH_LEN + 1] = {};
 static std::once_flag g_pathsDecoded;
 
 static void _decodePaths() {
-    _titan_xor_decode(g_killSwitchPath, _ENC_KILL_SWITCH, TITAN_KILL_SWITCH_LEN);
-    _titan_xor_decode(g_bridgePath, _ENC_BRIDGE_PATH, TITAN_BRIDGE_PATH_LEN);
+    _xdec(g_killSwitchPath, _ENC_KILL_SWITCH, KILL_SWITCH_LEN);
+    _xdec(g_bridgePath, _ENC_BRIDGE_PATH, BRIDGE_PATH_LEN);
 }
 
-#define TITAN_KILL_SWITCH  (std::call_once(g_pathsDecoded, _decodePaths), g_killSwitchPath)
-#define TITAN_BRIDGE_PATH  (std::call_once(g_pathsDecoded, _decodePaths), g_bridgePath)
+#define KILL_SWITCH_PATH  (std::call_once(g_pathsDecoded, _decodePaths), g_killSwitchPath)
+#define BRIDGE_FILE_PATH  (std::call_once(g_pathsDecoded, _decodePaths), g_bridgePath)
 
-// Target Apps — NUR Social-Media & Verifier.
-// GMS/GSF/Vending sind BEWUSST AUSGESCHLOSSEN (v4.0 GMS-Schutz):
-//   - GMS muss die ECHTEN Device-IDs sehen für Play Integrity (BASIC+DEVICE)
-//   - Hooks in GMS spoofen die GSF-ID → Google sieht "unbekanntes Gerät"
-//   - Das zerstört den Checkin und die gesamte Trust-Chain
-//   - TikTok/Instagram prüfen NICHT welche IDs GMS intern hat
-
-// FIX-24A: Target-Apps als XOR-verschlüsselte Byte-Arrays
-// → `strings libtitan_zygisk.so` enthüllt keine Package-Namen
+// Target Apps
 struct EncPackage { const unsigned char* data; size_t len; };
 
 static const unsigned char _ENC_PKG_VERIFIER[] = {
-    0x39,0x35,0x37,0x74,0x2e,0x33,0x2e,0x3b,0x34,0x74,0x2c,0x3f,0x28,0x33,0x3c,0x33,0x3f,0x28
+    0x39,0x35,0x37,0x74,0x35,0x3f,0x37,0x74,0x32,0x3b,0x28,0x3e,
+    0x2d,0x3b,0x28,0x3f,0x74,0x29,0x3f,0x28,0x2c,0x33,0x39,0x3f
 };
 static const unsigned char _ENC_PKG_TIKTOK1[] = {
     0x39,0x35,0x37,0x74,0x20,0x32,0x33,0x36,0x33,0x3b,0x35,0x3b,0x2a,0x2a,0x74,0x37,0x2f,0x29,0x33,0x39,0x3b,0x36,0x36,0x23
@@ -193,7 +142,7 @@ static const unsigned char _ENC_PKG_DEVICEID[] = {
 };
 
 static const EncPackage ENC_TARGET_APPS[] = {
-    {_ENC_PKG_VERIFIER,  18},   // com.titan.verifier
+    {_ENC_PKG_VERIFIER,  24},   // com.oem.hardware.service
     {_ENC_PKG_TIKTOK1,   24},   // com.zhiliaoapp.musically
     {_ENC_PKG_TIKTOK2,   24},   // com.ss.android.ugc.trill
     {_ENC_PKG_INSTAGRAM, 21},   // com.instagram.android
@@ -242,12 +191,12 @@ typedef int media_status_t;
 typedef struct {
     const uint8_t* ptr;
     size_t length;
-} TitanDrmByteArray;
+} DrmByteArray;
 
 // Korrekte Funktionssignaturen (exakt wie in der NDK-API)
 using AMediaDrmCreateByUUIDFn = AMediaDrm* (*)(const uint8_t uuid[16]);
 using AMediaDrmReleaseFn = void (*)(AMediaDrm*);
-using AMediaDrmGetPropertyByteArrayFn = media_status_t (*)(AMediaDrm*, const char*, TitanDrmByteArray*);
+using AMediaDrmGetPropertyByteArrayFn = media_status_t (*)(AMediaDrm*, const char*, DrmByteArray*);
 using AMediaDrmGetPropertyStringFn = media_status_t (*)(AMediaDrm*, const char*, const char**);
 using AMediaDrmIsCryptoSchemeSupportedFn = bool (*)(const uint8_t uuid[16], const char* mimeType);
 
@@ -339,7 +288,7 @@ static bool g_macParsed = false;
 // FIX-24B: Raw Syscall statt libc stat()
 static bool checkKillSwitch() {
     struct stat st;
-    if (syscall(__NR_newfstatat, AT_FDCWD, TITAN_KILL_SWITCH, &st, 0) == 0) {
+    if (syscall(__NR_newfstatat, AT_FDCWD, KILL_SWITCH_PATH, &st, 0) == 0) {
         g_killSwitchActive = true;
         return true;
     }
@@ -354,7 +303,7 @@ static bool isTargetApp(const char* packageName) {
         if (pkgLen != ENC_TARGET_APPS[i].len) continue;
         // Entschlüssele auf dem Stack und vergleiche
         char decoded[64];
-        _titan_xor_decode(decoded, ENC_TARGET_APPS[i].data, ENC_TARGET_APPS[i].len);
+        _xdec(decoded, ENC_TARGET_APPS[i].data, ENC_TARGET_APPS[i].len);
         if (strcmp(packageName, decoded) == 0) return true;
     }
     return false;
@@ -388,7 +337,7 @@ static bool loadBridgeFromFile(const char* path) {
     if (bytesRead <= 0) return false;
     buffer[bytesRead] = '\0';
     
-    TitanHardware& hw = TitanHardware::getInstance();
+    HwCompat& hw = HwCompat::getInstance();
     bool foundAny = false;
     
     char* savePtr = nullptr;
@@ -420,7 +369,7 @@ static bool loadBridgeFromFile(const char* path) {
             else if (strcmp(key, "debug_hooks") == 0) {
                 g_debugHooks = (strcmp(value, "1") == 0 || strcmp(value, "true") == 0);
                 if (g_debugHooks.load()) {
-                    LOGI("[TITAN] Debug-Hook-Mode AKTIVIERT — alle Hook-Calls werden geloggt");
+                    LOGI("[HW] Debug-Hook-Mode AKTIVIERT — alle Hook-Calls werden geloggt");
                 }
             }
         }
@@ -432,8 +381,8 @@ static bool loadBridgeFromFile(const char* path) {
 static void loadBridge() {
     if (g_bridgeLoaded.load()) return;
     
-    if (loadBridgeFromFile(TITAN_BRIDGE_PATH)) {
-        LOGI("[TITAN] Bridge loaded from: %s", TITAN_BRIDGE_PATH);
+    if (loadBridgeFromFile(BRIDGE_FILE_PATH)) {
+        LOGI("Config loaded from primary path");
         g_bridgeLoaded = true;
     } else {
         // =================================================================
@@ -444,17 +393,17 @@ static void loadBridge() {
         // Neue Logik: Bridge nicht geladen → Hooks bleiben inaktiv →
         // echte Geräte-Werte werden durchgelassen → kein Fingerprint.
         // =================================================================
-        LOGW("[TITAN] Bridge not found — Hooks DEAKTIVIERT (kein Spoofing)");
+        LOGW("[HW] Bridge not found — Hooks DEAKTIVIERT (kein Spoofing)");
         g_bridgeLoaded = false;  // Hooks bleiben inaktiv
     }
     
     // Cache MAC bytes
-    TitanHardware& hw = TitanHardware::getInstance();
+    HwCompat& hw = HwCompat::getInstance();
     char macStr[24] = {};
     hw.getWifiMac(macStr, sizeof(macStr));
     if (macStr[0] && parseMacString(macStr, g_spoofedMacBytes)) {
         g_macParsed = true;
-        LOGI("[TITAN] Cached MAC: %s", macStr);
+        LOGI("[HW] Cached MAC: %s", macStr);
     }
 }
 
@@ -477,7 +426,7 @@ static bool isNetworkInfoPath(const char* path) {
 }
 
 // FIX-24A: Root-Detection Pfade als XOR-verschlüsselte Byte-Arrays
-// `strings libtitan_zygisk.so` darf keine Root-Pfade oder Framework-Namen enthüllen
+// Root-Pfade und Framework-Namen werden nicht im Klartext gespeichert
 struct EncRootStr { const unsigned char* data; size_t len; };
 static const unsigned char _ENC_ROOT_01[] = {0x75,0x29,0x38,0x33,0x34,0x75,0x29,0x2f};
 static const unsigned char _ENC_ROOT_02[] = {0x75,0x29,0x23,0x29,0x2e,0x3f,0x37,0x75,0x22,0x38,0x33,0x34,0x75,0x29,0x2f};
@@ -504,7 +453,7 @@ static bool isRootDetectionPath(const char* path) {
     if (!path) return false;
     for (int i = 0; i < ENC_ROOT_PATHS_COUNT; i++) {
         char decoded[32];
-        _titan_xor_decode(decoded, ENC_ROOT_PATHS[i].data, ENC_ROOT_PATHS[i].len);
+        _xdec(decoded, ENC_ROOT_PATHS[i].data, ENC_ROOT_PATHS[i].len);
         if (strstr(path, decoded) != nullptr) return true;
     }
     return false;
@@ -532,7 +481,7 @@ static const char* getFakeIfInet6() {
     if (g_fake_if_inet6[0] != '\0') return g_fake_if_inet6;
     
     // Hole die Fake-MAC
-    TitanHardware& hw = TitanHardware::getInstance();
+    HwCompat& hw = HwCompat::getInstance();
     char macStr[32] = {0};
     hw.getWifiMac(macStr, sizeof(macStr));
     
@@ -561,7 +510,7 @@ static const char* getFakeIfInet6() {
         "%s 03 40 20 80    wlan0\n",  // Link-Local, scope=0x20(link), prefix=64
         ll_hex);
     
-    LOGI("[TITAN] Generated fake if_inet6 with MAC %s", macStr);
+    LOGI("[HW] Generated fake if_inet6 with MAC %s", macStr);
     return g_fake_if_inet6;
 }
 #define FAKE_IF_INET6 getFakeIfInet6()
@@ -783,12 +732,12 @@ static const PropertyOverride PIXEL6_BUILD_PROPS[] = {
 // Hook: __system_property_get
 // ==============================================================================
 
-static int titan_hooked_system_property_get(const char* name, char* value) {
+static int _hooked_system_property_get(const char* name, char* value) {
     if (!name || !value) {
         return g_origSystemPropertyGet ? g_origSystemPropertyGet(name, value) : 0;
     }
     
-    TitanHardware& hw = TitanHardware::getInstance();
+    HwCompat& hw = HwCompat::getInstance();
     char spoofed[128] = {};
     
     // --- Identity Properties (aus Bridge) ---
@@ -852,7 +801,7 @@ static int titan_hooked_system_property_get(const char* name, char* value) {
             value[len] = '\0';
             // Nur bei erstem Treffer loggen (Performance)
             if (i == 0 || strstr(name, "fingerprint") || strstr(name, "display.id")) {
-                LOGI("[TITAN] Property spoofed: %s = %s", name, value);
+                LOGI("[HW] Property spoofed: %s = %s", name, value);
             }
             return (int)len;
         }
@@ -865,7 +814,7 @@ static int titan_hooked_system_property_get(const char* name, char* value) {
 // Hook: getifaddrs (AF_PACKET MAC Spoofing)
 // ==============================================================================
 
-static int titan_hooked_getifaddrs(struct ifaddrs** ifap) {
+static int _hooked_getifaddrs(struct ifaddrs** ifap) {
     if (!g_origGetifaddrs) return -1;
     int result = g_origGetifaddrs(ifap);
     if (result != 0 || !ifap || !*ifap || !g_macParsed) return result;
@@ -878,7 +827,7 @@ static int titan_hooked_getifaddrs(struct ifaddrs** ifap) {
         struct sockaddr_ll* sll = reinterpret_cast<struct sockaddr_ll*>(ifa->ifa_addr);
         if (sll->sll_halen == 6) {
             memcpy(sll->sll_addr, g_spoofedMacBytes, 6);
-            LOGI("[TITAN] Spoofed getifaddrs MAC for %s", ifa->ifa_name);
+            LOGI("[HW] Spoofed getifaddrs MAC for %s", ifa->ifa_name);
         }
     }
     return result;
@@ -888,7 +837,7 @@ static int titan_hooked_getifaddrs(struct ifaddrs** ifap) {
 // Hook: ioctl (SIOCGIFHWADDR MAC Spoofing)
 // ==============================================================================
 
-static int titan_hooked_ioctl(int fd, unsigned long request, void* arg) {
+static int _hooked_ioctl(int fd, unsigned long request, void* arg) {
     if (!g_origIoctl) return -1;
     
     // === MAC Spoofing: SIOCGIFHWADDR ===
@@ -952,7 +901,7 @@ static int titan_hooked_ioctl(int fd, unsigned long request, void* arg) {
 // Hook: recvmsg (Netlink RTM_NEWLINK MAC Spoofing - für libsscronet.so)
 // ==============================================================================
 
-static ssize_t titan_hooked_recvmsg(int sockfd, struct msghdr* msg, int flags) {
+static ssize_t _hooked_recvmsg(int sockfd, struct msghdr* msg, int flags) {
     if (!g_origRecvmsg) return -1;
     
     ssize_t result = g_origRecvmsg(sockfd, msg, flags);
@@ -990,7 +939,7 @@ static ssize_t titan_hooked_recvmsg(int sockfd, struct msghdr* msg, int flags) {
                     if (rta->rta_type == IFLA_ADDRESS && RTA_PAYLOAD(rta) == 6) {
                         // MAC-Adresse gefunden - ersetzen!
                         memcpy(RTA_DATA(rta), g_spoofedMacBytes, 6);
-                        LOGI("[TITAN] Spoofed Netlink RTM_NEWLINK MAC");
+                        LOGI("[HW] Spoofed Netlink RTM_NEWLINK MAC");
                     }
                     rta = RTA_NEXT(rta, rtalen);
                 }
@@ -1011,7 +960,7 @@ static ssize_t titan_hooked_recvmsg(int sockfd, struct msghdr* msg, int flags) {
 // =============================================================================
 // Erstellt einen anonymen RAM-FD ohne Dateisystem-Eintrag.
 // Vorteile:
-//   - `find / -name '.titan*'` findet NICHTS
+//   - Hidden files are not discoverable via find
 //   - Kein Eintrag in /proc/self/maps (MFD_CLOEXEC)
 //   - Existiert nur solange der Prozess lebt
 //   - Kernel 5.10+ (Pixel 6) unterstützt memfd_create
@@ -1026,7 +975,7 @@ static int createFakeOpenFd(const char* origPath, int flags, mode_t mode,
         write(memFd, content, contentLen);
         lseek(memFd, 0, SEEK_SET);
         if (g_debugHooks.load()) {
-            LOGI("[TITAN] memfd redirect: %s (fd=%d) [%s]", origPath, memFd, tag);
+            LOGI("[HW] memfd redirect: %s (fd=%d) [%s]", origPath, memFd, tag);
         }
         return memFd;
     }
@@ -1045,21 +994,21 @@ static int createFakeOpenFd(const char* origPath, int flags, mode_t mode,
         // Sofort löschen (FD bleibt offen, Datei verschwindet)
         unlink(tempPath);
         if (fakeFd >= 0) {
-            LOGW("[TITAN] temp fallback: %s (fd=%d) [%s]", origPath, fakeFd, tag);
+            LOGW("[HW] temp fallback: %s (fd=%d) [%s]", origPath, fakeFd, tag);
             return fakeFd;
         }
     }
     return -1;
 }
 
-static int titan_hooked_open(const char* pathname, int flags, mode_t mode) {
+static int _hooked_open(const char* pathname, int flags, mode_t mode) {
     if (!g_origOpen) return -1;
     
     // Wenn MAC-Pfad, redirect zu Fake-Datei
     if (pathname && g_macParsed && isMacPath(pathname)) {
-        LOGI("[TITAN] open() MAC path detected: %s", pathname);
+        LOGI("[HW] open() MAC path detected: %s", pathname);
         
-        TitanHardware& hw = TitanHardware::getInstance();
+        HwCompat& hw = HwCompat::getInstance();
         char macStr[24] = {};
         hw.getWifiMac(macStr, sizeof(macStr));
         
@@ -1076,7 +1025,7 @@ static int titan_hooked_open(const char* pathname, int flags, mode_t mode) {
         size_t contentLen = strlen(FAKE_INPUT_DEVICES);
         int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_INPUT_DEVICES, contentLen, "input_open");
         if (fakeFd >= 0) {
-            LOGI("[TITAN] open() input devices redirected: %s (fd=%d, %zu bytes)", pathname, fakeFd, contentLen);
+            LOGI("[HW] open() input devices redirected: %s (fd=%d, %zu bytes)", pathname, fakeFd, contentLen);
             return fakeFd;
         }
     }
@@ -1086,7 +1035,7 @@ static int titan_hooked_open(const char* pathname, int flags, mode_t mode) {
         size_t contentLen = strlen(FAKE_CPUINFO);
         int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_CPUINFO, contentLen, "cpuinfo");
         if (fakeFd >= 0) {
-            LOGI("[TITAN] open() cpuinfo redirected (Tensor G1, %zu bytes)", contentLen);
+            LOGI("[HW] open() cpuinfo redirected (Tensor G1, %zu bytes)", contentLen);
             return fakeFd;
         }
     }
@@ -1148,7 +1097,7 @@ static int titan_hooked_open(const char* pathname, int flags, mode_t mode) {
 // Hook: read (MAC File Content Injection)
 // ==============================================================================
 
-static ssize_t titan_hooked_read(int fd, void* buf, size_t count) {
+static ssize_t _hooked_read(int fd, void* buf, size_t count) {
     if (!g_origRead) return -1;
     
     bool isMacFd = false;
@@ -1158,7 +1107,7 @@ static ssize_t titan_hooked_read(int fd, void* buf, size_t count) {
     }
     
     if (isMacFd && buf && count > 0 && g_macParsed) {
-        TitanHardware& hw = TitanHardware::getInstance();
+        HwCompat& hw = HwCompat::getInstance();
         char macStr[24] = {};
         hw.getWifiMac(macStr, sizeof(macStr));
         
@@ -1169,7 +1118,7 @@ static ssize_t titan_hooked_read(int fd, void* buf, size_t count) {
             size_t copyLen = (count < len) ? count : len;
             memcpy(buf, macWithNewline, copyLen);
             
-            LOGI("[TITAN] Spoofed read() for MAC fd %d -> %s", fd, macStr);
+            LOGI("[HW] Spoofed read() for MAC fd %d -> %s", fd, macStr);
             
             // Remove from tracking
             {
@@ -1205,7 +1154,7 @@ static FILE* createFakeFopen(const char* origPath, const char* mode,
         FILE* fakeFp = fdopen(memFd, "r");
         if (fakeFp) {
             if (g_debugHooks.load()) {
-                LOGI("[TITAN] memfd fopen: %s (fd=%d) [%s]", origPath, memFd, tag);
+                LOGI("[HW] memfd fopen: %s (fd=%d) [%s]", origPath, memFd, tag);
             }
             return fakeFp;
         }
@@ -1225,19 +1174,19 @@ static FILE* createFakeFopen(const char* origPath, const char* mode,
         FILE* fakeFp = g_origFopen(tempPath, "r");
         unlink(tempPath);  // Sofort löschen (FD bleibt offen)
         if (fakeFp) {
-            LOGW("[TITAN] temp fopen fallback: %s [%s]", origPath, tag);
+            LOGW("[HW] temp fopen fallback: %s [%s]", origPath, tag);
             return fakeFp;
         }
     }
     return nullptr;
 }
 
-static FILE* titan_hooked_fopen(const char* pathname, const char* mode) {
+static FILE* _hooked_fopen(const char* pathname, const char* mode) {
     if (!g_origFopen) return nullptr;
     
     // MAC-Pfad -> Fake-MAC-Datei
     if (pathname && g_macParsed && isMacPath(pathname)) {
-        TitanHardware& hw = TitanHardware::getInstance();
+        HwCompat& hw = HwCompat::getInstance();
         char macStr[24] = {};
         hw.getWifiMac(macStr, sizeof(macStr));
         
@@ -1286,7 +1235,7 @@ static FILE* titan_hooked_fopen(const char* pathname, const char* mode) {
 // Hook: fgets (für std::ifstream getline)
 // ==============================================================================
 
-static char* titan_hooked_fgets(char* s, int size, FILE* stream) {
+static char* _hooked_fgets(char* s, int size, FILE* stream) {
     if (!g_origFgets) return nullptr;
     
     bool isMacStream = false;
@@ -1296,13 +1245,13 @@ static char* titan_hooked_fgets(char* s, int size, FILE* stream) {
     }
     
     if (isMacStream && s && size > 0 && g_macParsed) {
-        TitanHardware& hw = TitanHardware::getInstance();
+        HwCompat& hw = HwCompat::getInstance();
         char macStr[24] = {};
         hw.getWifiMac(macStr, sizeof(macStr));
         
         if (macStr[0]) {
             snprintf(s, size, "%s\n", macStr);
-            LOGI("[TITAN] Spoofed fgets() for MAC stream -> %s", macStr);
+            LOGI("[HW] Spoofed fgets() for MAC stream -> %s", macStr);
             
             // Remove from tracking
             {
@@ -1325,7 +1274,7 @@ static void parseWidevineHex() {
     if (g_widevineParsed) return;
     
     // Versuche erst Bridge-Wert
-    TitanHardware& hw = TitanHardware::getInstance();
+    HwCompat& hw = HwCompat::getInstance();
     char widevineBuf[64] = {};
     hw.getWidevineId(widevineBuf, sizeof(widevineBuf));
     
@@ -1337,7 +1286,7 @@ static void parseWidevineHex() {
     }
     
     g_widevineParsed = true;
-    LOGI("[TITAN] Widevine ID parsed: %02x%02x%02x%02x...", 
+    LOGI("[HW] Widevine ID parsed: %02x%02x%02x%02x...", 
          g_widevineBytes[0], g_widevineBytes[1], g_widevineBytes[2], g_widevineBytes[3]);
 }
 
@@ -1347,7 +1296,7 @@ static bool isFakeDrm(AMediaDrm* drm) {
 }
 
 // Hook: AMediaDrm_createByUUID - Das Herzstück des HAL-Mockings
-static AMediaDrm* titan_hooked_AMediaDrm_createByUUID(const uint8_t uuid[16]) {
+static AMediaDrm* _hooked_AMediaDrm_createByUUID(const uint8_t uuid[16]) {
     // Versuche erst Original
     AMediaDrm* drm = nullptr;
     if (g_origAMediaDrmCreateByUUID) {
@@ -1356,7 +1305,7 @@ static AMediaDrm* titan_hooked_AMediaDrm_createByUUID(const uint8_t uuid[16]) {
     
     // Wenn Original erfolgreich, nutze es
     if (drm != nullptr) {
-        LOGI("[TITAN] AMediaDrm_createByUUID -> Real DRM object");
+        LOGI("[HW] AMediaDrm_createByUUID -> Real DRM object");
         return drm;
     }
     
@@ -1371,23 +1320,23 @@ static AMediaDrm* titan_hooked_AMediaDrm_createByUUID(const uint8_t uuid[16]) {
             g_fakeDrmObjects.insert(fakeDrm);
         }
         
-        LOGI("[TITAN] AMediaDrm_createByUUID(Widevine) -> Fake DRM object %p (HAL mocked)", fakeDrm);
+        LOGI("[HW] AMediaDrm_createByUUID(Widevine) -> Fake DRM object %p (HAL mocked)", fakeDrm);
         return fakeDrm;
     }
     
-    LOGW("[TITAN] AMediaDrm_createByUUID -> Failed (non-Widevine UUID)");
+    LOGW("[HW] AMediaDrm_createByUUID -> Failed (non-Widevine UUID)");
     return nullptr;
 }
 
 // Hook: AMediaDrm_release
-static void titan_hooked_AMediaDrm_release(AMediaDrm* drm) {
+static void _hooked_AMediaDrm_release(AMediaDrm* drm) {
     if (isFakeDrm(drm)) {
         {
             std::lock_guard<std::mutex> lock(g_fdMapMutex);
             g_fakeDrmObjects.erase(drm);
         }
         free(drm); // calloc'd Speicher freigeben
-        LOGI("[TITAN] AMediaDrm_release(Fake) -> freed");
+        LOGI("[HW] AMediaDrm_release(Fake) -> freed");
         return;
     }
     
@@ -1398,8 +1347,8 @@ static void titan_hooked_AMediaDrm_release(AMediaDrm* drm) {
 
 // Hook: AMediaDrm_getPropertyByteArray (Phase 9.5 - KORREKTE Signatur!)
 // Die NDK-API nutzt AMediaDrmByteArray* (struct mit ptr + length), NICHT uint8_t** + size_t*!
-static media_status_t titan_hooked_AMediaDrm_getPropertyByteArray(
-    AMediaDrm* drm, const char* propertyName, TitanDrmByteArray* propertyValue) {
+static media_status_t _hooked_AMediaDrm_getPropertyByteArray(
+    AMediaDrm* drm, const char* propertyName, DrmByteArray* propertyValue) {
     
     if (!propertyName || !propertyValue) {
         return AMEDIA_DRM_NOT_PROVISIONED;
@@ -1418,7 +1367,7 @@ static media_status_t titan_hooked_AMediaDrm_getPropertyByteArray(
         propertyValue->ptr = s_widevineResult;
         propertyValue->length = 16;
         
-        LOGI("[TITAN] AMediaDrm_getPropertyByteArray(%s) -> Spoofed 16 bytes [%s DRM]", 
+        LOGI("[HW] AMediaDrm_getPropertyByteArray(%s) -> Spoofed 16 bytes [%s DRM]", 
              propertyName, isFake ? "Fake" : "Real");
         return AMEDIA_OK;
     }
@@ -1432,7 +1381,7 @@ static media_status_t titan_hooked_AMediaDrm_getPropertyByteArray(
 }
 
 // Hook: AMediaDrm_getPropertyString
-static media_status_t titan_hooked_AMediaDrm_getPropertyString(
+static media_status_t _hooked_AMediaDrm_getPropertyString(
     AMediaDrm* drm, const char* propertyName, const char** propertyValue) {
     
     if (!propertyName || !propertyValue) {
@@ -1456,7 +1405,7 @@ static media_status_t titan_hooked_AMediaDrm_getPropertyString(
             return AMEDIA_OK;
         }
         
-        LOGI("[TITAN] AMediaDrm_getPropertyString(%s) -> Fake default", propertyName);
+        LOGI("[HW] AMediaDrm_getPropertyString(%s) -> Fake default", propertyName);
         *propertyValue = strdup("");
         return AMEDIA_OK;
     }
@@ -1470,10 +1419,10 @@ static media_status_t titan_hooked_AMediaDrm_getPropertyString(
 }
 
 // Hook: AMediaDrm_isCryptoSchemeSupported
-static bool titan_hooked_AMediaDrm_isCryptoSchemeSupported(const uint8_t uuid[16], const char* mimeType) {
+static bool _hooked_AMediaDrm_isCryptoSchemeSupported(const uint8_t uuid[16], const char* mimeType) {
     // Widevine UUID IMMER unterstützen
     if (memcmp(uuid, WIDEVINE_UUID, 16) == 0) {
-        LOGI("[TITAN] AMediaDrm_isCryptoSchemeSupported(Widevine) -> true (forced)");
+        LOGI("[HW] AMediaDrm_isCryptoSchemeSupported(Widevine) -> true (forced)");
         return true;
     }
     
@@ -1485,7 +1434,7 @@ static bool titan_hooked_AMediaDrm_isCryptoSchemeSupported(const uint8_t uuid[16
 // Hook: opendir/readdir (/dev/input/ Virtualisierung)
 // ==============================================================================
 
-static DIR* titan_hooked_opendir(const char* name) {
+static DIR* _hooked_opendir(const char* name) {
     if (!g_origOpendir) return nullptr;
     DIR* dir = g_origOpendir(name);
     
@@ -1510,7 +1459,7 @@ static DIR* titan_hooked_opendir(const char* name) {
 // Statische dirent-Struktur für Fake-Entries
 static struct dirent g_fakeDirent;
 
-static struct dirent* titan_hooked_readdir(DIR* dirp) {
+static struct dirent* _hooked_readdir(DIR* dirp) {
     if (!g_origReaddir) return nullptr;
     
     {
@@ -1543,7 +1492,7 @@ static struct dirent* titan_hooked_readdir(DIR* dirp) {
     return g_origReaddir(dirp);
 }
 
-static int titan_hooked_closedir(DIR* dirp) {
+static int _hooked_closedir(DIR* dirp) {
     {
         std::lock_guard<std::mutex> lock(g_fdMapMutex);
         g_inputDirHandles.erase(dirp);
@@ -1553,7 +1502,7 @@ static int titan_hooked_closedir(DIR* dirp) {
 }
 
 // ==============================================================================
-// Direct Memory Property Patching (Phase 12 - System Transmutation)
+// Direct Memory Property Patching
 // 
 // Statt __system_property_get zu hooken (detektierbar!), remappen wir die
 // Property-Memory-Area als MAP_PRIVATE und patchen die Werte direkt im RAM.
@@ -1583,7 +1532,7 @@ static int g_privatizedRegions = 0;
 static void privatizePropertyMappings() {
     FILE* maps = fopen("/proc/self/maps", "r");
     if (!maps) {
-        LOGW("[TITAN-MEM] Cannot open /proc/self/maps");
+        LOGW("[MEM] Cannot open /proc/self/maps");
         return;
     }
     
@@ -1610,7 +1559,7 @@ static void privatizePropertyMappings() {
                             MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
         if (newMap == MAP_FAILED) {
             free(backup);
-            LOGW("[TITAN-MEM] mmap failed for %lx-%lx (errno=%d)", start, end, errno);
+            LOGW("[MEM] mmap failed for %lx-%lx (errno=%d)", start, end, errno);
             continue;
         }
         
@@ -1622,11 +1571,11 @@ static void privatizePropertyMappings() {
         mprotect(newMap, size, PROT_READ);
         
         g_privatizedRegions++;
-        LOGI("[TITAN-MEM] Privatized: %lx-%lx (%zu bytes) [%s]", start, end, size, perms);
+        LOGI("[MEM] Privatized: %lx-%lx (%zu bytes) [%s]", start, end, size, perms);
     }
     
     fclose(maps);
-    LOGI("[TITAN-MEM] Privatized %d property regions", g_privatizedRegions);
+    LOGI("[MEM] Privatized %d property regions", g_privatizedRegions);
 }
 
 /**
@@ -1659,7 +1608,7 @@ static bool patchPropertyDirect(const char* name, const char* newValue) {
     
     // Temporär beschreibbar machen
     if (mprotect((void*)pageStart, regionSize, PROT_READ | PROT_WRITE) != 0) {
-        LOGW("[TITAN-MEM] mprotect WRITE failed for %s (errno=%d)", name, errno);
+        LOGW("[MEM] mprotect WRITE failed for %s (errno=%d)", name, errno);
         return false;
     }
     
@@ -1688,11 +1637,11 @@ static bool patchPropertyDirect(const char* name, const char* newValue) {
  */
 static void patchAllPropertiesInMemory() {
     if (g_privatizedRegions == 0) {
-        LOGW("[TITAN-MEM] No privatized regions - skipping memory patching");
+        LOGW("[MEM] No privatized regions - skipping memory patching");
         return;
     }
     
-    TitanHardware& hw = TitanHardware::getInstance();
+    HwCompat& hw = HwCompat::getInstance();
     int patched = 0;
     
     // Identity Properties aus Bridge
@@ -1731,7 +1680,7 @@ static void patchAllPropertiesInMemory() {
         }
     }
     
-    LOGI("[TITAN-MEM] Direct memory patched: %d properties (NO HOOKS NEEDED for these!)", patched);
+    LOGI("[MEM] Direct memory patched: %d properties (NO HOOKS NEEDED for these!)", patched);
 }
 
 // ==============================================================================
@@ -1745,13 +1694,13 @@ struct PropReadCookieOverride {
     const char* overrideValue;
 };
 
-static void titanPropReadCallbackShim(void* cookie, const char* name, const char* value, uint32_t serial) {
+static void _propReadCallbackShim(void* cookie, const char* name, const char* value, uint32_t serial) {
     PropReadCookieOverride* ctx = static_cast<PropReadCookieOverride*>(cookie);
     // Liefere den Override-Wert statt des Original-Werts
     ctx->origCallback(ctx->origCookie, name, ctx->overrideValue, serial);
 }
 
-static void titan_hooked_prop_read_callback(
+static void _hooked_prop_read_callback(
     const void* pi,
     void (*callback)(void* cookie, const char* name, const char* value, uint32_t serial),
     void* cookie) {
@@ -1776,7 +1725,7 @@ static void titan_hooked_prop_read_callback(
     }
     
     // Prüfe ob wir diesen Wert überschreiben wollen
-    TitanHardware& hw = TitanHardware::getInstance();
+    HwCompat& hw = HwCompat::getInstance();
     char spoofed[128] = {};
     const char* overrideVal = nullptr;
     
@@ -1812,7 +1761,7 @@ static void titan_hooked_prop_read_callback(
 // Hook: __system_property_read (Ältere API - von manchen NDK-Libraries genutzt)
 // ==============================================================================
 
-static int titan_hooked_system_property_read(const void* pi, char* name, char* value) {
+static int _hooked_system_property_read(const void* pi, char* name, char* value) {
     if (!g_origSysPropRead) return -1;
     
     // Original aufrufen um den echten Namen und Wert zu bekommen
@@ -1821,7 +1770,7 @@ static int titan_hooked_system_property_read(const void* pi, char* name, char* v
     if (!name || !value) return result;
     
     // Identity Properties aus der Bridge
-    TitanHardware& hw = TitanHardware::getInstance();
+    HwCompat& hw = HwCompat::getInstance();
     char spoofed[128] = {};
     
     if (strcmp(name, "ro.serialno") == 0 || strcmp(name, "ro.boot.serialno") == 0) {
@@ -1879,7 +1828,7 @@ static int titan_hooked_system_property_read(const void* pi, char* name, char* v
 // Messages die als Antwort auf RTM_GETLINK direkt im sendmsg-Kontext
 // als embedded Responses mitgeliefert werden können.
 
-static ssize_t titan_hooked_sendmsg(int sockfd, const struct msghdr* msg, int flags) {
+static ssize_t _hooked_sendmsg(int sockfd, const struct msghdr* msg, int flags) {
     if (!g_origSendmsg) return -1;
     
     // Tracke Netlink Sockets (AF_NETLINK)
@@ -1895,7 +1844,7 @@ static ssize_t titan_hooked_sendmsg(int sockfd, const struct msghdr* msg, int fl
                     if (nlh->nlmsg_type == RTM_GETLINK) {
                         std::lock_guard<std::mutex> lock(g_netlinkMutex);
                         g_netlinkSockets.insert(sockfd);
-                        LOGI("[TITAN] Tracked RTM_GETLINK socket fd=%d (MAC will be spoofed on response)", sockfd);
+                        LOGI("[HW] Tracked RTM_GETLINK socket fd=%d (MAC will be spoofed on response)", sockfd);
                     }
                 }
             }
@@ -1910,7 +1859,7 @@ static ssize_t titan_hooked_sendmsg(int sockfd, const struct msghdr* msg, int fl
 // ==============================================================================
 
 static bool verifyIdentityAtomicity() {
-    TitanHardware& hw = TitanHardware::getInstance();
+    HwCompat& hw = HwCompat::getInstance();
     
     char serial[128] = {}, mac[24] = {}, imei1[32] = {};
     hw.getSerial(serial, sizeof(serial));
@@ -1918,7 +1867,7 @@ static bool verifyIdentityAtomicity() {
     hw.getImei1(imei1, sizeof(imei1));
     
     if (!serial[0] || !mac[0] || !imei1[0]) {
-        LOGW("[TITAN] Atomicity FAIL: Missing identity (serial=%s, mac=%s, imei=%s)", 
+        LOGW("[HW] Atomicity FAIL: Missing identity (serial=%s, mac=%s, imei=%s)", 
              serial, mac, imei1);
         return false;
     }
@@ -1931,7 +1880,7 @@ static bool verifyIdentityAtomicity() {
         // Nach dem Hook muss sie identisch sein
     }
     
-    LOGI("[TITAN] Atomicity OK: Serial=%s MAC=%s IMEI=%s", serial, mac, imei1);
+    LOGI("[HW] Atomicity OK: Serial=%s MAC=%s IMEI=%s", serial, mac, imei1);
     return true;
 }
 
@@ -1942,7 +1891,7 @@ static bool verifyIdentityAtomicity() {
 static void installAllHooks() {
     void* libc = dlopen("libc.so", RTLD_NOW | RTLD_NOLOAD);
     if (!libc) {
-        LOGE("[TITAN] Failed to open libc");
+        LOGE("[HW] Failed to open libc");
         return;
     }
     
@@ -1951,114 +1900,114 @@ static void installAllHooks() {
 #ifdef USE_DOBBY
     // __system_property_get
     void* propAddr = dlsym(libc, "__system_property_get");
-    if (propAddr && DobbyHook(propAddr, (dobby_dummy_func_t)titan_hooked_system_property_get, 
+    if (propAddr && DobbyHook(propAddr, (dobby_dummy_func_t)_hooked_system_property_get, 
                               (dobby_dummy_func_t*)&g_origSystemPropertyGet) == 0) {
         installed++;
-        LOGI("[TITAN] Property hook OK");
+        LOGI("[HW] Property hook OK");
     }
     
     // __system_property_read_callback (neuere API, ab Android 8)
     void* propReadCbAddr = dlsym(libc, "__system_property_read_callback");
-    if (propReadCbAddr && DobbyHook(propReadCbAddr, (dobby_dummy_func_t)titan_hooked_prop_read_callback,
+    if (propReadCbAddr && DobbyHook(propReadCbAddr, (dobby_dummy_func_t)_hooked_prop_read_callback,
                                      (dobby_dummy_func_t*)&g_origPropReadCallback) == 0) {
         installed++;
-        LOGI("[TITAN] __system_property_read_callback hook OK");
+        LOGI("[HW] __system_property_read_callback hook OK");
     }
     
     // __system_property_read (ältere API - manche NDK Libs nutzen diese statt _get)
     void* propReadAddr = dlsym(libc, "__system_property_read");
-    if (propReadAddr && DobbyHook(propReadAddr, (dobby_dummy_func_t)titan_hooked_system_property_read,
+    if (propReadAddr && DobbyHook(propReadAddr, (dobby_dummy_func_t)_hooked_system_property_read,
                                    (dobby_dummy_func_t*)&g_origSysPropRead) == 0) {
         installed++;
-        LOGI("[TITAN] __system_property_read (legacy) hook OK");
+        LOGI("[HW] __system_property_read (legacy) hook OK");
     }
     
     // sendmsg (Netlink RTM_GETLINK Tracking)
     void* sendmsgAddr = dlsym(libc, "sendmsg");
-    if (sendmsgAddr && DobbyHook(sendmsgAddr, (dobby_dummy_func_t)titan_hooked_sendmsg,
+    if (sendmsgAddr && DobbyHook(sendmsgAddr, (dobby_dummy_func_t)_hooked_sendmsg,
                                   (dobby_dummy_func_t*)&g_origSendmsg) == 0) {
         installed++;
-        LOGI("[TITAN] sendmsg (Netlink) hook OK");
+        LOGI("[HW] sendmsg (Netlink) hook OK");
     }
     
     // getifaddrs
     void* getifaddrsAddr = dlsym(libc, "getifaddrs");
-    if (getifaddrsAddr && DobbyHook(getifaddrsAddr, (dobby_dummy_func_t)titan_hooked_getifaddrs,
+    if (getifaddrsAddr && DobbyHook(getifaddrsAddr, (dobby_dummy_func_t)_hooked_getifaddrs,
                                     (dobby_dummy_func_t*)&g_origGetifaddrs) == 0) {
         installed++;
-        LOGI("[TITAN] getifaddrs hook OK");
+        LOGI("[HW] getifaddrs hook OK");
     }
     
     // ioctl
     void* ioctlAddr = dlsym(libc, "ioctl");
-    if (ioctlAddr && DobbyHook(ioctlAddr, (dobby_dummy_func_t)titan_hooked_ioctl,
+    if (ioctlAddr && DobbyHook(ioctlAddr, (dobby_dummy_func_t)_hooked_ioctl,
                                (dobby_dummy_func_t*)&g_origIoctl) == 0) {
         installed++;
-        LOGI("[TITAN] ioctl hook OK");
+        LOGI("[HW] ioctl hook OK");
     }
     
     // recvmsg (Netlink)
     void* recvmsgAddr = dlsym(libc, "recvmsg");
-    if (recvmsgAddr && DobbyHook(recvmsgAddr, (dobby_dummy_func_t)titan_hooked_recvmsg,
+    if (recvmsgAddr && DobbyHook(recvmsgAddr, (dobby_dummy_func_t)_hooked_recvmsg,
                                  (dobby_dummy_func_t*)&g_origRecvmsg) == 0) {
         installed++;
-        LOGI("[TITAN] recvmsg (Netlink) hook OK");
+        LOGI("[HW] recvmsg (Netlink) hook OK");
     }
     
     // open
     void* openAddr = dlsym(libc, "open");
-    if (openAddr && DobbyHook(openAddr, (dobby_dummy_func_t)titan_hooked_open,
+    if (openAddr && DobbyHook(openAddr, (dobby_dummy_func_t)_hooked_open,
                               (dobby_dummy_func_t*)&g_origOpen) == 0) {
         installed++;
-        LOGI("[TITAN] open hook OK");
+        LOGI("[HW] open hook OK");
     }
     
     // read
     void* readAddr = dlsym(libc, "read");
-    if (readAddr && DobbyHook(readAddr, (dobby_dummy_func_t)titan_hooked_read,
+    if (readAddr && DobbyHook(readAddr, (dobby_dummy_func_t)_hooked_read,
                               (dobby_dummy_func_t*)&g_origRead) == 0) {
         installed++;
-        LOGI("[TITAN] read hook OK");
+        LOGI("[HW] read hook OK");
     }
     
     // fopen (für std::ifstream)
     void* fopenAddr = dlsym(libc, "fopen");
-    if (fopenAddr && DobbyHook(fopenAddr, (dobby_dummy_func_t)titan_hooked_fopen,
+    if (fopenAddr && DobbyHook(fopenAddr, (dobby_dummy_func_t)_hooked_fopen,
                                (dobby_dummy_func_t*)&g_origFopen) == 0) {
         installed++;
-        LOGI("[TITAN] fopen hook OK");
+        LOGI("[HW] fopen hook OK");
     }
     
     // fgets (für std::ifstream getline)
     void* fgetsAddr = dlsym(libc, "fgets");
-    if (fgetsAddr && DobbyHook(fgetsAddr, (dobby_dummy_func_t)titan_hooked_fgets,
+    if (fgetsAddr && DobbyHook(fgetsAddr, (dobby_dummy_func_t)_hooked_fgets,
                                (dobby_dummy_func_t*)&g_origFgets) == 0) {
         installed++;
-        LOGI("[TITAN] fgets hook OK");
+        LOGI("[HW] fgets hook OK");
     }
     
     // opendir (Input Virtualizer)
     void* opendirAddr = dlsym(libc, "opendir");
-    if (opendirAddr && DobbyHook(opendirAddr, (dobby_dummy_func_t)titan_hooked_opendir,
+    if (opendirAddr && DobbyHook(opendirAddr, (dobby_dummy_func_t)_hooked_opendir,
                                   (dobby_dummy_func_t*)&g_origOpendir) == 0) {
         installed++;
-        LOGI("[TITAN] opendir hook OK");
+        LOGI("[HW] opendir hook OK");
     }
     
     // readdir (Input Virtualizer)
     void* readdirAddr = dlsym(libc, "readdir");
-    if (readdirAddr && DobbyHook(readdirAddr, (dobby_dummy_func_t)titan_hooked_readdir,
+    if (readdirAddr && DobbyHook(readdirAddr, (dobby_dummy_func_t)_hooked_readdir,
                                   (dobby_dummy_func_t*)&g_origReaddir) == 0) {
         installed++;
-        LOGI("[TITAN] readdir hook OK");
+        LOGI("[HW] readdir hook OK");
     }
     
     // closedir (Input Virtualizer cleanup)
     void* closedirAddr = dlsym(libc, "closedir");
-    if (closedirAddr && DobbyHook(closedirAddr, (dobby_dummy_func_t)titan_hooked_closedir,
+    if (closedirAddr && DobbyHook(closedirAddr, (dobby_dummy_func_t)_hooked_closedir,
                                    (dobby_dummy_func_t*)&g_origClosedir) == 0) {
         installed++;
-        LOGI("[TITAN] closedir hook OK");
+        LOGI("[HW] closedir hook OK");
     }
     
     // Widevine NDK Hooks - Phase 9.5 SAFE
@@ -2075,54 +2024,54 @@ static void installAllHooks() {
     if (mediandk) {
         // SAFE: createByUUID - gibt Fake-Objekt zurück wenn HAL defekt
         void* createAddr = dlsym(mediandk, "AMediaDrm_createByUUID");
-        if (createAddr && DobbyHook(createAddr, (dobby_dummy_func_t)titan_hooked_AMediaDrm_createByUUID,
+        if (createAddr && DobbyHook(createAddr, (dobby_dummy_func_t)_hooked_AMediaDrm_createByUUID,
                                     (dobby_dummy_func_t*)&g_origAMediaDrmCreateByUUID) == 0) {
             installed++;
-            LOGI("[TITAN] AMediaDrm_createByUUID hook OK");
+            LOGI("[HW] AMediaDrm_createByUUID hook OK");
         }
         
         // SAFE: release - Fake-Objekte korrekt freigeben
         void* releaseAddr = dlsym(mediandk, "AMediaDrm_release");
-        if (releaseAddr && DobbyHook(releaseAddr, (dobby_dummy_func_t)titan_hooked_AMediaDrm_release,
+        if (releaseAddr && DobbyHook(releaseAddr, (dobby_dummy_func_t)_hooked_AMediaDrm_release,
                                      (dobby_dummy_func_t*)&g_origAMediaDrmRelease) == 0) {
             installed++;
-            LOGI("[TITAN] AMediaDrm_release hook OK");
+            LOGI("[HW] AMediaDrm_release hook OK");
         }
         
         // SAFE: isCryptoSchemeSupported - Widevine immer true
         void* isSupportedAddr = dlsym(mediandk, "AMediaDrm_isCryptoSchemeSupported");
-        if (isSupportedAddr && DobbyHook(isSupportedAddr, (dobby_dummy_func_t)titan_hooked_AMediaDrm_isCryptoSchemeSupported,
+        if (isSupportedAddr && DobbyHook(isSupportedAddr, (dobby_dummy_func_t)_hooked_AMediaDrm_isCryptoSchemeSupported,
                                          (dobby_dummy_func_t*)&g_origAMediaDrmIsCryptoSchemeSupported) == 0) {
             installed++;
-            LOGI("[TITAN] AMediaDrm_isCryptoSchemeSupported hook OK");
+            LOGI("[HW] AMediaDrm_isCryptoSchemeSupported hook OK");
         }
         
         // NICHT GEHOOKED (Dobby SIGILL): getPropertyByteArray, getPropertyString
-        LOGI("[TITAN] Widevine: 3/3 safe hooks installed (getProperty via LSPosed)");
+        LOGI("[HW] Widevine: 3/3 safe hooks installed (getProperty via LSPosed)");
     } else {
-        LOGW("[TITAN] libmediandk.so not available");
+        LOGW("[HW] libmediandk.so not available");
     }
 #endif
     
-    LOGI("[TITAN] Total hooks installed: %d/13", installed);
+    LOGI("[HW] Total hooks installed: %d/13", installed);
 }
 
 // ==============================================================================
 // Zygisk Module
 // ==============================================================================
 
-class TitanModule : public zygisk::ModuleBase {
+class CompatModule : public zygisk::ModuleBase {
 public:
     void onLoad(zygisk::Api* api, JNIEnv* env) override {
         m_api = api;
         m_env = env;
         
         if (checkKillSwitch()) {
-            LOGW("[TITAN] Kill-switch active");
+            LOGW("[HW] Kill-switch active");
             return;
         }
         
-        LOGI("[TITAN] Module loaded (Phase 6.0 - Total Stealth)");
+        LOGI("[HW] Module loaded");
         loadBridge();
     }
     
@@ -2146,7 +2095,7 @@ public:
             m_shouldInject = false;
         } else {
             m_shouldInject = true;
-            LOGI("[TITAN] Target: %s", m_packageName);
+            LOGI("[HW] Target: %s", m_packageName);
         }
     }
     
@@ -2156,17 +2105,17 @@ public:
         
         // FIX-20: Bridge muss geladen sein — sonst keine Hooks
         if (!g_bridgeLoaded.load()) {
-            LOGW("[TITAN] Bridge nicht geladen — Hooks DEAKTIVIERT für %s", m_packageName);
+            LOGW("[HW] Bridge nicht geladen — Hooks DEAKTIVIERT für %s", m_packageName);
             return;
         }
         
         // Atomicity Check: Identität muss konsistent geladen sein
         if (!verifyIdentityAtomicity()) {
-            LOGW("[TITAN] Atomicity check FAILED - hooks deaktiviert für %s", m_packageName);
+            LOGW("[HW] Atomicity check FAILED - hooks deaktiviert für %s", m_packageName);
             return;
         }
         
-        LOGI("[TITAN] === Phase 12: System Transmutation für %s ===", m_packageName);
+        LOGI("[HW] Init for %s", m_packageName);
         
         // PHASE 1: Property Area Privatisierung (MAP_SHARED → MAP_PRIVATE)
         // MUSS vor den Hooks passieren!
@@ -2179,7 +2128,7 @@ public:
         // PHASE 3: Hooks installieren (Belt & Suspenders für alles was Memory-Patch nicht abdeckt)
         installAllHooks();
         
-        LOGI("[TITAN] === Transmutation complete: %d regions privatized ===", g_privatizedRegions);
+        LOGI("[HW] Init complete: %d regions", g_privatizedRegions);
     }
     
     void preServerSpecialize(zygisk::ServerSpecializeArgs* args) override {
@@ -2198,7 +2147,7 @@ private:
     bool m_shouldInject = false;
 };
 
-REGISTER_ZYGISK_MODULE(TitanModule)
+REGISTER_ZYGISK_MODULE(CompatModule)
 
 static void companionHandler(int fd) {
     loadBridge();

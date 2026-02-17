@@ -63,13 +63,13 @@ CMAKE_BINARY_DIR = /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/titan_zygisk.dir/all
-all: CMakeFiles/titan.dir/all
+all: CMakeFiles/hw_overlay.dir/all
+all: CMakeFiles/hw_compat_legacy.dir/all
 .PHONY : all
 
 # The main recursive "codegen" target.
-codegen: CMakeFiles/titan_zygisk.dir/codegen
-codegen: CMakeFiles/titan.dir/codegen
+codegen: CMakeFiles/hw_overlay.dir/codegen
+codegen: CMakeFiles/hw_compat_legacy.dir/codegen
 .PHONY : codegen
 
 # The main recursive "preinstall" target.
@@ -77,74 +77,74 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/titan_zygisk.dir/clean
-clean: CMakeFiles/titan.dir/clean
+clean: CMakeFiles/hw_overlay.dir/clean
+clean: CMakeFiles/hw_compat_legacy.dir/clean
 clean: CMakeFiles/build_dobby.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/titan_zygisk.dir
+# Target rules for target CMakeFiles/hw_overlay.dir
 
 # All Build rule for target.
-CMakeFiles/titan_zygisk.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=4,5,6 "Built target titan_zygisk"
-.PHONY : CMakeFiles/titan_zygisk.dir/all
+CMakeFiles/hw_overlay.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_overlay.dir/build.make CMakeFiles/hw_overlay.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_overlay.dir/build.make CMakeFiles/hw_overlay.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=4,5,6 "Built target hw_overlay"
+.PHONY : CMakeFiles/hw_overlay.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/titan_zygisk.dir/rule: cmake_check_build_system
+CMakeFiles/hw_overlay.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles 3
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/titan_zygisk.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/hw_overlay.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles 0
-.PHONY : CMakeFiles/titan_zygisk.dir/rule
+.PHONY : CMakeFiles/hw_overlay.dir/rule
 
 # Convenience name for target.
-titan_zygisk: CMakeFiles/titan_zygisk.dir/rule
-.PHONY : titan_zygisk
+hw_overlay: CMakeFiles/hw_overlay.dir/rule
+.PHONY : hw_overlay
 
 # codegen rule for target.
-CMakeFiles/titan_zygisk.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=4,5,6 "Finished codegen for target titan_zygisk"
-.PHONY : CMakeFiles/titan_zygisk.dir/codegen
+CMakeFiles/hw_overlay.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_overlay.dir/build.make CMakeFiles/hw_overlay.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=4,5,6 "Finished codegen for target hw_overlay"
+.PHONY : CMakeFiles/hw_overlay.dir/codegen
 
 # clean rule for target.
-CMakeFiles/titan_zygisk.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan_zygisk.dir/build.make CMakeFiles/titan_zygisk.dir/clean
-.PHONY : CMakeFiles/titan_zygisk.dir/clean
+CMakeFiles/hw_overlay.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_overlay.dir/build.make CMakeFiles/hw_overlay.dir/clean
+.PHONY : CMakeFiles/hw_overlay.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/titan.dir
+# Target rules for target CMakeFiles/hw_compat_legacy.dir
 
 # All Build rule for target.
-CMakeFiles/titan.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan.dir/build.make CMakeFiles/titan.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan.dir/build.make CMakeFiles/titan.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=2,3 "Built target titan"
-.PHONY : CMakeFiles/titan.dir/all
+CMakeFiles/hw_compat_legacy.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_compat_legacy.dir/build.make CMakeFiles/hw_compat_legacy.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_compat_legacy.dir/build.make CMakeFiles/hw_compat_legacy.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=2,3 "Built target hw_compat_legacy"
+.PHONY : CMakeFiles/hw_compat_legacy.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/titan.dir/rule: cmake_check_build_system
+CMakeFiles/hw_compat_legacy.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/titan.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/hw_compat_legacy.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles 0
-.PHONY : CMakeFiles/titan.dir/rule
+.PHONY : CMakeFiles/hw_compat_legacy.dir/rule
 
 # Convenience name for target.
-titan: CMakeFiles/titan.dir/rule
-.PHONY : titan
+hw_compat_legacy: CMakeFiles/hw_compat_legacy.dir/rule
+.PHONY : hw_compat_legacy
 
 # codegen rule for target.
-CMakeFiles/titan.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan.dir/build.make CMakeFiles/titan.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=2,3 "Finished codegen for target titan"
-.PHONY : CMakeFiles/titan.dir/codegen
+CMakeFiles/hw_compat_legacy.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_compat_legacy.dir/build.make CMakeFiles/hw_compat_legacy.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/build_native/CMakeFiles --progress-num=2,3 "Finished codegen for target hw_compat_legacy"
+.PHONY : CMakeFiles/hw_compat_legacy.dir/codegen
 
 # clean rule for target.
-CMakeFiles/titan.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/titan.dir/build.make CMakeFiles/titan.dir/clean
-.PHONY : CMakeFiles/titan.dir/clean
+CMakeFiles/hw_compat_legacy.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/hw_compat_legacy.dir/build.make CMakeFiles/hw_compat_legacy.dir/clean
+.PHONY : CMakeFiles/hw_compat_legacy.dir/clean
 
 #=============================================================================
 # Target rules for target CMakeFiles/build_dobby.dir

@@ -1,4 +1,4 @@
-# Project Titan — Host-Side Orchestrator Dependencies
+# Host-Side Orchestrator Dependencies
 # Install: pip install -r requirements.txt
 
 # === Web Framework ===

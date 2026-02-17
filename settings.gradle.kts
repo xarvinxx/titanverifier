@@ -15,5 +15,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ProjectTitan"
+rootProject.name = "HwService"
 include(":app")

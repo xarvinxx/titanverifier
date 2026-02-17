@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Project Titan – Phase 6.0 TOTAL STEALTH Automator
+Phase 6.0 TOTAL STEALTH Automator — HW Overlay
 
 KERNEL-LEVEL Identity Spoofing für Pixel 6 (Android 14 + KernelSU):
 1. Build: APK + Native SO (optimiert)
 2. Zygisk: SO mit Netlink/recvmsg Hooks
-3. Bridge: /data/adb/modules/.../titan_identity (Boot-sicher!)
+3. Bridge: /data/adb/modules/.../.hw_config (Boot-sicher!)
 4. SUSFS: Kernel-Level Overlay für /sys/class/net/wlan0/address
 5. SELinux: Korrekter Security-Context
 6. Mount Hiding: /proc/mounts maskieren
@@ -13,8 +13,8 @@ KERNEL-LEVEL Identity Spoofing für Pixel 6 (Android 14 + KernelSU):
 KRITISCH: 7/10 ist ein Todesurteil für TikTok. 10/10 oder nichts.
 
 Verwendung:
-    python automate_titan.py [--skip-build] [--bridge-only] [--verbose]
-    python automate_titan.py --generate-identity
+    python automate_deploy.py [--skip-build] [--bridge-only] [--verbose]
+    python automate_deploy.py --generate-identity
 """
 
 import os
@@ -37,27 +37,27 @@ from datetime import datetime
 PROJECT_ROOT = Path(__file__).resolve().parent
 APK_PATH = PROJECT_ROOT / "app" / "build" / "outputs" / "apk" / "debug" / "app-debug.apk"
 NATIVE_BUILD_DIR = PROJECT_ROOT / "build_native"
-NATIVE_SO_PATH = NATIVE_BUILD_DIR / "lib" / "arm64-v8a" / "libtitan_zygisk.so"
+NATIVE_SO_PATH = NATIVE_BUILD_DIR / "lib" / "arm64-v8a" / "libhw_overlay.so"
 
 # Remote Paths auf dem Gerät
 REMOTE_TMP = "/data/local/tmp"
-REMOTE_APK_TMP = f"{REMOTE_TMP}/titan_verifier.apk"
-REMOTE_SO_TMP = f"{REMOTE_TMP}/libtitan_zygisk.so"
+REMOTE_APK_TMP = f"{REMOTE_TMP}/hw_overlay.apk"
+REMOTE_SO_TMP = f"{REMOTE_TMP}/libhw_overlay.so"
 
 # Magisk/KernelSU Module Paths
-MODULE_ID = "titan_verifier"
+MODULE_ID = "hw_overlay"
 MODULE_PATH = f"/data/adb/modules/{MODULE_ID}"
-PRIV_APP_PATH = f"{MODULE_PATH}/system/priv-app/TitanVerifier"
+PRIV_APP_PATH = f"{MODULE_PATH}/system/priv-app/HwOverlay"
 ZYGISK_PATH = f"{MODULE_PATH}/zygisk"
 
 # Bridge-Konfiguration (Phase 5.0 - NUR Boot-sicherer Pfad!)
-BRIDGE_PATH = f"{MODULE_PATH}/titan_identity"          # PRIMARY (einzige Quelle!)
-BRIDGE_PATH_SDCARD = "/sdcard/.titan_identity"         # Backup für LSPosed
-KILL_SWITCH_PATH = "/data/local/tmp/titan_stop"
+BRIDGE_PATH = f"{MODULE_PATH}/.hw_config"             # PRIMARY (einzige Quelle!)
+BRIDGE_PATH_SDCARD = "/sdcard/.hw_config"             # Backup für LSPosed
+KILL_SWITCH_PATH = "/data/local/tmp/.hw_disabled"
 
 # Permission-Konfiguration
 RUNTIME_PERMISSIONS = "/data/system/users/0/runtime-permissions.xml"
-PKG_NAME = "com.titan.verifier"
+PKG_NAME = "com.oem.hardware.service"
 PRIVILEGED_PERMISSIONS = [
     "android.permission.READ_PRIVILEGED_PHONE_STATE",
     "android.permission.READ_PRECISE_PHONE_STATE",
@@ -415,17 +415,17 @@ def step_systemize() -> None:
     ensure_directory(f"{ZYGISK_PATH}")
     
     if APK_PATH.exists():
-        adb_shell(f"cp {REMOTE_APK_TMP} {PRIV_APP_PATH}/TitanVerifier.apk", as_root=True)
-        adb_shell(f"chmod 644 {PRIV_APP_PATH}/TitanVerifier.apk", as_root=True)
-        adb_shell(f"chown root:root {PRIV_APP_PATH}/TitanVerifier.apk", as_root=True)
+        adb_shell(f"cp {REMOTE_APK_TMP} {PRIV_APP_PATH}/HwOverlay.apk", as_root=True)
+        adb_shell(f"chmod 644 {PRIV_APP_PATH}/HwOverlay.apk", as_root=True)
+        adb_shell(f"chown root:root {PRIV_APP_PATH}/HwOverlay.apk", as_root=True)
         log("APK installiert als priv-app", "OK")
     
     module_prop = f"""id={MODULE_ID}
-name=Titan Verifier
+name=HW Overlay
 version=6.0.0
 versionCode=600
 author=Lead-Architect
-description=Project Titan - Total Stealth (Phase 6.0 - Netlink/SUSFS/Widevine)
+description=HW Overlay - Total Stealth (Phase 6.0 - Netlink/SUSFS/Widevine)
 """
     
     with tempfile.NamedTemporaryFile(mode="w", suffix=".prop", delete=False) as f:
@@ -506,7 +506,7 @@ def step_susfs_mac_overlay(mac_address: str) -> None:
     
     try:
         # MAC-Datei erstellen
-        mac_file_path = f"{REMOTE_TMP}/.titan_mac_overlay"
+        mac_file_path = f"{REMOTE_TMP}/.hw_mac_overlay"
         adb_shell(f"echo '{mac_address}' > {mac_file_path}", as_root=True)
         adb_shell(f"chmod 444 {mac_file_path}", as_root=True)
         adb_shell(f"chcon u:object_r:system_file:s0 {mac_file_path}", as_root=True, check=False)
@@ -553,7 +553,7 @@ def step_susfs_hide_root() -> None:
             "/data/misc/riru",
             "/data/adb/lspd",
             
-            # Titan Verifier Module
+            # HW Overlay Module
             f"{MODULE_PATH}",
         ]
         
@@ -573,7 +573,7 @@ def step_susfs_hide_app() -> None:
     """
     Phase 6.0: SUSFS App Hiding
     
-    Versteckt die Titan Verifier App vor anderen Apps.
+    Versteckt die HW Overlay App vor anderen Apps.
     TikTok scannt installierte Packages.
     """
     log("Setting up SUSFS App Hiding...")
@@ -596,7 +596,7 @@ def step_susfs_hide_app() -> None:
 
 def step_create_bridge(identity: Optional[Dict[str, str]] = None) -> Dict[str, str]:
     """
-    Phase 5.0: Bridge ONLY in /data/adb/modules/titan_verifier/titan_identity
+    Phase 5.0: Bridge ONLY in /data/adb/modules/hw_overlay/.hw_config
     
     Format: Key=Value (eine Zeile pro Feld)
     
@@ -611,7 +611,7 @@ def step_create_bridge(identity: Optional[Dict[str, str]] = None) -> Dict[str, s
     
     # Bridge-Content im Key=Value Format
     bridge_lines = [
-        "# Titan Identity Bridge - Phase 5.0 Final Convergence",
+        "# HW Config Bridge - Phase 5.0 Final Convergence",
         f"# Generated: {datetime.now().isoformat()}",
         "",
     ]
@@ -620,23 +620,23 @@ def step_create_bridge(identity: Optional[Dict[str, str]] = None) -> Dict[str, s
     
     bridge_content = "\n".join(bridge_lines) + "\n"
     
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".titan_identity", delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".hw_config", delete=False) as f:
         f.write(bridge_content)
         tmp_bridge = f.name
     
     try:
-        # PRIMARY: /data/adb/modules/titan_verifier/titan_identity
-        adb(["push", tmp_bridge, f"{REMOTE_TMP}/titan_identity_tmp"])
-        adb_shell(f"cp {REMOTE_TMP}/titan_identity_tmp {BRIDGE_PATH}", as_root=True)
+        # PRIMARY: /data/adb/modules/hw_overlay/.hw_config
+        adb(["push", tmp_bridge, f"{REMOTE_TMP}/.hw_config_tmp"])
+        adb_shell(f"cp {REMOTE_TMP}/.hw_config_tmp {BRIDGE_PATH}", as_root=True)
         adb_shell(f"chmod 644 {BRIDGE_PATH}", as_root=True)
         adb_shell(f"chcon {SELINUX_CONTEXT_SYSTEM} {BRIDGE_PATH}", as_root=True, check=False)
         
-        # BACKUP: /sdcard/.titan_identity (für LSPosed in GMS-Prozessen)
-        adb_shell(f"cp {REMOTE_TMP}/titan_identity_tmp {BRIDGE_PATH_SDCARD}", as_root=True, check=False)
+        # BACKUP: /sdcard/.hw_config (für LSPosed in GMS-Prozessen)
+        adb_shell(f"cp {REMOTE_TMP}/.hw_config_tmp {BRIDGE_PATH_SDCARD}", as_root=True, check=False)
         adb_shell(f"chmod 644 {BRIDGE_PATH_SDCARD}", as_root=True, check=False)
         
         # Cleanup
-        adb_shell(f"rm {REMOTE_TMP}/titan_identity_tmp", as_root=True, check=False)
+        adb_shell(f"rm {REMOTE_TMP}/.hw_config_tmp", as_root=True, check=False)
         
     finally:
         os.unlink(tmp_bridge)
@@ -832,7 +832,7 @@ def step_distribute_bridge(identity: Dict[str, str]) -> None:
     log("Distributing bridge to all target apps...")
     
     target_apps = [
-        "com.titan.verifier",
+        "com.oem.hardware.service",
         "tw.reh.deviceid",
         "com.androidfung.drminfo",
         "com.zhiliaoapp.musically",
@@ -861,10 +861,10 @@ def step_distribute_bridge(identity: Dict[str, str]) -> None:
         # Bridge kopieren mit korrektem Owner + 644 Permissions
         result = adb_shell(
             f"mkdir -p /data/data/{pkg}/files && "
-            f"cp {BRIDGE_PATH} /data/data/{pkg}/files/.titan_identity && "
-            f"chown {uid}:{uid} /data/data/{pkg}/files/.titan_identity && "
+            f"cp {BRIDGE_PATH} /data/data/{pkg}/files/.hw_config && "
+            f"chown {uid}:{uid} /data/data/{pkg}/files/.hw_config && "
             f"chown {uid}:{uid} /data/data/{pkg}/files && "
-            f"chmod 644 /data/data/{pkg}/files/.titan_identity",
+            f"chmod 644 /data/data/{pkg}/files/.hw_config",
             as_root=True, check=False
         )
         if result.returncode == 0:
@@ -872,7 +872,7 @@ def step_distribute_bridge(identity: Dict[str, str]) -> None:
     
     # World-readable Backup auf /sdcard
     adb_shell(
-        f"cp {BRIDGE_PATH} /sdcard/.titan_identity && chmod 644 /sdcard/.titan_identity",
+        f"cp {BRIDGE_PATH} /sdcard/.hw_config && chmod 644 /sdcard/.hw_config",
         as_root=True, check=False
     )
     
@@ -915,7 +915,7 @@ def step_post_deploy_verify(identity: Dict[str, str]) -> None:
     
     # Prüfe Bridge in App-Daten (für ALLE Ziel-Apps!)
     target_apps = [
-        PKG_NAME,                          # com.titan.verifier
+        PKG_NAME,                          # com.oem.hardware.service
         "tw.reh.deviceid",                 # Device ID App
         "com.androidfung.drminfo",         # DRM Info App
         "com.zhiliaoapp.musically",        # TikTok
@@ -925,7 +925,7 @@ def step_post_deploy_verify(identity: Dict[str, str]) -> None:
     for app_pkg in target_apps:
         checks_total += 1
         result = adb_shell(
-            f"cat /data/data/{app_pkg}/files/.titan_identity",
+            f"cat /data/data/{app_pkg}/files/.hw_config",
             as_root=True, check=False
         )
         if result.returncode == 0 and identity.get("serial", "") in result.stdout:
@@ -938,10 +938,10 @@ def step_post_deploy_verify(identity: Dict[str, str]) -> None:
                 uid = uid_result.stdout.split("uid:")[-1].strip()
                 adb_shell(
                     f"mkdir -p /data/data/{app_pkg}/files && "
-                    f"cp {BRIDGE_PATH} /data/data/{app_pkg}/files/.titan_identity && "
-                    f"chown {uid}:{uid} /data/data/{app_pkg}/files/.titan_identity && "
+                    f"cp {BRIDGE_PATH} /data/data/{app_pkg}/files/.hw_config && "
+                    f"chown {uid}:{uid} /data/data/{app_pkg}/files/.hw_config && "
                     f"chown {uid}:{uid} /data/data/{app_pkg}/files && "
-                    f"chmod 600 /data/data/{app_pkg}/files/.titan_identity",
+                    f"chmod 600 /data/data/{app_pkg}/files/.hw_config",
                     as_root=True, check=False
                 )
                 checks_passed += 1
@@ -951,10 +951,10 @@ def step_post_deploy_verify(identity: Dict[str, str]) -> None:
     
     # World-readable Backup auf /sdcard
     adb_shell(
-        f"cp {BRIDGE_PATH} /sdcard/.titan_identity && chmod 644 /sdcard/.titan_identity",
+        f"cp {BRIDGE_PATH} /sdcard/.hw_config && chmod 644 /sdcard/.hw_config",
         as_root=True, check=False
     )
-    log("Bridge /sdcard/.titan_identity: Backup OK", "OK")
+    log("Bridge /sdcard/.hw_config: Backup OK", "OK")
     
     # Prüfe Kill-Switch entfernt
     checks_total += 1
@@ -991,19 +991,19 @@ def main() -> None:
     global VERBOSE
     
     parser = argparse.ArgumentParser(
-        description="Project Titan - Phase 5.0 Final Convergence Deployment",
+        description="HW Overlay - Phase 5.0 Final Convergence Deployment",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Beispiele:
-  python automate_titan.py                      # Vollständiges Deployment (mit Kill-Switch)
-  python automate_titan.py --skip-build         # Nur Deploy (ohne Build)
-  python automate_titan.py --bridge-only        # Nur Bridge-Datei aktualisieren
-  python automate_titan.py --generate-identity  # Zeige generierte Pixel 6 IDs
+  python automate_deploy.py                      # Vollständiges Deployment (mit Kill-Switch)
+  python automate_deploy.py --skip-build         # Nur Deploy (ohne Build)
+  python automate_deploy.py --bridge-only        # Nur Bridge-Datei aktualisieren
+  python automate_deploy.py --generate-identity # Zeige generierte Pixel 6 IDs
 
 Nach Deployment:
   1. Manuell rebooten: adb reboot
   2. KernelSU + LSPosed konfigurieren
-  3. Kill-Switch entfernen: adb shell rm /data/local/tmp/titan_stop
+  3. Kill-Switch entfernen: adb shell rm /data/local/tmp/.hw_disabled
         """
     )
     parser.add_argument("--skip-build", action="store_true",
@@ -1031,9 +1031,9 @@ Nach Deployment:
         return
     
     print("=" * 60)
-    print("Project Titan - Phase 5.0 Final Convergence")
+    print("HW Overlay - Phase 5.0 Final Convergence")
     print("Target: Pixel 6 | Android 14 | KernelSU + Zygisk Next")
-    print("Bridge: /data/adb/modules/titan_verifier/titan_identity")
+    print("Bridge: /data/adb/modules/hw_overlay/.hw_config")
     print("Safety: Kill-switch enabled by default")
     print("=" * 60)
     
@@ -1137,10 +1137,10 @@ Nach Deployment:
     print("WICHTIGE NÄCHSTE SCHRITTE:")
     print("=" * 60)
     print("1. Starte das Gerät MANUELL neu (adb reboot)")
-    print("2. Nach Boot: Öffne KernelSU - prüfe ob 'titan_verifier' erscheint")
-    print("3. Öffne LSPosed - aktiviere 'Titan Verifier' für:")
+    print("2. Nach Boot: Öffne KernelSU - prüfe ob 'hw_overlay' erscheint")
+    print("3. Öffne LSPosed - aktiviere 'HW Overlay' für:")
     print("   - System Framework (android)")
-    print("   - com.titan.verifier")
+    print("   - com.oem.hardware.service")
     print("   - com.google.android.gms (GMS)")
     print("   - com.google.android.gsf (GSF)")
     print("   - com.zhiliaoapp.musically (TikTok)")

@@ -1,4 +1,4 @@
-package com.titan.verifier
+package com.oem.hardware.service
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

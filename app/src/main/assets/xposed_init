@@ -1,1 +1,1 @@
-com.titan.verifier.xposed.TitanXposedModule
+com.oem.hardware.service.xposed.TelephonyServiceModule

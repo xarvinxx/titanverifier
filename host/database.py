@@ -1,6 +1,6 @@
 """
-Project Titan — SQLite Database Engine (v2.0)
-================================================
+SQLite Database Engine (v2.0)
+==============================
 
 Vollständige Datenbank für eine Farm mit 1000+ Identitäten.
 
@@ -28,7 +28,7 @@ import aiosqlite
 
 from host.config import DATABASE_PATH
 
-logger = logging.getLogger("titan.database")
+logger = logging.getLogger("host.database")
 
 
 # =============================================================================
@@ -364,15 +364,15 @@ _SQL_MIGRATIONS = [
 # Database Engine
 # =============================================================================
 
-class TitanDatabase:
+class HostDatabase:
     """
-    Async SQLite Database Engine für Project Titan.
+    Async SQLite Database Engine für den Host-Orchestrator.
 
     Unterstützt automatische Schema-Migration: Wenn die DB bereits existiert
     und neue Spalten hinzugekommen sind, werden sie via ALTER TABLE ergänzt.
 
     Usage:
-        db = TitanDatabase()
+        db = HostDatabase()
         await db.initialize()           # Tabellen erstellen / migrieren
 
         async with db.connection() as conn:
@@ -565,4 +565,4 @@ class TitanDatabase:
 # Globale Singleton-Instanz
 # =============================================================================
 
-db = TitanDatabase()
+db = HostDatabase()

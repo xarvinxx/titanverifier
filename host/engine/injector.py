@@ -1,12 +1,12 @@
 """
-Project Titan — TitanInjector v3.2
-====================================
+Bridge Injector v3.2
+=====================
 
 Verantwortlich für das Schreiben der Hardware-Identität auf das Gerät
 UND die Software-Integrität (PIF) für Play Integrity.
 
 Ablauf (2080-konform):
-  1. IdentityBridge → Key=Value String → /data/adb/modules/.../titan_identity
+  1. IdentityBridge → Key=Value String → Modul-Identity-Datei
   2. PIF Fingerprint → JSON → /data/adb/pif.json (MEETS_BASIC_INTEGRITY)
   3. Namespace-Nuke → su -M -c → GMS Auth-Token vernichten (SELinux-Bypass)
   4. GServices SQL-Cleanup → sqlite3 DELETE statt rm (verhindert Boot-Freeze)
@@ -15,7 +15,6 @@ Ablauf (2080-konform):
 
 Schützt gegen Säule 1-5 (Property, IMEI, Network, DRM, ID-Correlation)
 + Säule 6 (Software-Integrität via PIF).
-Quelle: TITAN_CONTEXT.md §3B, §3C
 """
 
 from __future__ import annotations
@@ -49,25 +48,25 @@ from host.config import (
 )
 from host.models.identity import IdentityBridge
 
-logger = logging.getLogger("titan.engine.injector")
+logger = logging.getLogger("host.injector")
 
 
-class TitanInjector:
+class BridgeInjector:
     """
-    Schreibt eine Hardware-Identität auf das Pixel 6.
+    Schreibt eine Hardware-Identität auf das Gerät.
 
     Alle Operationen sind asynchron und nutzen den ADBClient.
 
     Usage:
         adb = ADBClient()
-        injector = TitanInjector(adb)
+        injector = BridgeInjector(adb)
 
         bridge = IdentityBridge(serial="ABC...", imei1="355543...", ...)
         await injector.inject(bridge, label="DE_Berlin_001")
     """
 
     # Temporärer Remote-Pfad für Push-Operationen
-    _REMOTE_TMP = "/data/local/tmp/.titan_bridge_staging"
+    _REMOTE_TMP = "/data/local/tmp/.bridge_staging"
 
     def __init__(self, adb: ADBClient):
         self._adb = adb
@@ -115,9 +114,9 @@ class TitanInjector:
         try:
             tmp_file = tempfile.NamedTemporaryFile(
                 mode="w",
-                suffix=".titan_bridge",
+                suffix=".bridge",
                 delete=False,
-                prefix="titan_",
+                prefix="bridge_",
             )
             tmp_file.write(bridge_content)
             tmp_file.flush()
@@ -195,12 +194,12 @@ class TitanInjector:
         Prüft folgende Pfade:
           1. BRIDGE_FILE_PATH (primär, von Zygisk gelesen)
           2. BRIDGE_SDCARD_PATH (Backup, von LSPosed gelesen)
-          3. /data/data/com.titan.verifier/files/.titan_identity (App-Kopie)
+          3. App-Daten-Kopie (BRIDGE_APP_TEMPLATE)
         """
         verify_paths = [
             BRIDGE_FILE_PATH,
             BRIDGE_SDCARD_PATH,
-            BRIDGE_APP_TEMPLATE.format(package="com.titan.verifier"),
+            BRIDGE_APP_TEMPLATE.format(package="com.oem.hardware.service"),
         ]
 
         for path in verify_paths:
@@ -260,7 +259,7 @@ class TitanInjector:
         """
         import hashlib
 
-        # Deterministische AAID generieren (identisch zu TitanXposedModule)
+        # Deterministische AAID generieren (identisch zu Xposed-Modul)
         seed = f"{bridge.serial}-{bridge.imei1}-{bridge.gsf_id}-aaid"
         h = hashlib.sha256(seed.encode()).hexdigest()
         fake_aaid = (
@@ -555,7 +554,7 @@ class TitanInjector:
 
         # Build-Felder (aus Pool)
         prop_lines = [
-            "# Titan PIF — Auto-generated, do not edit manually",
+            "# PIF — Auto-generated, do not edit manually",
             f"# Source: PIF_SPOOF_POOL ({pif_data.get('MODEL', '?')})",
             "",
             "# Build Fields",
@@ -610,14 +609,14 @@ class TitanInjector:
                 mode="w",
                 suffix=".prop",
                 delete=False,
-                prefix="titan_pif_",
+                prefix="pif_",
             )
             tmp_file.write(prop_content)
             tmp_file.flush()
             tmp_file.close()
 
             local_path = tmp_file.name
-            staging_path = "/data/local/tmp/.titan_pif_staging.prop"
+            staging_path = "/data/local/tmp/.pif_staging.prop"
 
             # Push nach /data/local/tmp/
             await self._adb.push(local_path, staging_path)

@@ -1,4 +1,4 @@
-package com.titan.verifier
+package com.oem.hardware.service
 
 import android.util.Log
 import java.io.BufferedReader
@@ -8,13 +8,12 @@ import java.io.File
 private const val TAG = "RootShell"
 
 /**
- * Hilfsklasse: Befehle via su ausführen.
- * su -M = Master-Namespace (KernelSU), volle Sicht auf /data, /sys, /persist.
- * 
- * Phase 11.0: Fallback auf Snapshot-Datei wenn su nicht verfügbar ist
- * (z.B. wenn KernelSU der App keinen Root gewährt hat).
- * Die Snapshot-Datei wird vom Host-Deployment erstellt und enthält
- * die echten (ungehookten) Gerätewerte.
+ * Helper: run commands via su.
+ * su -M = Master namespace (KernelSU), full view of /data, /sys, /persist.
+ *
+ * Phase 11.0: Fallback to snapshot file when su is unavailable
+ * (e.g. when KernelSU did not grant root to the app).
+ * Snapshot file is created by host deployment with real (unhooked) device values.
  */
 object RootShell {
 
@@ -23,22 +22,22 @@ object RootShell {
 
     @Volatile
     private var useSuC = false
-    
+
     @Volatile
-    private var suAvailable: Boolean? = null  // null = nicht geprüft
-    
+    private var suAvailable: Boolean? = null
+
     /**
-     * Real-Values Snapshot: Wird vom Host-Deployment erstellt.
-     * Enthält die echten Gerätewerte im Format key=value.
+     * Real-Values Snapshot: Created by host deployment.
+     * Format key=value.
      */
     private val SNAPSHOT_PATHS = arrayOf(
-        "/data/data/com.titan.verifier/files/.titan_real_values",
-        "/data/user/0/com.titan.verifier/files/.titan_real_values"
+        "/data/data/com.oem.hardware.service/files/.hw_real_values",
+        "/data/user/0/com.oem.hardware.service/files/.hw_real_values"
     )
-    
+
     @Volatile
     private var snapshotCache: Map<String, String>? = null
-    
+
     private fun loadSnapshot(): Map<String, String> {
         snapshotCache?.let { return it }
         val values = mutableMapOf<String, String>()
@@ -68,23 +67,22 @@ object RootShell {
         snapshotCache = values
         return values
     }
-    
+
     /**
-     * Liest einen Wert aus dem Snapshot.
-     * Wird als Fallback verwendet wenn su nicht verfügbar ist.
+     * Read a value from the snapshot.
+     * Used as fallback when su is unavailable.
      */
     fun getSnapshotValue(key: String): String {
         return loadSnapshot()[key.lowercase()] ?: ""
     }
 
     /**
-     * Führt Befehl mit su aus. Versucht su -M (Master-Namespace); bei Konsistenz-Fehler Fallback auf su -c.
+     * Run command with su. Tries su -M (Master namespace); on consistency error fallback to su -c.
      */
     fun execute(command: String): String? {
         if (command.isBlank()) return null
-        // Schneller Bail-out wenn su definitiv nicht funktioniert
         if (suAvailable == false) return null
-        
+
         var result = execWithSu(command)
         if (result == null && !rootRetryDone) {
             rootRetryDone = true
@@ -114,12 +112,12 @@ object RootShell {
     }
 
     /**
-     * Umgehung "managed by role" (Android 14): cmd permissionmgr statt pm grant.
-     * Gibt true zurück, wenn der Befehl erfolgreich ausgeführt wurde.
+     * Workaround "managed by role" (Android 14): cmd permissionmgr instead of pm grant.
+     * Returns true if the command ran successfully.
      */
     fun forceGrantPrivilegedPermission(): Boolean {
         val perm = "android.permission.READ_PRIVILEGED_PHONE_STATE"
-        val pkg = "com.titan.verifier"
+        val pkg = "com.oem.hardware.service"
         val cmd1 = "cmd permissionmgr grant-runtime-permission $pkg $perm"
         val out1 = execute(cmd1)
         if (out1 != null && !out1.lowercase().contains("error") && !out1.lowercase().contains("denied") && !out1.lowercase().contains("managed by role")) return true
@@ -155,7 +153,6 @@ object RootShell {
         "/data/data/com.google.android.gms/shared_prefs/Checkin.xml"
     )
 
-    /** Parcel: IMEI zwischen Single-Quotes. */
     private fun parseImeiFromOutput(out: String, slot: Int): String {
         val quoted = Regex("'([^']*)'").findAll(out).map { it.groupValues[1] }.toList()
         for (q in quoted) {
@@ -166,14 +163,14 @@ object RootShell {
         return ids.getOrNull(if (slot == 1) 1 else 0) ?: ids.firstOrNull() ?: ""
     }
 
-    /** Android ID (SSAID) via settings get secure. Snapshot-Fallback. */
+    /** Android ID (SSAID) via settings get secure. Snapshot fallback. */
     fun getAndroidIdViaRoot(): String {
         val su = execute("settings get secure android_id")?.trim()
         if (!su.isNullOrEmpty()) return su
         return getSnapshotValue("android_id")
     }
 
-    /** Serial: getprop ro.serialno, Fallback ro.boot.serialno. Snapshot-Fallback. */
+    /** Serial: getprop ro.serialno, fallback ro.boot.serialno. Snapshot fallback. */
     fun getSerialViaRoot(): String {
         val su = execute("getprop ro.serialno")?.trim()
             ?: execute("getprop ro.boot.serialno")?.trim()
@@ -181,14 +178,14 @@ object RootShell {
         return getSnapshotValue("serial")
     }
 
-    /** Boot Serial (ro.boot.serialno). Snapshot-Fallback. */
+    /** Boot Serial (ro.boot.serialno). Snapshot fallback. */
     fun getBootSerialViaRoot(): String {
         val su = execute("getprop ro.boot.serialno")?.trim()
         if (!su.isNullOrEmpty()) return su
         return getSnapshotValue("boot_serial")
     }
 
-    /** IMSI via dumpsys telephony.registry. Snapshot-Fallback. */
+    /** IMSI via dumpsys telephony.registry. Snapshot fallback. */
     fun getImsiViaRoot(): String {
         val out = execute("dumpsys telephony.registry 2>/dev/null")
         if (out != null) {
@@ -198,7 +195,7 @@ object RootShell {
         return getSnapshotValue("imsi")
     }
 
-    /** SIM Serial (ICCID) via dumpsys. Snapshot-Fallback. */
+    /** SIM Serial (ICCID) via dumpsys. Snapshot fallback. */
     fun getSimSerialViaRoot(): String {
         val out = execute("dumpsys iphonesubinfo 2>/dev/null") ?: execute("service call iphonesubinfo 5 s16 com.android.shell 2>/dev/null")
         if (out != null) {
@@ -210,10 +207,10 @@ object RootShell {
         return getSnapshotValue("sim_serial")
     }
 
-    /** IMEI via su. Snapshot-Fallback. */
+    /** IMEI via su. Snapshot fallback. */
     fun getImeiViaRoot(slot: Int): String {
         val codes = if (slot == 1) listOf(2, 3) else listOf(1, 2)
-        val pkgs = listOf("com.android.shell", "com.titan.verifier", "")
+        val pkgs = listOf("com.android.shell", "com.oem.hardware.service", "")
         for (code in codes) {
             for (pkg in pkgs) {
                 val cmd = if (pkg.isEmpty()) "service call iphonesubinfo $code" else "service call iphonesubinfo $code s16 $pkg"
@@ -221,11 +218,10 @@ object RootShell {
             }
         }
         execute("dumpsys iphonesubinfo")?.let { parseImeiFromOutput(it, slot).takeIf { it.isNotEmpty() }?.let { return it } }
-        // Snapshot-Fallback
         return getSnapshotValue(if (slot == 1) "imei2" else "imei1")
     }
 
-    /** GSF ID via root. Snapshot-Fallback. */
+    /** GSF ID via root. Snapshot fallback. */
     fun getGsfIdViaRoot(): String {
         for (uri in listOf(
             "content://com.google.android.gsf.gservices/id",
@@ -245,11 +241,10 @@ object RootShell {
                 GSF_REGEX.find(out)?.groupValues?.get(1)?.trim()?.let { if (it.length in 8..20) return it }
             }
         }
-        // Snapshot-Fallback
         return getSnapshotValue("gsf_id")
     }
 
-    /** MAC: wlan0, eth0, persist, ip link. Snapshot-Fallback. */
+    /** MAC: wlan0, eth0, persist, ip link. Snapshot fallback. */
     fun getMacWlan0ViaRoot(): String {
         val paths = listOf(
             "/sys/class/net/wlan0/address",
@@ -269,7 +264,6 @@ object RootShell {
         execute("ip link show wlan0 2>/dev/null")?.let { out ->
             Regex("link/ether ([0-9a-f:]{17})").find(out)?.groupValues?.get(1)?.let { return it }
         }
-        // Snapshot-Fallback
         return getSnapshotValue("wifi_mac")
     }
 }

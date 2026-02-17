@@ -1,6 +1,6 @@
 """
-Project Titan — History Models
-================================
+History Models
+===============
 
 Pydantic-Modelle für die 3 neuen Tracking-Tabellen:
   1. FlowHistoryRead   — Audit-Trail aller Genesis/Switch/Backup Flows

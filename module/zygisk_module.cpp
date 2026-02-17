@@ -304,6 +304,47 @@ static bool checkKillSwitch() {
     return false;
 }
 
+// ==============================================================================
+// v6.1: Google Process Blacklist — DEVICE_INTEGRITY Schutz
+// ==============================================================================
+// TrickyStore liefert DEVICE_INTEGRITY über eine Hardware-Keybox.
+// Damit das funktioniert, MUSS GMS (com.google.android.gms) die echten,
+// unmodifizierten System-Properties sehen. Wenn wir GMS spoofen,
+// erkennt SafetyNet/Play Integrity den Mismatch zwischen der Keybox
+// (Hardware-gebunden) und den gespooften Properties → DEVICE_INTEGRITY
+// geht verloren.
+//
+// Diese Blacklist stellt sicher, dass Google-Prozesse zu 100% "Vanilla"
+// bleiben — kein Property-Spoofing, kein Memory-Patching, keine Hooks.
+// ==============================================================================
+
+static const char* BLACKLIST_PACKAGES[] = {
+    "com.google.android.gms",              // Google Play Services (Core)
+    "com.google.android.gms.unstable",     // GMS SafetyNet/DroidGuard Sandbox
+    "com.android.vending",                 // Google Play Store
+    "com.google.android.gsf",              // Google Services Framework
+    "com.google.android.gsf.login",        // GSF Login Activity
+    "com.google.process.gapps",            // Google Apps shared process
+    "com.google.android.gms.persistent",   // GMS persistent process
+    nullptr
+};
+
+static bool isBlacklistedProcess(const char* processName) {
+    if (!processName) return false;
+    for (int i = 0; BLACKLIST_PACKAGES[i] != nullptr; i++) {
+        // Exakter Match ODER Prefix-Match (für Sub-Prozesse wie gms:snet)
+        if (strcmp(processName, BLACKLIST_PACKAGES[i]) == 0) return true;
+        // Prefix-Check: "com.google.android.gms" matcht auch
+        // "com.google.android.gms:snet", "com.google.android.gms:chimera" etc.
+        size_t blLen = strlen(BLACKLIST_PACKAGES[i]);
+        if (strncmp(processName, BLACKLIST_PACKAGES[i], blLen) == 0) {
+            char next = processName[blLen];
+            if (next == '\0' || next == ':' || next == '.') return true;
+        }
+    }
+    return false;
+}
+
 // FIX-24A: isTargetApp mit XOR-Entschlüsselung (on-the-fly, stack-only)
 static bool isTargetApp(const char* packageName) {
     if (!packageName) return false;
@@ -2084,12 +2125,24 @@ public:
             }
         }
         
+        // ======================================================================
+        // v6.1: BLACKLIST CHECK — Erste Prüfung, höchste Priorität!
+        // Google-Prozesse MÜSSEN vanilla bleiben für DEVICE_INTEGRITY.
+        // Kein Spoofing, kein Memory-Patching, keine Hooks. Punkt.
+        // ======================================================================
+        if (isBlacklistedProcess(m_packageName)) {
+            LOGI("[HW] BLACKLISTED: %s — kein Spoofing (DEVICE_INTEGRITY Schutz)", m_packageName);
+            if (m_api) m_api->setOption(zygisk::Option::DLCLOSE_MODULE_LIBRARY);
+            m_shouldInject = false;
+            return;
+        }
+        
         if (!isTargetApp(m_packageName)) {
             if (m_api) m_api->setOption(zygisk::Option::DLCLOSE_MODULE_LIBRARY);
             m_shouldInject = false;
         } else {
             m_shouldInject = true;
-            LOGI("[HW] Target: %s", m_packageName);
+            LOGI("[HW] Target: %s — Spoofing wird angewendet", m_packageName);
         }
     }
     

@@ -1,28 +1,36 @@
 """
-Switch Flow (Warm Switch / Existing Profile) v3.2
+Switch Flow (Warm Switch / Existing Profile) v6.0
 =================================================
 
-FLOW 2: SWITCH (State-Layering + PIF Sync).
+FLOW 2: SWITCH (Zygote-First Architecture).
 
-Wechselt zu einem existierenden Profil, ohne das Gerät
-vollständig neu zu starten. Schneller als Genesis.
+Wechselt zu einem existierenden Profil mit sicherem
+Identity-Timing: Neue DNA wird injected und das Framework
+restarted BEVOR App-Daten restored werden.
 
-Zwingender Ablauf (9 Schritte — v5.1):
-  1. AIRPLANE MODE  — Flugmodus AN (Netz sofort trennen, ganz am Anfang!)
-  2. AUTO-BACKUP    — Aktives Profil automatisch sichern (Dual-Path)
-  3. SAFETY KILL    — force-stop GMS + GSF + TikTok (alles tot)
-  4. INJECT         — Bridge-Datei aktualisieren
-  5. RESTORE STATE  — Full-State Restore: GMS + Account-DBs + TikTok
-  6. RESTORE TIKTOK — TikTok Dual-Path Restore (oder Legacy-Fallback)
-  7. SOFT RESET     — killall zygote (Framework Restart)
-  8. NETWORK INIT   — Flugmodus AUS + neue IP
-  9. QUICK AUDIT    — Bridge-Serial prüfen + Audit-Score in DB tracken
+Zwingender Ablauf (10 Schritte — v6.0 Zygote-First):
+  1.  AIRPLANE MODE  — Flugmodus AN (Netz sofort trennen)
+  2.  AUTO-BACKUP    — Aktives Profil automatisch sichern (Dual-Path)
+  3.  SAFETY KILL    — force-stop GMS + GSF + TikTok (alles tot)
+  4.  INJECT         — Bridge-Datei aktualisieren (neue DNA)
+  5.  SOFT RESET     — killall zygote (Framework bootet mit NEUER Identität)
+  6.  GMS READY      — Warte auf Boot + GMS-Readiness (dynamisches Polling)
+  7.  RESTORE STATE  — Full-State Restore: GMS + Account-DBs
+  8.  RESTORE TIKTOK — TikTok Dual-Path Restore (+ Instance-ID Sanitizing)
+  9.  NETWORK INIT   — Flugmodus AUS + neue IP
+  10. QUICK AUDIT    — Bridge-Serial prüfen + Account-Check + Audit-Score
 
-v4.1 Änderungen:
-  - PIF wird NICHT mehr vom Host verwaltet — das PlayIntegrityFix
-    KernelSU-Modul managed seine eigene custom.pif.prop via autopif4.
-  - Audit-Score Tracking: Quick-Audit schreibt Ergebnis in flow_history.
-  - KEIN pm clear GMS: Golden Baseline wird restored, nicht gelöscht.
+v6.0 — "Zygote-First" Architektur:
+  KRITISCHE ÄNDERUNG: Das System muss unter der neuen Identität
+  'booten' (Zygote-Kill), BEVOR App-Daten geschrieben werden.
+  Sonst triggern File-Watcher im system_server/GMS sofort mit der
+  alten ID auf die neuen Daten → Shadowban.
+
+  Zusätzlich:
+  - DroidGuard-Cache (dg.db) wird nach GMS-Restore gelöscht
+  - TikTok Instance-IDs (install_id, client_udid) werden sanitized
+  - Dynamisches GMS-Readiness-Polling statt statischer Wartezeiten
+  - Google-Account Verifikation nach Restore
 
 DB-Tracking:
   - Flow-History: Eintrag bei Start, Updates bei jedem Schritt, Finalize + Audit-Score
@@ -128,15 +136,16 @@ class SwitchFlow:
     """
 
     STEP_NAMES = [
-        "Airplane Mode",        # v5.1: Flugmodus AN (ganz am Anfang!)
-        "Auto-Backup",          # v5.1: Aktives Profil sichern
-        "Safety Kill",
-        "Inject",
-        "Restore State",
-        "Restore TikTok",
-        "Soft Reset",
-        "Network Init",         # v5.1: Flugmodus AUS + neue IP
-        "Quick Audit",
+        "Airplane Mode",        # 1: Flugmodus AN
+        "Auto-Backup",          # 2: Aktives Profil sichern
+        "Safety Kill",          # 3: Alle Apps stoppen
+        "Inject",               # 4: Bridge schreiben (neue DNA)
+        "Soft Reset",           # 5: killall zygote (Zygote-First!)
+        "GMS Ready",            # 6: Boot + GMS-Readiness Polling
+        "Restore State",        # 7: GMS + Account-DBs (NACH Zygote!)
+        "Restore TikTok",       # 8: TikTok Dual-Path + Sanitize
+        "Network Init",         # 9: Flugmodus AUS + neue IP
+        "Quick Audit",          # 10: Audit + Account-Check
     ]
 
     def __init__(self, adb: ADBClient):
@@ -340,26 +349,17 @@ class SwitchFlow:
                 logger.warning("[3→4] FIX-29: State-Wipe fehlgeschlagen (nicht kritisch): %s", e)
 
             # =================================================================
-            # Schritt 4: INJECT (Bridge only — v4.1)
-            # =================================================================
-            # v4.1: NUR Bridge-Datei aktualisieren. PIF wird NICHT mehr
-            # vom Host verwaltet — das PlayIntegrityFix KernelSU-Modul
-            # managed seine eigene custom.pif.prop via autopif4.sh.
-            # Der PIF-Fingerprint ist unabhängig von der Host-Identität
-            # und bleibt beim Switch unverändert.
+            # Schritt 4: INJECT (Bridge schreiben — neue DNA)
             # =================================================================
             step = result.steps[3]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            # 4a. Hardware-IDs: Bridge-Datei schreiben + verteilen
-            logger.info("[4/9] Inject: Bridge-Datei aktualisieren...")
+            logger.info("[4/10] Inject: Bridge-Datei aktualisieren...")
             await self._injector.inject(
                 identity, label=identity.name, distribute=True,
             )
-            logger.info("[4/9] PIF: Übersprungen (v4.1 — von KSU PlayIntegrityFix verwaltet)")
 
-            # 2b. Aktive Identität in DB umschalten + usage_count++
             await self._activate_identity(identity_id)
             try:
                 await increment_identity_usage(identity_id)
@@ -369,17 +369,89 @@ class SwitchFlow:
             step.status = FlowStepStatus.SUCCESS
             step.detail = f"serial={identity.serial} | PIF=KSU"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[4/9] Inject: OK (%s)", step.detail)
+            logger.info("[4/10] Inject: OK (%s)", step.detail)
 
             # =================================================================
-            # Schritt 3: RESTORE STATE (GMS + Account-DBs)
+            # Schritt 5: SOFT RESET (killall zygote — ZYGOTE-FIRST!)
+            # =================================================================
+            # KRITISCH: Zygote-Kill MUSS vor dem Restore kommen!
+            # Das Framework muss unter der NEUEN Identität booten,
+            # BEVOR App-Daten geschrieben werden. Sonst sehen
+            # File-Watcher im system_server die neuen Daten mit
+            # der alten Hardware-ID → sofortiges Flagging.
             # =================================================================
             step = result.steps[4]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
+            logger.info("[5/10] Soft Reset: killall zygote (Zygote-First!)...")
+            try:
+                await self._adb.shell("killall zygote", root=True)
+            except ADBError:
+                pass
+
+            await asyncio.sleep(3)
+            if not await self._adb.is_connected():
+                logger.info("[5/10] ADB nach Zygote-Kill weg — Reconnect...")
+                await self._adb.ensure_connection(timeout=60)
+
+            step.status = FlowStepStatus.SUCCESS
+            step.detail = "Zygote-Kill gesendet"
+            step.duration_ms = _now_ms() - step_start
+
+            # =================================================================
+            # Schritt 6: GMS READY (Dynamisches Readiness-Polling)
+            # =================================================================
+            # Wartet auf:
+            #   1. sys.boot_completed == 1
+            #   2. GmsCore Service aktiv (dumpsys activity services)
+            # Ersetzt das alte statische sleep(5) + boot_completed polling.
+            # =================================================================
+            step = result.steps[5]
+            step.status = FlowStepStatus.RUNNING
+            step_start = _now_ms()
+
+            logger.info("[6/10] GMS Ready: Warte auf Boot + GMS-Readiness...")
+            readiness = await self._shifter.verify_system_readiness(
+                timeout=180, poll_interval=5,
+            )
+
+            if readiness["boot_ready"]:
+                await self._adb.unlock_device()
+
+            if readiness["boot_ready"] and readiness["gms_ready"]:
+                step.status = FlowStepStatus.SUCCESS
+                step.detail = (
+                    f"System bereit in {readiness['elapsed_s']:.0f}s "
+                    f"({readiness['detail']}) — GMS Verbindung steht"
+                )
+                logger.info(
+                    "[6/10] GMS Verbindung steht - Bereit zum Loslegen! (%s)",
+                    readiness["detail"],
+                )
+            elif readiness["boot_ready"]:
+                step.status = FlowStepStatus.SUCCESS  # Boot OK, GMS nicht — weiter
+                step.detail = f"Boot OK, GMS-Timeout ({readiness['detail']})"
+                logger.warning("[6/10] GMS nicht bereit — Restore trotzdem fortsetzen")
+            else:
+                step.status = FlowStepStatus.FAILED
+                step.detail = f"Boot-Timeout: {readiness['detail']}"
+                logger.error("[6/10] Gerät nach Soft Reset nicht erreichbar")
+
+            step.duration_ms = _now_ms() - step_start
+
+            # =================================================================
+            # Schritt 7: RESTORE STATE (GMS + Account-DBs — NACH Zygote!)
+            # =================================================================
+            # Das System läuft jetzt unter der NEUEN Identität.
+            # Erst JETZT werden App-Daten geschrieben.
+            # =================================================================
+            step = result.steps[6]
+            step.status = FlowStepStatus.RUNNING
+            step_start = _now_ms()
+
             if use_full_state:
-                logger.info("[5/9] Restore State: GMS + Account-DBs...")
+                logger.info("[7/10] Restore State: GMS + Account-DBs (nach Zygote-First)...")
                 try:
                     state_results = await self._shifter.restore_full_state(
                         profile_name,
@@ -393,52 +465,40 @@ class SwitchFlow:
                         step.detail = (
                             f"GMS: {'OK' if gms_ok else 'FAIL'}, "
                             f"Accounts: {'OK' if accounts_ok else 'FAIL'}, "
-                            f"TikTok: {'OK' if tiktok_from_state else 'FAIL'}"
+                            f"TikTok: {'OK' if tiktok_from_state else 'FAIL'} "
+                            f"(DroidGuard sanitized)"
                         )
                     elif gms_ok or accounts_ok:
-                        step.status = FlowStepStatus.SUCCESS  # Teilweise OK
+                        step.status = FlowStepStatus.SUCCESS
                         step.detail = (
                             f"Teilweise: GMS={'OK' if gms_ok else 'SKIP'}, "
-                            f"Accounts={'OK' if accounts_ok else 'SKIP'}, "
-                            f"TikTok={'OK' if tiktok_from_state else 'SKIP'}"
+                            f"Accounts={'OK' if accounts_ok else 'SKIP'}"
                         )
-                        logger.warning(
-                            "[5/9] Partial Restore — Google Logout möglich"
-                        )
+                        logger.warning("[7/10] Partial Restore — Google Logout möglich")
                     else:
-                        step.status = FlowStepStatus.SUCCESS  # Non-critical
+                        step.status = FlowStepStatus.SUCCESS
                         step.detail = "Keine GMS/Account Backups vorhanden"
-                        logger.warning("[5/9] Kein GMS-State vorhanden")
+                        logger.warning("[7/10] Kein GMS-State vorhanden")
 
                 except Exception as e:
-                    step.status = FlowStepStatus.SUCCESS  # Non-critical
+                    step.status = FlowStepStatus.SUCCESS
                     step.detail = f"State Restore Fehler: {e}"
-                    logger.warning("[5/9] State Restore Fehler: %s", e)
-
+                    logger.warning("[7/10] State Restore Fehler: %s", e)
             else:
                 step.status = FlowStepStatus.SKIPPED
                 step.detail = "Legacy-Modus — kein Full-State Restore"
-                logger.info("[5/9] Restore State: Übersprungen (Legacy)")
 
             step.duration_ms = _now_ms() - step_start
 
             # =================================================================
-            # Schritt 4: RESTORE TIKTOK (Dual-Path oder Legacy)
+            # Schritt 8: RESTORE TIKTOK (Dual-Path + Instance-ID Sanitizing)
             # =================================================================
-            step = result.steps[5]
+            step = result.steps[7]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            if use_full_state:
-                # =============================================================
-                # FIX-15: Sandbox-Lücke — Full-State restored KEINE Sandbox!
-                # restore_full_state() restored nur /data/data/<pkg>/ (App-Daten).
-                # Die TikTok Sandbox (/sdcard/Android/data/<pkg>/) wird NICHT
-                # restored. Ohne diesen Fix gehen TikToks SDK-Fingerprints,
-                # Download-Cache und Medien bei jedem Switch verloren.
-                # → IMMER Dual-Path Restore für TikTok ausführen!
-                # =============================================================
-                logger.info("[6/9] FIX-15: TikTok Sandbox-Restore (Full-State deckt nur App-Daten ab)...")
+            if use_full_state or profile_name:
+                logger.info("[8/10] TikTok Restore + Sanitize...")
                 try:
                     dual_result = await self._shifter.restore_tiktok_dual(
                         profile_name,
@@ -449,42 +509,20 @@ class SwitchFlow:
                     if sandbox_ok or app_ok:
                         step.status = FlowStepStatus.SUCCESS
                         step.detail = (
-                            f"Sandbox: {'OK' if sandbox_ok else 'SKIP'}, "
-                            f"App (Supplement): {'OK' if app_ok else 'SKIP'}"
+                            f"App: {'OK' if app_ok else 'SKIP'}, "
+                            f"Sandbox: {'OK' if sandbox_ok else 'SKIP'} "
+                            f"(Instance-IDs sanitized)"
                         )
                     else:
                         step.status = FlowStepStatus.SKIPPED
-                        step.detail = "Keine TikTok Dual-Path Backups vorhanden"
+                        step.detail = "Keine TikTok Backups vorhanden"
                 except Exception as e:
-                    step.status = FlowStepStatus.SUCCESS  # Nicht kritisch
-                    step.detail = f"Sandbox-Restore Warnung: {e}"
-                    logger.warning("[6/9] Sandbox-Restore fehlgeschlagen (nicht kritisch): %s", e)
-
-            elif profile_name:
-                # v4.0: Dual-Path Restore (App-Daten + Sandbox)
-                logger.info("[6/9] Restore TikTok: Dual-Path...")
-                try:
-                    dual_result = await self._shifter.restore_tiktok_dual(
-                        profile_name,
-                    )
-                    restored = sum(1 for v in dual_result.values() if v)
-                    if restored > 0:
-                        step.status = FlowStepStatus.SUCCESS
-                        step.detail = (
-                            f"Dual-Path: app_data={'OK' if dual_result['app_data'] else 'SKIP'}, "
-                            f"sandbox={'OK' if dual_result['sandbox'] else 'SKIP'}"
-                        )
-                    else:
-                        step.status = FlowStepStatus.SKIPPED
-                        step.detail = "Keine TikTok Dual-Path Backups vorhanden"
-                except Exception as e:
-                    step.status = FlowStepStatus.SUCCESS  # Nicht kritisch
-                    step.detail = f"Dual-Path Restore Warnung: {e}"
-                    logger.warning("[6/9] Dual-Path Restore fehlgeschlagen: %s", e)
+                    step.status = FlowStepStatus.SUCCESS
+                    step.detail = f"TikTok-Restore Warnung: {e}"
+                    logger.warning("[8/10] TikTok-Restore fehlgeschlagen: %s", e)
 
             elif backup_path:
-                # Legacy-Modus: Nur TikTok restoren
-                logger.info("[6/9] Restore TikTok: Legacy-Modus...")
+                logger.info("[8/10] Restore TikTok: Legacy-Modus...")
                 try:
                     await self._shifter.restore(backup_path)
                     step.status = FlowStepStatus.SUCCESS
@@ -502,35 +540,17 @@ class SwitchFlow:
             else:
                 step.status = FlowStepStatus.SKIPPED
                 step.detail = "Kein Backup angegeben"
-                logger.info("[6/9] TikTok: Übersprungen (kein Backup)")
 
             step.duration_ms = _now_ms() - step_start
 
-            # =================================================================
-            # FIX-30: Post-Restore Verifikation (zwischen Step 6 und 7)
-            # =================================================================
-            # Prüft ob TikTok App-Daten tatsächlich vorhanden sind.
-            # Verhindert Zombie-States: Bridge zeigt auf neue Identität,
-            # aber App-Daten sind leer → TikTok startet als "neue App"
-            # mit der falschen Identität.
-            # =================================================================
+            # Post-Restore Verifikation
             if use_full_state or profile_name:
                 try:
-                    logger.info("[6→7] FIX-30: Post-Restore Verifikation...")
                     verify = await self._shifter.verify_app_data_restored()
-                    if verify["ok"]:
-                        logger.info(
-                            "[6→7] FIX-30: Verifikation OK — %s", verify["detail"],
-                        )
-                    else:
+                    if not verify["ok"]:
                         logger.warning(
-                            "[6→7] FIX-30: Verifikation FEHLGESCHLAGEN — %s",
+                            "[8/10] Post-Restore Verifikation FEHL: %s — Zombie-Schutz",
                             verify["detail"],
-                        )
-                        # Zombie-Schutz: App-Daten löschen statt korrupten State zu behalten
-                        logger.warning(
-                            "[6→7] FIX-30: Zombie-Schutz — pm clear TikTok "
-                            "um inkonsistenten State zu verhindern"
                         )
                         try:
                             await self._adb.shell(
@@ -538,113 +558,22 @@ class SwitchFlow:
                             )
                         except ADBError:
                             pass
-
-                        # Step 6 nachträglich als FAILED markieren
-                        tiktok_step = result.steps[5]
+                        tiktok_step = result.steps[7]
                         if tiktok_step.status == FlowStepStatus.SUCCESS:
                             tiktok_step.status = FlowStepStatus.FAILED
-                            tiktok_step.detail = (
-                                f"Restore-Verifikation fehlgeschlagen: {verify['detail']} "
-                                f"— App-Daten gelöscht (Zombie-Schutz)"
-                            )
+                            tiktok_step.detail = f"Verifikation FEHL: {verify['detail']}"
                 except Exception as e:
-                    logger.warning("[6→7] FIX-30: Verifikation fehlgeschlagen: %s", e)
+                    logger.warning("[8/10] Verifikation fehlgeschlagen: %s", e)
 
             # =================================================================
-            # Schritt 5: SOFT RESET (killall zygote)
+            # Schritt 9: NETWORK INIT (Flugmodus AUS + neue IP)
             # =================================================================
-            step = result.steps[6]
+            step = result.steps[8]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[7/9] Soft Reset: killall zygote...")
-            try:
-                await self._adb.shell("killall zygote", root=True)
-            except ADBError:
-                # killall zygote kann Verbindung kurz unterbrechen
-                pass
-
-            # v4.0: ADB-Reconnect nach Zygote-Kill (Verbindung kann kurz wegfallen)
-            await asyncio.sleep(3)
-            if not await self._adb.is_connected():
-                logger.info("[7/9] ADB nach Zygote-Kill weg — Reconnect...")
-                await self._adb.ensure_connection(timeout=60)
-
-            # Warte unbegrenzt bis Gerät wieder erreichbar
-            logger.info("[7/9] Warte auf Framework-Restart (unbegrenzt)...")
-            booted = await self._adb.wait_for_device(timeout=0, poll_interval=2)
-
-            if booted:
-                # Post-Boot Settle + Unlock
-                logger.info(
-                    "[7/9] Framework bereit — warte %ds + Unlock...",
-                    TIMING.POST_BOOT_SETTLE_SECONDS,
-                )
-                await asyncio.sleep(TIMING.POST_BOOT_SETTLE_SECONDS)
-                await self._adb.unlock_device()
-
-                step.status = FlowStepStatus.SUCCESS
-                step.detail = (
-                    f"Framework Restart + Unlock in "
-                    f"{(_now_ms() - step_start) / 1000:.1f}s"
-                )
-            else:
-                step.status = FlowStepStatus.FAILED
-                step.detail = "Gerät nach Zygote-Kill nicht erreichbar"
-                logger.warning("[7/9] Gerät nach Soft Reset nicht erreichbar")
-
-            step.duration_ms = _now_ms() - step_start
-            logger.info("[7/9] Soft Reset: %s", step.status.value)
-
-            # =================================================================
-            # v3.2 SAFETY GATE: Boot-Readiness-Check vor dem Audit
-            # =================================================================
-            # Nach dem Zygote-Kill braucht das Android-Framework Zeit, um alle
-            # System-Services (incl. PackageManager, AccountManager, GMS) neu zu
-            # starten. Ein zu frühes Audit liest noch alte Werte oder scheitert
-            # an "service not available". Daher:
-            #   1) 5 Sekunden Basis-Pause (Framework-Services Startup)
-            #   2) Aktiver Poll auf sys.boot_completed=1 (max 60s)
-            # =================================================================
-            logger.info(
-                "[7→8] Safety Gate: 5s Pause + boot_completed Check..."
-            )
-            await asyncio.sleep(5)
-
-            boot_ready = False
-            for _poll in range(30):  # 30 × 2s = 60s max
-                try:
-                    bc_result = await self._adb.shell(
-                        "getprop sys.boot_completed", timeout=5,
-                    )
-                    if bc_result.success and bc_result.output.strip() == "1":
-                        boot_ready = True
-                        break
-                except (ADBError, Exception):
-                    pass
-                await asyncio.sleep(2)
-
-            if not boot_ready:
-                logger.warning(
-                    "[7→8] WARNUNG: sys.boot_completed != 1 nach 65s! "
-                    "Audit wird trotzdem versucht..."
-                )
-            else:
-                logger.info("[7→8] Boot-Readiness bestätigt — Network Init startet")
-
-            # =================================================================
-            # Schritt 8: NETWORK INIT (v5.1: Flugmodus AUS + neue IP)
-            # =================================================================
-            # Flugmodus war seit Schritt 1 AN. Nach dem Soft Reset
-            # ist das Framework wieder stabil. Jetzt Flugmodus AUS →
-            # Modem verbindet sich frisch → neue IP vom Carrier.
-            # =================================================================
-            step = result.steps[7]
-            step.status = FlowStepStatus.RUNNING
-            step_start = _now_ms()
-
-            logger.info("[8/9] Network Init: 20s warten, dann Flugmodus AUS...")
-            await asyncio.sleep(20)
+            logger.info("[9/10] Network Init: Flugmodus AUS...")
+            await asyncio.sleep(10)
 
             await self._adb.shell(
                 "settings put global airplane_mode_on 0", root=True,
@@ -653,24 +582,20 @@ class SwitchFlow:
                 "am broadcast -a android.intent.action.AIRPLANE_MODE --ez state false",
                 root=True,
             )
-            logger.info("[8/9] Flugmodus: AUS — Modem verbindet sich neu")
+            logger.info("[9/10] Flugmodus: AUS — Modem verbindet sich neu")
 
-            # IP-Cache invalidieren
             from host.engine.network import NetworkChecker
             NetworkChecker.invalidate_ip_cache()
 
-            # Warte auf Mobilfunk-Stabilisierung
             await asyncio.sleep(TIMING.IP_AUDIT_WAIT_SECONDS)
 
-            # IP-Check (einmalig) + FIX-18: IP persistieren + Collision-Check
             try:
                 network = NetworkChecker(self._adb)
                 ip_result = await network.get_public_ip(skip_cache=True)
                 if ip_result.success:
                     step.detail = f"Neue IP: {ip_result.ip} (via {ip_result.service})"
-                    logger.info("[8/9] Network Init: IP = %s", ip_result.ip)
+                    logger.info("[9/10] Network Init: IP = %s", ip_result.ip)
 
-                    # FIX-18: IP in DB persistieren (vorher nur im Genesis!)
                     try:
                         if identity_id:
                             await update_identity_network(
@@ -684,43 +609,40 @@ class SwitchFlow:
                                 connection_type="mobile_o2",
                                 flow_type="switch",
                             )
-
-                        # FIX-18: IP-Collision-Check
                         collision = await check_ip_collision(
                             ip_result.ip, current_profile_id=profile_id,
                         )
                         if collision["collision"]:
-                            step.detail += f" | ⚠ IP-Collision: {collision['message']}"
-                            logger.warning("[8/9] %s", collision["message"])
-
+                            step.detail += f" | IP-Collision: {collision['message']}"
+                            logger.warning("[9/10] %s", collision["message"])
                     except Exception as db_e:
-                        logger.warning("[8/9] IP-DB/Collision-Check fehlgeschlagen: %s", db_e)
+                        logger.warning("[9/10] IP-DB fehlgeschlagen: %s", db_e)
 
                     step.status = FlowStepStatus.SUCCESS
                 else:
-                    step.status = FlowStepStatus.SUCCESS  # Nicht kritisch
+                    step.status = FlowStepStatus.SUCCESS
                     step.detail = f"Flugmodus AUS, IP-Check fehlgeschlagen: {ip_result.error}"
-                    logger.warning("[8/9] IP-Check fehlgeschlagen: %s", ip_result.error)
             except Exception as e:
-                step.status = FlowStepStatus.SUCCESS  # Nicht kritisch
-                step.detail = f"Flugmodus AUS, IP-Check Fehler: {e}"
-                logger.warning("[8/9] Network Init IP-Fehler: %s", e)
+                step.status = FlowStepStatus.SUCCESS
+                step.detail = f"Flugmodus AUS, IP-Fehler: {e}"
 
             step.duration_ms = _now_ms() - step_start
 
             # =================================================================
-            # Schritt 9: QUICK AUDIT + AUDIT-TRACKING (v3.2)
+            # Schritt 10: QUICK AUDIT + ACCOUNT-CHECK + TRACKING
             # =================================================================
-            step = result.steps[8]
+            step = result.steps[9]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            # FIX-17: Erweiterter Quick Audit (5 Felder statt nur Serial)
-            logger.info("[9/9] Quick Audit: Bridge-Felder prüfen (serial, imei1, gsf_id, android_id, mac)...")
+            logger.info("[10/10] Quick Audit + Account-Check...")
             audit_ok = await self._auditor.quick_audit(identity.serial, expected_identity=identity)
             result.audit_passed = audit_ok
 
-            # v3.2: Audit-Score in DB tracken
+            # Account-Verifikation nach Restore
+            account_info = await self._shifter.verify_google_account()
+            account_detail = account_info["detail"]
+
             audit_score = 100 if audit_ok else 0
             try:
                 if identity_id:
@@ -731,7 +653,7 @@ class SwitchFlow:
                             [{"name": "bridge_serial", "status": "pass" if audit_ok else "fail",
                               "expected": identity.serial,
                               "actual": identity.serial if audit_ok else "MISMATCH",
-                              "detail": "Quick Audit (Switch Flow v3.2)"}],
+                              "detail": f"Switch v6.0 | {account_detail}"}],
                             ensure_ascii=False,
                         ),
                     )
@@ -745,15 +667,17 @@ class SwitchFlow:
 
             if audit_ok:
                 step.status = FlowStepStatus.SUCCESS
-                step.detail = f"Bridge serial={identity.serial} bestätigt (Score: {audit_score}%)"
+                step.detail = (
+                    f"Bridge serial={identity.serial} (Score: {audit_score}%) "
+                    f"| {account_detail}"
+                )
             else:
                 step.status = FlowStepStatus.FAILED
-                step.detail = "Bridge-Serial stimmt nicht überein! (Score: 0%)"
-                logger.warning("[9/9] Quick Audit FAIL — Serial mismatch!")
+                step.detail = f"Bridge-Serial MISMATCH! | {account_detail}"
+                logger.warning("[10/10] Quick Audit FAIL!")
 
             step.duration_ms = _now_ms() - step_start
 
-            # Update Profile switch_count + last_switch_at
             if profile_id:
                 try:
                     await update_profile_activity(profile_id)

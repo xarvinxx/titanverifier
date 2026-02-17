@@ -134,8 +134,46 @@
                     </div>
                 </div>
 
-                <!-- RIGHT: Navigation -->
+                <!-- RIGHT: Navigation + Tools -->
                 <nav class="flex items-center gap-1">
+                    <!-- USB Cycle / ADB Reconnect -->
+                    <button id="btn-adb-reconnect"
+                            onclick="adbReconnect()"
+                            title="USB-Kabel simulieren: Trennt USB-C am Gerät und steckt es wieder ein"
+                            class="px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all
+                                   border border-gray-700 bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700
+                                   disabled:opacity-40 disabled:cursor-not-allowed">
+                        <div class="flex items-center gap-1.5">
+                            <svg id="adb-reconnect-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            <svg id="adb-reconnect-spinner" class="w-3.5 h-3.5 animate-spin hidden" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <span id="adb-reconnect-label">USB</span>
+                        </div>
+                    </button>
+
+                    <!-- scrcpy Toggle -->
+                    <button id="btn-scrcpy"
+                            onclick="toggleScrcpy()"
+                            title="Screen Mirroring (scrcpy)"
+                            class="px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all
+                                   border border-gray-700 bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700">
+                        <div class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                            </svg>
+                            <span id="scrcpy-label">Mirror</span>
+                        </div>
+                    </button>
+
+                    <!-- Separator -->
+                    <div class="w-px h-5 bg-gray-800 mx-0.5"></div>
+
                     <a href="/"
                        class="px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-gray-800 border border-gray-700">
                         Dashboard
@@ -1438,6 +1476,107 @@
     }
 
     // ===================================================================
+    // USB Cycle / ADB Reconnect
+    // ===================================================================
+    async function adbReconnect() {
+        const btn = document.getElementById('btn-adb-reconnect');
+        const icon = document.getElementById('adb-reconnect-icon');
+        const spinner = document.getElementById('adb-reconnect-spinner');
+        const label = document.getElementById('adb-reconnect-label');
+
+        btn.disabled = true;
+        icon.classList.add('hidden');
+        spinner.classList.remove('hidden');
+        label.textContent = 'Trenne...';
+
+        // Phase-Updates passend zum Backend-Ablauf (~Zeitpunkte)
+        const t1 = setTimeout(() => { label.textContent = 'Kabel raus'; }, 1500);
+        const t2 = setTimeout(() => { label.textContent = 'Warte...'; }, 3500);
+        const t3 = setTimeout(() => { label.textContent = 'Kabel rein'; }, 5500);
+        const t4 = setTimeout(() => { label.textContent = 'Suche...'; }, 8000);
+
+        try {
+            const res = await fetch('/api/control/adb/reconnect', { method: 'POST' });
+            const data = await res.json();
+
+            if (data.status === 'connected') {
+                showResult(data.message, 'success');
+                refreshStats();
+            } else {
+                showResult(data.message, 'error');
+            }
+        } catch (e) {
+            showResult('USB-Cycle Fehler: ' + e.message, 'error');
+        } finally {
+            clearTimeout(t1);
+            clearTimeout(t2);
+            clearTimeout(t3);
+            clearTimeout(t4);
+            btn.disabled = false;
+            icon.classList.remove('hidden');
+            spinner.classList.add('hidden');
+            label.textContent = 'USB';
+        }
+    }
+
+    // ===================================================================
+    // scrcpy: Screen Mirroring
+    // ===================================================================
+    let scrcpyRunning = false;
+
+    async function toggleScrcpy() {
+        const btn = document.getElementById('btn-scrcpy');
+        const label = document.getElementById('scrcpy-label');
+        btn.disabled = true;
+
+        try {
+            if (scrcpyRunning) {
+                const res = await fetch('/api/control/scrcpy/stop', { method: 'POST' });
+                const data = await res.json();
+                scrcpyRunning = false;
+                updateScrcpyButton();
+                showResult(data.message, 'success');
+            } else {
+                const res = await fetch('/api/control/scrcpy/start', { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) {
+                    scrcpyRunning = data.status === 'started' || data.status === 'already_running';
+                    updateScrcpyButton();
+                    showResult(data.message, 'success');
+                } else {
+                    showResult(data.detail || 'scrcpy Fehler', 'error');
+                }
+            }
+        } catch (e) {
+            showResult('scrcpy Fehler: ' + e.message, 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    function updateScrcpyButton() {
+        const btn = document.getElementById('btn-scrcpy');
+        const label = document.getElementById('scrcpy-label');
+
+        if (scrcpyRunning) {
+            btn.className = 'px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border border-emerald-500/40 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25';
+            label.textContent = 'Mirror aktiv';
+        } else {
+            btn.className = 'px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border border-gray-700 bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700';
+            label.textContent = 'Mirror';
+        }
+    }
+
+    async function checkScrcpyStatus() {
+        try {
+            const res = await fetch('/api/control/scrcpy/status');
+            const data = await res.json();
+            scrcpyRunning = data.running;
+            updateScrcpyButton();
+        } catch (e) { /* ignore */ }
+    }
+
+    // ===================================================================
     // Init
     // ===================================================================
     document.addEventListener('DOMContentLoaded', () => {
@@ -1446,6 +1585,7 @@
         loadVault();
         loadFlowHistory();
         updateClock();
+        checkScrcpyStatus();
 
         // Periodisches Refresh (adaptiv: schneller wenn Flow aktiv)
         let statsPollHandle = setInterval(refreshStats, POLL_INTERVAL_MS);

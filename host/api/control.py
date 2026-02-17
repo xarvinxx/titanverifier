@@ -457,6 +457,217 @@ async def abort_flow():
 
 
 # =============================================================================
+# SCRCPY: Screen Mirroring via Web UI
+# =============================================================================
+
+import shutil
+import signal
+import subprocess
+
+_scrcpy_process: Optional[subprocess.Popen] = None
+
+
+@router.post("/scrcpy/start")
+async def start_scrcpy():
+    """
+    Startet scrcpy als Desktop-Fenster.
+
+    Scrcpy muss auf dem Host installiert sein (brew install scrcpy).
+    Das Fenster öffnet sich auf dem Desktop und zeigt den Geräte-Screen.
+    """
+    global _scrcpy_process
+
+    # Prüfe ob scrcpy installiert ist
+    scrcpy_path = shutil.which("scrcpy")
+    if not scrcpy_path:
+        raise HTTPException(
+            status_code=500,
+            detail="scrcpy ist nicht installiert. Installiere mit: brew install scrcpy",
+        )
+
+    # Prüfe ob bereits eine Instanz läuft
+    if _scrcpy_process is not None and _scrcpy_process.poll() is None:
+        return {
+            "status": "already_running",
+            "pid": _scrcpy_process.pid,
+            "message": "scrcpy läuft bereits.",
+        }
+
+    try:
+        _scrcpy_process = subprocess.Popen(
+            [
+                scrcpy_path,
+                "--window-title", "Titan Device Mirror",
+                "--stay-awake",
+                "--turn-screen-off",
+                "--no-audio",
+                "--max-size", "1024",
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+        logger.info("scrcpy gestartet (PID: %d)", _scrcpy_process.pid)
+        return {
+            "status": "started",
+            "pid": _scrcpy_process.pid,
+            "message": "scrcpy wurde gestartet. Fenster öffnet sich auf dem Desktop.",
+        }
+
+    except Exception as e:
+        logger.error("scrcpy Start fehlgeschlagen: %s", e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"scrcpy konnte nicht gestartet werden: {e}",
+        )
+
+
+@router.post("/scrcpy/stop")
+async def stop_scrcpy():
+    """Stoppt die laufende scrcpy-Instanz."""
+    global _scrcpy_process
+
+    if _scrcpy_process is None or _scrcpy_process.poll() is not None:
+        _scrcpy_process = None
+        return {
+            "status": "not_running",
+            "message": "scrcpy läuft nicht.",
+        }
+
+    try:
+        pid = _scrcpy_process.pid
+        _scrcpy_process.send_signal(signal.SIGTERM)
+        _scrcpy_process.wait(timeout=5)
+        _scrcpy_process = None
+
+        logger.info("scrcpy gestoppt (PID: %d)", pid)
+        return {
+            "status": "stopped",
+            "message": "scrcpy wurde gestoppt.",
+        }
+
+    except subprocess.TimeoutExpired:
+        _scrcpy_process.kill()
+        _scrcpy_process = None
+        return {
+            "status": "killed",
+            "message": "scrcpy wurde erzwungen beendet.",
+        }
+
+    except Exception as e:
+        _scrcpy_process = None
+        logger.error("scrcpy Stop Fehler: %s", e)
+        return {
+            "status": "error",
+            "message": f"Fehler beim Stoppen: {e}",
+        }
+
+
+@router.post("/adb/reconnect")
+async def adb_reconnect():
+    """
+    Simuliert ein USB-Kabel raus-/reinstecken — komplett vom Mac aus.
+
+    Ablauf (alles Host-seitig, kein Geräte-Zugriff nötig):
+      1. `adb disconnect` — Trennt aktive USB-Transports (= Kabel raus)
+      2. `adb kill-server` — ADB-Daemon komplett beenden
+      3. Warte 2s — Wie physisches Rausziehen
+      4. `adb start-server` — ADB-Daemon neu starten (= Kabel rein)
+      5. `adb reconnect offline` — Offline-Geräte reaktivieren
+      6. `adb wait-for-device` — Warten bis Gerät wieder da ist
+      7. Verify — Serial auslesen als Bestätigung
+    """
+
+    async def _run_adb(*args: str, timeout: int = 10) -> tuple[int, str]:
+        """Führt einen ADB-Befehl aus und gibt (returncode, stdout) zurück."""
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                "adb", *args,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, stderr = await asyncio.wait_for(
+                proc.communicate(), timeout=timeout,
+            )
+            return proc.returncode, stdout.decode().strip()
+        except asyncio.TimeoutError:
+            return -1, "timeout"
+        except OSError as e:
+            return -1, str(e)
+
+    # ── Phase 1: USB trennen (Kabel raus) ──
+    logger.info("USB-Cycle: Phase 1 — Trenne USB-Transport...")
+    await _run_adb("disconnect", timeout=5)
+
+    # ── Phase 2: ADB-Daemon komplett killen ──
+    logger.info("USB-Cycle: Phase 2 — ADB-Daemon stoppen...")
+    await _run_adb("kill-server", timeout=5)
+
+    # ── Phase 3: Pause (simuliert physisches Kabel-Rausziehen) ──
+    logger.info("USB-Cycle: Phase 3 — USB getrennt, warte 2s...")
+    await asyncio.sleep(2)
+
+    # ── Phase 4: ADB-Daemon neu starten (Kabel rein) ──
+    logger.info("USB-Cycle: Phase 4 — ADB-Daemon starten (= Kabel rein)...")
+    rc, out = await _run_adb("start-server", timeout=10)
+    if rc != 0:
+        logger.warning("USB-Cycle: start-server Fehler: %s", out)
+
+    await asyncio.sleep(1)
+
+    # ── Phase 5: Offline-Geräte reaktivieren ──
+    logger.info("USB-Cycle: Phase 5 — Reconnect offline Geräte...")
+    await _run_adb("reconnect", "offline", timeout=5)
+
+    await asyncio.sleep(1)
+
+    # ── Phase 6: Auf Gerät warten ──
+    logger.info("USB-Cycle: Phase 6 — wait-for-device (max 15s)...")
+    rc, _ = await _run_adb("wait-for-device", timeout=15)
+    if rc != 0:
+        logger.warning("USB-Cycle: wait-for-device Timeout")
+        return {
+            "status": "failed",
+            "message": "USB-Cycle: Kein Gerät gefunden nach 15s. Kabel prüfen!",
+        }
+
+    # ── Phase 7: Verbindung verifizieren ──
+    await asyncio.sleep(1)
+    adb = ADBClient()
+    try:
+        result = await adb.shell("getprop ro.serialno", timeout=5)
+        serial = result.output.strip() if result.success else "?"
+
+        logger.info("USB-Cycle erfolgreich — Gerät: %s", serial)
+        return {
+            "status": "connected",
+            "serial": serial,
+            "message": f"USB-Reconnect erfolgreich! Gerät: {serial}",
+        }
+    except Exception as e:
+        logger.error("USB-Cycle: Verifikation fehlgeschlagen: %s", e)
+        return {
+            "status": "error",
+            "message": f"USB-Cycle Fehler bei Verifikation: {e}",
+        }
+
+
+@router.get("/scrcpy/status")
+async def scrcpy_status():
+    """Gibt den aktuellen scrcpy-Status zurück."""
+    global _scrcpy_process
+
+    if _scrcpy_process is not None and _scrcpy_process.poll() is not None:
+        _scrcpy_process = None
+
+    running = _scrcpy_process is not None and _scrcpy_process.poll() is None
+    return {
+        "running": running,
+        "pid": _scrcpy_process.pid if running else None,
+    }
+
+
+# =============================================================================
 # Hilfsfunktionen
 # =============================================================================
 

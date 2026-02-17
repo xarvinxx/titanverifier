@@ -740,9 +740,11 @@ async def detect_identity_by_dna(
         # automatisch als 'active' angezeigt werden.
         async with db.transaction() as tx:
             # Alle Profile die aktuell 'active' sind aber NICHT zu dieser
-            # Identity gehören → zurück auf 'ready'
+            # Identity gehören → zurück auf 'cooldown'
+            # WICHTIG: profiles erlaubt NICHT 'ready' — nur identities!
+            # Gültige profile-Status: warmup, active, cooldown, banned, suspended, archived
             await tx.execute(
-                "UPDATE profiles SET status = 'ready', updated_at = ? "
+                "UPDATE profiles SET status = 'cooldown', updated_at = ? "
                 "WHERE status = 'active' AND identity_id != ?",
                 (now, best_match["id"]),
             )

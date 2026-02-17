@@ -1251,3 +1251,361 @@ sqlite3.DatabaseError: database disk image is malformed
 2026-02-17 03:37:36 [host.flows.genesis] INFO:   GENESIS ERFOLG: Account 2 (116627 ms)
 2026-02-17 03:37:36 [host.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
 2026-02-17 03:37:36 [host.flows.genesis] INFO: ============================================================
+2026-02-17 04:03:00 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=55760)
+2026-02-17 04:03:01 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 04:03:01 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 04:03:01 [host.main] INFO: Command Center gestoppt.
+2026-02-17 05:35:23 [host.main] INFO: ============================================================
+2026-02-17 05:35:23 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 05:35:23 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 05:35:23 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 05:35:23 [host.main] INFO: ============================================================
+2026-02-17 05:35:23 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 05:35:23 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 05:35:23 [host.main] INFO: Command Center bereit.
+2026-02-17 05:35:48 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=51661)
+2026-02-17 05:35:54 [host.api.control] INFO: Genesis-Flow gestartet: Account
+2026-02-17 05:35:54 [host.flows.genesis] INFO: ============================================================
+2026-02-17 05:35:54 [host.flows.genesis] INFO:   GENESIS FLOW: Account
+2026-02-17 05:35:54 [host.flows.genesis] INFO: ============================================================
+2026-02-17 05:35:54 [host.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-17 05:35:54 [host.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-17 05:35:54 [host.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-17 05:35:54 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'Account 1' hat keinen TikTok-Account — Checkbox nicht gesetzt
+2026-02-17 05:35:54 [host.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-17 05:35:54 [host.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-17 05:35:54 [host.shifter] INFO: FIX-28: APK-Pfad gesichert: com.zhiliaoapp.musically → /data/app/~~lpYdGhev-PQ8kAWl1miQSA==/com.zhiliaoapp.musically-dDDn7RZwSdn9weRjFz9DOg==/split_df_search_adblock.apk
+2026-02-17 05:35:55 [host.shifter] INFO: pm uninstall --user 0 com.zhiliaoapp.musically: OK
+2026-02-17 05:35:55 [host.shifter] WARNING: FIX-28: pm install-existing com.zhiliaoapp.musically fehlgeschlagen oder nicht verifiziert — Rettung via gespeichertem APK-Pfad: /data/app/~~lpYdGhev-PQ8kAWl1miQSA==/com.zhiliaoapp.musically-dDDn7RZwSdn9weRjFz9DOg==/split_df_search_adblock.apk
+2026-02-17 05:35:55 [host.shifter] WARNING: FIX-28: pm install fehlgeschlagen — letzter Versuch: cmd package install-existing com.zhiliaoapp.musically
+2026-02-17 05:35:55 [host.shifter] ERROR: FIX-28: KRITISCH — com.zhiliaoapp.musically konnte nicht reinstalliert werden! APK-Pfad war: /data/app/~~lpYdGhev-PQ8kAWl1miQSA==/com.zhiliaoapp.musically-dDDn7RZwSdn9weRjFz9DOg==/split_df_search_adblock.apk. App muss manuell installiert werden.
+2026-02-17 05:35:55 [host.shifter] WARNING: FIX-28: APK-Pfad für com.ss.android.ugc.trill nicht ermittelbar — Fallback auf sicheres pm clear (kein Uninstall)
+2026-02-17 05:35:55 [host.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-17 05:35:55 [host.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-17 05:35:56 [host.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-17 05:35:59 [host.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-17 05:35:59 [host.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-17 05:35:59 [host.shifter] INFO: Deep Clean abgeschlossen: 30/34 Operationen erfolgreich (inkl. MediaStore, Compiler-Cache, ART-Profile, Settings)
+2026-02-17 05:35:59 [host.flows.genesis] INFO: [3/11] Sterilize: OK (30/34 Operationen (GMS geschützt))
+2026-02-17 05:35:59 [host.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-17 05:35:59 [host.identity] INFO: Identität generiert: name=Account serial=5R00BC3Q2HWD imei1=355543…6830 carrier=O2-DE
+2026-02-17 05:35:59 [host.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 3152...5067 (v5.0 — FINAL, kein Platzhalter)
+2026-02-17 05:35:59 [host.flows.genesis] INFO: [4/11] Generate: OK (serial=5R00BC3Q2HWD)
+2026-02-17 05:35:59 [host.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-17 05:35:59 [host.db_ops] INFO: Auto-Profil erstellt: id=29, name=Account
+2026-02-17 05:35:59 [host.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=29
+2026-02-17 05:35:59 [host.flows.genesis] INFO: [5/11] Persist: OK (identity_id=35, profile_id=29)
+2026-02-17 05:35:59 [host.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-17 05:35:59 [host.injector] INFO: Injecting identity: serial=5R00BC3Q2HWD imei1=355543…6830
+2026-02-17 05:35:59 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/bridge_fdx3d75r.bridge → /data/local/tmp/.bridge_staging
+2026-02-17 05:35:59 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-17 05:36:00 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-17 05:36:02 [host.injector] INFO: Bridge verteilt an 6/10 Apps
+2026-02-17 05:36:02 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → 2558c091-4e9d-48bc-9610-0dda58d24483
+2026-02-17 05:36:02 [host.injector] INFO: Injection komplett + verifiziert: 5R00BC3Q2HWD
+2026-02-17 05:36:02 [host.flows.genesis] INFO: [6/11] PIF: Übersprungen (v4.1 — von KSU PlayIntegrityFix verwaltet)
+2026-02-17 05:36:02 [host.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-17 05:36:02 [host.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-17 05:36:02 [host.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Kill-Switch entfernt (PIF=KSU, Nuke=SKIP))
+2026-02-17 05:36:02 [host.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-17 05:36:02 [host.adb] INFO: Reboot: mode=normal
+2026-02-17 05:36:09 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-17 05:36:09 [host.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-17 05:36:09 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-17 05:36:09 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-17 05:36:13 [host.adb] INFO: ADB Daemon gestartet
+2026-02-17 05:36:14 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-17 05:36:24 [host.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-17 05:36:24 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-17 05:36:24 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-17 05:36:24 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-17 05:36:28 [host.adb] INFO: ADB Daemon gestartet
+2026-02-17 05:36:28 [host.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-17 05:36:28 [host.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-17 05:36:28 [host.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-17 05:36:29 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-17 05:36:30 [host.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-17 05:36:36 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-17 05:36:38 [host.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-17 05:36:38 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell getprop ro.serialno
+2026-02-17 05:36:38 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-17 05:36:38 [host.flows.genesis] INFO: [7/11] Warte auf Boot (unbegrenzt, pollt alle 3s)...
+2026-02-17 05:36:38 [host.adb] INFO: Warte auf Gerät (unbegrenzt, pollt alle 3s)...
+2026-02-17 05:36:38 [host.adb] INFO: ADB Erfolg nach 2 Versuchen: adb shell getprop ro.serialno
+2026-02-17 05:36:47 [host.adb] INFO: Gerät gebootet nach 9.0s
+2026-02-17 05:36:47 [host.flows.genesis] INFO: [7/11] Boot erkannt — warte 5s bevor Popup-Hammer...
+2026-02-17 05:36:52 [host.flows.genesis] INFO: [7/11] Popup Hammer: Fehler-Dialoge unterdrücken...
+2026-02-17 05:37:00 [host.flows.genesis] INFO: [7/11] Popup Hammer abgeschlossen — Unlock starten...
+2026-02-17 05:37:02 [host.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-17 05:37:02 [host.adb.device] INFO: System-Dialoge unterdrücken (Post-Boot Hardening)...
+2026-02-17 05:37:02 [host.adb.device] INFO:   [OK] hide_error_dialogs
+2026-02-17 05:37:03 [host.adb.device] INFO:   [OK] device_provisioned
+2026-02-17 05:37:03 [host.adb.device] INFO:   [OK] user_setup_complete
+2026-02-17 05:37:03 [host.adb.device] INFO: System-Dialog-Suppression: 5/5 Maßnahmen erfolgreich
+2026-02-17 05:37:03 [host.flows.genesis] INFO: [7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...
+2026-02-17 05:37:03 [host.flows.genesis] INFO: [7/11] Bridge [primär]: OK (serial=5R00BC3Q2HWD)
+2026-02-17 05:37:03 [host.flows.genesis] INFO: [7/11] Bridge [sdcard]: OK (serial=5R00BC3Q2HWD)
+2026-02-17 05:37:03 [host.flows.genesis] INFO: [7/11] Bridge [app]: OK (serial=5R00BC3Q2HWD)
+2026-02-17 05:37:03 [host.flows.genesis] INFO: [7/11] Bridge-Verifikation: Primärpfad OK
+2026-02-17 05:37:03 [host.flows.genesis] INFO: [7/11] Hard Reset: OK (Boot + Popup-Hammer + Unlock in 60.4s)
+2026-02-17 05:37:03 [host.flows.genesis] INFO: [8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS...
+2026-02-17 05:37:23 [host.flows.genesis] INFO: [8/11] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-17 05:37:23 [host.flows.genesis] INFO: [8/11] Warte 15s auf neue Mobilfunk-Verbindung...
+2026-02-17 05:37:38 [host.network] INFO: HTTP-Tool erkannt: busybox wget (/data/adb/ksu/bin/busybox)
+2026-02-17 05:37:39 [host.network] INFO: Öffentliche IP: 176.6.25.225 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-17 05:37:39 [host.flows.genesis] INFO: [8/11] Network Init: Neue IP = 176.6.25.225 (via api.ipify.org)
+2026-02-17 05:37:39 [host.flows.genesis] INFO: [9/11] GMS Ready: Dynamisches Readiness-Polling (v6.0)...
+2026-02-17 05:37:39 [host.shifter] INFO: [Readiness] Warte auf sys.boot_completed=1...
+2026-02-17 05:37:39 [host.shifter] INFO: [Readiness] Boot bestätigt nach 0s
+2026-02-17 05:37:39 [host.shifter] INFO: [Readiness] Warte auf GmsCore Service...
+2026-02-17 05:37:39 [host.shifter] INFO: [Readiness] GMS-Prozess aktiv nach 0s
+2026-02-17 05:37:39 [host.shifter] INFO: [Readiness] System bereit — Boot: 0s | GMS(pid): 0s (GMS Verbindung steht - Bereit zum Loslegen!)
+2026-02-17 05:37:39 [host.flows.genesis] INFO: [9/11] GSF-ID: Generierte ID beibehalten. Bridge-GSF: 3152...5067
+2026-02-17 05:37:39 [host.flows.genesis] INFO: [9/11] GMS Verbindung steht - Bereit zum Loslegen! (Boot: 0s | GMS(pid): 0s)
+2026-02-17 05:37:39 [host.flows.genesis] INFO: [9/11] GMS Ready: GMS Verbindung steht (0s) | GSF-ID: generiert beibehalten
+2026-02-17 05:37:39 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...
+2026-02-17 05:37:39 [host.auditor] INFO: Audit starten: Account (serial=5R00BC3Q2HWD)
+2026-02-17 05:37:39 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 18 Felder auf dem Gerät
+2026-02-17 05:37:39 [host.auditor] INFO:   [+] bridge_serial: pass — serial=5R00BC3Q2HWD, boot_serial=5R00BC3Q2HWD — korrekt
+2026-02-17 05:37:39 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-17 05:37:39 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: f4:f5:d8:a2:a5:c2
+2026-02-17 05:37:39 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-17 05:37:39 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-17 05:37:39 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-17 05:37:39 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-17 05:37:39 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-17 05:37:39 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-17 05:37:39 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-17 05:37:39 [host.auditor] INFO:   [+] bridge_build_fingerprint: pass — build_fingerprint korrekt
+2026-02-17 05:37:39 [host.auditor] INFO: Audit [Account]: 100% (12/12 passed)
+2026-02-17 05:37:39 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Integrität bestätigt (100%)
+2026-02-17 05:37:39 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline sichern...
+2026-02-17 05:37:39 [host.shifter] INFO: ============================================================
+2026-02-17 05:37:39 [host.shifter] INFO:   GOLDEN BASELINE CAPTURE: Account
+2026-02-17 05:37:39 [host.shifter] INFO:   GSF-ID: 3152...5067
+2026-02-17 05:37:39 [host.shifter] INFO: ============================================================
+2026-02-17 05:37:39 [host.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-17 05:37:40 [host.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-17 05:37:41 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/Account/gms/gms_20260217_053741.tar.tmp
+2026-02-17 05:37:50 [host.adb] INFO: Exec-Out fertig: 98582016 Bytes geschrieben
+2026-02-17 05:37:50 [host.shifter] INFO: GMS Backup (3 Pakete): OK (94.0 MB, Versuch 1/3)
+2026-02-17 05:37:50 [host.shifter] INFO: GMS tar: gms_20260217_053741.tar (94.0 MB) — 3 Pakete
+2026-02-17 05:37:50 [host.shifter] INFO: Golden Baseline GMS: OK (gms_20260217_053741.tar)
+2026-02-17 05:37:50 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/Account/accounts/accounts_20260217_053750.tar.tmp
+2026-02-17 05:37:51 [host.adb] INFO: Exec-Out fertig: 235008 Bytes geschrieben
+2026-02-17 05:37:51 [host.shifter] INFO: Account-DBs (1 Dateien): OK (0.2 MB, Versuch 1/3)
+2026-02-17 05:37:51 [host.shifter] INFO: Account-DBs tar: accounts_20260217_053750.tar (235008 Bytes, 1 Dateien)
+2026-02-17 05:37:51 [host.shifter] INFO: Golden Baseline Accounts: OK (accounts_20260217_053750.tar)
+2026-02-17 05:37:51 [host.shifter] INFO: Golden Baseline: 2/2 Komponenten gesichert
+2026-02-17 05:37:51 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline komplett
+2026-02-17 05:37:51 [host.flows.genesis] INFO: [11/11] Audit + Account-Check (v6.0)...
+2026-02-17 05:37:51 [host.auditor] INFO: Audit starten: Account (serial=5R00BC3Q2HWD)
+2026-02-17 05:37:51 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 18 Felder auf dem Gerät
+2026-02-17 05:37:51 [host.auditor] INFO:   [+] bridge_serial: pass — serial=5R00BC3Q2HWD, boot_serial=5R00BC3Q2HWD — korrekt
+2026-02-17 05:37:51 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-17 05:37:51 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: f4:f5:d8:a2:a5:c2
+2026-02-17 05:37:51 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-17 05:37:51 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-17 05:37:51 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-17 05:37:51 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-17 05:37:51 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-17 05:37:51 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-17 05:37:51 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-17 05:37:51 [host.auditor] INFO:   [+] bridge_build_fingerprint: pass — build_fingerprint korrekt
+2026-02-17 05:37:51 [host.auditor] INFO: Audit [Account]: 100% (12/12 passed)
+2026-02-17 05:37:51 [host.shifter] INFO: [Account-Check] Google-Account gefunden: arvinvaha@gmail.com
+2026-02-17 05:37:51 [host.flows.genesis] INFO: [11/11] Google-Account: arvinvaha@gmail.com
+2026-02-17 05:37:51 [host.flows.genesis] INFO: [11/11] Audit: PASS (100%) | Google-Account: arvinvaha@gmail.com
+2026-02-17 05:37:51 [host.flows.genesis] INFO: ============================================================
+2026-02-17 05:37:51 [host.flows.genesis] INFO:   GENESIS ERFOLG: Account (116924 ms)
+2026-02-17 05:37:51 [host.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
+2026-02-17 05:37:51 [host.flows.genesis] INFO: ============================================================
+2026-02-17 05:39:10 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=51661)
+2026-02-17 05:39:10 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52857)
+2026-02-17 05:39:12 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=52857)
+2026-02-17 05:39:27 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52867)
+2026-02-17 05:40:03 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=52867)
+2026-02-17 05:40:05 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52898)
+2026-02-17 05:40:32 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=52898)
+2026-02-17 05:40:34 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52924)
+2026-02-17 05:41:18 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=52924)
+2026-02-17 05:41:18 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 05:41:18 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 05:41:18 [host.main] INFO: Command Center gestoppt.
+2026-02-17 05:41:19 [host.main] INFO: ============================================================
+2026-02-17 05:41:19 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 05:41:19 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 05:41:19 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 05:41:19 [host.main] INFO: ============================================================
+2026-02-17 05:41:19 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 05:41:19 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 05:41:19 [host.main] INFO: Command Center bereit.
+2026-02-17 05:41:20 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #35 auf 'active' gesetzt
+2026-02-17 05:41:21 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52994)
+2026-02-17 05:42:16 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=52994)
+2026-02-17 05:42:16 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53014)
+2026-02-17 05:42:20 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53014)
+2026-02-17 05:42:21 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53020)
+2026-02-17 05:42:22 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53020)
+2026-02-17 05:42:22 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53022)
+2026-02-17 05:42:23 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53022)
+2026-02-17 05:42:23 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53024)
+2026-02-17 05:42:26 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53024)
+2026-02-17 05:42:26 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53026)
+2026-02-17 05:42:43 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53026)
+2026-02-17 05:42:43 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53053)
+2026-02-17 05:42:47 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53053)
+2026-02-17 05:42:47 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 05:42:47 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 05:42:47 [host.main] INFO: Command Center gestoppt.
+2026-02-17 05:42:47 [host.main] INFO: ============================================================
+2026-02-17 05:42:47 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 05:42:47 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 05:42:47 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 05:42:47 [host.main] INFO: ============================================================
+2026-02-17 05:42:47 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 05:42:47 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 05:42:47 [host.main] INFO: Command Center bereit.
+2026-02-17 05:42:50 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53087)
+2026-02-17 05:42:58 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53087)
+2026-02-17 05:42:58 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53091)
+2026-02-17 05:43:21 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53091)
+2026-02-17 05:43:21 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53103)
+2026-02-17 05:43:23 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53103)
+2026-02-17 05:43:23 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53110)
+2026-02-17 05:43:25 [host.api.control] INFO: scrcpy gestartet (PID: 7759)
+2026-02-17 05:43:28 [host.api.control] INFO: scrcpy gestartet (PID: 7770)
+2026-02-17 05:43:35 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53110)
+2026-02-17 05:43:35 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53127)
+2026-02-17 05:43:35 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53127)
+2026-02-17 05:43:35 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53135)
+2026-02-17 05:43:39 [host.api.control] INFO: scrcpy gestartet (PID: 7807)
+2026-02-17 05:44:11 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53135)
+2026-02-17 05:44:12 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53166)
+2026-02-17 05:44:12 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53166)
+2026-02-17 05:44:13 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53175)
+2026-02-17 05:44:14 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53175)
+2026-02-17 05:44:16 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53177)
+2026-02-17 05:44:28 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53177)
+2026-02-17 05:44:28 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 05:44:28 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 05:44:28 [host.main] INFO: Command Center gestoppt.
+2026-02-17 05:44:29 [host.main] INFO: ============================================================
+2026-02-17 05:44:29 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 05:44:29 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 05:44:29 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 05:44:29 [host.main] INFO: ============================================================
+2026-02-17 05:44:29 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 05:44:29 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 05:44:29 [host.main] INFO: Command Center bereit.
+2026-02-17 05:44:30 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53190)
+2026-02-17 05:44:31 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53190)
+2026-02-17 05:44:31 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53204)
+2026-02-17 05:44:59 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 30s)...
+2026-02-17 05:44:59 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-17 05:45:03 [host.adb] INFO: ADB Daemon gestartet
+2026-02-17 05:45:04 [host.adb] INFO: ADB wait-for-device (max 30s)...
+2026-02-17 05:45:13 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53204)
+2026-02-17 05:45:13 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53272)
+2026-02-17 05:45:14 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 30s)...
+2026-02-17 05:45:14 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-17 05:45:14 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-17 05:45:18 [host.adb] INFO: ADB Daemon gestartet
+2026-02-17 05:45:18 [host.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-17 05:45:18 [host.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-17 05:45:18 [host.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-17 05:45:19 [host.adb] INFO: ADB wait-for-device (max 30s)...
+2026-02-17 05:45:20 [host.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-17 05:45:49 [host.adb] ERROR: ADB wait-for-device: Timeout nach 30s — Gerät nicht erreichbar!
+2026-02-17 05:45:49 [host.api.control] WARNING: ADB Reconnect fehlgeschlagen — kein Gerät gefunden
+2026-02-17 05:45:53 [host.adb] ERROR: FIX-6: USB-Reconnect Fehler: 
+2026-02-17 05:45:53 [host.api.control] WARNING: ADB Reconnect fehlgeschlagen — kein Gerät gefunden
+2026-02-17 05:46:19 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 30s)...
+2026-02-17 05:46:19 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-17 05:46:23 [host.adb] INFO: ADB Daemon gestartet
+2026-02-17 05:46:24 [host.adb] INFO: ADB wait-for-device (max 30s)...
+2026-02-17 05:46:54 [host.adb] ERROR: ADB wait-for-device: Timeout nach 30s — Gerät nicht erreichbar!
+2026-02-17 05:46:54 [host.api.control] WARNING: ADB Reconnect fehlgeschlagen — kein Gerät gefunden
+2026-02-17 05:47:01 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53272)
+2026-02-17 05:47:01 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53407)
+2026-02-17 05:47:03 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53407)
+2026-02-17 05:47:05 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53416)
+2026-02-17 05:47:10 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53416)
+2026-02-17 05:47:10 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 05:47:10 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 05:47:10 [host.main] INFO: Command Center gestoppt.
+2026-02-17 05:47:11 [host.main] INFO: ============================================================
+2026-02-17 05:47:11 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 05:47:11 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 05:47:11 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 05:47:11 [host.main] INFO: ============================================================
+2026-02-17 05:47:11 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 05:47:11 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 05:47:11 [host.main] INFO: Command Center bereit.
+2026-02-17 05:47:13 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53419)
+2026-02-17 05:47:27 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53419)
+2026-02-17 05:47:27 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53428)
+2026-02-17 05:47:28 [host.api.control] INFO: USB-Cycle: Gerät nicht erreichbar — überspringe soft_connect
+2026-02-17 05:47:28 [host.api.control] INFO: USB-Cycle: ADB Daemon gestoppt
+2026-02-17 05:47:28 [host.api.control] INFO: USB-Cycle: Warte 2s auf USB-Reconnect...
+2026-02-17 05:47:33 [host.api.control] INFO: USB-Cycle: ADB Daemon gestartet
+2026-02-17 05:47:54 [host.api.control] WARNING: USB-Cycle: wait-for-device Timeout (20s)
+2026-02-17 05:47:59 [host.api.control] INFO: USB-Cycle: Gerät nicht erreichbar — überspringe soft_connect
+2026-02-17 05:47:59 [host.api.control] INFO: USB-Cycle: ADB Daemon gestoppt
+2026-02-17 05:47:59 [host.api.control] INFO: USB-Cycle: Warte 2s auf USB-Reconnect...
+2026-02-17 05:48:04 [host.api.control] INFO: USB-Cycle: ADB Daemon gestartet
+2026-02-17 05:48:21 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53428)
+2026-02-17 05:48:21 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53536)
+2026-02-17 05:48:25 [host.api.control] WARNING: USB-Cycle: wait-for-device Timeout (20s)
+2026-02-17 05:48:50 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53536)
+2026-02-17 05:48:50 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-17 05:48:50 [host.database] INFO: Datenbank geschlossen.
+2026-02-17 05:48:50 [host.main] INFO: Command Center gestoppt.
+2026-02-17 05:48:50 [host.main] INFO: ============================================================
+2026-02-17 05:48:50 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 05:48:50 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 05:48:50 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 05:48:50 [host.main] INFO: ============================================================
+2026-02-17 05:48:50 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 05:48:50 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 05:48:50 [host.main] INFO: Command Center bereit.
+2026-02-17 05:48:51 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53559)
+2026-02-17 05:48:52 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53559)
+2026-02-17 05:48:52 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53569)
+2026-02-17 05:48:52 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53569)
+2026-02-17 05:48:53 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53571)
+2026-02-17 05:48:53 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53571)
+2026-02-17 05:48:53 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53574)
+2026-02-17 05:48:53 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53574)
+2026-02-17 05:48:53 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53576)
+2026-02-17 05:48:54 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53576)
+2026-02-17 05:48:54 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53578)
+2026-02-17 05:48:55 [host.api.control] INFO: USB-Cycle: Phase 1 — Trenne USB-Transport...
+2026-02-17 05:48:55 [host.api.control] INFO: USB-Cycle: Phase 2 — ADB-Daemon stoppen...
+2026-02-17 05:48:55 [host.api.control] INFO: USB-Cycle: Phase 3 — USB getrennt, warte 2s...
+2026-02-17 05:48:57 [host.api.control] INFO: USB-Cycle: Phase 4 — ADB-Daemon starten (= Kabel rein)...
+2026-02-17 05:49:01 [host.api.control] INFO: USB-Cycle: Phase 5 — Reconnect offline Geräte...
+2026-02-17 05:49:02 [host.api.control] INFO: USB-Cycle: Phase 6 — wait-for-device (max 15s)...
+2026-02-17 05:49:17 [host.api.control] WARNING: USB-Cycle: wait-for-device Timeout
+2026-02-17 05:49:36 [host.api.control] INFO: USB-Cycle: Phase 1 — Trenne USB-Transport...
+2026-02-17 05:49:36 [host.api.control] INFO: USB-Cycle: Phase 2 — ADB-Daemon stoppen...
+2026-02-17 05:49:36 [host.api.control] INFO: USB-Cycle: Phase 3 — USB getrennt, warte 2s...
+2026-02-17 05:49:38 [host.api.control] INFO: USB-Cycle: Phase 4 — ADB-Daemon starten (= Kabel rein)...
+2026-02-17 05:49:42 [host.api.control] INFO: USB-Cycle: Phase 5 — Reconnect offline Geräte...
+2026-02-17 05:49:43 [host.api.control] INFO: USB-Cycle: Phase 6 — wait-for-device (max 15s)...
+2026-02-17 05:49:58 [host.api.control] WARNING: USB-Cycle: wait-for-device Timeout
+2026-02-17 05:53:53 [host.api.control] INFO: scrcpy gestartet (PID: 8871)
+2026-02-17 05:54:09 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53578)
+2026-02-17 05:54:09 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53858)
+2026-02-17 05:57:27 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53858)
+2026-02-17 05:57:27 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=53995)
+2026-02-17 05:58:09 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=53995)
+2026-02-17 05:58:09 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54024)
+2026-02-17 05:58:10 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54024)
+2026-02-17 05:58:29 [host.api.vault] INFO: Profil #29 aktualisiert: ['name', 'status', 'google_email', 'google_password', 'proxy_type', 'updated_at']
+2026-02-17 05:58:49 [host.api.vault] INFO: Profil #29 aktualisiert: ['name', 'status', 'google_email', 'google_password', 'proxy_type', 'notes', 'updated_at']
+2026-02-17 05:59:13 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54068)
+2026-02-17 05:59:19 [host.api.control] INFO: scrcpy gestoppt (PID: 8871)
+2026-02-17 06:00:49 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54068)
+2026-02-17 06:00:49 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54142)
+2026-02-17 06:00:50 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54142)

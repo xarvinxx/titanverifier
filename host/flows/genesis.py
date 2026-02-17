@@ -1,42 +1,34 @@
 """
-Genesis Flow (Cold Start / New Account) v3.0
+Genesis Flow (Cold Start / New Account) v6.0
 ============================================
 
 FLOW 1: GENESIS — Erzeugt eine komplett neue Identität von Grund auf.
 Dieser Flow ist stateless und atomar: Entweder alles klappt,
 oder die Identität wird als 'corrupted' markiert.
 
-Zwingender Ablauf (11 Schritte — v5.1):
-   1. AIRPLANE MODE  — Flugmodus AN (Netz sofort trennen, ganz am Anfang!)
+Zwingender Ablauf (11 Schritte — v6.0 Zygote-First):
+   1. AIRPLANE MODE  — Flugmodus AN (Netz sofort trennen)
    2. AUTO-BACKUP    — Optionales Dual-Path Backup des aktiven Profils
    3. STERILIZE      — Deep Clean (pm clear NUR Target-Apps, GMS UNANGETASTET!)
-   4. GENERATE       — Neue O2-DE Identität (GSF-ID = final, kein Platzhalter!)
+   4. GENERATE       — Neue O2-DE Identität (GSF-ID = final)
    5. PERSIST        — In DB speichern (Status: 'active') + Auto-Profil
-   6. INJECT         — Bridge + Kill-Switch (Flugmodus bereits AN seit Schritt 1)
-   7. HARD RESET     — Robust Reboot + 15s Pre-Wait + Boot-Poll + Bridge-Verifikation
-   8. NETWORK INIT   — 20s Post-Boot → Flugmodus AUS → Neue IP
-   9. GMS READY      — Finsky Kill + MinuteMaid + Kickstart
-  10. CAPTURE STATE  — Baseline-Trigger: Quick-Audit → 60s Retry → Golden Baseline
-  11. AUDIT          — Full Device-Audit. Bei Score < 100% → Status 'corrupted'
+   6. INJECT         — Bridge + Kill-Switch
+   7. HARD RESET     — Reboot + Boot-Poll + Bridge-Verifikation
+   8. NETWORK INIT   — Flugmodus AUS → Neue IP
+   9. GMS READY      — Dynamisches GMS-Readiness-Polling (statt statische Waits)
+  10. CAPTURE STATE  — Golden Baseline (GMS + Accounts sichern)
+  11. AUDIT          — Full Device-Audit + Account-Check
 
-v4.0 — "GMS-Schutz" Architektur:
-  GMS/GSF/Vending werden NIEMALS angerührt (kein pm clear, kein namespace_nuke).
-  Grund: Das Löschen von GMS-Daten zerstört die Google Trust-Chain:
-    - Play Integrity verliert BASIC (nur noch DEVICE)
-    - Google-Login bricht ab
-    - DroidGuard muss komplett neu attestieren (30-50 Min)
+v6.0 — "Zygote-First" + "GMS-Schutz" Architektur:
+  Inject → Reboot → GMS-Readiness → Capture. Das System bootet
+  unter der neuen Identität bevor GMS-State gecaptured wird.
   
-  Stattdessen:
-    - Hooks spoofen Device-IDs NUR für Target-Apps (TikTok, Instagram, etc.)
-    - GMS sieht immer die echten Werte → Trust-Chain bleibt intakt
-    - Play Integrity bleibt BASIC + DEVICE durchgehend stabil
-    - Google-Account bleibt eingeloggt
+  GMS/GSF/Vending werden NIEMALS gelöscht (Trust-Chain intakt).
+  DroidGuard-Cache wird bei Switch-Restores automatisch sanitized.
+  TikTok Instance-IDs werden bei Restores automatisch entfernt.
 
-DB-Tracking (v2.0):
-  - Flow-History: Eintrag bei Start, Updates bei jedem Schritt
-  - IP-History: Erkannte IP in ip_history + identities.last_public_ip
-  - Audit-History: Audit-Ergebnis in audit_history + identities.last_audit_*
-  - Auto-Profil: Nach Persist automatisch Profil in profiles erstellen
+DB-Tracking:
+  - Flow-History, IP-History, Audit-History, Auto-Profil
 """
 
 from __future__ import annotations
@@ -709,94 +701,55 @@ class GenesisFlow:
             step_start = _now_ms()
 
             # =================================================================
-            # v5.0 GMS-Schutz Architektur — GSF-ID NICHT mehr synchronisieren
-            # =================================================================
-            #
-            # WARUM DIE ALTE LOGIK FALSCH WAR:
-            #   Alte Versionen (<v5.0) warteten auf die echte GSF-ID vom
-            #   GMS-Checkin und schrieben sie in Bridge + DB zurück.
-            #   Problem: Da wir GMS NICHT clearen (GMS-Schutz), hat das
-            #   Gerät IMMER dieselbe echte GSF-ID. Alle Identitäten bekamen
-            #   dadurch dieselbe GSF-ID → keine echte Identity-Trennung!
-            #
-            # v5.0 KORREKTE LOGIK:
-            #   - Die Bridge enthält bereits eine zufällig generierte GSF-ID
-            #     (aus Schritt 2: GENERATE, via secrets CSPRNG)
-            #   - Die Hooks spoofen diese GSF-ID NUR für Target-Apps
-            #     (TikTok, Instagram, etc.)
-            #   - GMS sieht immer die ECHTE GSF-ID → Trust-Chain bleibt intakt
-            #   - Jede Identity hat ihre EIGENE einzigartige GSF-ID
-            #
-            # → KEIN GSF-ID Wait, KEIN GSF-ID Sync, KEIN Bridge-Patch!
-            #
-            # Was wir noch tun:
-            #   1. Konnektivität prüfen (für Play Integrity)
-            #   2. GMS Kickstart (Checkin triggern für DroidGuard)
-            #   3. Finsky Kill (hängende Prozesse beenden)
-            # =================================================================
+            # =============================================================
+            # v6.0: Dynamisches GMS-Readiness-Polling
+            # =============================================================
+            # Statt statischer Wartezeiten nutzen wir aktives Polling:
+            #   1. sys.boot_completed == 1
+            #   2. GmsCore Service aktiv (dumpsys activity services)
+            # GSF-ID wird NICHT synchronisiert (Bridge-Wert beibehalten).
+            # =============================================================
+            logger.info("[9/11] GMS Ready: Dynamisches Readiness-Polling (v6.0)...")
 
-            # =============================================================
-            # FIX-10: GMS Ready vereinfacht (Option A)
-            # =============================================================
-            # Seit v4.0 GMS-Schutz wird GMS NIEMALS gelöscht. Die Trust-Chain
-            # bleibt intakt. Finsky Kill, MinuteMaid und GMS Kickstart sind
-            # Relikte der alten Architektur und verursachen unnötige Wartezeiten
-            # und Flow-Hänger.
-            #
-            # Neuer Ablauf (nur 2 Dinge):
-            #   1. Konnektivitäts-Check (schnell, IP bereits in Schritt 8 bestätigt)
-            #   2. GSF-ID Logging (informativ, kein Wait)
-            # =============================================================
-            logger.info("[9/11] GMS Ready: Konnektivitäts-Check (v5.2 — vereinfacht)...")
+            readiness = await self._shifter.verify_system_readiness(
+                timeout=180, poll_interval=5,
+            )
 
-            # --- Konnektivitäts-Check ---
-            connectivity_ok = False
-            if result.public_ip:
+            connectivity_ok = readiness.get("gms_ready", False)
+            if not connectivity_ok and result.public_ip:
                 connectivity_ok = True
-                logger.info("[9/11] Network: IP bereits bestätigt (%s)", result.public_ip)
-            else:
-                logger.info("[9/11] Network: Keine IP — prüfe Konnektivität...")
-                for attempt in range(3):
-                    connectivity_ok = await self._device.check_connectivity()
-                    if connectivity_ok:
-                        logger.info("[9/11] Network: Konnektivität bestätigt (Versuch %d)", attempt + 1)
-                        break
-                    logger.warning(
-                        "[9/11] Network: Kein Netz (Versuch %d/3) — warte %ds...",
-                        attempt + 1, TIMING.NETWORK_CONNECTIVITY_WAIT,
-                    )
-                    await asyncio.sleep(TIMING.NETWORK_CONNECTIVITY_WAIT)
+                logger.info("[9/11] GMS nicht via Service bestätigt, aber IP vorhanden")
 
-                if not connectivity_ok:
-                    logger.error("[9/11] Network: Kein Netzwerk nach 3 Versuchen")
-
-            # --- GSF-ID: Bridge-Wert beibehalten (v5.0) ---
+            real_gsf_id = identity.gsf_id
             logger.info(
-                "[9/11] GSF-ID: Generierte ID beibehalten (v5.0 — KEIN Sync mit GMS). "
-                "Bridge-GSF-ID: %s...%s",
+                "[9/11] GSF-ID: Generierte ID beibehalten. Bridge-GSF: %s...%s",
                 identity.gsf_id[:4], identity.gsf_id[-4:],
             )
 
-            real_gsf_id = identity.gsf_id
+            if readiness["gms_ready"]:
+                step.status = FlowStepStatus.SUCCESS
+                step.detail = (
+                    f"GMS Verbindung steht ({readiness['elapsed_s']:.0f}s) | "
+                    f"GSF-ID: generiert beibehalten"
+                )
+                logger.info(
+                    "[9/11] GMS Verbindung steht - Bereit zum Loslegen! (%s)",
+                    readiness["detail"],
+                )
+            else:
+                step.status = FlowStepStatus.SUCCESS  # Nicht blockierend
+                step.detail = f"GMS-Timeout ({readiness['detail']}) | GSF-ID beibehalten"
+                logger.warning("[9/11] GMS nicht bereit nach %ds", readiness["elapsed_s"])
 
-            step.status = FlowStepStatus.SUCCESS
-            step.detail = (
-                f"Connectivity: {'OK' if connectivity_ok else 'WARN'} | "
-                f"GSF-ID: generiert beibehalten (v5.2)"
-            )
             step.duration_ms = _now_ms() - step_start
-            logger.info("[9/11] GMS Ready: OK (%s)", step.detail)
+            logger.info("[9/11] GMS Ready: %s", step.detail)
 
             # =================================================================
-            # Schritt 8: CAPTURE STATE (Golden Baseline) *** NEU v3.0 ***
+            # Schritt 10: CAPTURE STATE (Golden Baseline) v6.0
             # =================================================================
             # Sichert den aktuellen GMS-State als "Golden Baseline".
-            # Dieser Snapshot ist die Basis für alle Switch-Operationen.
-            #
-            # BASELINE-TRIGGER: Die Golden Baseline darf erst erstellt
-            # werden, wenn Basic Integrity (Bridge-Audit) bestätigt ist.
-            # Wenn der Quick-Audit fehlschlägt, warten wir 60s damit GMS
-            # seine Initialisierung abschließen kann, und prüfen erneut.
+            # v6.0: Nutzt dynamisches GMS-Readiness-Polling statt
+            # statischer 60s-Wartezeiten für den Baseline-Trigger.
             # =================================================================
             step = result.steps[9]
             step.status = FlowStepStatus.RUNNING
@@ -804,7 +757,7 @@ class GenesisFlow:
 
             if real_gsf_id:
                 # =========================================================
-                # BASELINE-TRIGGER: Quick-Audit vor Capture
+                # BASELINE-TRIGGER v6.0: Quick-Audit mit dynamischem Retry
                 # =========================================================
                 logger.info("[10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...")
                 integrity_ok = False
@@ -822,10 +775,23 @@ class GenesisFlow:
                             if integrity_attempt == 0:
                                 logger.warning(
                                     "[10/11] Baseline-Trigger: Integrität NICHT bestätigt "
-                                    "(%d%%) — warte 60s für GMS-Stabilisierung...",
+                                    "(%d%%) — dynamisches GMS-Polling...",
                                     pre_audit.score_percent,
                                 )
-                                await asyncio.sleep(60)
+                                # v6.0: Dynamisches Polling statt statischer 60s
+                                retry_readiness = await self._shifter.verify_system_readiness(
+                                    timeout=90, poll_interval=5,
+                                )
+                                if retry_readiness["gms_ready"]:
+                                    logger.info(
+                                        "[10/11] GMS bereit nach %ds — Retry Audit",
+                                        retry_readiness["elapsed_s"],
+                                    )
+                                else:
+                                    logger.warning(
+                                        "[10/11] GMS-Timeout nach %ds — Retry Audit trotzdem",
+                                        retry_readiness["elapsed_s"],
+                                    )
                             else:
                                 logger.warning(
                                     "[10/11] Baseline-Trigger: Integrität weiterhin %d%% "
@@ -835,7 +801,10 @@ class GenesisFlow:
                     except Exception as e:
                         logger.warning("[10/11] Baseline-Trigger Audit fehlgeschlagen: %s", e)
                         if integrity_attempt == 0:
-                            await asyncio.sleep(60)
+                            # v6.0: Dynamisches Polling statt statischer 60s
+                            await self._shifter.verify_system_readiness(
+                                timeout=60, poll_interval=5,
+                            )
 
                 # Golden Baseline capturen (auch bei imperfekter Integrität)
                 logger.info("[10/11] Capture State: Golden Baseline sichern...")
@@ -872,7 +841,6 @@ class GenesisFlow:
                     step.detail = f"Capture Fehler: {e}"
                     logger.error("[10/11] Capture State Fehler: %s", e)
             else:
-                # Kein GSF-ID → kein Golden Baseline möglich
                 step.status = FlowStepStatus.SKIPPED
                 step.detail = "Übersprungen: Keine GSF-ID verfügbar"
                 logger.warning("[10/11] Capture State: Übersprungen (keine GSF-ID)")
@@ -880,15 +848,20 @@ class GenesisFlow:
             step.duration_ms = _now_ms() - step_start
 
             # =================================================================
-            # Schritt 11: AUDIT + AUDIT-TRACKING
+            # Schritt 11: AUDIT + ACCOUNT-CHECK + TRACKING (v6.0)
             # =================================================================
             step = result.steps[10]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[11/11] Audit: Device prüfen...")
+            logger.info("[11/11] Audit + Account-Check (v6.0)...")
             audit = await self._auditor.audit_device(identity)
             result.audit = audit
+
+            # v6.0: Google Account Verifikation
+            account_info = await self._shifter.verify_google_account()
+            account_detail = account_info["detail"]
+            logger.info("[11/11] %s", account_detail)
 
             # DB: Audit in audit_history + identities speichern
             audit_detail_json = json.dumps(
@@ -914,7 +887,6 @@ class GenesisFlow:
                         failed_checks=audit.failed_checks,
                         checks_json=audit_detail_json,
                     )
-                # Flow-History: Audit
                 if flow_history_id:
                     await update_flow_history(
                         flow_history_id,
@@ -926,19 +898,20 @@ class GenesisFlow:
 
             if audit.passed:
                 step.status = FlowStepStatus.SUCCESS
-                step.detail = f"Score: {audit.score_percent}% — PERFEKT"
-                logger.info("[11/11] Audit: PASS (%d%%)", audit.score_percent)
+                step.detail = (
+                    f"Score: {audit.score_percent}% | {account_detail}"
+                )
+                logger.info("[11/11] Audit: PASS (%d%%) | %s", audit.score_percent, account_detail)
             else:
                 step.status = FlowStepStatus.FAILED
                 step.detail = (
                     f"Score: {audit.score_percent}% — "
-                    f"{audit.failed_checks} Check(s) fehlgeschlagen"
+                    f"{audit.failed_checks} Check(s) fehlgeschlagen | {account_detail}"
                 )
                 logger.warning(
-                    "[11/11] Audit: FAIL (%d%%) — markiere als corrupted",
-                    audit.score_percent,
+                    "[11/11] Audit: FAIL (%d%%) — markiere als corrupted | %s",
+                    audit.score_percent, account_detail,
                 )
-                # Identität als corrupted markieren
                 if db_identity_id:
                     await self._update_identity_status(
                         db_identity_id, IdentityStatus.CORRUPTED,

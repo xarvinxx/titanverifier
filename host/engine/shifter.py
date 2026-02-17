@@ -757,6 +757,17 @@ class AppShifter:
         else:
             logger.info("Pfad B: Kein Sandbox Backup vorhanden — übersprungen")
 
+        # 4b. TikTok Instance-ID Sanitizing (VOR Permission-Fix!)
+        # Entfernt install_id, client_udid, device_id etc. aus shared_prefs.
+        # Ohne dies erkennt TikTok: 'Neue Hardware, gleiche Install-ID'
+        if results["app_data"]:
+            try:
+                sanitized = await self._sanitize_shared_prefs(self._package)
+                if sanitized > 0:
+                    logger.info("TikTok Sanitize: %d Instance-IDs entfernt", sanitized)
+            except Exception as e:
+                logger.warning("TikTok Sanitize fehlgeschlagen (nicht kritisch): %s", e)
+
         # 5. PERMISSION-SYNC (KRITISCH!)
         if results["app_data"] and uid:
             await self._apply_magic_permissions(uid)
@@ -2182,7 +2193,12 @@ class AppShifter:
             except ADBError as e:
                 logger.warning("Magic Fix für %s fehlgeschlagen: %s", pkg, e)
 
-        logger.info("GMS Restore komplett: %d Pakete", len(GMS_BACKUP_PACKAGES))
+        # DroidGuard Sanitizing: Gecachte Attestierungs-Tokens löschen
+        # die kryptografisch an die ALTE Hardware gebunden sind.
+        # Ohne diese Löschung erkennt Google die Diskrepanz sofort.
+        await self._sanitize_droidguard()
+
+        logger.info("GMS Restore komplett: %d Pakete (DroidGuard sanitized)", len(GMS_BACKUP_PACKAGES))
 
     # =========================================================================
     # System Account-DBs Backup
@@ -2518,3 +2534,280 @@ class AppShifter:
             })
 
         return backups
+
+    # =========================================================================
+    # verify_system_readiness: Boot + GMS Active Polling
+    # =========================================================================
+
+    async def verify_system_readiness(
+        self,
+        timeout: int = 180,
+        poll_interval: int = 5,
+    ) -> dict:
+        """
+        Wartet bis das System vollständig bereit ist:
+          1. sys.boot_completed == 1
+          2. GmsCore Service läuft (dumpsys activity services)
+
+        Args:
+            timeout:       Maximale Wartezeit in Sekunden
+            poll_interval: Polling-Intervall in Sekunden
+
+        Returns:
+            {"boot_ready": bool, "gms_ready": bool, "elapsed_s": float, "detail": str}
+        """
+        import time
+        start = time.monotonic()
+        boot_ready = False
+        gms_ready = False
+        detail_parts = []
+
+        # Phase 1: Boot-Completed
+        logger.info("[Readiness] Warte auf sys.boot_completed=1...")
+        while (time.monotonic() - start) < timeout:
+            try:
+                bc = await self._adb.shell("getprop sys.boot_completed", timeout=5)
+                if bc.success and bc.output.strip() == "1":
+                    boot_ready = True
+                    elapsed = time.monotonic() - start
+                    detail_parts.append(f"Boot: {elapsed:.0f}s")
+                    logger.info("[Readiness] Boot bestätigt nach %.0fs", elapsed)
+                    break
+            except Exception:
+                pass
+            await asyncio.sleep(poll_interval)
+
+        if not boot_ready:
+            elapsed = time.monotonic() - start
+            return {
+                "boot_ready": False,
+                "gms_ready": False,
+                "elapsed_s": elapsed,
+                "detail": f"Boot-Timeout nach {elapsed:.0f}s",
+            }
+
+        # Phase 2: GMS-Readiness (GmsCore Service aktiv)
+        logger.info("[Readiness] Warte auf GmsCore Service...")
+        while (time.monotonic() - start) < timeout:
+            try:
+                svc = await self._adb.shell(
+                    "dumpsys activity services com.google.android.gms/.chimera.GmsIntentOperationService 2>/dev/null"
+                    " | head -5",
+                    root=True, timeout=10,
+                )
+                if svc.success and "ServiceRecord" in svc.output:
+                    gms_ready = True
+                    elapsed = time.monotonic() - start
+                    detail_parts.append(f"GMS: {elapsed:.0f}s")
+                    logger.info("[Readiness] GmsCore aktiv nach %.0fs", elapsed)
+                    break
+            except Exception:
+                pass
+
+            # Fallback: Prüfe ob gms Prozess überhaupt läuft
+            try:
+                ps = await self._adb.shell("pidof com.google.android.gms", timeout=5)
+                if ps.success and ps.output.strip():
+                    gms_ready = True
+                    elapsed = time.monotonic() - start
+                    detail_parts.append(f"GMS(pid): {elapsed:.0f}s")
+                    logger.info("[Readiness] GMS-Prozess aktiv nach %.0fs", elapsed)
+                    break
+            except Exception:
+                pass
+
+            await asyncio.sleep(poll_interval)
+
+        elapsed = time.monotonic() - start
+        if not gms_ready:
+            detail_parts.append(f"GMS-Timeout nach {elapsed:.0f}s")
+            logger.warning("[Readiness] GMS nicht bereit nach %.0fs", elapsed)
+
+        detail = " | ".join(detail_parts)
+        if boot_ready and gms_ready:
+            logger.info(
+                "[Readiness] System bereit — %s (%s)",
+                detail, "GMS Verbindung steht - Bereit zum Loslegen!",
+            )
+
+        return {
+            "boot_ready": boot_ready,
+            "gms_ready": gms_ready,
+            "elapsed_s": elapsed,
+            "detail": detail,
+        }
+
+    # =========================================================================
+    # DroidGuard Sanitizing: dg.db + app_dg_cache löschen
+    # =========================================================================
+
+    async def _sanitize_droidguard(self) -> bool:
+        """
+        Löscht DroidGuard-Attestierungs-Caches nach GMS-Restore.
+
+        DroidGuard (dg.db) enthält gecachte Tokens die kryptografisch
+        an die alte Hardware gebunden sind. Nach einem Identity-Switch
+        MUSS dieser Cache gelöscht werden, damit Google eine saubere
+        Neu-Attestierung (Play Integrity) durchführt.
+
+        Returns:
+            True wenn mindestens eine Löschung erfolgreich war
+        """
+        targets = [
+            "/data/data/com.google.android.gms/databases/dg.db",
+            "/data/data/com.google.android.gms/databases/dg.db-wal",
+            "/data/data/com.google.android.gms/databases/dg.db-shm",
+            "/data/data/com.google.android.gms/databases/dg.db-journal",
+            "/data/data/com.google.android.gms/app_dg_cache",
+        ]
+        deleted = 0
+        for path in targets:
+            try:
+                result = await self._adb.shell(f"rm -rf {path}", root=True, timeout=5)
+                if result.success:
+                    deleted += 1
+            except Exception:
+                pass
+
+        if deleted > 0:
+            logger.info(
+                "[DroidGuard] Sanitized: %d/%d Einträge gelöscht (Neu-Attestierung erzwungen)",
+                deleted, len(targets),
+            )
+        else:
+            logger.debug("[DroidGuard] Keine Einträge zum Löschen gefunden")
+        return deleted > 0
+
+    # =========================================================================
+    # TikTok Shared-Prefs Sanitizing: Instance-IDs entfernen
+    # =========================================================================
+
+    async def _sanitize_shared_prefs(self, pkg: str = TIKTOK_PRIMARY) -> int:
+        """
+        Entfernt TikTok-spezifische Instance-IDs aus shared_prefs XML-Dateien.
+
+        Schlüssel wie install_id, client_udid, device_id sind unabhängig
+        von der Hardware-Identität. Wenn sie 1:1 restored werden, erkennt
+        TikTok: 'Neue Hardware, aber gleiche Install-ID' → Multi-Account Detection.
+
+        Returns:
+            Anzahl der entfernten Einträge
+        """
+        prefs_dir = f"/data/data/{pkg}/shared_prefs"
+        dangerous_keys = [
+            "install_id",
+            "client_udid",
+            "device_id",
+            "tt_device_id",
+            "iid",
+            "install_id_",
+            "google_aid",
+            "device_register",
+        ]
+        pattern = "|".join(dangerous_keys)
+
+        total_removed = 0
+        try:
+            # Alle XML-Dateien in shared_prefs auflisten
+            ls_result = await self._adb.shell(
+                f"find {prefs_dir} -name '*.xml' -type f 2>/dev/null",
+                root=True, timeout=10,
+            )
+            if not ls_result.success or not ls_result.output.strip():
+                logger.debug("[TikTok-Sanitize] Keine shared_prefs XMLs gefunden")
+                return 0
+
+            xml_files = [f.strip() for f in ls_result.output.strip().split("\n") if f.strip()]
+
+            for xml_file in xml_files:
+                # Prüfe ob die Datei gefährliche Keys enthält
+                grep_result = await self._adb.shell(
+                    f"grep -cE '{pattern}' '{xml_file}' 2>/dev/null",
+                    root=True, timeout=5,
+                )
+                if not grep_result.success:
+                    continue
+                count = grep_result.output.strip()
+                if not count.isdigit() or int(count) == 0:
+                    continue
+
+                # Entferne Zeilen mit gefährlichen Keys (sed in-place)
+                for key in dangerous_keys:
+                    try:
+                        await self._adb.shell(
+                            f"sed -i '/{key}/d' '{xml_file}'",
+                            root=True, timeout=5,
+                        )
+                    except Exception:
+                        pass
+
+                total_removed += int(count)
+                logger.debug(
+                    "[TikTok-Sanitize] %s: %s Einträge entfernt",
+                    xml_file.split("/")[-1], count,
+                )
+
+        except Exception as e:
+            logger.warning("[TikTok-Sanitize] Fehler: %s", e)
+
+        if total_removed > 0:
+            logger.info(
+                "[TikTok-Sanitize] %d Instance-ID Einträge aus shared_prefs entfernt",
+                total_removed,
+            )
+        return total_removed
+
+    # =========================================================================
+    # Google Account Verifikation nach Restore
+    # =========================================================================
+
+    async def verify_google_account(self) -> dict:
+        """
+        Prüft via dumpsys account ob ein Google-Account vorhanden ist.
+
+        Returns:
+            {"has_account": bool, "account_name": str, "detail": str}
+        """
+        try:
+            result = await self._adb.shell(
+                "dumpsys account 2>/dev/null | grep -A2 'Account {name='",
+                root=True, timeout=10,
+            )
+            if result.success and "name=" in result.output:
+                lines = result.output.strip().split("\n")
+                for line in lines:
+                    if "name=" in line and "type=com.google" in line:
+                        name_part = line.split("name=")[1].split(",")[0].strip()
+                        logger.info("[Account-Check] Google-Account gefunden: %s", name_part)
+                        return {
+                            "has_account": True,
+                            "account_name": name_part,
+                            "detail": f"Google-Account: {name_part}",
+                        }
+
+            # Fallback: Einfacherer grep
+            result2 = await self._adb.shell(
+                "dumpsys account 2>/dev/null | grep 'type=com.google'",
+                root=True, timeout=10,
+            )
+            if result2.success and "com.google" in result2.output:
+                logger.info("[Account-Check] Google-Account vorhanden (Name nicht extrahierbar)")
+                return {
+                    "has_account": True,
+                    "account_name": "unknown",
+                    "detail": "Google-Account vorhanden",
+                }
+
+            logger.warning("[Account-Check] Kein Google-Account gefunden!")
+            return {
+                "has_account": False,
+                "account_name": "",
+                "detail": "Kein Google-Account — Login nötig!",
+            }
+        except Exception as e:
+            logger.warning("[Account-Check] Fehler: %s", e)
+            return {
+                "has_account": False,
+                "account_name": "",
+                "detail": f"Check fehlgeschlagen: {e}",
+            }

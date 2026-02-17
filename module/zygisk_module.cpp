@@ -333,6 +333,11 @@ static bool parseMacString(const char* macStr, unsigned char* out) {
 // werden die Hooks bei fehlendem Bridge-File deaktiviert.
 // Die echten Geräte-Werte werden dann durchgelassen.
 
+// Forward-Deklarationen (Definitionen weiter unten nach der Bridge-Lade-Logik)
+static std::unordered_map<std::string, std::string> g_dynamicProps;
+static bool isPifExclusive(const char* key);
+static const char* lookupDynamicProp(const char* name);
+
 static bool loadBridgeFromFile(const char* path) {
     // FIX-24B: Raw Syscalls statt libc open/read/close
     // Umgeht PLT-Hooking durch Anti-Cheat-Engines (z.B. libsscronet.so)
@@ -698,7 +703,7 @@ static const char* FAKE_KERNEL_VERSION =
 //   ro.odm.build.fingerprint, ro.system.build.fingerprint
 // ==============================================================================
 
-static std::unordered_map<std::string, std::string> g_dynamicProps;
+// g_dynamicProps bereits oben (vor loadBridgeFromFile) definiert
 
 static bool isPifExclusive(const char* key) {
     static const char* PIF_KEYS[] = {

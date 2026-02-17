@@ -405,41 +405,142 @@ class BridgeInjector:
         logger.info("GSF-ID Sync: Bridge-Datei(en) aktualisiert")
 
     # =========================================================================
-    # *** NEU v3.2 *** PIF Fingerprint Injection (MEETS_BASIC_INTEGRITY)
+    # *** v5.0 *** PIF Fingerprint Injection (MEETS_BASIC_INTEGRITY)
     # =========================================================================
+    # Strategie: "autopif4-First"
+    #   1. Prüfe ob autopif4 einen aktuellen Canary-Fingerprint hat
+    #   2. Wenn ja → übernehme ihn (nur spoofProvider=1 erzwingen)
+    #   3. Wenn nein → Fallback auf statischen PIF_SPOOF_POOL
+    # =========================================================================
+
+    _AUTOPIF4_PROP = "/data/adb/modules/playintegrityfix/autopif4/custom.pif.prop"
+
+    async def _read_autopif4_fingerprint(self) -> str | None:
+        """
+        Liest den von autopif4 generierten Canary-Fingerprint.
+
+        Returns:
+            Inhalt der autopif4 custom.pif.prop oder None wenn nicht vorhanden/ungültig.
+        """
+        try:
+            result = await self._adb.shell(
+                f"cat {self._AUTOPIF4_PROP}", root=True, timeout=10,
+            )
+            if not result.success or not result.output.strip():
+                return None
+
+            content = result.output.strip()
+
+            has_fingerprint = False
+            has_security_patch = False
+            for line in content.splitlines():
+                line_s = line.strip()
+                if line_s.startswith("FINGERPRINT=") and len(line_s) > 15:
+                    has_fingerprint = True
+                if line_s.startswith("SECURITY_PATCH=") and len(line_s) > 18:
+                    has_security_patch = True
+
+            if has_fingerprint and has_security_patch:
+                return content
+
+            logger.warning(
+                "autopif4 Datei vorhanden aber unvollständig "
+                "(FP=%s, PATCH=%s)",
+                has_fingerprint, has_security_patch,
+            )
+            return None
+
+        except (ADBError, ADBTimeoutError) as e:
+            logger.debug("autopif4 nicht verfügbar: %s", e)
+            return None
+
+    def _ensure_spoof_provider(self, prop_content: str) -> str:
+        """
+        Stellt sicher, dass spoofProvider=1 in der PIF-Prop gesetzt ist.
+
+        Wenn spoofProvider=0 gefunden → auf 1 ändern.
+        Wenn spoofProvider fehlt → anhängen.
+        """
+        lines = prop_content.splitlines()
+        found = False
+        new_lines = []
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("spoofProvider="):
+                new_lines.append("spoofProvider=1")
+                found = True
+            else:
+                new_lines.append(line)
+
+        if not found:
+            new_lines.extend(["", "# Injected by Titan", "spoofProvider=1"])
+
+        return "\n".join(new_lines) + "\n"
 
     async def inject_pif_fingerprint(
         self,
         build_index: int | None = None,
     ) -> bool:
         """
-        Generiert und pusht custom.pif.prop in den PlayIntegrityFix Modul-Ordner.
+        Stellt sicher, dass eine gültige custom.pif.prop im PIF Modul-Ordner liegt.
 
-        v4.1 FIX: PIF nutzt custom.pif.prop (Key=Value), NICHT pif.json (JSON)!
-          Alte Versionen nutzten /data/adb/pif.json — moderne PIF-Module
-          lesen ausschließlich custom.pif.prop aus ihrem eigenen Modul-Ordner.
+        v5.0 STRATEGIE — "autopif4-First":
+          1. Prüfe ob autopif4 einen aktuellen Canary-Fingerprint generiert hat.
+             Diese werden regelmäßig von Google rotiert und sind bekanntermaßen
+             gültig für Play Integrity (Canary/Beta-Builds).
+          2. Wenn ja → kopiere nach custom.pif.prop, erzwinge spoofProvider=1.
+          3. Wenn nein → Fallback auf statischen PIF_SPOOF_POOL mit
+             Time-Travel-Prävention und Oriole Safety Guard.
 
-        KRITISCH für Play Integrity auf Android 14:
-          TrickyStore liefert MEETS_DEVICE_INTEGRITY (Hardware-Ebene),
-          aber MEETS_BASIC_INTEGRITY erfordert einen gültigen
-          Software-Fingerprint. Ohne custom.pif.prop = BASIC_INTEGRITY FAIL.
-
-        v3.2 SAFETY CONSTRAINT:
-          Die Datei darf NIEMALS echte Pixel 6 (oriole) Daten enthalten!
-          Stattdessen wird ein ÄLTERES Pixel-Modell simuliert (Pixel 5, 5a, 4a 5G).
-          Der PIF_SPOOF_POOL enthält nur verifizierte ältere Builds.
+        KRITISCH: spoofProvider=1 ist PFLICHT für BASIC_INTEGRITY auf Android 13+!
 
         Schützt gegen: Säule 6 (Software-Integrität)
 
         Args:
-            build_index: Optional — Index in PIF_SPOOF_POOL
+            build_index: Optional — Index in PIF_SPOOF_POOL (nur für Fallback)
 
         Returns:
-            True wenn erfolgreich gepusht
+            True wenn erfolgreich
         """
+
         # =====================================================================
-        # v3.2 TIME-TRAVEL PREVENTION — Dreistufige Pool-Validierung
+        # STUFE 0: autopif4-First — Canary-Fingerprint bevorzugen
         # =====================================================================
+        autopif4_content = await self._read_autopif4_fingerprint()
+
+        if autopif4_content is not None:
+            logger.info(
+                "PIF v5.0: autopif4 Canary-Fingerprint gefunden — "
+                "verwende diesen (NICHT unseren statischen Pool)"
+            )
+
+            fp_line = ""
+            patch_line = ""
+            expiry_line = ""
+            for line in autopif4_content.splitlines():
+                ls = line.strip()
+                if ls.startswith("FINGERPRINT="):
+                    fp_line = ls.split("=", 1)[1][:50]
+                if ls.startswith("SECURITY_PATCH="):
+                    patch_line = ls.split("=", 1)[1]
+                if "Estimated Expiry" in ls:
+                    expiry_line = ls.strip("# ").strip()
+
+            logger.info(
+                "PIF autopif4: FP=%s… | Patch=%s | %s",
+                fp_line, patch_line, expiry_line or "Kein Ablaufdatum",
+            )
+
+            patched_content = self._ensure_spoof_provider(autopif4_content)
+            return await self._push_pif_prop(patched_content, source="autopif4-canary")
+
+        # =====================================================================
+        # STUFE 1-3: Fallback auf statischen PIF_SPOOF_POOL
+        # =====================================================================
+        logger.warning(
+            "PIF v5.0: Kein autopif4-Fingerprint gefunden — "
+            "Fallback auf statischen PIF_SPOOF_POOL"
+        )
 
         # --- Stufe 1: Statische Pool-Validierung ---
         valid_pool = validate_pif_pool_integrity()
@@ -537,29 +638,20 @@ class BridgeInjector:
             pif_data = random.choice(valid_pool)
 
         logger.info(
-            "PIF Injection v4.1: %s %s (Patch: %s) — Spoof-Gerät: %s",
+            "PIF Fallback v4.1: %s %s (Patch: %s) — Spoof-Gerät: %s",
             pif_data.get("MODEL", "?"),
             pif_data["BUILD_ID"],
             pif_data["SECURITY_PATCH"],
             pif_data.get("DEVICE", "?"),
         )
 
-        # =====================================================================
-        # v4.1: custom.pif.prop generieren (Key=Value Format)
-        # =====================================================================
-        # PlayIntegrityFix liest custom.pif.prop als Java .properties Datei.
-        # Format: KEY=VALUE (eine Zeile pro Eintrag), # für Kommentare.
-        # Zusätzlich: Advanced Settings für das PIF-Modul.
-        # =====================================================================
-
-        # Build-Felder (aus Pool)
+        # custom.pif.prop generieren (Key=Value Format)
         prop_lines = [
-            "# PIF — Auto-generated, do not edit manually",
+            "# PIF — Auto-generated by Titan (FALLBACK — kein autopif4 verfügbar)",
             f"# Source: PIF_SPOOF_POOL ({pif_data.get('MODEL', '?')})",
             "",
             "# Build Fields",
         ]
-        # Reihenfolge wie das PIF-Modul es erwartet
         build_keys = [
             "MANUFACTURER", "MODEL", "FINGERPRINT", "BRAND", "PRODUCT",
             "DEVICE", "RELEASE", "ID", "INCREMENTAL", "TYPE", "TAGS",
@@ -570,15 +662,12 @@ class BridgeInjector:
             if value:
                 prop_lines.append(f"{key}={value}")
             elif key == "RELEASE":
-                # RELEASE = Android Version (14 für unsere Builds)
                 prop_lines.append("RELEASE=14")
             elif key == "ID":
-                # ID = BUILD_ID Alias
                 bid = pif_data.get("BUILD_ID", "")
                 if bid:
                     prop_lines.append(f"ID={bid}")
 
-        # System Properties (für das PIF-Modul)
         prop_lines.extend([
             "",
             "# System Properties",
@@ -587,13 +676,12 @@ class BridgeInjector:
             f"*api_level={pif_data.get('DEVICE_INITIAL_SDK_INT', '30')}",
         ])
 
-        # Advanced Settings
         prop_lines.extend([
             "",
             "# Advanced Settings",
             "spoofBuild=1",
             "spoofProps=1",
-            "spoofProvider=0",
+            "spoofProvider=1",
             "spoofSignature=0",
             "spoofVendingFinger=0",
             "spoofVendingSdk=0",
@@ -601,8 +689,19 @@ class BridgeInjector:
         ])
 
         prop_content = "\n".join(prop_lines) + "\n"
+        return await self._push_pif_prop(prop_content, source="PIF_SPOOF_POOL")
 
-        # Lokale temp-Datei schreiben + Push
+    async def _push_pif_prop(self, prop_content: str, source: str) -> bool:
+        """
+        Pusht den generierten PIF-Prop-Inhalt auf das Gerät.
+
+        Args:
+            prop_content: Vollständiger Inhalt der custom.pif.prop
+            source: Quellbezeichnung für Logging (z.B. "autopif4-canary")
+
+        Returns:
+            True wenn erfolgreich
+        """
         tmp_file = None
         try:
             tmp_file = tempfile.NamedTemporaryFile(
@@ -618,38 +717,33 @@ class BridgeInjector:
             local_path = tmp_file.name
             staging_path = "/data/local/tmp/.pif_staging.prop"
 
-            # Push nach /data/local/tmp/
             await self._adb.push(local_path, staging_path)
 
-            # Root: Kopiere nach PIF Modul-Ordner
             await self._adb.shell(
                 f"cp {staging_path} {PIF_JSON_PATH}",
                 root=True, check=True,
             )
 
-            # Permissions: 644
             await self._adb.shell(
                 f"chmod 644 {PIF_JSON_PATH}", root=True,
             )
 
-            # Staging aufräumen
             await self._adb.shell(
                 f"rm -f {staging_path}", root=True,
             )
 
-            # Alte pif.json aufräumen (Legacy-Datei die niemand liest)
             await self._adb.shell(
                 "rm -f /data/adb/pif.json", root=True,
             )
 
             logger.info(
-                "PIF Injection v4.1 OK: %s → %s",
-                pif_data["FINGERPRINT"][:40] + "...", PIF_JSON_PATH,
+                "PIF v5.0 OK [%s]: custom.pif.prop → %s",
+                source, PIF_JSON_PATH,
             )
             return True
 
         except (ADBError, ADBTimeoutError) as e:
-            logger.error("PIF Injection fehlgeschlagen: %s", e)
+            logger.error("PIF Push fehlgeschlagen [%s]: %s", source, e)
             return False
 
         finally:

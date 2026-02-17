@@ -333,6 +333,16 @@ async def update_profile(profile_id: int, req: VaultUpdateRequest):
         if cursor.rowcount == 0:
             raise HTTPException(status_code=404, detail=f"Profil #{profile_id} nicht gefunden")
 
+        # Name-Sync: Wenn der Profilname geändert wird, auch die verknüpfte
+        # Identity umbenennen, damit Dashboard und Vault synchron bleiben.
+        if "name" in updates:
+            await conn.execute(
+                """UPDATE identities SET name = ?, updated_at = ?
+                   WHERE id = (SELECT identity_id FROM profiles WHERE id = ?)""",
+                (updates["name"], updates["updated_at"], profile_id),
+            )
+            logger.info("Identity für Profil #%d ebenfalls umbenannt → '%s'", profile_id, updates["name"])
+
     logger.info("Profil #%d aktualisiert: %s", profile_id, list(updates.keys()))
     return {"id": profile_id, "updated": list(updates.keys()), "message": "Profil aktualisiert."}
 

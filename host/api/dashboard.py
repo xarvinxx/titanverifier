@@ -393,7 +393,13 @@ async def list_identities():
                        i.last_audit_score, i.last_audit_at, i.total_audits, i.usage_count,
                        p.id          AS profile_id,
                        p.status      AS profile_status,
-                       p.name        AS profile_name
+                       p.name        AS profile_name,
+                       p.backup_status,
+                       p.backup_created_at,
+                       p.gms_backup_status,
+                       p.gms_backup_at,
+                       p.accounts_backup_status,
+                       p.accounts_backup_at
                    FROM identities i
                    INNER JOIN profiles p ON p.identity_id = i.id
                        AND p.status != 'archived'

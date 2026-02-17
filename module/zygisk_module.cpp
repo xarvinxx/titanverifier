@@ -282,21 +282,13 @@ static unsigned char g_spoofedMacBytes[6] = {0};
 static bool g_macParsed = false;
 
 // ==============================================================================
-// FIX-30: Dynamic Build Prop Buffers (Forward-Declarations)
-// Befüllt von loadBridgeFromFile(), genutzt von Hook-Funktionen weiter unten.
+// FIX-30 REVERTED: Build-Prop-Spoofing ENTFERNT (v5.1)
+// GRUND: Unser Modul hat ro.build.fingerprint etc. mit Identity-Werten
+//        überschrieben, was PIF's Canary-Fingerprint blockiert hat.
+//        → Basic Integrity ging verloren.
+// LÖSUNG: Build-Properties gehören AUSSCHLIESSLICH dem PIF-Modul.
+//         Unser Modul spooft NUR Hardware-IDs (Serial, IMEI, MAC, etc.)
 // ==============================================================================
-#define DYN_BUILD_BUF_LG 320
-#define DYN_BUILD_BUF_SM  64
-
-static char g_dynBuildId[DYN_BUILD_BUF_SM]          = {};
-static char g_dynBuildFingerprint[DYN_BUILD_BUF_LG] = {};
-static char g_dynSecurityPatch[DYN_BUILD_BUF_SM]    = {};
-static char g_dynBuildIncremental[DYN_BUILD_BUF_SM]  = {};
-static char g_dynBuildDescription[DYN_BUILD_BUF_LG] = {};
-static char g_dynBootimgFingerprint[DYN_BUILD_BUF_LG]  = {};
-static char g_dynVendorFingerprint[DYN_BUILD_BUF_LG]   = {};
-static char g_dynOdmFingerprint[DYN_BUILD_BUF_LG]      = {};
-static char g_dynSystemFingerprint[DYN_BUILD_BUF_LG]   = {};
 
 // ==============================================================================
 // Helpers
@@ -389,54 +381,16 @@ static bool loadBridgeFromFile(const char* path) {
                     LOGI("[HW] Debug-Hook-Mode AKTIVIERT — alle Hook-Calls werden geloggt");
                 }
             }
-            // FIX-30: Dynamic Build Props aus Bridge
-            else if (strcmp(key, "build_id") == 0) {
-                strncpy(g_dynBuildId, value, DYN_BUILD_BUF_SM - 1);
-                foundAny = true;
-                LOGI("[HW] Bridge build_id: %s", value);
-            }
-            else if (strcmp(key, "build_fingerprint") == 0) {
-                strncpy(g_dynBuildFingerprint, value, DYN_BUILD_BUF_LG - 1);
-                // Alle Partition-Fingerprints konsistent setzen
-                strncpy(g_dynBootimgFingerprint, value, DYN_BUILD_BUF_LG - 1);
-                strncpy(g_dynVendorFingerprint, value, DYN_BUILD_BUF_LG - 1);
-                strncpy(g_dynOdmFingerprint, value, DYN_BUILD_BUF_LG - 1);
-                strncpy(g_dynSystemFingerprint, value, DYN_BUILD_BUF_LG - 1);
-                foundAny = true;
-                LOGI("[HW] Bridge build_fingerprint: %.40s...", value);
-            }
-            else if (strcmp(key, "security_patch") == 0) {
-                strncpy(g_dynSecurityPatch, value, DYN_BUILD_BUF_SM - 1);
-                foundAny = true;
-                LOGI("[HW] Bridge security_patch: %s", value);
-            }
-            else if (strcmp(key, "build_incremental") == 0) {
-                strncpy(g_dynBuildIncremental, value, DYN_BUILD_BUF_SM - 1);
-                foundAny = true;
-            }
-            else if (strcmp(key, "build_description") == 0) {
-                strncpy(g_dynBuildDescription, value, DYN_BUILD_BUF_LG - 1);
-                foundAny = true;
+            // v5.1: build_* Felder werden IGNORIERT — PIF hat exklusive Kontrolle
+            // über ro.build.fingerprint, ro.build.id, security_patch etc.
+            else if (strcmp(key, "build_id") == 0 ||
+                     strcmp(key, "build_fingerprint") == 0 ||
+                     strcmp(key, "security_patch") == 0 ||
+                     strcmp(key, "build_incremental") == 0 ||
+                     strcmp(key, "build_description") == 0) {
+                LOGI("[HW] Bridge %s: IGNORIERT (PIF-exklusiv)", key);
             }
         }
-    }
-    
-    // FIX-30: Auto-derive fehlende Build-Felder aus vorhandenen
-    if (g_dynBuildId[0] && !g_dynBuildDescription[0]) {
-        // Konstruiere Description: "oriole-user 14 {build_id} {incremental} release-keys"
-        const char* inc = g_dynBuildIncremental[0] ? g_dynBuildIncremental : "12298734";
-        snprintf(g_dynBuildDescription, DYN_BUILD_BUF_LG,
-                 "oriole-user 14 %s %s release-keys", g_dynBuildId, inc);
-    }
-    if (g_dynBuildId[0] && !g_dynBuildFingerprint[0]) {
-        // Konstruiere Fingerprint: "google/oriole/oriole:14/{build_id}/{incremental}:user/release-keys"
-        const char* inc = g_dynBuildIncremental[0] ? g_dynBuildIncremental : "12298734";
-        snprintf(g_dynBuildFingerprint, DYN_BUILD_BUF_LG,
-                 "google/oriole/oriole:14/%s/%s:user/release-keys", g_dynBuildId, inc);
-        strncpy(g_dynBootimgFingerprint, g_dynBuildFingerprint, DYN_BUILD_BUF_LG - 1);
-        strncpy(g_dynVendorFingerprint, g_dynBuildFingerprint, DYN_BUILD_BUF_LG - 1);
-        strncpy(g_dynOdmFingerprint, g_dynBuildFingerprint, DYN_BUILD_BUF_LG - 1);
-        strncpy(g_dynSystemFingerprint, g_dynBuildFingerprint, DYN_BUILD_BUF_LG - 1);
     }
     
     return foundAny;
@@ -727,41 +681,13 @@ struct PropertyOverride {
 
 // =============================================================================
 // FIX-30: Dynamic Build Props — Lookup-Tabelle + Hilfsfunktion
-// Buffer sind weiter oben im State-Abschnitt deklariert.
+// v5.1: DYN_BUILD_OVERRIDES komplett ENTFERNT.
+// Build-Properties werden NICHT mehr von unserem Modul gespooft.
+// PIF (PlayIntegrityFix) hat EXKLUSIVE Kontrolle über:
+//   ro.build.fingerprint, ro.build.id, ro.build.description,
+//   ro.build.version.security_patch, ro.build.version.incremental,
+//   ro.bootimage/vendor/odm/system.build.fingerprint
 // =============================================================================
-
-// Mapping: Property-Name → dynamischer Buffer (checked BEFORE static array)
-struct DynBuildProp {
-    const char* name;
-    const char* buf;
-};
-
-static const DynBuildProp DYN_BUILD_OVERRIDES[] = {
-    {"ro.build.display.id",                 g_dynBuildId},
-    {"ro.build.id",                         g_dynBuildId},
-    {"ro.build.fingerprint",                g_dynBuildFingerprint},
-    {"ro.build.description",                g_dynBuildDescription},
-    {"ro.build.version.security_patch",     g_dynSecurityPatch},
-    {"ro.build.version.incremental",        g_dynBuildIncremental},
-    {"ro.bootimage.build.fingerprint",      g_dynBootimgFingerprint},
-    {"ro.vendor.build.fingerprint",         g_dynVendorFingerprint},
-    {"ro.odm.build.fingerprint",            g_dynOdmFingerprint},
-    {"ro.system.build.fingerprint",         g_dynSystemFingerprint},
-    {nullptr, nullptr}
-};
-
-// Hilfsfunktion: Prüft dynamische Overrides vor statischem Array
-static const char* getDynBuildOverride(const char* propName) {
-    for (int i = 0; DYN_BUILD_OVERRIDES[i].name != nullptr; i++) {
-        if (strcmp(propName, DYN_BUILD_OVERRIDES[i].name) == 0) {
-            if (DYN_BUILD_OVERRIDES[i].buf[0] != '\0') {
-                return DYN_BUILD_OVERRIDES[i].buf;
-            }
-            break;
-        }
-    }
-    return nullptr;
-}
 
 // Statische Pixel 6 Defaults (Fallback wenn Bridge keinen Build-Wert hat)
 static const PropertyOverride PIXEL6_BUILD_PROPS[] = {
@@ -793,37 +719,30 @@ static const PropertyOverride PIXEL6_BUILD_PROPS[] = {
     {"ro.product.odm.name",                "oriole"},
     {"ro.product.first_api_level",          "31"},
     
-    // Build Properties (FALLBACK — werden von Bridge überschrieben!)
-    {"ro.build.display.id",                 "AP2A.241005.015"},
-    {"ro.build.description",                "oriole-user 14 AP2A.241005.015 12298734 release-keys"},
-    {"ro.build.fingerprint",                "google/oriole/oriole:14/AP2A.241005.015/12298734:user/release-keys"},
+    // v5.1: Build-spezifische Properties ENTFERNT (PIF-exklusiv)
+    // Folgende Props werden NICHT mehr gespooft (PIF kontrolliert sie):
+    //   ro.build.display.id, ro.build.description, ro.build.fingerprint,
+    //   ro.build.id, ro.build.version.security_patch,
+    //   ro.build.version.incremental
+    //
+    // Wir behalten NUR generische Build-Metadaten die zum Gerätetyp gehören:
     {"ro.build.product",                    "oriole"},
     {"ro.build.type",                       "user"},
     {"ro.build.tags",                       "release-keys"},
-    {"ro.build.id",                         "AP2A.241005.015"},
     {"ro.build.flavor",                     "oriole-user"},
-    {"ro.build.host",                       "abfarm-release-rbe-64-00044"},
-    {"ro.build.user",                       "android-build"},
     
-    // Build Versions (FALLBACK — security_patch + incremental aus Bridge!)
+    // SDK/Release Version (Geräte-Konstante, NICHT build-spezifisch)
     {"ro.build.version.sdk",                "34"},
     {"ro.build.version.release",            "14"},
     {"ro.build.version.release_or_codename","14"},
-    {"ro.build.version.security_patch",     "2024-10-05"},
-    {"ro.build.version.incremental",        "12298734"},
     {"ro.build.version.codename",           "REL"},
-    {"ro.build.version.base_os",            ""},
-    {"ro.build.version.preview_sdk",        "0"},
     
     // SoC
     {"ro.soc.manufacturer",                 "Google"},
     {"ro.soc.model",                        "Tensor"},
     
-    // Partition Fingerprints (FALLBACK — werden von Bridge überschrieben!)
-    {"ro.bootimage.build.fingerprint",      "google/oriole/oriole:14/AP2A.241005.015/12298734:user/release-keys"},
-    {"ro.vendor.build.fingerprint",         "google/oriole/oriole:14/AP2A.241005.015/12298734:user/release-keys"},
-    {"ro.odm.build.fingerprint",            "google/oriole/oriole:14/AP2A.241005.015/12298734:user/release-keys"},
-    {"ro.system.build.fingerprint",         "google/oriole/oriole:14/AP2A.241005.015/12298734:user/release-keys"},
+    // v5.1: Partition Fingerprints ENTFERNT (PIF-exklusiv)
+    // ro.bootimage/vendor/odm/system.build.fingerprint → PIF kontrolliert
     
     // Sentinel
     {nullptr, nullptr}
@@ -891,19 +810,9 @@ static int _hooked_system_property_get(const char* name, char* value) {
         if (spoofed[0]) { strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value); }
     }
     
-    // --- Build Properties ---
-    // FIX-30: Dynamische Bridge-Werte haben Vorrang vor statischen Defaults
-    const char* dynOverride = getDynBuildOverride(name);
-    if (dynOverride) {
-        size_t len = strlen(dynOverride);
-        if (len > 91) len = 91;
-        memcpy(value, dynOverride, len);
-        value[len] = '\0';
-        if (g_debugHooks.load()) LOGI("[HOOK] %s → Dynamic Build: %s", name, value);
-        return (int)len;
-    }
-    
-    // Statisches Fallback-Array (Geräte-Konstanten + Default-Builds)
+    // --- Device Properties (Gerätetyp-Konstanten, KEINE Build-Fingerprints) ---
+    // v5.1: Dynamische Build-Overrides ENTFERNT (PIF-exklusiv).
+    // Nur noch Product-Props (Pixel 6 Hardware-Identität) werden gespooft.
     for (int i = 0; PIXEL6_BUILD_PROPS[i].name != nullptr; i++) {
         if (strcmp(name, PIXEL6_BUILD_PROPS[i].name) == 0) {
             const char* override = PIXEL6_BUILD_PROPS[i].value;
@@ -1781,17 +1690,14 @@ static void patchAllPropertiesInMemory() {
         if (patchPropertyDirect("wifi.interface.mac", buf)) patched++;
     }
     
-    // FIX-30: Build Properties — dynamische Bridge-Werte haben Vorrang
+    // v5.1: Nur noch Gerätetyp-Props patchen (KEINE Build-Fingerprints!)
     for (int i = 0; PIXEL6_BUILD_PROPS[i].name != nullptr; i++) {
-        const char* dynVal = getDynBuildOverride(PIXEL6_BUILD_PROPS[i].name);
-        const char* finalVal = dynVal ? dynVal : PIXEL6_BUILD_PROPS[i].value;
-        if (patchPropertyDirect(PIXEL6_BUILD_PROPS[i].name, finalVal)) {
+        if (patchPropertyDirect(PIXEL6_BUILD_PROPS[i].name, PIXEL6_BUILD_PROPS[i].value)) {
             patched++;
         }
     }
     
-    LOGI("[MEM] Direct memory patched: %d properties (dynamic build: %s)",
-         patched, g_dynBuildId[0] ? g_dynBuildId : "FALLBACK");
+    LOGI("[MEM] Direct memory patched: %d properties (v5.1: no build fingerprints)", patched);
 }
 
 // ==============================================================================
@@ -1850,17 +1756,11 @@ static void _hooked_prop_read_callback(
         hw.getWifiMac(spoofed, sizeof(spoofed));
         if (spoofed[0]) overrideVal = spoofed;
     } else {
-        // FIX-30: Dynamische Bridge-Werte zuerst prüfen
-        const char* dynVal = getDynBuildOverride(captured.name);
-        if (dynVal) {
-            overrideVal = dynVal;
-        } else {
-            // Statisches Fallback-Array
-            for (int i = 0; PIXEL6_BUILD_PROPS[i].name != nullptr; i++) {
-                if (strcmp(captured.name, PIXEL6_BUILD_PROPS[i].name) == 0) {
-                    overrideVal = PIXEL6_BUILD_PROPS[i].value;
-                    break;
-                }
+        // v5.1: Nur Gerätetyp-Props (KEINE Build-Fingerprints)
+        for (int i = 0; PIXEL6_BUILD_PROPS[i].name != nullptr; i++) {
+            if (strcmp(captured.name, PIXEL6_BUILD_PROPS[i].name) == 0) {
+                overrideVal = PIXEL6_BUILD_PROPS[i].value;
+                break;
             }
         }
     }
@@ -1919,17 +1819,7 @@ static int _hooked_system_property_read(const void* pi, char* name, char* value)
         if (spoofed[0]) { strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value); }
     }
     
-    // FIX-30: Dynamische Bridge-Werte zuerst prüfen
-    const char* dynVal = getDynBuildOverride(name);
-    if (dynVal) {
-        size_t len = strlen(dynVal);
-        if (len > 91) len = 91;
-        memcpy(value, dynVal, len);
-        value[len] = '\0';
-        return (int)len;
-    }
-    
-    // Statisches Fallback-Array
+    // v5.1: Nur Gerätetyp-Props (KEINE Build-Fingerprints — PIF-exklusiv)
     for (int i = 0; PIXEL6_BUILD_PROPS[i].name != nullptr; i++) {
         if (strcmp(name, PIXEL6_BUILD_PROPS[i].name) == 0) {
             const char* override = PIXEL6_BUILD_PROPS[i].value;

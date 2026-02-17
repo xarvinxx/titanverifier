@@ -201,6 +201,11 @@ class IdentityBridge(BaseModel):
         "last_audit_score", "last_audit_at", "last_audit_detail",
         "total_audits",
         "created_at", "updated_at", "last_used_at", "usage_count",
+        # v5.1: Build-Properties NICHT in Bridge schreiben!
+        # PIF hat exklusive Kontrolle — unser Zygisk-Modul darf
+        # ro.build.fingerprint etc. NICHT spooven (blockiert PIF → kein BASIC)
+        "build_id", "build_fingerprint", "build_description",
+        "build_incremental", "security_patch",
     }
 
     def to_bridge_string(self, label: str = "") -> str:
@@ -212,9 +217,9 @@ class IdentityBridge(BaseModel):
             - Leerzeilen werden ignoriert
             - Format: key=value (kein Whitespace um =)
 
-        WICHTIG: Nur Hardware-Identitäts-Felder + Build-Info werden
-        geschrieben. DB-Metadaten (id, name, status, timestamps, etc.)
-        werden EXPLIZIT ausgeschlossen, da sie:
+        WICHTIG: Nur Hardware-Identitäts-Felder werden geschrieben.
+        Build-Properties (fingerprint, id, patch) und DB-Metadaten
+        werden EXPLIZIT ausgeschlossen, da:
           1. Die C++/Kotlin Parser verwirren können
           2. Forensische Spuren hinterlassen (Timestamps, Audit-Daten)
           3. Nicht von den Hooks benötigt werden

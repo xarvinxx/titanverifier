@@ -19,12 +19,13 @@ Zwingender Ablauf (11 Schritte — v6.0 Zygote-First):
   10. CAPTURE STATE  — Golden Baseline (GMS + Accounts sichern)
   11. AUDIT          — Full Device-Audit + Account-Check
 
-v6.0 — "Zygote-First" + "GMS-Schutz" Architektur:
-  Inject → Reboot → GMS-Readiness → Capture. Das System bootet
-  unter der neuen Identität bevor GMS-State gecaptured wird.
+v6.1 — "Zygote-First" + "GMS-Schutz" + "PIF-Inject" Architektur:
+  Inject (Bridge + PIF) → Reboot → DG-Sanitize → GMS-Readiness → Capture.
+  Das System bootet unter der neuen Identität bevor GMS-State gecaptured wird.
   
   GMS/GSF/Vending werden NIEMALS gelöscht (Trust-Chain intakt).
-  DroidGuard-Cache wird bei Switch-Restores automatisch sanitized.
+  DroidGuard-Cache (dg.db) wird nach JEDEM Reboot gelöscht (Neu-Attestierung).
+  PIF custom.pif.prop wird bei jedem Flow frisch generiert (BASIC_INTEGRITY).
   TikTok Instance-IDs werden bei Restores automatisch entfernt.
 
 DB-Tracking:
@@ -399,8 +400,21 @@ class GenesisFlow:
             logger.info("[6/11] Inject: Bridge-Datei schreiben...")
             await self._injector.inject(identity, label=name, distribute=True)
 
-            # 6b. PIF: von KSU-Modul verwaltet
-            logger.info("[6/11] PIF: Übersprungen (v4.1 — von KSU PlayIntegrityFix verwaltet)")
+            # 6b. PIF: custom.pif.prop generieren + pushen
+            # KRITISCH für MEETS_BASIC_INTEGRITY!
+            # TrickyStore liefert DEVICE_INTEGRITY (Hardware-Keybox),
+            # aber BASIC_INTEGRITY braucht einen gültigen Software-Fingerprint.
+            # Ohne custom.pif.prop → nur DEVICE, kein BASIC!
+            logger.info("[6/11] PIF v5.0: autopif4-First Strategie (BASIC_INTEGRITY)...")
+            pif_ok = False
+            try:
+                pif_ok = await self._injector.inject_pif_fingerprint()
+                if pif_ok:
+                    logger.info("[6/11] PIF: custom.pif.prop erfolgreich gepusht")
+                else:
+                    logger.warning("[6/11] PIF: Injection fehlgeschlagen — BASIC_INTEGRITY gefährdet!")
+            except Exception as e:
+                logger.warning("[6/11] PIF Fehler (nicht-kritisch): %s", e)
 
             # 6c. Namespace-Nuke: DEAKTIVIERT (v4.0 — GMS-Schutz)
             logger.info("[6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)")
@@ -409,7 +423,7 @@ class GenesisFlow:
             await self._injector.remove_kill_switch()
 
             step.status = FlowStepStatus.SUCCESS
-            step.detail = "Bridge + Kill-Switch entfernt (PIF=KSU, Nuke=SKIP)"
+            step.detail = f"Bridge + Kill-Switch entfernt | PIF={'OK' if pif_ok else 'FAIL'}"
             step.duration_ms = _now_ms() - step_start
             logger.info("[6/11] Inject: OK (%s)", step.detail)
 
@@ -600,6 +614,34 @@ class GenesisFlow:
             step.detail = f"Boot + Popup-Hammer + Unlock in {boot_secs:.1f}s"
             step.duration_ms = _now_ms() - step_start
             logger.info("[7/11] Hard Reset: OK (%s)", step.detail)
+
+            # =================================================================
+            # Schritt 7b: DROIDGUARD SANITIZE + GMS FORCE-RESTART
+            # =================================================================
+            # KRITISCH: Nach dem Reboot mit neuer Identity enthält die
+            # DroidGuard-DB (dg.db) noch gecachte Attestierungs-Tokens
+            # der ALTEN Identity. Google erkennt den Hardware-Mismatch
+            # und degradiert Play Integrity (nur DEVICE, kein BASIC).
+            #
+            # Lösung: dg.db + app_dg_cache löschen → GMS force-stop →
+            # GMS startet neu und attestiert FRISCH gegen die neue Identity.
+            # =================================================================
+            logger.info("[7b/11] DroidGuard Sanitize: Stale Attestierungs-Tokens löschen...")
+            try:
+                dg_cleaned = await self._shifter._sanitize_droidguard()
+                if dg_cleaned:
+                    logger.info("[7b/11] DroidGuard-Cache gelöscht — erzwinge GMS-Neustart...")
+                    # GMS force-stop → startet automatisch neu mit frischen Tokens
+                    await self._adb.shell(
+                        "am force-stop com.google.android.gms", root=True, timeout=10,
+                    )
+                    # Kurz warten bis GMS sich selbst neu startet
+                    await asyncio.sleep(5)
+                    logger.info("[7b/11] GMS neu gestartet — frische Attestierung eingeleitet")
+                else:
+                    logger.debug("[7b/11] Kein DroidGuard-Cache vorhanden (sauberer Zustand)")
+            except Exception as e:
+                logger.warning("[7b/11] DroidGuard Sanitize fehlgeschlagen (nicht-kritisch): %s", e)
 
             # =================================================================
             # Schritt 8: NETWORK INIT (Flugmodus AUS + neue IP)

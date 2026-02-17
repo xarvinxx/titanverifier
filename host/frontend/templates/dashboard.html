@@ -314,13 +314,14 @@
                                 <th class="px-4 py-2 font-medium">ID</th>
                                 <th class="px-4 py-2 font-medium">Name</th>
                                 <th class="px-4 py-2 font-medium">Status</th>
+                                <th class="px-4 py-2 font-medium">Backups</th>
                                 <th class="px-4 py-2 font-medium">IP</th>
                                 <th class="px-4 py-2 font-medium text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody id="vault-body" class="divide-y divide-gray-800/50">
                             <tr>
-                                <td colspan="5" class="px-4 py-6 text-center text-gray-600 text-sm">
+                                <td colspan="6" class="px-4 py-6 text-center text-gray-600 text-sm">
                                     Keine Identitäten im Vault
                                 </td>
                             </tr>
@@ -877,26 +878,37 @@
                 identities.map(id => {
                     const ds = id.profile_status || id.status;
                     const isActive = ds === 'active';
+                    const displayName = id.profile_name || id.name;
                     return `<option value="${id.id}" ${isActive ? 'class="text-green-400"' : ''}>`
-                        + `#${id.id} — ${escapeHtml(id.name)}`
+                        + `#${id.id} — ${escapeHtml(displayName)}`
                         + (isActive ? ' (aktiv)' : '')
                         + `</option>`;
                 }).join('');
             if (prevVal) sel.value = prevVal;
 
             if (identities.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-6 text-center text-gray-600 text-sm">Keine Identitäten im Vault</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-gray-600 text-sm">Keine Identitäten im Vault</td></tr>';
                 return;
             }
 
             tbody.innerHTML = identities.map(id => {
                 const displayStatus = id.profile_status || id.status;
                 const isActive = displayStatus === 'active';
+                const displayName = id.profile_name || id.name;
+
+                // Backup-Badges
+                const bkps = [];
+                if (id.backup_status === 'valid') bkps.push('<span class="px-1 py-0.5 rounded text-[9px] bg-pink-500/10 text-pink-400 border border-pink-500/30">TT</span>');
+                if (id.gms_backup_status === 'valid') bkps.push('<span class="px-1 py-0.5 rounded text-[9px] bg-blue-500/10 text-blue-400 border border-blue-500/30">GMS</span>');
+                if (id.accounts_backup_status === 'valid') bkps.push('<span class="px-1 py-0.5 rounded text-[9px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">ACC</span>');
+                const bkpStr = bkps.length > 0 ? bkps.join(' ') : '<span class="text-gray-600 text-[10px]">none</span>';
+
                 return `
                 <tr class="hover:bg-gray-800/30 transition-colors group cursor-pointer" onclick="openIdentityDetail(${id.id})">
                     <td class="px-4 py-2 font-mono text-xs text-gray-500">#${id.id}</td>
-                    <td class="px-4 py-2 font-medium text-gray-200 text-xs">${escapeHtml(id.name)}</td>
+                    <td class="px-4 py-2 font-medium text-gray-200 text-xs">${escapeHtml(displayName)}</td>
                     <td class="px-4 py-2">${statusBadge(displayStatus)}</td>
+                    <td class="px-4 py-2">${bkpStr}</td>
                     <td class="px-4 py-2 font-mono text-xs text-gray-500">${id.last_public_ip || '—'}</td>
                     <td class="px-4 py-2 text-right">
                         <button onclick="event.stopPropagation(); quickSwitch(${id.id})"
@@ -1590,6 +1602,10 @@
         // Periodisches Refresh (adaptiv: schneller wenn Flow aktiv)
         let statsPollHandle = setInterval(refreshStats, POLL_INTERVAL_MS);
         setInterval(updateClock, 1000);
+
+        // Vault + Flow-History periodisch aktualisieren (15s)
+        // Damit Name-Änderungen und Backup-Status synchron bleiben
+        setInterval(() => { loadVault(); loadFlowHistory(); }, 15000);
 
         // Adaptiver Poll: Wenn ein Flow startet/stoppt, Interval anpassen
         window._adjustPollRate = function(flowActive) {

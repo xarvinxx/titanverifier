@@ -407,11 +407,16 @@ def get_bridge_fields(identity: Dict) -> Dict[str, str]:
     """
     Extrahiert die Bridge-relevanten Felder (keine internen Metadaten).
 
-    FIX-30: build_id, build_fingerprint, security_patch, build_incremental,
-    build_description werden EINGESCHLOSSEN — das Zygisk-Modul braucht sie
-    für dynamische Build-Props pro Identität.
+    v5.1: build_id, build_fingerprint, security_patch, build_incremental,
+    build_description werden AUSGESCHLOSSEN — PIF hat exklusive Kontrolle
+    über Build-Properties. Unser Zygisk-Modul darf diese NICHT spooven,
+    da es sonst PIF's Canary-Fingerprint überschreibt → kein BASIC_INTEGRITY.
     """
-    skip_keys = {"_name", "_created", "_carrier", "_build"}
+    skip_keys = {
+        "_name", "_created", "_carrier", "_build",
+        "build_id", "build_fingerprint", "build_description",
+        "build_incremental", "security_patch",
+    }
     return {k: v for k, v in identity.items() if k not in skip_keys}
 
 

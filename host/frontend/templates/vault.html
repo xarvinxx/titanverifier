@@ -1420,6 +1420,10 @@
         setInterval(updateClock, 1000);
         setInterval(refreshHeaderStatus, 5000);
         setInterval(pollFlowForHeader, 3000);
+
+        // Auto-Refresh: Profile alle 10s aktualisieren
+        // Damit Backup-Status, Name-Änderungen etc. synchron bleiben
+        setInterval(loadProfiles, 10000);
     });
 
     document.addEventListener('keydown', (e) => {

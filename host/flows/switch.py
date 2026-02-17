@@ -27,7 +27,8 @@ v6.0 — "Zygote-First" Architektur:
   alten ID auf die neuen Daten → Shadowban.
 
   Zusätzlich:
-  - DroidGuard-Cache (dg.db) wird nach GMS-Restore gelöscht
+  - PIF custom.pif.prop wird bei jedem Switch frisch generiert (BASIC_INTEGRITY)
+  - DroidGuard-Cache (dg.db) wird nach GMS-Restore gelöscht (Neu-Attestierung)
   - TikTok Instance-IDs (install_id, client_udid) werden sanitized
   - Dynamisches GMS-Readiness-Polling statt statischer Wartezeiten
   - Google-Account Verifikation nach Restore
@@ -360,6 +361,17 @@ class SwitchFlow:
                 identity, label=identity.name, distribute=True,
             )
 
+            # PIF v5.0: autopif4-First Strategie (BASIC_INTEGRITY)
+            pif_ok = False
+            try:
+                pif_ok = await self._injector.inject_pif_fingerprint()
+                if pif_ok:
+                    logger.info("[4/10] PIF v5.0: custom.pif.prop OK (autopif4-First)")
+                else:
+                    logger.warning("[4/10] PIF: Injection fehlgeschlagen — BASIC_INTEGRITY gefährdet!")
+            except Exception as e:
+                logger.warning("[4/10] PIF Fehler (nicht-kritisch): %s", e)
+
             await self._activate_identity(identity_id)
             try:
                 await increment_identity_usage(identity_id)
@@ -367,7 +379,7 @@ class SwitchFlow:
                 logger.warning("Usage-Counter Update fehlgeschlagen: %s", e)
 
             step.status = FlowStepStatus.SUCCESS
-            step.detail = f"serial={identity.serial} | PIF=KSU"
+            step.detail = f"serial={identity.serial} | PIF={'OK' if pif_ok else 'FAIL'}"
             step.duration_ms = _now_ms() - step_start
             logger.info("[4/10] Inject: OK (%s)", step.detail)
 
@@ -485,8 +497,21 @@ class SwitchFlow:
                     step.detail = f"State Restore Fehler: {e}"
                     logger.warning("[7/10] State Restore Fehler: %s", e)
             else:
+                # Legacy-Modus: Kein GMS-Restore, aber DroidGuard trotzdem
+                # bereinigen! Die alten Attestierungs-Tokens passen nicht
+                # zur neuen Identity → BASIC_INTEGRITY degradiert.
+                logger.info("[7/10] Legacy-Modus — DroidGuard Sanitize als Safety-Net...")
+                try:
+                    await self._shifter._sanitize_droidguard()
+                    await self._adb.shell(
+                        "am force-stop com.google.android.gms", root=True, timeout=10,
+                    )
+                    logger.info("[7/10] DroidGuard gelöscht + GMS neu gestartet")
+                except Exception as e:
+                    logger.warning("[7/10] DroidGuard Sanitize fehlgeschlagen: %s", e)
+
                 step.status = FlowStepStatus.SKIPPED
-                step.detail = "Legacy-Modus — kein Full-State Restore"
+                step.detail = "Legacy-Modus — kein Full-State Restore (DG sanitized)"
 
             step.duration_ms = _now_ms() - step_start
 

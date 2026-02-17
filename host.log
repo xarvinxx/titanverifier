@@ -3362,3 +3362,103 @@ sqlite3.DatabaseError: database disk image is malformed
 2026-02-17 09:12:52 [host.main] INFO: Shutdown: Schliesse Datenbank...
 2026-02-17 09:12:52 [host.database] INFO: Datenbank geschlossen.
 2026-02-17 09:12:52 [host.main] INFO: Command Center gestoppt.
+2026-02-17 21:07:40 [host.main] INFO: ============================================================
+2026-02-17 21:07:40 [host.main] INFO:   Device Manager v1.0.0
+2026-02-17 21:07:40 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 21:07:40 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-17 21:07:40 [host.main] INFO: ============================================================
+2026-02-17 21:07:40 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-17 21:07:40 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-17 21:07:40 [host.main] INFO: Command Center bereit.
+2026-02-17 21:07:56 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=60792)
+2026-02-18 00:02:44 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=60792)
+2026-02-18 00:02:44 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 00:02:44 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 00:02:44 [host.main] INFO: Command Center gestoppt.
+2026-02-18 00:02:44 [host.main] INFO: ============================================================
+2026-02-18 00:02:44 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 00:02:44 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 00:02:44 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 00:02:44 [host.main] INFO: ============================================================
+2026-02-18 00:02:44 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 00:02:44 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 00:02:44 [host.main] INFO: Command Center bereit.
+2026-02-18 00:02:47 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52192)
+2026-02-18 00:03:02 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=52192)
+2026-02-18 00:03:02 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 00:03:02 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 00:03:02 [host.main] INFO: Command Center gestoppt.
+2026-02-18 00:03:02 [host.main] INFO: ============================================================
+2026-02-18 00:03:02 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 00:03:02 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 00:03:02 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 00:03:02 [host.main] INFO: ============================================================
+2026-02-18 00:03:02 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 00:03:02 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 00:03:02 [host.main] INFO: Command Center bereit.
+2026-02-18 00:03:05 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52195)
+2026-02-18 00:03:31 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=52195)
+2026-02-18 00:03:31 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 00:03:31 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 00:03:31 [host.main] INFO: Command Center gestoppt.
+2026-02-18 00:03:32 [host.main] INFO: ============================================================
+2026-02-18 00:03:32 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 00:03:32 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 00:03:32 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 00:03:32 [host.main] INFO: ============================================================
+2026-02-18 00:03:32 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 00:03:32 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 00:03:32 [host.main] INFO: Command Center bereit.
+2026-02-18 00:03:35 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52222)
+2026-02-18 00:03:57 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=52222)
+2026-02-18 00:03:57 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 00:03:57 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 00:03:57 [host.main] INFO: Command Center gestoppt.
+2026-02-18 00:03:58 [host.main] INFO: ============================================================
+2026-02-18 00:03:58 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 00:03:58 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 00:03:58 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 00:03:58 [host.main] INFO: ============================================================
+2026-02-18 00:03:58 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 00:03:58 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 00:03:58 [host.main] INFO: Command Center bereit.
+2026-02-18 00:04:01 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52228)
+2026-02-18 00:04:08 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=52228)
+2026-02-18 00:04:08 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 00:04:08 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 00:04:08 [host.main] INFO: Command Center gestoppt.
+2026-02-18 00:04:09 [host.main] INFO: ============================================================
+2026-02-18 00:04:09 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 00:04:09 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 00:04:09 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 00:04:09 [host.main] INFO: ============================================================
+2026-02-18 00:04:09 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 00:04:09 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 00:04:09 [host.main] INFO: Command Center bereit.
+2026-02-18 00:04:11 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52231)
+2026-02-18 00:04:17 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=52231)
+2026-02-18 00:04:17 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 00:04:17 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 00:04:17 [host.main] INFO: Command Center gestoppt.
+2026-02-18 00:04:18 [host.main] INFO: ============================================================
+2026-02-18 00:04:18 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 00:04:18 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 00:04:18 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 00:04:18 [host.main] INFO: ============================================================
+2026-02-18 00:04:18 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 00:04:18 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 00:04:18 [host.main] INFO: Command Center bereit.
+2026-02-18 00:04:20 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52251)
+2026-02-18 00:04:22 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=52251)
+2026-02-18 00:04:22 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 00:04:22 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 00:04:22 [host.main] INFO: Command Center gestoppt.
+2026-02-18 00:04:23 [host.main] INFO: ============================================================
+2026-02-18 00:04:23 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 00:04:23 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 00:04:23 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 00:04:23 [host.main] INFO: ============================================================
+2026-02-18 00:04:23 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 00:04:23 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 00:04:23 [host.main] INFO: Command Center bereit.
+2026-02-18 00:04:26 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52257)

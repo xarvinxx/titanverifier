@@ -28,6 +28,7 @@ Mobilfunk-optimierte Timeouts (15s pro Request).
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 import socket
@@ -524,7 +525,6 @@ class NetworkChecker:
             logger.debug("[IP-Rotation] Flugmodus AN — warte %ds (Lease-Reset)...", lease_wait)
 
             # Lease-Wait (DHCP-Lease verfallen lassen)
-            import asyncio
             await asyncio.sleep(lease_wait)
 
             # Flugmodus AUS
@@ -536,6 +536,14 @@ class NetworkChecker:
                 "--ez state false",
                 root=True,
             )
+
+            # v6.2: IPv6 sofort nach Reconnect deaktivieren
+            # Muss VOR dem IP-Check passieren, damit der Carrier
+            # keine IPv6-Adresse mehr zuweist
+            try:
+                await self.disable_ipv6()
+            except Exception as e:
+                logger.debug("[IP-Rotation] IPv6-Disable Fehler (nicht-kritisch): %s", e)
 
             # IP-Cache invalidieren
             self.invalidate_ip_cache()
@@ -592,6 +600,99 @@ class NetworkChecker:
                 f"Mögliche Ursache: Carrier-Throttling oder feste IP-Zuweisung."
             ),
         )
+
+    # =========================================================================
+    # IPv6 Leak Protection — Aktive Deaktivierung
+    # =========================================================================
+
+    async def disable_ipv6(self) -> dict:
+        """
+        Deaktiviert IPv6 auf dem Gerät via sysctl (v6.2 — Tracking-Schutz).
+
+        Deutsche Mobilfunk-Carrier (O2, Telekom, Vodafone) vergeben IPv6-
+        Präfixe die über Flugmodus-Cycles hinweg STABIL bleiben. TikTok
+        nutzt bevorzugt IPv6 → der User ist trotz IPv4-Rotation
+        über sein IPv6-Präfix re-identifizierbar.
+
+        Setzt sysctl-Flags auf allen relevanten Interfaces:
+          - net.ipv6.conf.all.disable_ipv6=1        (global)
+          - net.ipv6.conf.default.disable_ipv6=1     (neue Interfaces)
+          - net.ipv6.conf.rmnet_data0.disable_ipv6=1 (Mobilfunk Qualcomm)
+          - net.ipv6.conf.rmnet_data1.disable_ipv6=1 (Mobilfunk eSIM)
+          - net.ipv6.conf.ccmni0.disable_ipv6=1      (Mobilfunk MediaTek)
+          - net.ipv6.conf.wlan0.disable_ipv6=1        (WLAN, falls aktiv)
+
+        Fehler werden ignoriert (manche Keys existieren nicht auf allen
+        Geräten), aber jeder Erfolg/Misserfolg wird geloggt.
+
+        Returns:
+            {"disabled": bool, "interfaces_ok": int, "interfaces_fail": int,
+             "detail": str}
+        """
+        import asyncio
+
+        SYSCTL_KEYS = [
+            "net.ipv6.conf.all.disable_ipv6",
+            "net.ipv6.conf.default.disable_ipv6",
+            "net.ipv6.conf.rmnet_data0.disable_ipv6",
+            "net.ipv6.conf.rmnet_data1.disable_ipv6",
+            "net.ipv6.conf.rmnet_data2.disable_ipv6",
+            "net.ipv6.conf.ccmni0.disable_ipv6",
+            "net.ipv6.conf.ccmni1.disable_ipv6",
+            "net.ipv6.conf.wlan0.disable_ipv6",
+        ]
+
+        ok_count = 0
+        fail_count = 0
+
+        for key in SYSCTL_KEYS:
+            try:
+                result = await self._adb.shell(
+                    f"sysctl -w {key}=1 2>&1",
+                    root=True, timeout=5,
+                )
+                if result.success and "= 1" in result.output:
+                    ok_count += 1
+                    logger.debug("[IPv6-Disable] %s = 1 — OK", key)
+                else:
+                    fail_count += 1
+                    logger.debug(
+                        "[IPv6-Disable] %s — Fehler: %s",
+                        key, result.output.strip()[:80],
+                    )
+            except (ADBError, Exception):
+                fail_count += 1
+
+        # Zusätzlich: Bestehende IPv6-Adressen flushen
+        try:
+            await self._adb.shell(
+                "ip -6 addr flush scope global 2>/dev/null",
+                root=True, timeout=5,
+            )
+            logger.debug("[IPv6-Disable] Bestehende IPv6-Adressen geflusht")
+        except (ADBError, Exception):
+            pass
+
+        disabled = ok_count > 0
+        detail = f"{ok_count}/{ok_count + fail_count} Interfaces deaktiviert"
+
+        if disabled:
+            logger.info(
+                "[IPv6-Disable] IPv6 deaktiviert: %s", detail,
+            )
+        else:
+            logger.warning(
+                "[IPv6-Disable] IPv6-Deaktivierung FEHLGESCHLAGEN: %s "
+                "(Kernel unterstützt möglicherweise kein sysctl disable_ipv6)",
+                detail,
+            )
+
+        return {
+            "disabled": disabled,
+            "interfaces_ok": ok_count,
+            "interfaces_fail": fail_count,
+            "detail": detail,
+        }
 
     # =========================================================================
     # IPv6-Leak-Detection

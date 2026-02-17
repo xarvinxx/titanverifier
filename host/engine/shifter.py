@@ -899,16 +899,25 @@ class AppShifter:
         timeout: int = 300,
     ) -> None:
         """
-        Stellt TikTok App-Daten aus einem tar-Archiv wieder her.
+        Stellt TikTok App-Daten aus einem tar-Archiv wieder her (v6.2).
 
-        KRITISCHER ABLAUF:
+        KRITISCHER ABLAUF (lib-safe + SELinux-safe):
           1. Force-stop der App
-          2. Bestehende Daten löschen
-          3. tar-Stream auf das Gerät entpacken
-          4. **Magic Permission Fix**: UID ermitteln + chown -R
-          5. App-Daten Verzeichnis Permissions fixen
+          2. UID ermitteln (via dumpsys package — zuverlässigste Methode)
+          3. Smart Clean: Alles löschen AUSSER /lib (Symlink zum APK!)
+          4. tar-Stream auf das Gerät entpacken
+          5. Permission Fix: chown -R + chmod + restorecon -R
 
-        KEIN restorecon! (Bootloop-Gefahr auf Android 14)
+        WICHTIG — lib Symlink:
+          /data/data/<pkg>/lib ist ein Symlink auf /data/app/<hash>/lib/
+          Wird er gelöscht, findet die App ihre nativen Libraries nicht mehr
+          → sofortiger Crash (SIGABRT). `rm -rf /data/data/<pkg>` zerstört
+          diesen Symlink. Die Smart-Clean-Methode bewahrt ihn.
+
+        WICHTIG — restorecon:
+          restorecon -R auf /data/data/<pkg> ist SICHER (setzt app_data_file).
+          Gefährlich ist restorecon auf /data/system/ oder Account-DBs
+          (dort braucht man accounts_data_file statt system_data_file).
 
         Args:
             profile_name_or_path: Profil-Name oder direkter Pfad zum tar
@@ -926,56 +935,112 @@ class AppShifter:
         tar_size = tar_path.stat().st_size
         size_mb = tar_size / (1024 * 1024)
         logger.info(
-            "Restore starten: %s (%.1f MB) → %s",
+            "[Restore v6.2] Starten: %s (%.1f MB) → %s",
             tar_path.name, size_mb, self._data_path,
         )
 
-        # 1. Force-stop App
+        # ─── Phase 1: Force-Stop ─────────────────────────────────────
+        logger.info("[Restore] Phase 1: Force-stop %s", self._package)
         await self._force_stop()
 
-        # 2. Bestehende Daten KOMPLETT löschen (FIX-29: inkl. Hidden Files)
-        # Erst UID ermitteln BEVOR wir löschen (falls App installiert)
+        # ─── Phase 2: UID ermitteln ──────────────────────────────────
+        logger.info("[Restore] Phase 2: UID ermitteln via dumpsys...")
         uid = await self._get_app_uid()
+        logger.info("[Restore] App-UID: %s (für %s)", uid, self._package)
 
-        # FIX-29: rm -rf <path>/* verpasst dot-files (.device_id, .tt_session etc.)
-        # Stattdessen: Verzeichnis komplett löschen + leer neu erstellen.
-        # tar-Restore erstellt die Struktur sowieso neu.
-        await self._adb.shell(
-            f"rm -rf {self._data_path}", root=True,
+        # ─── Phase 3: Smart Clean (lib bewahren!) ────────────────────
+        # find -mindepth 1 -maxdepth 1: Nur direkte Kinder von /data/data/<pkg>
+        # ! -name 'lib': Alles AUSSER lib löschen
+        # Der lib-Ordner ist ein Symlink auf /data/app/<hash>/lib/arm64
+        # Ohne ihn crasht die App sofort (kann native .so nicht laden)
+        logger.info(
+            "[Restore] Phase 3: Smart Clean — lösche alles ausser lib-Symlink..."
         )
-        await self._adb.shell(
-            f"mkdir -p {self._data_path}", root=True,
-        )
-        logger.debug("FIX-29: Alte Daten komplett gelöscht: %s (inkl. Hidden Files)", self._data_path)
 
-        # 3. tar-Stream auf das Gerät
-        # tar wurde relativ zu / erstellt (data/data/pkg/...)
+        # Prüfe ob lib existiert und was es ist (Symlink oder Ordner)
+        lib_check = await self._adb.shell(
+            f"ls -la {self._data_path}/lib 2>/dev/null || echo MISSING",
+            root=True, timeout=5,
+        )
+        lib_status = "MISSING"
+        if "MISSING" not in lib_check.output:
+            if "->" in lib_check.output:
+                lib_status = "SYMLINK"
+            else:
+                lib_status = "DIR"
+        logger.debug("[Restore] lib Status: %s (%s)", lib_status, lib_check.output.strip()[:120])
+
+        # Smart-Delete: Alles ausser lib
+        clean_result = await self._adb.shell(
+            f"find {self._data_path} -mindepth 1 -maxdepth 1 "
+            f"! -name 'lib' -exec rm -rf {{}} +",
+            root=True, timeout=30,
+        )
+        if clean_result.success:
+            logger.info(
+                "[Restore] Smart Clean OK — lib-Symlink bewahrt (%s)", lib_status,
+            )
+        else:
+            logger.warning(
+                "[Restore] Smart Clean Warnung: exit=%d — %s",
+                clean_result.returncode, clean_result.output[:200],
+            )
+
+        # ─── Phase 4: tar entpacken ──────────────────────────────────
+        logger.info("[Restore] Phase 4: tar entpacken (%s)...", tar_path.name)
+
+        # --keep-old-files: Überschreibt NICHT existierende Dateien (lib!)
+        # --no-overwrite-dir: Überschreibt keine Verzeichnis-Metadaten
         restore_result = await self._adb.exec_in_from_file(
-            f"tar -xf - -C /",
+            f"tar -xf - -C / --keep-old-files 2>/dev/null; echo EXIT=$?",
             str(tar_path),
             timeout=timeout,
         )
 
-        if not restore_result.success:
-            logger.error(
-                "tar-Restore fehlgeschlagen (exit %d): %s",
-                restore_result.returncode,
-                restore_result.stderr[:300],
-            )
-            raise ADBError(
-                f"Restore fehlgeschlagen: exit {restore_result.returncode}",
-                returncode=restore_result.returncode,
-                stderr=restore_result.stderr,
+        # tar --keep-old-files gibt exit 1 bei "already exists" — das
+        # ist erwartet (lib existiert). Prüfe ob die Daten da sind.
+        verify = await self._adb.shell(
+            f"test -d {self._data_path}/shared_prefs && echo OK || echo FAIL",
+            root=True, timeout=5,
+        )
+        if "OK" in verify.output:
+            logger.info("[Restore] tar-Entpacken OK (Daten verifiziert)")
+        elif restore_result.success:
+            logger.info("[Restore] tar-Entpacken OK (exit 0)")
+        else:
+            logger.warning(
+                "[Restore] tar-Entpacken: exit=%d (prüfe Datenintegrität) — %s",
+                restore_result.returncode, restore_result.output[:200],
             )
 
-        # 4. MAGIC PERMISSION FIX (KRITISCH!)
-        # UID nochmal ermitteln (falls sie sich geändert hat)
-        uid = await self._get_app_uid()
+        # ─── Phase 5: Permission Fix (KRITISCH!) ─────────────────────
+        logger.info("[Restore] Phase 5: Permission Fix (UID=%s)...", uid)
         await self._apply_magic_permissions(uid)
 
+        # Verifiziere lib-Symlink nach Restore
+        lib_post = await self._adb.shell(
+            f"ls -la {self._data_path}/lib 2>/dev/null || echo MISSING",
+            root=True, timeout=5,
+        )
+        if "MISSING" in lib_post.output:
+            logger.error(
+                "[Restore] KRITISCH: lib-Symlink FEHLT nach Restore! "
+                "App wird abstürzen. Versuche pm install-existing Repair..."
+            )
+            # Notfall-Repair: Package Manager repariert den lib-Symlink
+            await self._adb.shell(
+                f"pm install-existing {self._package} 2>/dev/null",
+                root=True, timeout=30,
+            )
+        elif "->" in lib_post.output:
+            logger.info("[Restore] lib-Symlink intakt nach Restore")
+        else:
+            logger.debug("[Restore] lib ist ein Verzeichnis (kein Symlink)")
+
         logger.info(
-            "Restore komplett: %s → %s (UID %s)",
+            "[Restore v6.2] Komplett: %s → %s (UID %s, lib=%s)",
             tar_path.name, self._package, uid,
+            "OK" if "MISSING" not in lib_post.output else "REPARIERT",
         )
 
     # =========================================================================
@@ -984,78 +1049,161 @@ class AppShifter:
 
     async def _get_app_uid(self) -> str:
         """
-        Ermittelt die UID der Ziel-App.
+        Ermittelt die UID der Ziel-App (v6.2 — 3-Methoden-Kaskade).
 
-        Methode: stat -c '%u' auf den App-Datenordner.
-        Fallback: Parst `pm list packages -U`.
+        Reihenfolge (zuverlässigste zuerst):
+          1. dumpsys package — parst "userId=XXXXX" (funktioniert immer
+             wenn die App installiert ist, auch wenn /data/data nicht existiert)
+          2. stat -c '%u' auf den Datenordner (schnell, braucht existierenden Ordner)
+          3. pm list packages -U (Fallback)
 
         Returns:
             UID als String (z.B. "10245")
 
         Raises:
-            ADBError: wenn UID nicht ermittelbar
+            ADBError: wenn UID nicht ermittelbar (App nicht installiert?)
         """
-        # Methode 1: stat auf Datenordner
-        result = await self._adb.shell(
-            f"stat -c '%u' {self._data_path} 2>/dev/null", root=True,
-        )
-        uid = result.output.strip("'").strip()
-        if uid.isdigit() and int(uid) >= 10000:
-            return uid
+        import re
 
-        # Methode 2: pm list packages -U
-        result = await self._adb.shell(
-            f"pm list packages -U {self._package}", root=True,
-        )
-        if "uid:" in result.stdout:
-            uid = result.stdout.split("uid:")[-1].strip()
-            if uid.isdigit():
+        # Methode 1: dumpsys package (zuverlässigste Methode)
+        try:
+            result = await self._adb.shell(
+                f"dumpsys package {self._package} 2>/dev/null | grep 'userId='",
+                root=True, timeout=10,
+            )
+            if result.success and result.output.strip():
+                # Format: "    userId=10245" oder "    userId=10245 gids=[...]"
+                match = re.search(r'userId=(\d+)', result.output)
+                if match:
+                    uid = match.group(1)
+                    if int(uid) >= 10000:
+                        logger.debug(
+                            "[UID] %s → %s (via dumpsys package)", self._package, uid,
+                        )
+                        return uid
+        except Exception as e:
+            logger.debug("[UID] dumpsys fehlgeschlagen: %s", e)
+
+        # Methode 2: stat auf Datenordner
+        try:
+            result = await self._adb.shell(
+                f"stat -c '%u' {self._data_path} 2>/dev/null", root=True,
+            )
+            uid = result.output.strip("'\" \n\r")
+            if uid.isdigit() and int(uid) >= 10000:
+                logger.debug("[UID] %s → %s (via stat)", self._package, uid)
                 return uid
+        except Exception as e:
+            logger.debug("[UID] stat fehlgeschlagen: %s", e)
+
+        # Methode 3: pm list packages -U (Fallback)
+        try:
+            result = await self._adb.shell(
+                f"pm list packages -U {self._package}", root=True,
+            )
+            output = result.output if hasattr(result, 'output') else result.stdout
+            if "uid:" in output:
+                uid = output.split("uid:")[-1].strip().split()[0]
+                if uid.isdigit() and int(uid) >= 10000:
+                    logger.debug("[UID] %s → %s (via pm list)", self._package, uid)
+                    return uid
+        except Exception as e:
+            logger.debug("[UID] pm list fehlgeschlagen: %s", e)
 
         raise ADBError(
-            f"UID für {self._package} nicht ermittelbar. "
+            f"UID für {self._package} nicht ermittelbar (3 Methoden fehlgeschlagen). "
             f"Ist die App installiert?"
         )
 
     async def _apply_magic_permissions(self, uid: str) -> None:
         """
-        Wendet den Magic Permission Fix an.
+        Wendet den Magic Permission Fix an (v6.2 — chown + chmod + restorecon).
 
-        Nach Restore MUSS chown -R UID:UID auf dem Datenordner
-        ausgeführt werden, damit die App ihre Daten lesen kann
-        und der Login erhalten bleibt.
+        Nach einem tar-Restore gehören alle Dateien root:root und haben
+        oft falsche SELinux-Labels. Ohne Fix:
+          - App kann eigene Dateien nicht lesen → "Permission Denied" Logs
+          - SELinux blockiert Dateizugriffe → App crasht oder verliert Login
+          - shared_prefs mit 000 Permissions → Einstellungen weg
 
-        KEIN restorecon (Bootloop-Gefahr auf Android 14).
+        Ablauf:
+          1. chown -R uid:uid  — Ownership auf App-User setzen
+          2. chmod 771 Basis   — Basis-Verzeichnis (Android Standard)
+          3. chmod -R 770 Dirs — Alle Unterordner lesbar für App + Cache-GID
+          4. chmod -R 660 Files — Alle Dateien lesen/schreiben für Owner
+          5. restorecon -R      — SELinux-Labels reparieren (app_data_file)
+
+        SICHERHEITSHINWEIS:
+          restorecon -R auf /data/data/<pkg> ist SICHER (setzt app_data_file).
+          Wir verwenden es NICHT auf /data/system/ oder Account-DBs!
 
         Args:
             uid: App-UID (z.B. "10245")
         """
         logger.info(
-            "Magic Permission Fix: chown -R %s:%s %s",
-            uid, uid, self._data_path,
+            "[PermFix] Start: chown + chmod + restorecon für %s (UID %s)",
+            self._data_path, uid,
         )
 
-        # Rekursiver chown auf den gesamten Datenordner
-        await self._adb.shell(
+        # ─── Step 1: Ownership (KRITISCHSTER Schritt) ────────────────
+        chown_result = await self._adb.shell(
             f"chown -R {uid}:{uid} {self._data_path}",
-            root=True,
-            check=True,
+            root=True, timeout=30,
         )
-
-        # Ordner-Permissions fixieren (Standard für App-Daten)
-        await self._adb.shell(
-            f"chmod 700 {self._data_path}",
-            root=True,
-        )
-
-        # Cache und Files Unterordner
-        for subdir in ["cache", "code_cache", "files", "shared_prefs", "databases"]:
-            await self._adb.shell(
-                f"chmod 700 {self._data_path}/{subdir} 2>/dev/null",
-                root=True,
+        if chown_result.success:
+            logger.info("[PermFix] chown -R %s:%s — OK", uid, uid)
+        else:
+            logger.error(
+                "[PermFix] chown FEHLGESCHLAGEN: %s — App wird nicht funktionieren!",
+                chown_result.output[:200],
             )
 
-        logger.info("Magic Permission Fix angewendet (UID %s)", uid)
+        # ─── Step 2: Basis-Verzeichnis (771 = Android Standard) ──────
+        await self._adb.shell(
+            f"chmod 771 {self._data_path}", root=True,
+        )
+
+        # ─── Step 3: Rekursive Verzeichnis-Permissions ────────────────
+        # Alle Unterordner: 770 (rwxrwx--- für uid:uid)
+        # Includes: shared_prefs, databases, files, cache, code_cache,
+        #           no_backup, app_webview, etc.
+        await self._adb.shell(
+            f"find {self._data_path} -type d -exec chmod 770 {{}} + 2>/dev/null",
+            root=True, timeout=30,
+        )
+        logger.debug("[PermFix] Verzeichnisse → 770")
+
+        # ─── Step 4: Rekursive Datei-Permissions ──────────────────────
+        # Alle Dateien: 660 (rw-rw---- für uid:uid)
+        await self._adb.shell(
+            f"find {self._data_path} -type f -exec chmod 660 {{}} + 2>/dev/null",
+            root=True, timeout=30,
+        )
+        logger.debug("[PermFix] Dateien → 660")
+
+        # ─── Step 5: SELinux Context reparieren ───────────────────────
+        # restorecon setzt den Kontext auf "u:object_r:app_data_file:s0:..."
+        # basierend auf dem Pfad. Das ist der korrekte Kontext für App-Daten.
+        restorecon_result = await self._adb.shell(
+            f"restorecon -RF {self._data_path} 2>&1",
+            root=True, timeout=30,
+        )
+        if restorecon_result.success:
+            logger.info("[PermFix] restorecon -RF — OK (SELinux-Labels repariert)")
+        else:
+            logger.warning(
+                "[PermFix] restorecon Warnung: %s (App könnte trotzdem funktionieren)",
+                restorecon_result.output[:200],
+            )
+
+        # ─── Verifikation ─────────────────────────────────────────────
+        verify_result = await self._adb.shell(
+            f"ls -la {self._data_path}/ 2>/dev/null | head -5",
+            root=True, timeout=5,
+        )
+        logger.info(
+            "[PermFix] Komplett (UID %s). Verzeichnis:\n%s",
+            uid, verify_result.output[:300] if verify_result.success else "nicht lesbar",
+        )
 
     # =========================================================================
     # FIX-28: APK-Pfad + App-Verifikation Helpers

@@ -679,12 +679,14 @@ class AppShifter:
 
         if app_tar and app_tar.exists() and app_tar.stat().st_size > 0:
             try:
-                # FIX-29: Alte App-Daten KOMPLETT löschen (inkl. Hidden Files)
+                # v6.3: Smart Clean — lib-Symlink bewahren!
+                # rm -rf /data/data/<pkg> zerstört den lib-Symlink
+                # (→ /data/app/<hash>/lib/arm64/), was zu sofortigem Crash führt.
+                # find ... ! -name 'lib' löscht alles andere sicher.
                 await self._adb.shell(
-                    f"rm -rf {self._data_path}", root=True,
-                )
-                await self._adb.shell(
-                    f"mkdir -p {self._data_path}", root=True,
+                    f"find {self._data_path} -mindepth 1 -maxdepth 1 "
+                    f"! -name 'lib' -exec rm -rf {{}} +",
+                    root=True, timeout=15,
                 )
 
                 # tar-Stream Restore (tar wurde relativ zu / erstellt)
@@ -1256,6 +1258,296 @@ class AppShifter:
             return False
 
     # =========================================================================
+    # v6.3: Robuste App-Reinstallation mit APK-Backup + Session-Install
+    # =========================================================================
+    # PROBLEM: Auf Single-User-Geräten (nur User 0) löscht
+    #   "pm uninstall --user 0" die APKs KOMPLETT aus /data/app/.
+    #   Danach ist "install-existing" unmöglich.
+    #
+    # LÖSUNG: APKs VOR dem Uninstall nach /data/local/tmp/ kopieren,
+    #   dann per Session-Install (pm install-create/write/commit)
+    #   reinstallieren. Das funktioniert auch mit Split-APKs.
+    # =========================================================================
+
+    _APK_BACKUP_DIR = "/data/local/tmp/_titan_apk_backup"
+
+    async def _reinstall_app(self, pkg: str) -> bool:
+        """
+        Hard-Reset einer App: APK sichern → Uninstall → Session-Install.
+
+        Ablauf:
+          1. Existenz-Check + alle APK-Pfade ermitteln (base + splits)
+          2. APKs in sicheres Temp-Verzeichnis kopieren
+          3. pm uninstall --user 0 (löscht App-Daten + APKs)
+          4. Session-Install: pm install-create → write für jede APK → commit
+          5. Finale Verifikation + Temp-Cleanup
+
+        Args:
+            pkg: Package-Name (z.B. "com.zhiliaoapp.musically")
+
+        Returns:
+            True wenn App erfolgreich reinstalliert, False bei Fehler
+        """
+        logger.info("[Reinstall v6.3] Hard-Reset starten: %s", pkg)
+        backup_dir = f"{self._APK_BACKUP_DIR}/{pkg}"
+
+        try:
+            # ─── Step 1: Existenz-Check + APK-Pfade sammeln ─────────────
+            check = await self._adb.shell(
+                f"pm path {pkg}", root=True, timeout=10,
+            )
+            if not check.success or "package:" not in check.output:
+                logger.error(
+                    "[Reinstall] KRITISCH: %s ist nicht installiert! Abbruch.",
+                    pkg,
+                )
+                return False
+
+            apk_paths = [
+                line.strip().replace("package:", "", 1)
+                for line in check.output.strip().splitlines()
+                if line.strip().startswith("package:")
+            ]
+
+            if not apk_paths:
+                logger.error("[Reinstall] Keine APK-Pfade für %s gefunden!", pkg)
+                return False
+
+            logger.info(
+                "[Reinstall] %s: %d APK(s) gefunden — %s",
+                pkg, len(apk_paths),
+                ", ".join(p.rsplit("/", 1)[-1] for p in apk_paths),
+            )
+
+            # ─── Step 2: APKs in Backup-Verzeichnis kopieren ────────────
+            await self._adb.shell(
+                f"rm -rf {backup_dir} && mkdir -p {backup_dir}",
+                root=True, timeout=10,
+            )
+
+            for apk in apk_paths:
+                filename = apk.rsplit("/", 1)[-1]
+                cp_res = await self._adb.shell(
+                    f"cp \"{apk}\" \"{backup_dir}/{filename}\"",
+                    root=True, timeout=30,
+                )
+                if not cp_res.success:
+                    logger.error(
+                        "[Reinstall] APK-Backup fehlgeschlagen: %s → %s",
+                        apk, cp_res.output.strip()[:100],
+                    )
+                    return False
+
+            # APKs für shell-User lesbar machen (Session-Install läuft als shell)
+            # + Verzeichnis traversierbar machen
+            await self._adb.shell(
+                f"chmod 755 {backup_dir} && chmod 644 {backup_dir}/*.apk",
+                root=True, timeout=10,
+            )
+
+            # Verifikation: Alle Dateien da?
+            ls_res = await self._adb.shell(
+                f"ls -la {backup_dir}/", root=True, timeout=10,
+            )
+            logger.info(
+                "[Reinstall] APK-Backup erstellt:\n%s",
+                ls_res.output.strip()[:500],
+            )
+
+            # ─── Step 3: Deinstallation ─────────────────────────────────
+            uninstall_res = await self._adb.shell(
+                f"pm uninstall --user 0 {pkg}",
+                root=True, timeout=15,
+            )
+            logger.info(
+                "[Reinstall] pm uninstall --user 0 %s: %s",
+                pkg, uninstall_res.output.strip()[:80],
+            )
+
+            await asyncio.sleep(1)
+
+            # ─── Step 4: Session-Install (Split-APK-kompatibel) ─────────
+            # WICHTIG: Session-Install MUSS als shell-User laufen (root=False)!
+            # Grund: pm install-create bindet die Session an die Caller-UID.
+            # Wenn create als root (UID 0) läuft, aber write/commit als
+            # shell (UID 2000), gibt es eine SecurityException.
+            # ADB shell ohne su = UID 2000 (shell) = hat Install-Rechte.
+
+            # Berechne Gesamtgröße aller APKs
+            size_res = await self._adb.shell(
+                f"du -cb {backup_dir}/*.apk | tail -1",
+                root=True, timeout=10,
+            )
+            total_size = "0"
+            if size_res.success:
+                parts = size_res.output.strip().split()
+                if parts and parts[0].isdigit():
+                    total_size = parts[0]
+
+            logger.info("[Reinstall] Gesamtgröße: %s Bytes", total_size)
+
+            # 4a. Session erstellen (als shell-User!)
+            create_res = await self._adb.shell(
+                f"pm install-create -S {total_size}",
+                root=False, timeout=15,
+            )
+
+            # Session-ID extrahieren: "Success: created install session [1234567]"
+            session_id = None
+            if create_res.success and "[" in create_res.output:
+                try:
+                    session_id = create_res.output.split("[")[1].split("]")[0].strip()
+                except (IndexError, ValueError):
+                    pass
+
+            if not session_id or not session_id.isdigit():
+                logger.error(
+                    "[Reinstall] Session-Erstellung fehlgeschlagen: %s",
+                    create_res.output.strip()[:200],
+                )
+                return await self._reinstall_simple_fallback(pkg, backup_dir, apk_paths)
+
+            logger.info("[Reinstall] Install-Session erstellt: ID=%s", session_id)
+
+            # 4b. Jede APK in die Session schreiben (als shell-User!)
+            for idx, apk in enumerate(apk_paths):
+                filename = apk.rsplit("/", 1)[-1]
+                local_path = f"{backup_dir}/{filename}"
+
+                # Dateigröße ermitteln
+                fsize_res = await self._adb.shell(
+                    f"stat -c %s \"{local_path}\"",
+                    root=True, timeout=10,
+                )
+                file_size = fsize_res.output.strip() if fsize_res.success else "0"
+
+                # APK in Session schreiben via cat-pipe (als shell-User!)
+                write_res = await self._adb.shell(
+                    f"cat \"{local_path}\" | pm install-write -S {file_size} {session_id} {idx} -",
+                    root=False, timeout=60,
+                )
+
+                if not write_res.success or "success" not in write_res.output.lower():
+                    logger.error(
+                        "[Reinstall] install-write fehlgeschlagen für %s: %s",
+                        filename, write_res.output.strip()[:150],
+                    )
+                    # Session abbrechen (als shell-User!)
+                    await self._adb.shell(
+                        f"pm install-abandon {session_id}",
+                        root=False, timeout=10,
+                    )
+                    return await self._reinstall_simple_fallback(pkg, backup_dir, apk_paths)
+
+                logger.debug(
+                    "[Reinstall] install-write %d/%d: %s OK",
+                    idx + 1, len(apk_paths), filename,
+                )
+
+            # 4c. Session committen (als shell-User!)
+            commit_res = await self._adb.shell(
+                f"pm install-commit {session_id}",
+                root=False, timeout=30,
+            )
+
+            if commit_res.success and "success" in commit_res.output.lower():
+                logger.info(
+                    "[Reinstall] Session-Install ERFOLG: %s → %s",
+                    pkg, commit_res.output.strip()[:120],
+                )
+            else:
+                logger.warning(
+                    "[Reinstall] install-commit Ergebnis: %s",
+                    commit_res.output.strip()[:200],
+                )
+
+            # ─── Step 5: Finale Verifikation ────────────────────────────
+            await asyncio.sleep(1)
+
+            if await self._verify_app_installed(pkg):
+                logger.info("[Reinstall] VERIFIZIERT: %s ist installiert ✓", pkg)
+                return True
+
+            logger.warning(
+                "[Reinstall] Session-Install hat nicht verifiziert — "
+                "versuche Simple-Fallback..."
+            )
+            return await self._reinstall_simple_fallback(pkg, backup_dir, apk_paths)
+
+        except Exception as e:
+            logger.error("[Reinstall] Unerwarteter Fehler für %s: %s", pkg, e)
+            # Notfall-Fallback
+            try:
+                return await self._reinstall_simple_fallback(pkg, backup_dir, apk_paths)
+            except Exception:
+                return False
+        finally:
+            # Cleanup: Backup-Verzeichnis entfernen
+            try:
+                await self._adb.shell(
+                    f"rm -rf {backup_dir}",
+                    root=True, timeout=10,
+                )
+                logger.debug("[Reinstall] Backup-Cleanup: %s entfernt", backup_dir)
+            except (ADBError, ADBTimeoutError):
+                pass
+
+    async def _reinstall_simple_fallback(
+        self, pkg: str, backup_dir: str, apk_paths: list[str],
+    ) -> bool:
+        """
+        Einfacher Reinstall-Fallback: pm install mit allen APKs auf einmal.
+
+        Wird genutzt wenn Session-Install fehlschlägt. Funktioniert auf
+        den meisten Android-Versionen, auch ohne Session-Support.
+        """
+        logger.info("[Reinstall-Fallback] Versuche einfachen pm install für %s...", pkg)
+
+        # Alle lokalen APK-Pfade zusammenbauen
+        local_apks = " ".join(
+            f'"{backup_dir}/{p.rsplit("/", 1)[-1]}"' for p in apk_paths
+        )
+
+        # pm install mit mehreren APKs (Android 10+ unterstützt das)
+        # Muss als shell-User laufen (wie Session-Install)
+        res = await self._adb.shell(
+            f"pm install -r {local_apks}",
+            root=False, timeout=60,
+        )
+
+        if await self._verify_app_installed(pkg):
+            logger.info("[Reinstall-Fallback] ERFOLG: %s ist wieder da ✓", pkg)
+            return True
+
+        # Letzter Versuch: Nur base.apk installieren
+        base_apk = f"{backup_dir}/base.apk"
+        base_check = await self._adb.shell(
+            f"ls {base_apk}", root=True, timeout=5,
+        )
+        if base_check.success and "No such file" not in base_check.output:
+            logger.warning(
+                "[Reinstall-Fallback] Multi-APK fehlgeschlagen, "
+                "versuche nur base.apk..."
+            )
+            await self._adb.shell(
+                f"pm install -r \"{base_apk}\"",
+                root=False, timeout=60,
+            )
+            if await self._verify_app_installed(pkg):
+                logger.info(
+                    "[Reinstall-Fallback] base.apk-Install ERFOLG "
+                    "(Split-APKs fehlen, aber App funktioniert) ✓",
+                )
+                return True
+
+        logger.error(
+            "[Reinstall] FATAL: %s konnte NICHT wiederhergestellt werden! "
+            "App muss manuell über den Play Store installiert werden.",
+            pkg,
+        )
+        return False
+
+    # =========================================================================
     # Deep Clean: Vollständige Sterilisierung
     # =========================================================================
 
@@ -1294,107 +1586,24 @@ class AppShifter:
         results: dict[str, bool] = {}
 
         # =====================================================================
-        # 1. FIX-28: Sichere App-Reinstallation (überarbeitet FIX-13)
-        #    Erzwingt echten "First Launch"-State via pm uninstall + reinstall.
-        #    KRITISCH: APK-Pfad wird VOR dem Uninstall gesichert, damit die
-        #    App bei Fehlschlag von pm install-existing manuell reinstalliert
-        #    werden kann. Verifikation nach jedem Schritt verhindert
-        #    stillschweigenden App-Verlust.
+        # 1. v6.2: Robuste App-Reinstallation (Hard-Reset)
+        # =====================================================================
+        # Erzwingt echten "First Launch"-State via:
+        #   1. Existenz-Check (kein Uninstall wenn App gar nicht da)
+        #   2. pm uninstall --user 0 (behält APK auf System-Partition)
+        #   3. cmd package install-existing --user 0 via su (primär)
+        #   4. pm install-existing --user 0 via su (Legacy-Fallback)
+        #   5. Finale Verifikation
+        #
+        # ALLE Befehle laufen zwingend über su -c um Permission-Fehler
+        # zu vermeiden (häufigste Ursache für "install-existing failed").
         # =====================================================================
         for pkg in TIKTOK_PACKAGES:
             try:
-                # --- Schritt 0: APK-Pfad SICHERN bevor wir irgendetwas deinstallieren ---
-                saved_apk_path = await self._get_apk_path(pkg)
-                if not saved_apk_path:
-                    # APK-Pfad nicht ermittelbar → kein Uninstall riskieren, nur pm clear
-                    logger.warning(
-                        "FIX-28: APK-Pfad für %s nicht ermittelbar — "
-                        "Fallback auf sicheres pm clear (kein Uninstall)",
-                        pkg,
-                    )
-                    clear_result = await self._adb.shell(f"pm clear {pkg}", root=True, timeout=15)
-                    results[f"fresh_install_{pkg}"] = "Success" in clear_result.stdout
-                    if results[f"fresh_install_{pkg}"]:
-                        logger.info("pm clear %s: OK (sicherer Fallback — kein APK-Pfad)", pkg)
-                    continue
-
-                logger.info("FIX-28: APK-Pfad gesichert: %s → %s", pkg, saved_apk_path)
-
-                # --- Schritt 1: Deinstallation für User 0 ---
-                uninstall_result = await self._adb.shell(
-                    f"pm uninstall --user 0 {pkg}", root=True, timeout=15,
-                )
-                uninstall_ok = "Success" in uninstall_result.stdout
-
-                if not uninstall_ok:
-                    # Uninstall fehlgeschlagen (App nicht installiert?) → pm clear
-                    logger.debug(
-                        "pm uninstall %s: %s — Fallback auf pm clear",
-                        pkg, uninstall_result.output[:100],
-                    )
-                    clear_result = await self._adb.shell(f"pm clear {pkg}", root=True, timeout=15)
-                    results[f"fresh_install_{pkg}"] = "Success" in clear_result.stdout
-                    if results[f"fresh_install_{pkg}"]:
-                        logger.info("pm clear %s: OK (Uninstall nicht möglich)", pkg)
-                    continue
-
-                logger.info("pm uninstall --user 0 %s: OK", pkg)
-
-                # --- Schritt 2: pm install-existing versuchen ---
-                install_ok = False
-                install_result = await self._adb.shell(
-                    f"pm install-existing --user 0 {pkg}", root=True, timeout=15,
-                )
-                install_ok = "installed" in install_result.stdout.lower() or install_result.success
-
-                # --- Schritt 3: VERIFIKATION — ist die App noch da? ---
-                if install_ok and await self._verify_app_installed(pkg):
-                    logger.info("pm install-existing %s: OK — Fresh-Install State ✓", pkg)
-                    results[f"fresh_install_{pkg}"] = True
-                    continue
-
-                # install-existing hat nicht geklappt oder Verifikation fehlgeschlagen
-                logger.warning(
-                    "FIX-28: pm install-existing %s fehlgeschlagen oder nicht verifiziert — "
-                    "Rettung via gespeichertem APK-Pfad: %s",
-                    pkg, saved_apk_path,
-                )
-
-                # --- Schritt 4: RETTUNG — APK manuell reinstallieren ---
-                rescue_result = await self._adb.shell(
-                    f"pm install -r --user 0 {saved_apk_path}", root=True, timeout=30,
-                )
-                if await self._verify_app_installed(pkg):
-                    logger.info(
-                        "FIX-28: App %s via APK-Pfad gerettet — Fresh-Install State ✓", pkg,
-                    )
-                    results[f"fresh_install_{pkg}"] = True
-                    continue
-
-                # --- Schritt 5: LETZTER FALLBACK — cmd package install-existing ---
-                logger.warning(
-                    "FIX-28: pm install fehlgeschlagen — letzter Versuch: cmd package install-existing %s",
-                    pkg,
-                )
-                cmd_result = await self._adb.shell(
-                    f"cmd package install-existing {pkg}", root=True, timeout=15,
-                )
-                if await self._verify_app_installed(pkg):
-                    logger.info("FIX-28: cmd package install-existing %s: OK ✓", pkg)
-                    results[f"fresh_install_{pkg}"] = True
-                    continue
-
-                # ALLE Versuche fehlgeschlagen — App ist weg!
-                logger.error(
-                    "FIX-28: KRITISCH — %s konnte nicht reinstalliert werden! "
-                    "APK-Pfad war: %s. App muss manuell installiert werden.",
-                    pkg, saved_apk_path,
-                )
-                results[f"fresh_install_{pkg}"] = False
-
+                results[f"fresh_install_{pkg}"] = await self._reinstall_app(pkg)
             except ADBError as e:
                 results[f"fresh_install_{pkg}"] = False
-                logger.warning("TikTok Sterilisierung %s fehlgeschlagen: %s", pkg, e)
+                logger.warning("TikTok Reinstall %s fehlgeschlagen: %s", pkg, e)
 
         # 2. pm clear GMS — NUR bei include_gms=True (Genesis / Initial Seed)
         if include_gms:
@@ -1799,16 +2008,24 @@ class AppShifter:
         logger.info("FIX-29: Switch-Clean — Gründlicher State-Wipe vor Restore...")
         results: dict[str, bool] = {}
 
-        # --- 1. TikTok App-Daten komplett löschen (inkl. Hidden Files) ---
+        # --- 1. TikTok App-Daten löschen (lib-Symlink bewahren!) ---
+        # WICHTIG: rm -rf /data/data/<pkg> zerstört den lib-Symlink, der auf
+        #   /data/app/<hash>/lib/arm64/ zeigt. Ohne ihn crasht TikTok sofort
+        #   (SIGABRT — kann native .so nicht laden). Stattdessen nutzen wir
+        #   find ... ! -name 'lib' um alles AUSSER lib zu löschen.
         for pkg in TIKTOK_PACKAGES:
             data_path = f"/data/data/{pkg}"
             try:
-                # Komplettes Verzeichnis löschen (nicht nur /*!)
-                await self._adb.shell(f"rm -rf {data_path}", root=True, timeout=10)
-                # Leer neu erstellen (tar-Restore braucht den Parent)
-                await self._adb.shell(f"mkdir -p {data_path}", root=True, timeout=5)
+                # Smart Clean: Alles löschen ausser lib-Symlink
+                await self._adb.shell(
+                    f"find {data_path} -mindepth 1 -maxdepth 1 "
+                    f"! -name 'lib' -exec rm -rf {{}} +",
+                    root=True, timeout=15,
+                )
                 results[f"wipe_{pkg}"] = True
-                logger.info("FIX-29: %s — komplett gelöscht + neu erstellt", data_path)
+                logger.info(
+                    "FIX-29: %s — Smart Clean (lib-Symlink bewahrt)", data_path,
+                )
             except (ADBError, ADBTimeoutError) as e:
                 results[f"wipe_{pkg}"] = False
                 logger.warning("FIX-29: Wipe %s fehlgeschlagen: %s", data_path, e)

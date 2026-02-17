@@ -1007,8 +1007,9 @@ class GenesisFlow:
             account_detail = account_info["detail"]
             logger.info("[11/11] %s", account_detail)
 
-            # v6.1: Silent TikTok Launch + install_id Duplicate-Check
-            # Startet TikTok kurz → extrahiert install_id → prüft ob unique
+            # v6.2: Silent TikTok Launch + install_id DB-Persistierung
+            # Startet TikTok kurz → extrahiert install_id → Collision-Check
+            # gegen dediziertes DB-Feld → Speichern in profiles.tiktok_install_id
             install_id_detail = ""
             try:
                 logger.info(
@@ -1018,28 +1019,33 @@ class GenesisFlow:
                     wait_seconds=15,
                 )
                 if tiktok_install_id:
-                    # Prüfe ob install_id schon in der DB existiert (Collision)
-                    collision_check = await db.fetch_one(
-                        "SELECT fh.identity_name, fh.flow_type "
-                        "FROM flow_history fh "
-                        "WHERE fh.detail LIKE :pattern "
-                        "AND fh.identity_id != :current_id "
-                        "LIMIT 1",
-                        {
-                            "pattern": f"%{tiktok_install_id}%",
-                            "current_id": db_identity_id or 0,
-                        },
+                    # v6.2: Collision-Check gegen dediziertes DB-Feld
+                    from host.engine.db_ops import (
+                        check_install_id_collision,
+                        save_tiktok_install_id,
                     )
-                    if collision_check:
+                    collision = await check_install_id_collision(
+                        tiktok_install_id,
+                        exclude_profile_id=result.profile_id,
+                    )
+                    if collision["collision"]:
                         install_id_detail = (
                             f"WARNUNG: install_id {tiktok_install_id[:8]}… "
-                            f"bereits bekannt von '{collision_check['identity_name']}' — "
+                            f"bereits vergeben an Profil "
+                            f"'{collision['existing_profile_name']}' "
+                            f"(#{collision['existing_profile_id']}) — "
                             f"Deep-Clean war nicht gründlich genug!"
                         )
                         logger.error("[11/11] ID-COLLISION: %s", install_id_detail)
                     else:
+                        # Unique → in DB speichern
+                        if result.profile_id:
+                            await save_tiktok_install_id(
+                                result.profile_id, tiktok_install_id,
+                            )
                         install_id_detail = (
-                            f"install_id={tiktok_install_id[:8]}…{tiktok_install_id[-4:]} (UNIQUE)"
+                            f"install_id={tiktok_install_id[:8]}…"
+                            f"{tiktok_install_id[-4:]} (UNIQUE, gespeichert)"
                         )
                         logger.info("[11/11] TikTok install_id: %s", install_id_detail)
                 else:

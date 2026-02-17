@@ -839,3 +839,82 @@ async def get_dashboard_stats() -> dict:
                 "average_score": round(avg_audit, 1) if avg_audit else 0,
             },
         }
+
+
+# =============================================================================
+# v6.2: TikTok install_id Operationen
+# =============================================================================
+
+async def save_tiktok_install_id(
+    profile_id: int,
+    install_id: str,
+) -> None:
+    """
+    Speichert die TikTok install_id für ein Profil.
+
+    Args:
+        profile_id: Profil-DB-ID
+        install_id: UUID-String der install_id
+    """
+    async with db.transaction() as conn:
+        await conn.execute(
+            "UPDATE profiles SET tiktok_install_id = ?, updated_at = ? WHERE id = ?",
+            (install_id, _now(), profile_id),
+        )
+    logger.info(
+        "TikTok install_id gespeichert: Profil #%d → %s…%s",
+        profile_id, install_id[:8], install_id[-4:],
+    )
+
+
+async def check_install_id_collision(
+    install_id: str,
+    exclude_profile_id: Optional[int] = None,
+) -> dict:
+    """
+    Prüft ob eine install_id bereits in der DB existiert (Collision-Detection).
+
+    Args:
+        install_id:         Die zu prüfende install_id
+        exclude_profile_id: Eigenes Profil ausschließen (bei Re-Check)
+
+    Returns:
+        {
+            "collision": bool,
+            "existing_profile_id": int | None,
+            "existing_profile_name": str | None,
+            "message": str
+        }
+    """
+    async with db.connection() as conn:
+        if exclude_profile_id:
+            cursor = await conn.execute(
+                "SELECT id, name FROM profiles "
+                "WHERE tiktok_install_id = ? AND id != ? LIMIT 1",
+                (install_id, exclude_profile_id),
+            )
+        else:
+            cursor = await conn.execute(
+                "SELECT id, name FROM profiles "
+                "WHERE tiktok_install_id = ? LIMIT 1",
+                (install_id,),
+            )
+        row = await cursor.fetchone()
+
+    if row:
+        return {
+            "collision": True,
+            "existing_profile_id": row["id"],
+            "existing_profile_name": row["name"],
+            "message": (
+                f"install_id Collision! '{install_id[:8]}…' gehört bereits "
+                f"zu Profil '{row['name']}' (#{row['id']})"
+            ),
+        }
+
+    return {
+        "collision": False,
+        "existing_profile_id": None,
+        "existing_profile_name": None,
+        "message": "install_id ist unique",
+    }

@@ -304,6 +304,10 @@ CREATE INDEX IF NOT EXISTS idx_ip_collision             ON ip_history(public_ip,
 CREATE INDEX IF NOT EXISTS idx_audit_identity           ON audit_history(identity_id);
 CREATE INDEX IF NOT EXISTS idx_audit_score              ON audit_history(score_percent);
 CREATE INDEX IF NOT EXISTS idx_audit_time               ON audit_history(created_at DESC);
+
+-- v6.2: TikTok install_id (Unique-Constraint für Collision-Detection)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_install_id ON profiles(tiktok_install_id)
+    WHERE tiktok_install_id IS NOT NULL;
 """
 
 # =============================================================================
@@ -362,6 +366,8 @@ _SQL_MIGRATIONS = [
     # FIX-30: Dynamic Build Props pro Identität
     "ALTER TABLE identities ADD COLUMN build_incremental TEXT",
     "ALTER TABLE identities ADD COLUMN build_description TEXT",
+    # v6.2: TikTok install_id — dediziertes Feld für Collision-Detection
+    "ALTER TABLE profiles ADD COLUMN tiktok_install_id TEXT",
 ]
 
 

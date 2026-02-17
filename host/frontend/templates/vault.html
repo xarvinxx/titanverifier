@@ -585,6 +585,7 @@
                 if (p.instagram_username) sm.push('<span class="px-1 py-0.5 rounded text-[9px] bg-purple-500/10 text-purple-400 border border-purple-500/30">IG</span>');
                 if (p.youtube_username) sm.push('<span class="px-1 py-0.5 rounded text-[9px] bg-red-500/10 text-red-400 border border-red-500/30">YT</span>');
                 if (p.snapchat_username) sm.push('<span class="px-1 py-0.5 rounded text-[9px] bg-yellow-500/10 text-yellow-400 border border-yellow-500/30">SC</span>');
+                if (p.tiktok_install_id) sm.push(`<span class="px-1 py-0.5 rounded text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/30" title="${p.tiktok_install_id}">ID</span>`);
                 const smStr = sm.length ? sm.join(' ') : '<span class="text-gray-600 text-[10px]">—</span>';
 
                 // Backups
@@ -920,6 +921,7 @@
                     <div class="space-y-2">
                         ${smSection('TikTok', 'pink', p.tiktok_username, p.tiktok_email, p.tiktok_password,
                             p.tiktok_followers || p.tiktok_likes ? `${fmtNum(p.tiktok_followers)}F / ${fmtNum(p.tiktok_following)}Fg / ${fmtNum(p.tiktok_likes)}L` : null)}
+                        ${p.tiktok_install_id ? `<div class="ml-4 mt-1 text-[10px]"><span class="text-gray-500">install_id:</span> <span class="font-mono text-amber-400/80">${p.tiktok_install_id.slice(0,8)}…${p.tiktok_install_id.slice(-4)}</span></div>` : ''}
                         ${smSection('Instagram', 'purple', p.instagram_username, p.instagram_email, p.instagram_password)}
                         ${smSection('YouTube', 'red', p.youtube_username, p.youtube_email, p.youtube_password)}
                         ${smSection('Snapchat', 'yellow', p.snapchat_username, p.snapchat_email, p.snapchat_password)}

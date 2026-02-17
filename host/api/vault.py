@@ -179,6 +179,7 @@ async def list_profiles():
                     p.backup_status, p.backup_path, p.backup_size_bytes, p.backup_created_at,
                     p.gms_backup_status, p.gms_backup_path, p.gms_backup_size, p.gms_backup_at,
                     p.accounts_backup_status, p.accounts_backup_path, p.accounts_backup_at,
+                    p.tiktok_install_id,
                     p.notes, p.created_at, p.updated_at,
                     p.last_switch_at, p.switch_count, p.last_active_at,
                     i.name          AS identity_name,

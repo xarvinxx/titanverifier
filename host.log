@@ -3462,3 +3462,185 @@ sqlite3.DatabaseError: database disk image is malformed
 2026-02-18 00:04:23 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
 2026-02-18 00:04:23 [host.main] INFO: Command Center bereit.
 2026-02-18 00:04:26 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52257)
+2026-02-18 00:06:35 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=52257)
+2026-02-18 00:06:36 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=52329)
+2026-02-18 00:08:24 [host.api.control] INFO: Genesis-Flow gestartet: inshallesfixed
+2026-02-18 00:08:24 [host.flows.genesis] INFO: ============================================================
+2026-02-18 00:08:24 [host.flows.genesis] INFO:   GENESIS FLOW: inshallesfixed
+2026-02-18 00:08:24 [host.flows.genesis] INFO: ============================================================
+2026-02-18 00:08:24 [host.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-18 00:08:24 [host.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-18 00:08:24 [host.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-18 00:08:24 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'fixedgenesis?' hat keinen TikTok-Account — Checkbox nicht gesetzt
+2026-02-18 00:08:24 [host.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-18 00:08:24 [host.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-18 00:08:24 [host.shifter] INFO: FIX-28: APK-Pfad gesichert: com.zhiliaoapp.musically → /data/app/~~-1wlnvzFsLRNUdtCxiIsHg==/com.zhiliaoapp.musically-kK7pVDQ1nzLI8q7_wDTgkw==/split_df_vmsdk.config.arm64_v8a.apk
+2026-02-18 00:08:25 [host.shifter] INFO: pm uninstall --user 0 com.zhiliaoapp.musically: OK
+2026-02-18 00:08:25 [host.shifter] WARNING: FIX-28: pm install-existing com.zhiliaoapp.musically fehlgeschlagen oder nicht verifiziert — Rettung via gespeichertem APK-Pfad: /data/app/~~-1wlnvzFsLRNUdtCxiIsHg==/com.zhiliaoapp.musically-kK7pVDQ1nzLI8q7_wDTgkw==/split_df_vmsdk.config.arm64_v8a.apk
+2026-02-18 00:08:25 [host.shifter] WARNING: FIX-28: pm install fehlgeschlagen — letzter Versuch: cmd package install-existing com.zhiliaoapp.musically
+2026-02-18 00:08:25 [host.shifter] ERROR: FIX-28: KRITISCH — com.zhiliaoapp.musically konnte nicht reinstalliert werden! APK-Pfad war: /data/app/~~-1wlnvzFsLRNUdtCxiIsHg==/com.zhiliaoapp.musically-kK7pVDQ1nzLI8q7_wDTgkw==/split_df_vmsdk.config.arm64_v8a.apk. App muss manuell installiert werden.
+2026-02-18 00:08:25 [host.shifter] WARNING: FIX-28: APK-Pfad für com.ss.android.ugc.trill nicht ermittelbar — Fallback auf sicheres pm clear (kein Uninstall)
+2026-02-18 00:08:25 [host.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-18 00:08:26 [host.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-18 00:08:26 [host.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-18 00:08:30 [host.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-18 00:08:30 [host.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-18 00:08:30 [host.shifter] INFO: Deep Clean abgeschlossen: 30/34 Operationen erfolgreich (inkl. MediaStore, Compiler-Cache, ART-Profile, Settings)
+2026-02-18 00:08:30 [host.flows.genesis] INFO: [3/11] Sterilize: OK (30/34 Operationen (GMS geschützt))
+2026-02-18 00:08:30 [host.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-18 00:08:30 [host.identity] INFO: Identität generiert: name=inshallesfixed serial=74NHWRZ7QV9M imei1=355543…8073 carrier=O2-DE
+2026-02-18 00:08:30 [host.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 6634...3632 (v5.0 — FINAL, kein Platzhalter)
+2026-02-18 00:08:30 [host.flows.genesis] INFO: [4/11] Generate: OK (serial=74NHWRZ7QV9M)
+2026-02-18 00:08:30 [host.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-18 00:08:30 [host.db_ops] INFO: Auto-Profil erstellt: id=36, name=inshallesfixed
+2026-02-18 00:08:30 [host.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=36
+2026-02-18 00:08:30 [host.flows.genesis] INFO: [5/11] Persist: OK (identity_id=42, profile_id=36)
+2026-02-18 00:08:30 [host.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-18 00:08:30 [host.injector] INFO: Injecting identity: serial=74NHWRZ7QV9M imei1=355543…8073
+2026-02-18 00:08:30 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/tmp.Rs3iRMYCcr/bridge_e8orj71r.bridge → /data/local/tmp/.bridge_staging
+2026-02-18 00:08:30 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-18 00:08:30 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #42 auf 'active' gesetzt
+2026-02-18 00:08:30 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-18 00:08:33 [host.injector] INFO: Bridge verteilt an 6/10 Apps
+2026-02-18 00:08:33 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → 94b01424-fdc2-4728-9257-974b52acfdac
+2026-02-18 00:08:34 [host.injector] INFO: Injection komplett + verifiziert: 74NHWRZ7QV9M
+2026-02-18 00:08:34 [host.flows.genesis] INFO: [6/11] PIF v5.0: autopif4-First Strategie (BASIC_INTEGRITY)...
+2026-02-18 00:08:34 [host.injector] INFO: PIF v5.0: autopif4 Canary-Fingerprint gefunden — verwende diesen (NICHT unseren statischen Pool)
+2026-02-18 00:08:34 [host.injector] INFO: PIF autopif4: FP=google/oriole_beta/oriole:CANARY/ZP11.260123.011/1… | Patch=2026-02-05 | Estimated Expiry: 2026-03-26
+2026-02-18 00:08:34 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/tmp.Rs3iRMYCcr/pif_ja27x4ae.prop → /data/local/tmp/.pif_staging.prop
+2026-02-18 00:08:34 [host.injector] INFO: PIF v5.0 OK [autopif4-canary]: custom.pif.prop → /data/adb/modules/playintegrityfix/custom.pif.prop
+2026-02-18 00:08:34 [host.flows.genesis] INFO: [6/11] PIF: custom.pif.prop erfolgreich gepusht
+2026-02-18 00:08:34 [host.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-18 00:08:34 [host.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-18 00:08:34 [host.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Kill-Switch entfernt | PIF=OK)
+2026-02-18 00:08:34 [host.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-18 00:08:34 [host.adb] INFO: Reboot: mode=normal
+2026-02-18 00:08:41 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-18 00:08:41 [host.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-18 00:08:41 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-18 00:08:41 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-18 00:08:45 [host.adb] INFO: ADB Daemon gestartet
+2026-02-18 00:08:46 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-18 00:08:56 [host.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-18 00:08:56 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-18 00:08:56 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-18 00:08:56 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-18 00:09:00 [host.adb] INFO: ADB Daemon gestartet
+2026-02-18 00:09:00 [host.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-18 00:09:00 [host.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-18 00:09:00 [host.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-18 00:09:01 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-18 00:09:02 [host.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-18 00:09:15 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-18 00:09:17 [host.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-18 00:09:17 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell getprop ro.serialno
+2026-02-18 00:09:17 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-18 00:09:17 [host.flows.genesis] INFO: [7/11] Warte auf Boot (unbegrenzt, pollt alle 3s)...
+2026-02-18 00:09:17 [host.adb] INFO: Warte auf Gerät (unbegrenzt, pollt alle 3s)...
+2026-02-18 00:09:17 [host.adb] INFO: ADB Erfolg nach 2 Versuchen: adb shell getprop ro.serialno
+2026-02-18 00:09:24 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-18 00:09:24 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-18 00:09:24 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-18 00:09:28 [host.adb] INFO: ADB Daemon gestartet
+2026-02-18 00:09:28 [host.adb] INFO: Gerät gebootet nach 9.0s
+2026-02-18 00:09:28 [host.flows.genesis] INFO: [7/11] Boot erkannt — warte 5s bevor Popup-Hammer...
+2026-02-18 00:09:29 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-18 00:09:29 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-18 00:09:31 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-18 00:09:31 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell getprop ro.serialno
+2026-02-18 00:09:31 [host.adb] INFO: ADB Erfolg nach 2 Versuchen: adb shell getprop ro.serialno
+2026-02-18 00:09:33 [host.flows.genesis] INFO: [7/11] Popup Hammer: Fehler-Dialoge unterdrücken...
+2026-02-18 00:09:40 [host.flows.genesis] INFO: [7/11] Popup Hammer abgeschlossen — Unlock starten...
+2026-02-18 00:09:43 [host.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-18 00:09:43 [host.adb.device] INFO: System-Dialoge unterdrücken (Post-Boot Hardening)...
+2026-02-18 00:09:43 [host.adb.device] INFO:   [OK] hide_error_dialogs
+2026-02-18 00:09:43 [host.adb.device] INFO:   [OK] device_provisioned
+2026-02-18 00:09:43 [host.adb.device] INFO:   [OK] user_setup_complete
+2026-02-18 00:09:43 [host.adb.device] INFO: System-Dialog-Suppression: 5/5 Maßnahmen erfolgreich
+2026-02-18 00:09:43 [host.flows.genesis] INFO: [7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...
+2026-02-18 00:09:43 [host.flows.genesis] INFO: [7/11] Bridge [primär]: OK (serial=74NHWRZ7QV9M)
+2026-02-18 00:09:43 [host.flows.genesis] INFO: [7/11] Bridge [sdcard]: OK (serial=74NHWRZ7QV9M)
+2026-02-18 00:09:43 [host.flows.genesis] INFO: [7/11] Bridge [app]: OK (serial=74NHWRZ7QV9M)
+2026-02-18 00:09:43 [host.flows.genesis] INFO: [7/11] Bridge-Verifikation: Primärpfad OK
+2026-02-18 00:09:43 [host.flows.genesis] INFO: [7/11] Hard Reset: OK (Boot + Popup-Hammer + Unlock in 69.2s)
+2026-02-18 00:09:43 [host.flows.genesis] INFO: [7b/11] DroidGuard Sanitize: Stale Attestierungs-Tokens löschen...
+2026-02-18 00:09:43 [host.shifter] INFO: [DroidGuard] Sanitized: 5/5 Einträge gelöscht (Neu-Attestierung erzwungen)
+2026-02-18 00:09:43 [host.flows.genesis] INFO: [7b/11] DroidGuard-Cache gelöscht — erzwinge GMS-Neustart...
+2026-02-18 00:09:49 [host.flows.genesis] INFO: [7b/11] GMS neu gestartet — frische Attestierung eingeleitet
+2026-02-18 00:09:49 [host.flows.genesis] INFO: [7c/11] Bewohntes Haus: Prüfe Dummy-App-Präsenz...
+2026-02-18 00:09:49 [host.flows.genesis] WARNING: [7c/11] BEWOHNTES HAUS: 10/12 Apps vorhanden (83%). Fehlend: Google Keep, Google Translate — Gerät könnte als 'frisch' erkannt werden!
+2026-02-18 00:09:49 [host.flows.genesis] INFO: [8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS...
+2026-02-18 00:10:09 [host.flows.genesis] INFO: [8/11] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-18 00:10:09 [host.flows.genesis] INFO: [8/11] Warte 15s auf neue Mobilfunk-Verbindung...
+2026-02-18 00:10:24 [host.network] INFO: HTTP-Tool erkannt: busybox wget (/data/adb/ksu/bin/busybox)
+2026-02-18 00:10:25 [host.network] INFO: Öffentliche IP: 176.6.4.136 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-18 00:10:25 [host.flows.genesis] INFO: [8/11] Network Init: Neue IP = 176.6.4.136 (via api.ipify.org)
+2026-02-18 00:10:25 [host.flows.genesis] INFO: [9/11] GMS Ready: Dynamisches Readiness-Polling (v6.0)...
+2026-02-18 00:10:25 [host.shifter] INFO: [Readiness] Warte auf sys.boot_completed=1...
+2026-02-18 00:10:25 [host.shifter] INFO: [Readiness] Boot bestätigt nach 0s
+2026-02-18 00:10:25 [host.shifter] INFO: [Readiness] Warte auf GmsCore Service...
+2026-02-18 00:10:25 [host.shifter] INFO: [Readiness] GMS-Prozess aktiv nach 0s
+2026-02-18 00:10:25 [host.shifter] INFO: [Readiness] System bereit — Boot: 0s | GMS(pid): 0s (GMS Verbindung steht - Bereit zum Loslegen!)
+2026-02-18 00:10:25 [host.flows.genesis] INFO: [9/11] GSF-ID: Generierte ID beibehalten. Bridge-GSF: 6634...3632
+2026-02-18 00:10:25 [host.flows.genesis] INFO: [9/11] GMS Verbindung steht - Bereit zum Loslegen! (Boot: 0s | GMS(pid): 0s)
+2026-02-18 00:10:25 [host.flows.genesis] INFO: [9/11] GMS Ready: GMS Verbindung steht (0s) | GSF-ID: generiert beibehalten
+2026-02-18 00:10:25 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...
+2026-02-18 00:10:25 [host.auditor] INFO: Audit starten: inshallesfixed (serial=74NHWRZ7QV9M)
+2026-02-18 00:10:25 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 49 Felder auf dem Gerät
+2026-02-18 00:10:25 [host.auditor] INFO:   [+] bridge_serial: pass — serial=74NHWRZ7QV9M, boot_serial=74NHWRZ7QV9M — korrekt
+2026-02-18 00:10:25 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-18 00:10:25 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: 00:1a:11:bc:12:ef
+2026-02-18 00:10:25 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-18 00:10:25 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-18 00:10:25 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-18 00:10:25 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-18 00:10:25 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-18 00:10:25 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-18 00:10:25 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-18 00:10:25 [host.auditor] INFO:   [!] bridge_build_fingerprint: fail — build_fingerprint fehlt in Bridge-Datei
+2026-02-18 00:10:25 [host.auditor] INFO: Audit [inshallesfixed]: 100% (11/12 passed)
+2026-02-18 00:10:25 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Integrität bestätigt (100%)
+2026-02-18 00:10:25 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline sichern...
+2026-02-18 00:10:25 [host.shifter] INFO: ============================================================
+2026-02-18 00:10:25 [host.shifter] INFO:   GOLDEN BASELINE CAPTURE: inshallesfixed
+2026-02-18 00:10:25 [host.shifter] INFO:   GSF-ID: 6634...3632
+2026-02-18 00:10:25 [host.shifter] INFO: ============================================================
+2026-02-18 00:10:25 [host.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-18 00:10:26 [host.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-18 00:10:27 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/inshallesfixed/gms/gms_20260218_001027.tar.tmp
+2026-02-18 00:10:31 [host.adb] INFO: Exec-Out fertig: 49591296 Bytes geschrieben
+2026-02-18 00:10:31 [host.shifter] INFO: GMS Backup (3 Pakete): OK (47.3 MB, Versuch 1/3)
+2026-02-18 00:10:31 [host.shifter] INFO: GMS tar: gms_20260218_001027.tar (47.3 MB) — 3 Pakete
+2026-02-18 00:10:31 [host.shifter] INFO: Golden Baseline GMS: OK (gms_20260218_001027.tar)
+2026-02-18 00:10:31 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/inshallesfixed/accounts/accounts_20260218_001031.tar.tmp
+2026-02-18 00:10:32 [host.adb] INFO: Exec-Out fertig: 177664 Bytes geschrieben
+2026-02-18 00:10:32 [host.shifter] INFO: Account-DBs (1 Dateien): OK (0.2 MB, Versuch 1/3)
+2026-02-18 00:10:32 [host.shifter] INFO: Account-DBs tar: accounts_20260218_001031.tar (177664 Bytes, 1 Dateien)
+2026-02-18 00:10:32 [host.shifter] INFO: Golden Baseline Accounts: OK (accounts_20260218_001031.tar)
+2026-02-18 00:10:32 [host.shifter] INFO: Golden Baseline: 2/2 Komponenten gesichert
+2026-02-18 00:10:32 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline komplett
+2026-02-18 00:10:32 [host.flows.genesis] INFO: [11/11] Audit + Account-Check + TikTok ID-Validation (v6.1)...
+2026-02-18 00:10:32 [host.auditor] INFO: Audit starten: inshallesfixed (serial=74NHWRZ7QV9M)
+2026-02-18 00:10:32 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 49 Felder auf dem Gerät
+2026-02-18 00:10:32 [host.auditor] INFO:   [+] bridge_serial: pass — serial=74NHWRZ7QV9M, boot_serial=74NHWRZ7QV9M — korrekt
+2026-02-18 00:10:32 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-18 00:10:32 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: 00:1a:11:bc:12:ef
+2026-02-18 00:10:32 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-18 00:10:32 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-18 00:10:32 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-18 00:10:32 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-18 00:10:32 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-18 00:10:32 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-18 00:10:32 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-18 00:10:32 [host.auditor] INFO:   [!] bridge_build_fingerprint: fail — build_fingerprint fehlt in Bridge-Datei
+2026-02-18 00:10:32 [host.auditor] INFO: Audit [inshallesfixed]: 100% (11/12 passed)
+2026-02-18 00:10:32 [host.shifter] INFO: [Account-Check] Google-Account gefunden: arvinvaha@gmail.com
+2026-02-18 00:10:32 [host.flows.genesis] INFO: [11/11] Google-Account: arvinvaha@gmail.com
+2026-02-18 00:10:32 [host.flows.genesis] INFO: [11/11] TikTok Silent Launch: ID-Generierung starten...
+2026-02-18 00:10:32 [host.shifter] INFO: [SilentLaunch] Starte com.zhiliaoapp.musically für ID-Generierung (15s)...
+2026-02-18 00:10:49 [host.flows.genesis] WARNING: [11/11] install_id nicht extrahierbar (TikTok nicht installiert?)
+2026-02-18 00:10:49 [host.flows.genesis] INFO: [11/11] Audit: PASS (100%) | Google-Account: arvinvaha@gmail.com
+2026-02-18 00:10:49 [host.flows.genesis] INFO: ============================================================
+2026-02-18 00:10:49 [host.flows.genesis] INFO:   GENESIS ERFOLG: inshallesfixed (145544 ms)
+2026-02-18 00:10:49 [host.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
+2026-02-18 00:10:49 [host.flows.genesis] INFO: ============================================================

@@ -877,12 +877,13 @@ class AppShifter:
         except (ADBError, Exception):
             return False
 
-    def _find_latest_tar(self, directory: Path, prefix: str) -> Optional[Path]:
-        """Findet die neueste tar-Datei mit gegebenem Prefix in einem Verzeichnis."""
+    def _find_latest_tar(self, directory: Path, prefix: str = "") -> Optional[Path]:
+        """Findet die neueste tar-Datei mit optionalem Prefix in einem Verzeichnis."""
         if not directory.exists():
             return None
+        pattern = f"{prefix}*.tar" if prefix else "*.tar"
         tars = sorted(
-            directory.glob(f"{prefix}*.tar"),
+            directory.glob(pattern),
             key=lambda p: p.stat().st_mtime,
             reverse=True,
         )
@@ -2281,139 +2282,156 @@ class AppShifter:
         """
         Stellt die System Account-Datenbanken wieder her.
 
-        KRITISCH — Reihenfolge:
-          1. tar entpacken (als root)
-          2. Owner: system:system (UID 1000:1000)
-          3. Mode: 660 (rw-rw----)
-          4. SELinux: u:object_r:accounts_data_file:s0
+        v4.0 "FBE-Safe" Strategie (2026-02-17):
+          PROBLEM: tar -xf direkt in /data/system_ce/0/ (FBE-verschlüsselt)
+          erzeugt Dateien deren SELinux-Xattr vom Kernel als 'unlabeled'
+          aufgelöst wird → system_server crasht → BOOTLOOP!
+
+          LÖSUNG: Zweistufiger Restore:
+            1. tar in TEMP-Dir extrahieren (/data/local/tmp/ — nicht FBE)
+            2. Inhalte per 'cat' in die FBE-Zone kopieren (frische Inodes)
+            3. Permissions + SELinux setzen
+            4. Kernel-Verify: dmesg auf SELinux-Denials prüfen
+            5. BOOTLOOP-SCHUTZ: Bei Verify-Fehler Datei LÖSCHEN
 
         WARNUNG: Falsche Permissions = Bootloop-Gefahr!
         """
+        TEMP_DIR = "/data/local/tmp/_acc_restore"
+        CE_DIR = "/data/system_ce/0"
+        DB_NAME = "accounts_ce.db"
+
         logger.info(
-            "Account-DBs Restore: %s (%d Bytes)",
+            "Account-DBs Restore v4.0 (FBE-Safe): %s (%d Bytes)",
             tar_path.name, tar_path.stat().st_size,
         )
 
-        # *** SQLite Safety v3.2 ***
-        # Lösche bestehende WAL/SHM Dateien VOR dem Entpacken
-        # um Datenbank-Korruption durch alte Journal-States zu vermeiden
-        for suffix in ["-wal", "-shm", "-journal"]:
+        # --- Phase 0: Cleanup ---
+        # Alte DB-Dateien + Journal/WAL/SHM löschen
+        for suffix in ["", "-wal", "-shm", "-journal"]:
             try:
                 await self._adb.shell(
-                    f"rm -f /data/system_ce/0/accounts_ce.db{suffix}",
+                    f"rm -f {CE_DIR}/{DB_NAME}{suffix}",
                     root=True, timeout=5,
                 )
             except (ADBError, ADBTimeoutError):
                 pass
 
-        # v3.2: Filesystem-Settle — Warte 2s damit File-Handles freigegeben werden.
-        # accounts_ce.db ist SYSTEM-kritisch (UID 1000) — Race-Conditions hier
-        # führen direkt zum Bootloop wegen korrupter Account-Registry.
-        await asyncio.sleep(2)
-        logger.debug(
-            "SQLite Safety v3.2: Alte WAL/SHM/Journal gelöscht + 2s Settle"
-        )
+        await asyncio.sleep(1)
 
-        # tar entpacken
-        restore_result = await self._adb.exec_in_from_file(
-            "tar -xf - -C /",
-            str(tar_path),
-            timeout=30,
-        )
-
-        if not restore_result.success:
-            raise ADBError(
-                f"Account-DB tar-Restore fehlgeschlagen: "
-                f"exit {restore_result.returncode}"
-            )
-
-        # Permissions fixen für alle DB-Dateien (einzeln)
-        for db_path in SYSTEM_ACCOUNT_DBS:
-            try:
-                check = await self._adb.shell(
-                    f"test -f {db_path}", root=True,
-                )
-                if not check.success:
-                    continue
-
-                # Owner: system:system
-                await self._adb.shell(
-                    f"chown {ACCOUNTS_DB_OWNER}:{ACCOUNTS_DB_GROUP} {db_path}",
-                    root=True,
-                )
-                # Mode: rw-rw----
-                await self._adb.shell(
-                    f"chmod {ACCOUNTS_DB_MODE} {db_path}",
-                    root=True,
-                )
-                # SELinux Context (einzeln pro Datei)
-                await self._adb.shell(
-                    f"chcon {ACCOUNTS_DB_SELINUX} {db_path}",
-                    root=True,
-                )
-                logger.debug("Account-DB fixed: %s", db_path)
-
-            except ADBError as e:
-                logger.warning("Account-DB Permission Fix für %s: %s", db_path, e)
-
-        # ---------------------------------------------------------------
-        # CRITICAL FIX: Force SELinux Context via Glob + restorecon
-        # ---------------------------------------------------------------
-        # Diagnose: accounts_ce.db hatte u:object_r:system_data_file:s0
-        # statt dem korrekten u:object_r:accounts_data_file:s0.
-        # SELinux blockiert den Zugriff beim Booten → Accounts weg.
-        # Glob-chcon fängt alle Varianten (.db, .db-journal, .db-wal, .db-shm)
-        # auch wenn SYSTEM_ACCOUNT_DBS nicht komplett ist.
-        # ---------------------------------------------------------------
-        try:
-            result = await self._adb.shell(
-                f"chcon {ACCOUNTS_DB_SELINUX} /data/system_ce/0/accounts_ce.db*",
-                root=True,
-            )
-            if result.success:
-                logger.info("SELinux Glob-Fix: accounts_ce.db* → %s", ACCOUNTS_DB_SELINUX)
-            else:
-                logger.warning("SELinux Glob-Fix exit=%d", result.returncode)
-        except ADBError as e:
-            logger.warning("SELinux Glob-Fix fehlgeschlagen: %s", e)
-
-        # Fallback: restorecon (liest die SELinux file_contexts Policy)
-        try:
-            result = await self._adb.shell(
-                "restorecon -Rv /data/system_ce/0/accounts_ce.db",
-                root=True,
-            )
-            if result.success:
-                logger.info("restorecon Fallback: OK (%s)", result.output.strip()[:100])
-            else:
-                logger.debug("restorecon Fallback: exit=%d (nicht kritisch)", result.returncode)
-        except ADBError as e:
-            logger.debug("restorecon nicht verfügbar: %s", e)
-
-        # Verifizierung: Prüfe den tatsächlichen SELinux Context
-        try:
-            result = await self._adb.shell(
-                "ls -Z /data/system_ce/0/accounts_ce.db",
-                root=True,
-            )
-            if result.success:
-                logger.info("SELinux Verify: %s", result.output.strip())
-                if "accounts_data_file" not in result.output:
-                    logger.error(
-                        "WARNUNG: SELinux Context ist NICHT accounts_data_file! "
-                        "Accounts werden beim nächsten Boot möglicherweise gelöscht!"
-                    )
-        except ADBError:
-            pass
-
-        # Auch den übergeordneten Ordner prüfen
+        # Temp-Dir vorbereiten (außerhalb FBE!)
         await self._adb.shell(
-            f"chown {ACCOUNTS_DB_OWNER}:{ACCOUNTS_DB_GROUP} "
-            f"/data/system_ce/0/",
+            f"rm -rf {TEMP_DIR} && mkdir -p {TEMP_DIR}",
             root=True,
         )
 
-        logger.info("Account-DBs Restore komplett (Permissions + SELinux gesetzt)")
+        try:
+            # --- Phase 1: tar in Temp-Dir extrahieren ---
+            logger.debug("Phase 1: tar → %s", TEMP_DIR)
+            restore_result = await self._adb.exec_in_from_file(
+                f"tar -xf - -C {TEMP_DIR}",
+                str(tar_path),
+                timeout=30,
+            )
+            if not restore_result.success:
+                raise ADBError(
+                    f"Account-DB tar-Extract fehlgeschlagen: "
+                    f"exit {restore_result.returncode}"
+                )
+
+            # Finde die extrahierte accounts_ce.db (Pfad im tar ist relativ)
+            find_result = await self._adb.shell(
+                f"find {TEMP_DIR} -name '{DB_NAME}' -type f",
+                root=True, timeout=10,
+            )
+            if not find_result.success or not find_result.output.strip():
+                raise ADBError("accounts_ce.db nicht im tar-Archiv gefunden")
+
+            extracted_db = find_result.output.strip().split("\n")[0]
+            logger.debug("Phase 1: Extrahiert → %s", extracted_db)
+
+            # --- Phase 2: cat-Copy in FBE-Zone (frische Inodes!) ---
+            # KRITISCH: 'cat > file' erzeugt einen neuen Inode im
+            # FBE-verschlüsselten Verzeichnis mit korrekter Encryption.
+            # tar -xf würde den Inode mit falschen Xattrs erstellen.
+            logger.debug("Phase 2: cat-Copy → %s/%s", CE_DIR, DB_NAME)
+
+            final_db = f"{CE_DIR}/{DB_NAME}"
+            copy_result = await self._adb.shell(
+                f"cat {extracted_db} > {final_db}",
+                root=True, timeout=15,
+            )
+            if not copy_result.success:
+                raise ADBError(
+                    f"cat-Copy fehlgeschlagen: exit {copy_result.returncode}"
+                )
+
+            # Prüfe ob die kopierte Datei valide ist (SQLite Header)
+            header_check = await self._adb.shell(
+                f"xxd -l 16 {final_db} | head -1",
+                root=True, timeout=5,
+            )
+            if header_check.success and "SQLite" not in header_check.output:
+                logger.error(
+                    "BOOTLOOP-SCHUTZ: Kopierte DB hat keinen SQLite-Header! "
+                    "Lösche Datei um Bootloop zu verhindern."
+                )
+                await self._adb.shell(f"rm -f {final_db}", root=True)
+                raise ADBError("Account-DB korrupt nach cat-Copy (kein SQLite-Header)")
+
+            # --- Phase 3: Permissions + SELinux ---
+            logger.debug("Phase 3: Permissions + SELinux")
+            await self._adb.shell(
+                f"chown {ACCOUNTS_DB_OWNER}:{ACCOUNTS_DB_GROUP} {final_db}",
+                root=True,
+            )
+            await self._adb.shell(
+                f"chmod {ACCOUNTS_DB_MODE} {final_db}",
+                root=True,
+            )
+            await self._adb.shell(
+                f"chcon {ACCOUNTS_DB_SELINUX} {final_db}",
+                root=True,
+            )
+
+            # --- Phase 4: Kernel-Verify (BOOTLOOP-SCHUTZ!) ---
+            verify = await self._adb.shell(
+                f"ls -Z {final_db}",
+                root=True,
+            )
+            if verify.success:
+                context_line = verify.output.strip()
+                logger.info("SELinux Verify: %s", context_line)
+
+                if "accounts_data_file" not in context_line:
+                    # LETZTE CHANCE: Datei löschen um Bootloop zu verhindern!
+                    logger.error(
+                        "BOOTLOOP-SCHUTZ AKTIV: SELinux-Kontext '%s' ist NICHT "
+                        "accounts_data_file! Lösche DB um Bootloop zu verhindern. "
+                        "Google-Account muss manuell neu eingeloggt werden.",
+                        context_line,
+                    )
+                    await self._adb.shell(f"rm -f {final_db}", root=True)
+                    await self._adb.shell("sync", root=True)
+                    logger.warning(
+                        "Account-DB gelöscht (Bootloop-Schutz). "
+                        "Android erstellt eine leere DB beim nächsten Boot."
+                    )
+                    return
+                else:
+                    logger.info("SELinux OK: accounts_data_file korrekt gesetzt")
+
+            # Filesystem sync
+            await self._adb.shell("sync", root=True)
+            logger.info(
+                "Account-DBs Restore v4.0 komplett (FBE-Safe cat-Copy + Verify)"
+            )
+
+        finally:
+            # Temp-Dir immer aufräumen
+            try:
+                await self._adb.shell(f"rm -rf {TEMP_DIR}", root=True)
+            except ADBError:
+                pass
 
     # =========================================================================
     # Einzelnes Paket Backup (generisch)
@@ -2466,14 +2484,7 @@ class AppShifter:
     # Hilfsmethoden
     # =========================================================================
 
-    def _find_latest_tar(self, directory: Path) -> Optional[Path]:
-        """Findet das neueste tar-Archiv in einem Verzeichnis."""
-        tars = sorted(
-            directory.glob("*.tar"),
-            key=lambda p: p.stat().st_mtime,
-            reverse=True,
-        )
-        return tars[0] if tars else None
+    # _find_latest_tar ist oben definiert (mit optionalem prefix Parameter)
 
     async def _force_stop(self) -> None:
         """Stoppt die Ziel-App forciert."""
@@ -2732,18 +2743,58 @@ class AppShifter:
         data_path = f"/data/data/{pkg}"
         results: dict[str, bool] = {}
 
-        # Verzeichnisse die RADIKAL gelöscht werden
+        # v5.1: Selektive Bereinigung — Login-Session schützen!
+        # NICHT mehr databases/ und files/mmkv/ komplett löschen, da
+        # TikTok dort Session-Tokens speichern kann → Login geht verloren.
+        # Stattdessen: Nur Tracking/Fingerprinting-Ordner löschen.
         dangerous_dirs = [
-            "files/mmkv",           # Tencent MMKV — binäre install_id, device_id
-            "databases",            # SQLite DBs mit gecachten IDs
             "app_webview",          # WebView LocalStorage, Cookies, IndexedDB
             "no_backup",            # Tracking-Dateien die Android nicht sichert
             "files/tracker",        # ByteDance Analytics SDK
             "files/cachemgr",       # Cache Manager mit Fingerprints
-            "cache",                # HTTP/Image Cache (kann Auth-Tokens leaken)
-            "code_cache",           # DEX/OAT Cache (verrät alte Package-Version)
+            "cache",                # HTTP/Image Cache
+            "code_cache",           # DEX/OAT Cache
             "files/recently_attached_image", # Medien-Metadaten
         ]
+
+        # MMKV: Nur Tracking-Keys löschen, nicht den ganzen Ordner
+        # (MMKV kann Session-Tokens enthalten die für Login nötig sind)
+        mmkv_tracking_files = [
+            "files/mmkv/com.bytedance.sdk.openadsdk.DeviceID",
+            "files/mmkv/com.bytedance.sdk.openadsdk.DeviceID.crc",
+            "files/mmkv/tiktok_device_config",
+            "files/mmkv/tiktok_device_config.crc",
+            "files/mmkv/com.bytedance.ies.ugc.device",
+            "files/mmkv/com.bytedance.ies.ugc.device.crc",
+        ]
+        for mmkv_file in mmkv_tracking_files:
+            full_path = f"{data_path}/{mmkv_file}"
+            try:
+                result = await self._adb.shell(
+                    f"rm -f {full_path}", root=True, timeout=3,
+                )
+                results[f"mmkv:{mmkv_file.split('/')[-1]}"] = result.success
+            except (ADBError, ADBTimeoutError):
+                results[f"mmkv:{mmkv_file.split('/')[-1]}"] = False
+
+        # databases/: Nur Tracking-DBs löschen, Session-DBs behalten
+        tracking_dbs = [
+            "databases/tracker.db",
+            "databases/tracker.db-journal",
+            "databases/tracker.db-wal",
+            "databases/webview.db",
+            "databases/webview.db-journal",
+            "databases/ad_*.db",
+        ]
+        for db_pattern in tracking_dbs:
+            full_path = f"{data_path}/{db_pattern}"
+            try:
+                result = await self._adb.shell(
+                    f"rm -f {full_path}", root=True, timeout=3,
+                )
+                results[f"db:{db_pattern.split('/')[-1]}"] = result.success
+            except (ADBError, ADBTimeoutError):
+                results[f"db:{db_pattern.split('/')[-1]}"] = False
 
         for dir_name in dangerous_dirs:
             full_path = f"{data_path}/{dir_name}"
@@ -2777,8 +2828,8 @@ class AppShifter:
         deleted = sum(1 for v in results.values() if v)
         total = len(results)
         logger.info(
-            "[FIX-30 DeepClean] %s: %d/%d Tracking-Speicher gelöscht "
-            "(MMKV, DBs, WebView, Cache — shared_prefs bleibt erhalten)",
+            "[v5.1 DeepClean] %s: %d/%d Tracking-Speicher selektiv gelöscht "
+            "(Login-Session geschützt — shared_prefs + DBs + MMKV-Core erhalten)",
             pkg, deleted, total,
         )
         return results

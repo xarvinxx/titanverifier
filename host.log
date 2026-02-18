@@ -4897,3 +4897,6 @@ drwxrwx--x 335 system  system  53248 2026-02-18 00:56 ..
 2026-02-18 01:46:45 [watchfiles.main] INFO: 5 changes detected
 2026-02-18 01:46:47 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=51243)
 2026-02-18 01:46:47 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=51243)
+2026-02-18 01:52:58 [watchfiles.main] INFO: 15 changes detected
+2026-02-18 01:53:08 [watchfiles.main] INFO: 37 changes detected
+2026-02-18 02:15:28 [watchfiles.main] INFO: 2 changes detected

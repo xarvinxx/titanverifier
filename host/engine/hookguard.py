@@ -65,6 +65,9 @@ class HookState:
     maps_clean: bool = False
     maps_verified: bool = False
     maps_leaks: list = field(default_factory=list)
+    # Live Monitor: per-API breakdown and device-side kill events
+    api_details: list = field(default_factory=list)
+    device_kill_events: list = field(default_factory=list)
 
 
 # =============================================================================
@@ -199,12 +202,15 @@ class HookGuard:
             await self._check_proc_maps()
             self._last_maps_check = now
 
-        # 6. Evaluate state → trigger kill-switch if needed
+        # 6. Read device-side kill-switch events from logcat
+        await self._read_device_kill_events()
+
+        # 7. Evaluate state → trigger kill-switch if needed
         kill_reason = self._evaluate_threats()
         if kill_reason:
             await self._execute_kill_switch(kill_reason)
 
-        # 7. Broadcast state to WebSocket clients
+        # 8. Broadcast state to WebSocket clients
         await self._broadcast_state()
 
     # ── Xposed Monitor ────────────────────────────────────────────
@@ -218,6 +224,7 @@ class HookGuard:
         max_hooks = 0
         min_hooks = 999
         last_hb = 0
+        all_api_details: list[dict] = []
 
         for pkg in TIKTOK_PACKAGES:
             try:
@@ -257,14 +264,24 @@ class HookGuard:
                         if data.get("has_critical_real", False):
                             has_critical = True
                             critical_apis.extend(data.get("real_critical_apis", []))
+
+                        apis_dict = data.get("apis", {})
+                        for api_name, api_info in apis_dict.items():
+                            all_api_details.append({
+                                "api": api_name,
+                                "category": api_info.get("category", "?"),
+                                "count": api_info.get("count", 0),
+                                "spoofed": api_info.get("spoofed", False),
+                                "last_ms": api_info.get("last_ms", 0),
+                                "last_value": api_info.get("last_value", ""),
+                                "process": proc_name,
+                            })
                     except (json.JSONDecodeError, Exception) as e:
                         log.warning("Failed to parse %s: %s", json_path, e)
             except ADBError:
                 pass
 
-        hooks_per_process = []
-        # Re-scan to collect per-process hook counts
-        # (max_hooks already has the max from the loop above)
+        all_api_details.sort(key=lambda x: x.get("last_ms", 0), reverse=True)
 
         self._state.active_processes = processes
         self._state.spoof_count = total_spoof
@@ -274,6 +291,45 @@ class HookGuard:
         self._state.last_heartbeat_ms = last_hb
         self._state.has_critical_real = has_critical
         self._state.real_critical_apis = critical_apis
+        self._state.api_details = all_api_details
+
+    # ── Device Kill-Event Monitor ────────────────────────────────
+
+    async def _read_device_kill_events(self) -> None:
+        """Read TitanKillSwitch events from device logcat."""
+        try:
+            result = await self._adb.shell(
+                "logcat -d -s TitanKillSwitch:* -v time 2>/dev/null | tail -20",
+                root=True,
+                timeout=5,
+            )
+            if not result.success or not result.output:
+                return
+            events: list[dict] = []
+            for line in result.output.strip().split("\n"):
+                line = line.strip()
+                if not line or "TitanKillSwitch" not in line:
+                    continue
+                event_type = "UNKNOWN"
+                if "INSTANT KILL" in line:
+                    event_type = "INSTANT_KILL"
+                elif "DEFERRED KILL" in line:
+                    event_type = "DEFERRED_KILL"
+                elif "CRITICAL LEAK" in line:
+                    event_type = "CRITICAL_LEAK"
+                elif "FATAL" in line or "Bridge missing" in line:
+                    event_type = "PRE_FLIGHT_KILL"
+                elif "Kill-Flag cleared" in line:
+                    event_type = "FLAG_CLEARED"
+                timestamp = line[:18].strip() if len(line) > 18 else ""
+                events.append({
+                    "time": timestamp,
+                    "type": event_type,
+                    "message": line,
+                })
+            self._state.device_kill_events = events[-10:]
+        except ADBError:
+            pass
 
     # ── Native Monitor ────────────────────────────────────────────
 

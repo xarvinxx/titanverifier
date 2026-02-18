@@ -200,6 +200,12 @@ class DeviceAuditor:
             result.checks.append(
                 self._check_bridge_field(bridge_fields, expected, "sim_serial", critical=False)
             )
+            result.checks.append(
+                self._check_bridge_field(bridge_fields, expected, "advertising_id", critical=True)
+            )
+            result.checks.append(
+                self._check_bridge_field(bridge_fields, expected, "bluetooth_mac", critical=False)
+            )
             # build_fingerprint wird NICHT in der Bridge geprüft.
             # PIF (Play Integrity Fix) hat exklusive Kontrolle über
             # ro.build.fingerprint. Die Bridge enthält dieses Feld

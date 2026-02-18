@@ -88,6 +88,14 @@ class IdentityBridge(BaseModel):
     widevine_id: str = Field(..., min_length=WIDEVINE_ID_LENGTH, max_length=WIDEVINE_ID_LENGTH,
                              description="Widevine Device ID (32 Hex-Zeichen)")
 
+    # --- Advertising & Bluetooth ---
+    advertising_id: Optional[str] = Field(default=None,
+                                          pattern=r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                                          description="Google Advertising ID (UUID v4)")
+    bluetooth_mac: Optional[str] = Field(default=None,
+                                         pattern=r"^[0-9a-f]{2}(:[0-9a-f]{2}){5}$",
+                                         description="Bluetooth MAC (abgeleitet von WiFi MAC)")
+
     # --- SIM / Telephony ---
     imsi: str = Field(..., min_length=O2_DE.IMSI_LENGTH, max_length=O2_DE.IMSI_LENGTH,
                       description="IMSI (26207 + 10 Ziffern)")

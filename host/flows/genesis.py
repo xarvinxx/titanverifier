@@ -43,7 +43,7 @@ from enum import Enum
 from typing import Optional
 
 from host.adb.client import ADBClient, ADBError, ADBTimeoutError
-from host.adb.device import DeviceHelper
+
 from host.config import LOCAL_TZ, TIMING
 from host.database import db
 from host.engine.auditor import AuditResult, DeviceAuditor
@@ -166,7 +166,7 @@ class GenesisFlow:
         self._shifter = AppShifter(adb)
         self._auditor = DeviceAuditor(adb)
         self._network = NetworkChecker(adb)
-        self._device = DeviceHelper(adb)
+
 
     async def execute(
         self,
@@ -526,7 +526,7 @@ class GenesisFlow:
 
             # Post-Boot Settle: Warten bis alle Services initialisiert sind
             logger.info(
-                "[7/11] Boot erkannt — warte %ds bevor Popup-Hammer...",
+                "[7/11] Boot erkannt — warte %ds post-boot...",
                 TIMING.POST_BOOT_SETTLE_SECONDS,
             )
             await asyncio.sleep(TIMING.POST_BOOT_SETTLE_SECONDS)
@@ -563,48 +563,8 @@ class GenesisFlow:
             except (ADBError, ADBTimeoutError):
                 pass
 
-            # =============================================================
-            # POPUP HAMMER — VOR dem Unlock!
-            # =============================================================
-            # Das "Internal Problem with your device" Popup (Vendor
-            # Mismatch) blockiert den Touchscreen komplett. Der Unlock-
-            # Swipe funktioniert nicht, solange das Popup drauf ist.
-            # Deshalb: Erst Popup weg, DANN unlock.
-            # =============================================================
-            logger.info("[7/11] Popup Hammer: Fehler-Dialoge unterdrücken...")
-
-            # 1. Settings-basierte Suppression (Versuch 1 — sofort)
-            try:
-                await self._adb.shell(
-                    "settings put global hide_error_dialogs 1", root=True, timeout=5,
-                )
-            except (ADBError, Exception):
-                pass
-
-            # 2. UI-Blind-Klicker (Versuch 2 — The Hammer)
-            # 3 Runden: TAB → ENTER → BACK
-            # TAB: Fokus auf "OK" Button verschieben
-            # ENTER: Button bestätigen
-            # BACK: Falls noch ein Dialog übrig ist
-            for round_nr in range(3):
-                try:
-                    await self._adb.shell("input keyevent 61", timeout=3)   # TAB
-                    await asyncio.sleep(0.5)
-                    await self._adb.shell("input keyevent 66", timeout=3)   # ENTER
-                    await asyncio.sleep(0.5)
-                    await self._adb.shell("input keyevent 4", timeout=3)    # BACK
-                    await asyncio.sleep(1)
-                except (ADBError, Exception):
-                    pass  # Nicht-kritisch, weiter versuchen
-
-            logger.info("[7/11] Popup Hammer abgeschlossen — Unlock starten...")
-
-            # Gerät entsperren (Swipe — jetzt ohne Popup-Blocker)
+            # Gerät entsperren
             await self._adb.unlock_device()
-
-            # Nochmal suppress_system_dialogs als Sicherheitsnetz
-            # (setzt auch device_provisioned + user_setup_complete)
-            await self._device.suppress_system_dialogs()
 
             # =============================================================
             # POST-REBOOT BRIDGE VERIFICATION
@@ -683,7 +643,7 @@ class GenesisFlow:
 
             boot_secs = (_now_ms() - step_start) / 1000
             step.status = FlowStepStatus.SUCCESS
-            step.detail = f"Boot + Popup-Hammer + Unlock in {boot_secs:.1f}s"
+            step.detail = f"Boot + Unlock in {boot_secs:.1f}s"
             step.duration_ms = _now_ms() - step_start
             logger.info("[7/11] Hard Reset: OK (%s)", step.detail)
 
@@ -1382,6 +1342,7 @@ class GenesisFlow:
                     name, status, notes,
                     serial, boot_serial, imei1, imei2,
                     gsf_id, android_id, wifi_mac, widevine_id,
+                    advertising_id, bluetooth_mac,
                     imsi, sim_serial, operator_name, phone_number,
                     sim_operator, sim_operator_name, voicemail_number,
                     build_id, build_fingerprint, security_patch,
@@ -1391,6 +1352,7 @@ class GenesisFlow:
                     ?, 'active', ?,
                     ?, ?, ?, ?,
                     ?, ?, ?, ?,
+                    ?, ?,
                     ?, ?, ?, ?,
                     ?, ?, ?,
                     ?, ?, ?,
@@ -1403,6 +1365,8 @@ class GenesisFlow:
                     identity.imei1, identity.imei2,
                     identity.gsf_id, identity.android_id,
                     identity.wifi_mac, identity.widevine_id,
+                    getattr(identity, 'advertising_id', None),
+                    getattr(identity, 'bluetooth_mac', None),
                     identity.imsi, identity.sim_serial,
                     identity.operator_name, identity.phone_number,
                     identity.sim_operator, identity.sim_operator_name,

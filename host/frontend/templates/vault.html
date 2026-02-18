@@ -884,10 +884,10 @@
                     <!-- Säule 2: IMEI / SIM -->
                     <p class="text-[9px] text-gray-600 uppercase tracking-wider mt-3 mb-1">Säule 2 — IMEI / SIM / Telephony</p>
                     <div class="grid grid-cols-2 gap-x-6 gap-y-0.5">
-                        ${dr('IMEI 1', p.imei1, true)}
-                        ${dr('IMEI 2', p.imei2, true)}
-                        ${dr('IMSI', p.imsi, true)}
-                        ${dr('SIM Serial (ICCID)', p.sim_serial, true)}
+                        ${dr('IMEI 1', p.imei1)}
+                        ${dr('IMEI 2', p.imei2)}
+                        ${dr('IMSI', p.imsi)}
+                        ${dr('SIM Serial (ICCID)', p.sim_serial)}
                         ${dr('Phone', p.phone_number)}
                         ${dr('Carrier', p.operator_name)}
                         ${dr('SIM Operator', p.sim_operator)}
@@ -895,13 +895,14 @@
                         ${dr('Voicemail', p.voicemail_number)}
                     </div>
 
-                    <!-- Säule 3: Network -->
+                    <!-- Säule 3: Network Fingerprinting -->
                     <p class="text-[9px] text-gray-600 uppercase tracking-wider mt-3 mb-1">Säule 3 — Network Fingerprinting</p>
                     <div class="grid grid-cols-2 gap-x-6 gap-y-0.5">
                         ${dr('WiFi MAC', p.wifi_mac)}
+                        ${dr('Bluetooth MAC', p.bluetooth_mac)}
                     </div>
 
-                    <!-- Säule 4: DRM -->
+                    <!-- Säule 4: DRM Fingerprinting -->
                     <p class="text-[9px] text-gray-600 uppercase tracking-wider mt-3 mb-1">Säule 4 — DRM Fingerprinting</p>
                     <div class="grid grid-cols-2 gap-x-6 gap-y-0.5">
                         ${dr('Widevine ID', p.widevine_id)}
@@ -910,8 +911,9 @@
                     <!-- Säule 5: ID Correlation -->
                     <p class="text-[9px] text-gray-600 uppercase tracking-wider mt-3 mb-1">Säule 5 — ID Correlation</p>
                     <div class="grid grid-cols-2 gap-x-6 gap-y-0.5">
-                        ${dr('GSF ID', p.gsf_id, true)}
+                        ${dr('GSF ID', p.gsf_id)}
                         ${dr('Android ID (hex)', p.android_id)}
+                        ${dr('Advertising ID', p.advertising_id)}
                     </div>
                 </div>
 
@@ -1032,28 +1034,13 @@
     function sv(id, val) { document.getElementById(id).value = val || ''; }
     function esc(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
-    function decToHex(val) {
-        if (!val || typeof val !== 'string') return null;
-        const clean = val.trim();
-        if (!/^\d{8,}$/.test(clean)) return null;
-        try { return BigInt(clean).toString(16).toUpperCase(); } catch { return null; }
-    }
-
-    function dr(label, value, showHex) {
+    function dr(label, value) {
         const v = String(value || '—');
-        let hexLine = '';
-        if (showHex && value && v !== '—') {
-            const hex = decToHex(v);
-            if (hex) {
-                hexLine = `<div class="text-right -mt-0.5 mb-0.5"><span class="text-[9px] font-mono text-gray-600">0x${hex}</span></div>`;
-            }
-        }
         return `<div>
             <div class="flex items-center justify-between py-0.5">
                 <span class="text-[11px] text-gray-500">${label}</span>
                 <span class="text-[11px] font-mono text-gray-300">${esc(v)}</span>
             </div>
-            ${hexLine}
         </div>`;
     }
 

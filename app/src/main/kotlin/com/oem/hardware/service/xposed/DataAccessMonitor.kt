@@ -50,6 +50,70 @@ object DataAccessMonitor {
         Category.ADVERTISING, Category.DRM
     )
 
+    /**
+     * On-Device Kill-Switch: Wenn ein kritischer Hook einen REAL-Wert
+     * zurückgibt (Spoofing fehlgeschlagen), wird der eigene Prozess
+     * sofort beendet. Unabhängig vom Host — funktioniert auch ohne
+     * USB-Verbindung oder laufenden Server.
+     */
+    @Volatile
+    private var killSwitchEnabled = true
+
+    @Volatile
+    private var killSwitchTriggered = false
+
+    // Grace-Period: Die ersten 5 Sekunden nach Init nicht killen.
+    // Die Bridge braucht kurz zum Laden, und die Hooks registrieren
+    // sich sequentiell — ein REAL-Event in dieser Phase ist normal.
+    private const val KILL_SWITCH_GRACE_MS = 5_000L
+
+    private const val CRITICAL_REAL_THRESHOLD = 1
+
+    private const val KILL_FLAG_NAME = ".titan_kill_flag"
+    private const val BRIDGE_NAME = ".hw_config"
+
+    /**
+     * Prüft beim App-Start ob ein Kill-Flag existiert.
+     * Wenn ja UND Bridge fehlt → sofort killen (0ms Exposure).
+     * Wenn Bridge wieder da → Flag löschen (System repariert).
+     */
+    fun checkKillFlagOrDie(packageName: String) {
+        val dir = File("/data/data/$packageName/files")
+        val flagFile = File(dir, KILL_FLAG_NAME)
+        val bridgeFile = File(dir, BRIDGE_NAME)
+
+        if (!flagFile.exists()) return
+
+        if (bridgeFile.exists() && bridgeFile.length() > 50) {
+            flagFile.delete()
+            Log.i("TitanKillSwitch", "Kill-Flag cleared — bridge restored, normal start")
+            return
+        }
+
+        Log.e(
+            "TitanKillSwitch",
+            "INSTANT KILL: Kill-flag present, bridge missing — " +
+            "killing process ${Process.myPid()} (zero exposure)"
+        )
+        Process.killProcess(Process.myPid())
+        Runtime.getRuntime().exit(1)
+    }
+
+    private fun writeKillFlag() {
+        val pkg = targetPackage ?: return
+        writeKillFlagExternal(pkg)
+    }
+
+    fun writeKillFlagExternal(packageName: String) {
+        try {
+            val dir = File("/data/data/$packageName/files")
+            if (!dir.exists()) dir.mkdirs()
+            File(dir, KILL_FLAG_NAME).writeText(
+                "killed_at=${System.currentTimeMillis()}\npid=${Process.myPid()}\n"
+            )
+        } catch (_: Throwable) { }
+    }
+
     enum class Category(val label: String) {
         IDENTITY("IDENTITY"),
         NETWORK("NETWORK"),
@@ -114,6 +178,24 @@ object DataAccessMonitor {
 
         if (spoofed) spoofCount.incrementAndGet() else realCount.incrementAndGet()
 
+        // On-Device Kill-Switch: REAL-Wert in kritischer Kategorie → Prozess sofort beenden
+        val uptimeMs = SystemClock.elapsedRealtime() - startTime
+        if (!spoofed && killSwitchEnabled && !killSwitchTriggered
+            && uptimeMs > KILL_SWITCH_GRACE_MS
+            && CRITICAL_CATEGORIES.contains(category)) {
+            killSwitchTriggered = true
+            Log.e(
+                "TitanKillSwitch",
+                "CRITICAL LEAK: $api returned REAL value in ${category.label} — " +
+                "killing process ${Process.myPid()} NOW"
+            )
+            writeKillFlag()
+            try { flush() } catch (_: Throwable) {}
+            Process.killProcess(Process.myPid())
+            Runtime.getRuntime().exit(1)
+            return
+        }
+
         val ts = dateFormat.format(Date(now))
         val tid = Thread.currentThread().id
         val flag = if (spoofed) "SPOOF" else "REAL"
@@ -157,6 +239,26 @@ object DataAccessMonitor {
                 }
             }
             val hasCriticalReal = criticalRealApis.isNotEmpty()
+
+            // Deferred Kill-Switch: Wenn während der Grace-Period kritische
+            // REAL-Werte erkannt wurden, wird der Prozess beim nächsten Flush
+            // NACH der Grace-Period beendet. Das fängt den Fall ab, dass
+            // TikTok kritische APIs nur einmal beim Start abfragt und cacht.
+            val uptimeMs = SystemClock.elapsedRealtime() - startTime
+            if (hasCriticalReal && killSwitchEnabled && !killSwitchTriggered
+                && uptimeMs > KILL_SWITCH_GRACE_MS) {
+                killSwitchTriggered = true
+                val leakedApis = criticalRealApis.joinToString(", ")
+                Log.e(
+                    "TitanKillSwitch",
+                    "DEFERRED KILL: Critical REAL values detected during grace period: " +
+                    "[$leakedApis] — killing process ${Process.myPid()} NOW"
+                )
+                writeKillFlag()
+                Process.killProcess(Process.myPid())
+                Runtime.getRuntime().exit(1)
+                return
+            }
 
             File(dir, ".titan_access_summary${suffix}.json").bufferedWriter().use { writer ->
                 writer.appendLine("{")

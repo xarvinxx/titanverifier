@@ -583,6 +583,7 @@ _IDENTITY_SELECT_COLS = """
     id, name, serial, boot_serial, android_id, imei1, imei2, phone_number,
     operator_name, sim_operator, sim_operator_name, voicemail_number,
     wifi_mac, gsf_id, widevine_id, imsi, sim_serial,
+    advertising_id, bluetooth_mac,
     build_id, build_fingerprint, security_patch,
     build_incremental, build_description,
     status, created_at, last_used_at,

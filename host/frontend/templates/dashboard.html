@@ -422,6 +422,50 @@
             <div class="text-xs text-gray-500 mb-1 font-bold">Kill History:</div>
             <div id="hg-kill-log" class="text-xs font-mono text-red-400 max-h-20 overflow-y-auto"></div>
           </div>
+
+          <!-- Live API Monitor (collapsible) -->
+          <div class="mt-3 border-t border-gray-700 pt-3">
+            <button onclick="document.getElementById('hg-api-panel').classList.toggle('hidden')"
+              class="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white w-full text-left">
+              <svg id="hg-api-chevron" class="w-3 h-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+              LIVE SPOOF MONITOR
+              <span id="hg-api-summary" class="font-normal text-gray-500 ml-1"></span>
+            </button>
+            <div id="hg-api-panel" class="hidden mt-2">
+              <div class="overflow-x-auto max-h-64 overflow-y-auto">
+                <table class="w-full text-xs font-mono">
+                  <thead class="sticky top-0 bg-gray-800">
+                    <tr class="text-gray-500 border-b border-gray-700">
+                      <th class="text-left py-1 px-1">Status</th>
+                      <th class="text-left py-1 px-1">API</th>
+                      <th class="text-left py-1 px-1">Kategorie</th>
+                      <th class="text-right py-1 px-1">Aufrufe</th>
+                      <th class="text-left py-1 px-1">Letzter Wert</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hg-api-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Device Kill-Switch Events (collapsible) -->
+          <div class="mt-3 border-t border-gray-700 pt-3">
+            <button onclick="document.getElementById('hg-events-panel').classList.toggle('hidden')"
+              class="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white w-full text-left">
+              <svg class="w-3 h-3 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+              DEVICE KILL-SWITCH LOG
+              <span id="hg-events-count" class="font-normal text-gray-500 ml-1"></span>
+            </button>
+            <div id="hg-events-panel" class="hidden mt-2 max-h-40 overflow-y-auto">
+              <div id="hg-events-list" class="space-y-1"></div>
+              <div id="hg-events-empty" class="text-xs text-gray-600 italic">Keine Events</div>
+            </div>
+          </div>
         </div>
     </main>
 
@@ -1810,6 +1854,78 @@
 
         // Reactivate button
         document.getElementById('hg-reactivate-btn').classList.toggle('hidden', status !== 'killed');
+
+        // Live API Monitor table
+        const apis = d.api_details || [];
+        const tbody = document.getElementById('hg-api-tbody');
+        const summary = document.getElementById('hg-api-summary');
+        if (apis.length > 0) {
+            const spoofed = apis.filter(a => a.spoofed).length;
+            const real = apis.filter(a => !a.spoofed).length;
+            summary.textContent = `(${spoofed}/${apis.length} spoofed` + (real > 0 ? `, ${real} REAL!)` : ')');
+            summary.className = real > 0
+                ? 'font-normal text-red-400 ml-1 animate-pulse'
+                : 'font-normal text-green-500 ml-1';
+            tbody.innerHTML = apis.map(a => {
+                const icon = a.spoofed ? '✓' : '✗';
+                const rowClass = a.spoofed ? '' : 'bg-red-900/30';
+                const statusClass = a.spoofed ? 'text-green-400' : 'text-red-400 font-bold';
+                const catColors = {
+                    IDENTITY: 'text-cyan-400',
+                    NETWORK: 'text-blue-400',
+                    TELEPHONY: 'text-purple-400',
+                    ADVERTISING: 'text-yellow-400',
+                    DRM: 'text-orange-400',
+                    HARDWARE: 'text-gray-400',
+                    ENVIRONMENT: 'text-emerald-400',
+                    ACCOUNT: 'text-pink-400',
+                    SETTINGS: 'text-indigo-400',
+                };
+                const catClass = catColors[a.category] || 'text-gray-500';
+                const truncVal = (a.last_value || '').substring(0, 28);
+                return `<tr class="${rowClass}">
+                    <td class="${statusClass} py-0.5 px-1">${icon}</td>
+                    <td class="text-white py-0.5 px-1 truncate max-w-[180px]" title="${escapeHtml(a.api)}">${escapeHtml(a.api)}</td>
+                    <td class="${catClass} py-0.5 px-1">${a.category}</td>
+                    <td class="text-gray-400 py-0.5 px-1 text-right">${a.count}</td>
+                    <td class="text-gray-500 py-0.5 px-1 truncate max-w-[140px]" title="${escapeHtml(a.last_value || '')}">${escapeHtml(truncVal)}</td>
+                </tr>`;
+            }).join('');
+        } else {
+            summary.textContent = d.tiktok_running ? '(warte auf Daten...)' : '';
+            tbody.innerHTML = '';
+        }
+
+        // Device Kill-Switch Events
+        const events = d.device_kill_events || [];
+        const eventsList = document.getElementById('hg-events-list');
+        const eventsEmpty = document.getElementById('hg-events-empty');
+        const eventsCount = document.getElementById('hg-events-count');
+        if (events.length > 0) {
+            eventsEmpty.classList.add('hidden');
+            eventsCount.textContent = `(${events.length})`;
+            const typeColors = {
+                INSTANT_KILL: 'text-red-400',
+                DEFERRED_KILL: 'text-orange-400',
+                CRITICAL_LEAK: 'text-red-500',
+                PRE_FLIGHT_KILL: 'text-red-300',
+                FLAG_CLEARED: 'text-green-400',
+            };
+            eventsList.innerHTML = events.slice().reverse().map(ev => {
+                const cls = typeColors[ev.type] || 'text-gray-400';
+                const badge = ev.type === 'FLAG_CLEARED'
+                    ? '<span class="px-1 rounded bg-green-900 text-green-300">CLEARED</span>'
+                    : `<span class="px-1 rounded bg-red-900 text-red-300">${ev.type}</span>`;
+                return `<div class="text-xs font-mono ${cls}">
+                    <span class="text-gray-600">${escapeHtml(ev.time)}</span>
+                    ${badge}
+                </div>`;
+            }).join('');
+        } else {
+            eventsEmpty.classList.remove('hidden');
+            eventsCount.textContent = '';
+            eventsList.innerHTML = '';
+        }
     }
 
     async function toggleHookGuard() {

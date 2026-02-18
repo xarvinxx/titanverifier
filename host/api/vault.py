@@ -558,6 +558,7 @@ async def get_profile_detail(profile_id: int):
                 i.name AS identity_name,
                 i.serial, i.boot_serial, i.imei1, i.imei2,
                 i.gsf_id, i.android_id, i.wifi_mac, i.widevine_id,
+                i.advertising_id, i.bluetooth_mac,
                 i.imsi, i.sim_serial, i.operator_name, i.phone_number,
                 i.sim_operator, i.sim_operator_name, i.voicemail_number,
                 i.build_id, i.build_fingerprint, i.security_patch,

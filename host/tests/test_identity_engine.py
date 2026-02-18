@@ -420,6 +420,7 @@ class TestBridgeSerialization:
         required_keys = {
             "serial", "boot_serial", "imei1", "imei2",
             "gsf_id", "android_id", "wifi_mac", "widevine_id",
+            "advertising_id", "bluetooth_mac",
             "imsi", "sim_serial", "operator_name",
             "phone_number", "sim_operator", "sim_operator_name",
             "voicemail_number",

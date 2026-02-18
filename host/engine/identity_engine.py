@@ -109,6 +109,10 @@ class IdentityGenerator:
         wifi_mac = self._generate_mac()
         widevine_id = self._generate_widevine()
 
+        # 4b. Abgeleitete Identifier
+        advertising_id = self._generate_advertising_id(serial, imei1, gsf_id)
+        bluetooth_mac = self._generate_bluetooth_mac(wifi_mac)
+
         # 5. SIM / Telephony (O2 DE)
         imsi = self._generate_imsi()
         sim_serial = self._generate_iccid()
@@ -124,6 +128,8 @@ class IdentityGenerator:
             android_id=android_id,
             wifi_mac=wifi_mac,
             widevine_id=widevine_id,
+            advertising_id=advertising_id,
+            bluetooth_mac=bluetooth_mac,
             imsi=imsi,
             sim_serial=sim_serial,
             operator_name=O2_DE.OPERATOR_NAME,
@@ -234,6 +240,33 @@ class IdentityGenerator:
             32 lowercase Hex-Zeichen
         """
         return hashlib.sha256(os.urandom(32)).hexdigest()[:WIDEVINE_ID_LENGTH]
+
+    # =========================================================================
+    # Advertising ID (AAID) — deterministisch aus Identität
+    # =========================================================================
+
+    @staticmethod
+    def _generate_advertising_id(serial: str, imei1: str, gsf_id: str) -> str:
+        """Deterministische UUID v4 aus serial+imei1+gsf_id. Identisch zum Xposed-Hook-Algorithmus."""
+        seed = f"{serial}-{imei1}-{gsf_id}-aaid"
+        h = hashlib.sha256(seed.encode()).hexdigest()
+        return (
+            f"{h[0:8]}-{h[8:12]}-4{h[13:16]}-"
+            f"{hex(int(h[16], 16) & 0x3 | 0x8)[2:]}{h[17:20]}-"
+            f"{h[20:32]}"
+        )
+
+    # =========================================================================
+    # Bluetooth MAC — abgeleitet von WiFi MAC
+    # =========================================================================
+
+    @staticmethod
+    def _generate_bluetooth_mac(wifi_mac: str) -> str:
+        """WiFi MAC + 1 auf letztem Byte. Identisch zum Xposed-Hook-Algorithmus."""
+        parts = wifi_mac.split(":")
+        last_byte = (int(parts[5], 16) + 1) & 0xFF
+        parts[5] = f"{last_byte:02x}"
+        return ":".join(parts)
 
     # =========================================================================
     # Serial Number

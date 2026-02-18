@@ -368,6 +368,9 @@ _SQL_MIGRATIONS = [
     "ALTER TABLE identities ADD COLUMN build_description TEXT",
     # v6.2: TikTok install_id — dediziertes Feld für Collision-Detection
     "ALTER TABLE profiles ADD COLUMN tiktok_install_id TEXT",
+    # v7.0: Fehlende Spoofing-Felder — AAID und Bluetooth MAC
+    "ALTER TABLE identities ADD COLUMN advertising_id TEXT",
+    "ALTER TABLE identities ADD COLUMN bluetooth_mac TEXT",
 ]
 
 

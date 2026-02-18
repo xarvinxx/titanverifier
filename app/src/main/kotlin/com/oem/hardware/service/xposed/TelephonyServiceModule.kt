@@ -218,11 +218,29 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
         private var cachedSimOperator: String? = null
         private var cachedSimOperatorName: String? = null
         private var cachedVoicemailNumber: String? = null
+        private var cachedAdvertisingId: String? = null
+        private var cachedBluetoothMac: String? = null
         private var cachedUptimeOffsetMs: Long = 0L
     }
     
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         if (lpparam.packageName !in TARGET_PACKAGES) return
+
+        // Kill-Flag prüfen BEVOR irgendwas initialisiert wird.
+        DataAccessMonitor.checkKillFlagOrDie(lpparam.packageName)
+
+        // Pre-Flight Bridge Check: Bridge MUSS verfügbar sein bevor
+        // irgendein Hook registriert wird. Ohne Bridge kann kein Hook
+        // einen Fake-Wert liefern → jeder API-Zugriff wäre ein Leak.
+        val bridgeValues = ServiceConfigReader.loadBridgeValues()
+        if (bridgeValues.isEmpty()) {
+            log("FATAL: Bridge missing for ${lpparam.packageName} — killing immediately")
+            DataAccessMonitor.writeKillFlagExternal(lpparam.packageName)
+            android.os.Process.killProcess(android.os.Process.myPid())
+            Runtime.getRuntime().exit(1)
+            return
+        }
+        log("Bridge pre-loaded: ${bridgeValues.size} values for ${lpparam.packageName}")
         
         log("Phase 10.0 Full Spectrum Stealth for: ${lpparam.packageName}")
         
@@ -301,6 +319,8 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
             cachedSimOperator = ServiceConfigReader.getSimOperator()
             cachedSimOperatorName = ServiceConfigReader.getSimOperatorName()
             cachedVoicemailNumber = ServiceConfigReader.getVoicemailNumber()
+            cachedAdvertisingId = ServiceConfigReader.getAdvertisingId()
+            cachedBluetoothMac = ServiceConfigReader.getBluetoothMac()
             cachedUptimeOffsetMs = try {
                 ServiceConfigReader.getUptimeOffsetMs()
             } catch (_: Throwable) {
@@ -1485,8 +1505,8 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
     // =========================================================================
     
     private fun hookAdvertisingId(lpparam: XC_LoadPackage.LoadPackageParam) {
-        val fakeAaid = generateDeterministicAaid()
-        log("AAID: Target value = $fakeAaid")
+        val fakeAaid = cachedAdvertisingId ?: generateDeterministicAaid()
+        log("AAID: Target value = $fakeAaid (source=${if (cachedAdvertisingId != null) "bridge" else "generated"})")
         
         // --- Methode 1: AdvertisingIdClient.Info.getId() ---
         try {
@@ -1657,7 +1677,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
     
     private fun hookBluetoothMac() {
         ensureBridgeLoaded()
-        val fakeBtMac = generateBluetoothMac()
+        val fakeBtMac = cachedBluetoothMac ?: generateBluetoothMac()
         
         // BluetoothAdapter.getAddress()
         try {

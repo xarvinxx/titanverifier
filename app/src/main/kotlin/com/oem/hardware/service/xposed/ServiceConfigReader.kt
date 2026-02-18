@@ -133,6 +133,10 @@ object ServiceConfigReader {
 
     fun getVoicemailNumber(): String? = loadBridgeValues()["voicemail_number"]
 
+    fun getAdvertisingId(): String? = loadBridgeValues()["advertising_id"]
+
+    fun getBluetoothMac(): String? = loadBridgeValues()["bluetooth_mac"]
+
     fun getUptimeOffsetMs(): Long = loadBridgeValues()["uptime_offset_ms"]?.toLongOrNull() ?: 0L
 
     fun isBridgeAvailable(): Boolean {

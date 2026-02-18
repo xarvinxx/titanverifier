@@ -115,7 +115,7 @@ class ADBClient:
         self._max_retries = max_retries
         self._retry_delay = retry_delay
         self._timeout = timeout
-        self._reconnecting: bool = False  # Verhindert rekursive Reconnects
+        self._reconnecting: bool = False
 
     # =========================================================================
     # v4.0: Auto-Reconnect — ADB-Verbindung garantieren
@@ -548,6 +548,20 @@ class ADBClient:
             timeout=timeout or 60,
         )
         if not result.success:
+            combined = f"{result.stdout} {result.stderr}"
+            if "file pushed" in combined and "0 skipped" in combined:
+                logger.warning(
+                    "Push ADB-Bug: returncode=%d but '%s' — treating as success",
+                    result.returncode,
+                    combined.strip()[:200],
+                )
+                return ADBResult(
+                    returncode=0,
+                    stdout=result.stdout,
+                    stderr=result.stderr,
+                    command=result.command,
+                    attempts=result.attempts,
+                )
             raise ADBError(
                 f"Push fehlgeschlagen: {local_path} → {remote_path}: {result.stderr}",
                 returncode=result.returncode,
@@ -577,6 +591,20 @@ class ADBClient:
             timeout=timeout or 60,
         )
         if not result.success:
+            combined = f"{result.stdout} {result.stderr}"
+            if "file pulled" in combined and "0 skipped" in combined:
+                logger.warning(
+                    "Pull ADB-Bug: returncode=%d but '%s' — treating as success",
+                    result.returncode,
+                    combined.strip()[:200],
+                )
+                return ADBResult(
+                    returncode=0,
+                    stdout=result.stdout,
+                    stderr=result.stderr,
+                    command=result.command,
+                    attempts=result.attempts,
+                )
             raise ADBError(
                 f"Pull fehlgeschlagen: {remote_path} → {local_path}: {result.stderr}",
                 returncode=result.returncode,

@@ -33,7 +33,7 @@ from host.config import LOCAL_TZ
 from enum import Enum
 from typing import Optional
 
-from host.adb.client import ADBClient, ADBError
+from host.adb.client import ADBClient, ADBError, ADBTimeoutError
 from host.config import BRIDGE_FILE_PATH, DEVICE_PROFILES
 from host.models.identity import IdentityRead
 
@@ -200,10 +200,14 @@ class DeviceAuditor:
             result.checks.append(
                 self._check_bridge_field(bridge_fields, expected, "sim_serial", critical=False)
             )
+            # build_fingerprint wird NICHT in der Bridge geprüft.
+            # PIF (Play Integrity Fix) hat exklusive Kontrolle über
+            # ro.build.fingerprint. Die Bridge enthält dieses Feld
+            # absichtlich nicht (_BRIDGE_EXCLUDE_FIELDS), weil ein
+            # Doppel-Spoof mit Zygisk BASIC_INTEGRITY zerstört.
+            # Stattdessen: Prüfe direkt ob PIF den Fingerprint setzt.
             result.checks.append(
-                self._check_bridge_field(
-                    bridge_fields, expected, "build_fingerprint", critical=False,
-                )
+                await self._check_pif_fingerprint(expected),
             )
 
         except ADBError as e:
@@ -534,6 +538,50 @@ class DeviceAuditor:
     # =========================================================================
     # Check 4: Bridge-MAC stimmt überein
     # =========================================================================
+
+    # =========================================================================
+    # PIF Fingerprint Check (ersetzt bridge_build_fingerprint)
+    # =========================================================================
+
+    async def _check_pif_fingerprint(self, expected: "IdentityRead") -> "AuditCheck":
+        """
+        Prüft ob PIF (Play Integrity Fix) eine gültige custom.pif.prop hat.
+
+        build_fingerprint darf NICHT in der Bridge stehen (PIF-Exklusivität).
+        Stattdessen prüfen wir ob PIFs eigene Konfiguration existiert und
+        einen Fingerprint enthält.
+        """
+        check = AuditCheck(
+            name="pif_fingerprint",
+            expected="custom.pif.prop mit FINGERPRINT",
+            critical=False,
+        )
+        try:
+            pif_paths = [
+                "/data/adb/modules/playintegrityfix/custom.pif.json",
+                "/data/adb/modules/playintegrityfix/pif.json",
+                "/data/adb/modules/playintegrityfix/autopif4/custom.pif.prop",
+            ]
+            for pif_path in pif_paths:
+                res = await self._adb.shell(
+                    f"cat {pif_path} 2>/dev/null", root=True, timeout=5,
+                )
+                if res.success and res.stdout.strip():
+                    content = res.stdout.strip()
+                    has_fp = ("FINGERPRINT" in content or "fingerprint" in content)
+                    if has_fp:
+                        check.status = CheckStatus.PASS
+                        check.actual = pif_path.rsplit("/", 1)[-1]
+                        check.detail = "PIF Fingerprint konfiguriert"
+                        return check
+
+            check.status = CheckStatus.FAIL
+            check.actual = "keine PIF-Konfiguration gefunden"
+        except (ADBError, ADBTimeoutError):
+            check.status = CheckStatus.SKIP
+            check.actual = "PIF-Pfad nicht lesbar"
+
+        return check
 
     # =========================================================================
     # FIX-17: Generischer Bridge-Feld Check

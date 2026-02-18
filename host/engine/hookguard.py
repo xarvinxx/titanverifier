@@ -47,6 +47,7 @@ class HookState:
     """Snapshot of hook monitoring state."""
     status: GuardStatus = GuardStatus.IDLE
     applied_hooks: int = 0
+    min_hooks: int = 0
     expected_hooks: int = 28
     spoof_count: int = 0
     real_count: int = 0
@@ -55,13 +56,14 @@ class HookState:
     last_heartbeat_ms: int = 0
     last_check_ts: float = 0.0
     active_processes: list = field(default_factory=list)
-    bridge_intact: bool = True
+    bridge_intact: bool = False
+    bridge_verified: bool = False
     bridge_hash: str = ""
     tiktok_running: bool = False
     kill_history: list = field(default_factory=list)
     native_heartbeat_ts: int = 0
-    # Root/Xposed detection monitoring
-    maps_clean: bool = True
+    maps_clean: bool = False
+    maps_verified: bool = False
     maps_leaks: list = field(default_factory=list)
 
 
@@ -101,6 +103,7 @@ class HookGuard:
         self._last_bridge_check = 0.0
         self._last_maps_check = 0.0
         self._expected_bridge_hash: Optional[str] = None
+        self._tiktok_running_since: float = 0.0
 
     @property
     def state(self) -> HookState:
@@ -162,16 +165,23 @@ class HookGuard:
         self._state.tiktok_running = await self._is_tiktok_running()
 
         if not self._state.tiktok_running:
+            self._tiktok_running_since = 0.0
             if self._state.status != GuardStatus.KILLED:
                 self._state.status = GuardStatus.MONITORING
                 self._state.has_critical_real = False
                 self._state.real_critical_apis = []
-                self._state.maps_clean = True
+                self._state.maps_clean = False
+                self._state.maps_verified = False
                 self._state.maps_leaks = []
+                self._state.bridge_verified = False
                 self._state.last_heartbeat_ms = 0
+                self._state.native_heartbeat_ts = 0
                 self._state.active_processes = []
             await self._broadcast_state()
             return
+
+        if self._tiktok_running_since == 0.0:
+            self._tiktok_running_since = now
 
         # 2. Pull Xposed JSON summaries (all processes)
         await self._read_xposed_summaries()
@@ -206,6 +216,7 @@ class HookGuard:
         has_critical = False
         critical_apis: list[str] = []
         max_hooks = 0
+        min_hooks = 999
         last_hb = 0
 
         for pkg in TIKTOK_PACKAGES:
@@ -238,6 +249,8 @@ class HookGuard:
                         hooks = data.get("applied_hooks", 0)
                         if hooks > max_hooks:
                             max_hooks = hooks
+                        if hooks < min_hooks:
+                            min_hooks = hooks
                         hb = data.get("last_heartbeat_ms", 0)
                         if hb > last_hb:
                             last_hb = hb
@@ -249,10 +262,15 @@ class HookGuard:
             except ADBError:
                 pass
 
+        hooks_per_process = []
+        # Re-scan to collect per-process hook counts
+        # (max_hooks already has the max from the loop above)
+
         self._state.active_processes = processes
         self._state.spoof_count = total_spoof
         self._state.real_count = total_real
         self._state.applied_hooks = max_hooks
+        self._state.min_hooks = min_hooks if processes else 0
         self._state.last_heartbeat_ms = last_hb
         self._state.has_critical_real = has_critical
         self._state.real_critical_apis = critical_apis
@@ -267,18 +285,23 @@ class HookGuard:
                 timeout=5,
             )
             if not result.success or not result.output:
+                self._state.native_heartbeat_ts = 0
                 return
+            found = False
             for line in reversed(result.output.strip().split("\n")):
                 if "HEARTBEAT" in line:
                     parts = line.split("|")
                     if len(parts) >= 4:
                         try:
                             self._state.native_heartbeat_ts = int(parts[3])
+                            found = True
                         except ValueError:
                             pass
                     break
+            if not found:
+                self._state.native_heartbeat_ts = 0
         except ADBError:
-            pass
+            self._state.native_heartbeat_ts = 0
 
     # ── Bridge Integrity ──────────────────────────────────────────
 
@@ -302,13 +325,15 @@ class HookGuard:
                 str(BRIDGE_FILE_PATH)
             )
         if not self._expected_bridge_hash:
-            self._state.bridge_intact = True
+            self._state.bridge_intact = False
+            self._state.bridge_verified = False
+            self._state.bridge_hash = "UNVERIFIED"
+            log.warning("Bridge reference hash could not be computed — cannot verify!")
             return
 
         checked_any = False
         for pkg in TIKTOK_PACKAGES:
             try:
-                # Skip packages that aren't installed
                 pkg_check = await self._adb.shell(
                     f"pm path {pkg} 2>/dev/null", root=True, timeout=5,
                 )
@@ -324,14 +349,21 @@ class HookGuard:
                 )
                 if not result.success or not result.output or "No such file" in result.output:
                     self._state.bridge_intact = False
+                    self._state.bridge_verified = True
                     self._state.bridge_hash = "MISSING"
                     log.warning("Bridge file missing for %s!", pkg)
                     return
 
                 current_hash = await self._compute_bridge_content_hash(bridge_path)
                 self._state.bridge_hash = current_hash or "ERROR"
+                if not current_hash:
+                    self._state.bridge_intact = False
+                    self._state.bridge_verified = False
+                    log.warning("Bridge hash computation failed for %s!", pkg)
+                    return
                 if current_hash != self._expected_bridge_hash:
                     self._state.bridge_intact = False
+                    self._state.bridge_verified = True
                     log.warning(
                         "Bridge TAMPERED for %s! expected=%s got=%s",
                         pkg,
@@ -342,14 +374,22 @@ class HookGuard:
             except ADBError:
                 pass
 
-        self._state.bridge_intact = True if checked_any else True
+        if checked_any:
+            self._state.bridge_intact = True
+            self._state.bridge_verified = True
+        else:
+            self._state.bridge_intact = False
+            self._state.bridge_verified = False
+            self._state.bridge_hash = "NO_PKG"
+            log.warning("Bridge integrity: no installed TikTok package found to check")
 
     # ── /proc/maps Detection Monitor ─────────────────────────────
 
     async def _check_proc_maps(self) -> None:
         """Read maps from the app's own perspective (non-root) to see what
-        SUSFS actually hides.  Falls back to root if run-as fails."""
+        SUSFS actually hides.  Never reports 'clean' if no read succeeded."""
         leaks: list[str] = []
+        checked_any = False
         for pkg in TIKTOK_PACKAGES:
             try:
                 pid_result = await self._adb.shell(
@@ -368,10 +408,11 @@ class HookGuard:
                 if not maps_result.success or not maps_result.output:
                     log.debug(
                         "run-as maps read failed for %s (not debuggable) — "
-                        "root would bypass SUSFS filtering, assuming clean",
+                        "root would bypass SUSFS filtering, skipping",
                         pkg,
                     )
                     continue
+                checked_any = True
                 maps_lower = maps_result.output.lower()
                 for pattern in self.SUSPICIOUS_MAPS_PATTERNS:
                     if pattern.lower() in maps_lower:
@@ -385,7 +426,17 @@ class HookGuard:
                 pass
 
         self._state.maps_leaks = leaks
-        self._state.maps_clean = len(leaks) == 0
+        if checked_any:
+            self._state.maps_clean = len(leaks) == 0
+            self._state.maps_verified = True
+        else:
+            self._state.maps_clean = False
+            self._state.maps_verified = False
+            if self._state.tiktok_running:
+                log.warning(
+                    "Maps check: run-as failed for ALL packages — "
+                    "cannot verify maps are clean, reporting UNVERIFIED"
+                )
 
     # ── TikTok Process Check ──────────────────────────────────────
 
@@ -406,6 +457,8 @@ class HookGuard:
     # ── Threat Evaluation ─────────────────────────────────────────
 
     def _evaluate_threats(self) -> Optional[str]:
+        has_warning = False
+
         # Critical: Hook returned real value for identity API
         if self._state.has_critical_real:
             apis = ", ".join(self._state.real_critical_apis[:5])
@@ -418,33 +471,55 @@ class HookGuard:
             if delta > self.HEARTBEAT_TIMEOUT_MS:
                 return f"HEARTBEAT_TIMEOUT: {delta}ms since last beat"
 
+        # Dead-man-switch: TikTok running but heartbeat NEVER received
+        if (
+            self._state.tiktok_running
+            and self._state.last_heartbeat_ms == 0
+            and self._tiktok_running_since > 0
+        ):
+            running_for = time.time() - self._tiktok_running_since
+            if running_for > (self.HEARTBEAT_TIMEOUT_MS / 1000):
+                return (
+                    f"HEARTBEAT_NEVER_SEEN: TikTok running for "
+                    f"{running_for:.0f}s but no heartbeat received"
+                )
+
         # Bridge tampered — only kill if bridge is MISSING (not just hash mismatch)
         if not self._state.bridge_intact and self._state.bridge_hash == "MISSING":
             return f"BRIDGE_TAMPERED: hash={self._state.bridge_hash}"
 
-        # Bridge hash mismatch or maps leak → WARNING, not kill
-        if not self._state.bridge_intact:
-            self._state.status = GuardStatus.WARNING
+        # Bridge hash mismatch or unverified → WARNING, not kill
+        if not self._state.bridge_intact and self._state.bridge_verified:
+            has_warning = True
             log.warning("Bridge mismatch (warning): hash=%s", self._state.bridge_hash)
 
-        if not self._state.maps_clean:
-            self._state.status = GuardStatus.WARNING
+        if not self._state.bridge_verified and self._state.tiktok_running:
+            has_warning = True
+            log.warning("Bridge unverified: %s", self._state.bridge_hash or "no hash")
+
+        # Maps leak or unverified → WARNING
+        if not self._state.maps_clean and self._state.maps_verified:
+            has_warning = True
             log.warning("Maps leak (warning): %s", self._state.maps_leaks[:3])
+
+        if not self._state.maps_verified and self._state.tiktok_running:
+            has_warning = True
+            log.debug("Maps unverified (run-as may have failed)")
 
         # Hook count mismatch (warning level, not kill)
         if (
             self._state.applied_hooks > 0
             and self._state.applied_hooks < self._state.expected_hooks
         ):
-            self._state.status = GuardStatus.WARNING
+            has_warning = True
             log.warning(
-                "Hook count mismatch: %d/%d",
+                "Hook count mismatch: %d/%d (min across processes: %d)",
                 self._state.applied_hooks,
                 self._state.expected_hooks,
+                self._state.min_hooks,
             )
-            return None
 
-        self._state.status = GuardStatus.MONITORING
+        self._state.status = GuardStatus.WARNING if has_warning else GuardStatus.MONITORING
         return None
 
     # ── Kill-Switch ───────────────────────────────────────────────
@@ -531,7 +606,10 @@ class HookGuard:
         self._state.has_critical_real = False
         self._state.real_critical_apis = []
         self._state.maps_leaks = []
-        self._state.maps_clean = True
+        self._state.maps_clean = False
+        self._state.maps_verified = False
+        self._state.bridge_verified = False
+        self._tiktok_running_since = 0.0
         log.info(
             "HookGuard reactivated — TikTok components re-enabled, airplane OFF"
         )

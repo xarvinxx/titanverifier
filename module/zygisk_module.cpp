@@ -287,11 +287,15 @@ static bool g_macParsed = false;
 namespace NativeMonitor {
     static std::mutex g_log_mutex;
     static std::deque<std::string> g_log_buffer;
-    static constexpr size_t MAX_LOG_LINES = 500;
+    static constexpr size_t MAX_LOG_LINES = 2000;
     static constexpr const char* LOG_PATH = "/data/local/tmp/.titan_native_access.log";
     static time_t g_last_heartbeat = 0;
     static constexpr int HEARTBEAT_INTERVAL_SEC = 5;
     static thread_local bool g_in_monitor = false;
+
+    static std::deque<std::string> g_critical_buffer;
+    static constexpr size_t MAX_CRITICAL_LINES = 200;
+    static constexpr const char* CRITICAL_LOG_PATH = "/data/local/tmp/.titan_native_critical.log";
 
     static void record(const char* flag, const char* hook_name, const char* key, const char* value) {
         if (g_in_monitor) return;
@@ -316,11 +320,16 @@ namespace NativeMonitor {
                 g_log_buffer.pop_front();
             }
 
-            // Lazy heartbeat + flush
+            if (strcmp(flag, "REAL") == 0 || strcmp(flag, "CRITICAL") == 0) {
+                g_critical_buffer.push_back(std::string(line));
+                if (g_critical_buffer.size() > MAX_CRITICAL_LINES) {
+                    g_critical_buffer.pop_front();
+                }
+            }
+
             if (ts.tv_sec - g_last_heartbeat >= HEARTBEAT_INTERVAL_SEC) {
                 g_last_heartbeat = ts.tv_sec;
 
-                // Add heartbeat line
                 char hb_line[64];
                 snprintf(hb_line, sizeof(hb_line), "%s|HEARTBEAT|native|%ld|", time_buf, (long)ts.tv_sec);
                 g_log_buffer.push_back(std::string(hb_line));
@@ -328,13 +337,22 @@ namespace NativeMonitor {
                     g_log_buffer.pop_front();
                 }
 
-                // Flush to file
                 FILE* f = fopen(LOG_PATH, "w");
                 if (f) {
                     for (const auto& l : g_log_buffer) {
                         fprintf(f, "%s\n", l.c_str());
                     }
                     fclose(f);
+                }
+
+                if (!g_critical_buffer.empty()) {
+                    FILE* cf = fopen(CRITICAL_LOG_PATH, "w");
+                    if (cf) {
+                        for (const auto& l : g_critical_buffer) {
+                            fprintf(cf, "%s\n", l.c_str());
+                        }
+                        fclose(cf);
+                    }
                 }
             }
         }

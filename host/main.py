@@ -138,10 +138,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
     # HookGuard init
+    from host.adb.client import ADBClient
+    adb = ADBClient()
     global _hookguard
     try:
-        from host.adb.client import ADBClient
-        adb = ADBClient()
         _hookguard = HookGuard(adb)
     except Exception as e:
         logger.warning("HookGuard init failed: %s", e)

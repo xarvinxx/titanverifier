@@ -49,8 +49,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from host.adb.client import ADBClient, ADBError
-from host.config import GMS_BACKUP_PACKAGES, LOCAL_TZ, TIMING
+from host.adb.client import ADBClient, ADBError, ADBTimeoutError
+from host.config import GMS_BACKUP_PACKAGES, LOCAL_TZ, TIKTOK_PACKAGES, TIMING
 from host.database import db
 from host.engine.auditor import DeviceAuditor
 from host.engine.db_ops import (
@@ -66,7 +66,13 @@ from host.engine.db_ops import (
 )
 from host.engine.injector import BridgeInjector
 from host.engine.shifter import AppShifter
-from host.flows.genesis import FlowStep, FlowStepStatus
+from host.flows.genesis import (
+    FlowStep,
+    FlowStepStatus,
+    _airplane_off,
+    _airplane_on_safe,
+    _auto_start_hookguard,
+)
 from host.models.identity import IdentityRead, IdentityStatus
 
 logger = logging.getLogger("host.flows.switch")
@@ -234,19 +240,13 @@ class SwitchFlow:
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[1/9] Flugmodus AN (Netz sofort trennen)...")
-            await self._adb.shell(
-                "settings put global airplane_mode_on 1", root=True,
-            )
-            await self._adb.shell(
-                "am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true",
-                root=True,
-            )
+            logger.info("[1/10] Flugmodus AN (Netz sofort trennen)...")
+            await _airplane_on_safe(self._adb)
 
             step.status = FlowStepStatus.SUCCESS
             step.detail = "Flugmodus AN — Modem getrennt"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[1/9] Flugmodus: AN")
+            logger.info("[1/10] Flugmodus: AN")
 
             # =================================================================
             # Schritt 2: AUTO-BACKUP (aktives Profil sichern vor Switch)
@@ -261,7 +261,7 @@ class SwitchFlow:
             #   - Aktives Profil OHNE tiktok_username → KEIN Backup
             #   - Kein aktives Profil → KEIN Backup
             # =============================================================
-            logger.info("[2/9] Auto-Backup: Aktives Profil prüfen...")
+            logger.info("[2/10] Auto-Backup: Aktives Profil prüfen...")
             try:
                 active_profile = await self._find_active_profile()
                 if active_profile and active_profile["id"] != profile_id:
@@ -271,7 +271,7 @@ class SwitchFlow:
                     if tiktok_user and tiktok_user.strip():
                         # TikTok-Account eingerichtet → IMMER Backup
                         logger.info(
-                            "[2/9] Auto-Backup: Profil '%s' (TikTok: @%s) wird gesichert...",
+                            "[2/10] Auto-Backup: Profil '%s' (TikTok: @%s) wird gesichert...",
                             active_name, tiktok_user,
                         )
                         backup_result = await self._shifter.backup_tiktok_dual(
@@ -280,24 +280,24 @@ class SwitchFlow:
                         saved = sum(1 for v in backup_result.values() if v is not None)
                         step.status = FlowStepStatus.SUCCESS
                         step.detail = f"Profil '{active_name}' (@{tiktok_user}): {saved}/2 Komponenten"
-                        logger.info("[2/9] Auto-Backup: %s", step.detail)
+                        logger.info("[2/10] Auto-Backup: %s", step.detail)
                     else:
                         # Kein TikTok-Username → kein Account → nichts zu sichern
                         step.status = FlowStepStatus.SKIPPED
                         step.detail = f"Profil '{active_name}' hat keinen TikTok-Account — kein Backup nötig"
-                        logger.info("[2/9] Auto-Backup: %s", step.detail)
+                        logger.info("[2/10] Auto-Backup: %s", step.detail)
                 else:
                     step.status = FlowStepStatus.SKIPPED
                     if active_profile:
                         step.detail = "Ziel-Profil ist bereits aktiv"
                     else:
                         step.detail = "Kein aktives Profil gefunden"
-                    logger.info("[2/9] Auto-Backup: %s", step.detail)
+                    logger.info("[2/10] Auto-Backup: %s", step.detail)
             except Exception as e:
                 # Auto-Backup ist nicht kritisch — Switch fortsetzen
                 step.status = FlowStepStatus.SUCCESS
                 step.detail = f"Backup-Warnung: {e} (Switch wird fortgesetzt)"
-                logger.warning("[2/9] Auto-Backup fehlgeschlagen (nicht kritisch): %s", e)
+                logger.warning("[2/10] Auto-Backup fehlgeschlagen (nicht kritisch): %s", e)
 
             step.duration_ms = _now_ms() - step_start
 
@@ -308,7 +308,9 @@ class SwitchFlow:
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            logger.info("[3/9] Safety Kill: Alle Apps stoppen...")
+            logger.info("[3/10] Safety Kill: Alle Apps stoppen...")
+            # v7.1: gms.unstable ZUERST beenden (Zombie-Prävention)
+            await self._shifter._reap_gms_zombies()
             killed = []
             for pkg in [*GMS_BACKUP_PACKAGES, "com.zhiliaoapp.musically"]:
                 try:
@@ -318,11 +320,13 @@ class SwitchFlow:
                     killed.append(pkg.split(".")[-1])
                 except ADBError:
                     pass
+            # Nochmal prüfen ob force-stop einen neuen Zombie erzeugt hat
+            await self._shifter._reap_gms_zombies()
 
             step.status = FlowStepStatus.SUCCESS
             step.detail = f"Gestoppt: {', '.join(killed)}"
             step.duration_ms = _now_ms() - step_start
-            logger.info("[3/9] Safety Kill: OK (%s)", step.detail)
+            logger.info("[3/10] Safety Kill: OK (%s)", step.detail)
 
             # =================================================================
             # FIX-29: Gründlicher State-Wipe (ersetzt FIX-16 Mini-Clean)
@@ -342,10 +346,17 @@ class SwitchFlow:
                 logger.info("[3→4] FIX-29: Gründlicher State-Wipe vor Restore...")
                 clean_results = await self._shifter.prepare_switch_clean()
                 clean_ok = sum(1 for v in clean_results.values() if v)
-                logger.info(
-                    "[3→4] FIX-29: State-Wipe abgeschlossen: %d/%d Operationen OK",
-                    clean_ok, len(clean_results),
-                )
+                clean_failed = [k for k, v in clean_results.items() if not v]
+                if clean_failed:
+                    logger.warning(
+                        "[3→4] FIX-29: State-Wipe %d/%d OK — FEHLGESCHLAGEN: %s",
+                        clean_ok, len(clean_results), ", ".join(clean_failed),
+                    )
+                else:
+                    logger.info(
+                        "[3→4] FIX-29: State-Wipe %d/%d Operationen ALLE OK",
+                        clean_ok, len(clean_results),
+                    )
             except Exception as e:
                 logger.warning("[3→4] FIX-29: State-Wipe fehlgeschlagen (nicht kritisch): %s", e)
 
@@ -396,6 +407,19 @@ class SwitchFlow:
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
+            # LSPosed DB sichern VOR dem Zygote-Kill.
+            # killall zygote kann die DB mid-write korrumpieren
+            # (SQLite WAL wird nicht geflusht bei SIGKILL).
+            try:
+                await self._adb.shell(
+                    "cp /data/adb/lspd/config/modules_config.db "
+                    "/data/adb/lspd/config/modules_config.db.pre_zygote 2>/dev/null",
+                    root=True, timeout=5,
+                )
+                logger.debug("[5/10] LSPosed DB gesichert (pre-zygote backup)")
+            except (ADBError, ADBTimeoutError):
+                logger.debug("[5/10] LSPosed DB Backup übersprungen")
+
             logger.info("[5/10] Soft Reset: killall zygote (Zygote-First!)...")
             try:
                 await self._adb.shell("killall zygote", root=True)
@@ -411,6 +435,36 @@ class SwitchFlow:
             if not await self._adb.is_connected():
                 logger.info("[5/10] ADB nach Zygote-Kill weg — Reconnect...")
                 await self._adb.ensure_connection(timeout=60)
+
+            # LSPosed DB Integritätsprüfung nach Zygote-Restart.
+            # Wenn die DB korrumpiert wurde, sofort aus dem Backup wiederherstellen.
+            try:
+                db_check = await self._adb.shell(
+                    "su -c '"
+                    "if [ -f /data/adb/lspd/config/modules_config.db ]; then "
+                    "  head -c 16 /data/adb/lspd/config/modules_config.db "
+                    "  | grep -q SQLite && echo OK || echo CORRUPT; "
+                    "else echo MISSING; fi'",
+                    root=False, timeout=5,
+                )
+                db_state = db_check.stdout.strip()
+                if db_state != "OK":
+                    logger.warning(
+                        "[5/10] LSPosed DB %s nach Zygote-Kill! "
+                        "Stelle aus pre-zygote Backup wieder her...",
+                        db_state,
+                    )
+                    await self._adb.shell(
+                        "cp /data/adb/lspd/config/modules_config.db.pre_zygote "
+                        "/data/adb/lspd/config/modules_config.db && "
+                        "chmod 600 /data/adb/lspd/config/modules_config.db",
+                        root=True, timeout=5,
+                    )
+                    logger.info("[5/10] LSPosed DB aus Backup wiederhergestellt")
+                else:
+                    logger.debug("[5/10] LSPosed DB intakt nach Zygote-Kill")
+            except (ADBError, ADBTimeoutError):
+                logger.debug("[5/10] LSPosed DB-Check übersprungen")
 
             step.status = FlowStepStatus.SUCCESS
             step.detail = f"Zygote-Kill + {TIMING.ZYGOTE_RESTART_WAIT}s Wait"
@@ -532,9 +586,12 @@ class SwitchFlow:
                 logger.info("[7/10] Legacy-Modus — DroidGuard Sanitize als Safety-Net...")
                 try:
                     await self._shifter._sanitize_droidguard()
+                    # v7.1: gms.unstable ZUERST beenden (Zombie-Prävention)
+                    await self._shifter._reap_gms_zombies()
                     await self._adb.shell(
                         "am force-stop com.google.android.gms", root=True, timeout=10,
                     )
+                    await self._shifter._reap_gms_zombies()
                     logger.info("[7/10] DroidGuard gelöscht + GMS neu gestartet")
                 except Exception as e:
                     logger.warning("[7/10] DroidGuard Sanitize fehlgeschlagen: %s", e)
@@ -631,6 +688,12 @@ class SwitchFlow:
             await self._shifter._disable_google_backup()
 
             # =================================================================
+            # PRE-NETWORK: HookGuard starten BEVOR das Netz eingeschaltet wird
+            # =================================================================
+            logger.info("[8b/10] HookGuard Pre-Network Start...")
+            await _auto_start_hookguard()
+
+            # =================================================================
             # Schritt 9: NETWORK INIT (Flugmodus AUS + neue IP)
             # =================================================================
             step = result.steps[8]
@@ -640,13 +703,7 @@ class SwitchFlow:
             logger.info("[9/10] Network Init: Flugmodus AUS...")
             await asyncio.sleep(10)
 
-            await self._adb.shell(
-                "settings put global airplane_mode_on 0", root=True,
-            )
-            await self._adb.shell(
-                "am broadcast -a android.intent.action.AIRPLANE_MODE --ez state false",
-                root=True,
-            )
+            await _airplane_off(self._adb)
             logger.info("[9/10] Flugmodus: AUS — Modem verbindet sich neu")
 
             from host.engine.network import NetworkChecker
@@ -788,6 +845,23 @@ class SwitchFlow:
             result.finished_at = datetime.now(LOCAL_TZ).isoformat()
             result.duration_ms = _now_ms() - flow_start
 
+            # ─── ERROR RECOVERY: Flugmodus + Backup-Manager reparieren ───
+            if not result.success:
+                logger.warning("ERROR RECOVERY: Switch fehlgeschlagen — räume auf...")
+                try:
+                    await _airplane_off(self._adb)
+                    logger.info("ERROR RECOVERY: Flugmodus AUS")
+                except Exception as recovery_err:
+                    logger.error(
+                        "ERROR RECOVERY: Flugmodus konnte nicht deaktiviert werden: %s",
+                        recovery_err,
+                    )
+                try:
+                    await self._adb.shell("bmgr enable true", root=True, timeout=5)
+                    logger.info("ERROR RECOVERY: Backup-Manager reaktiviert")
+                except Exception:
+                    pass
+
             # Flow-History: Finalize
             if flow_history_id:
                 try:
@@ -816,6 +890,9 @@ class SwitchFlow:
             )
             logger.info("  %s", result.step_summary)
             logger.info("=" * 60)
+
+            if result.success:
+                await _auto_start_hookguard()
 
         return result
 

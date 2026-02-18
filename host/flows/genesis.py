@@ -42,7 +42,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
-from host.adb.client import ADBClient, ADBError
+from host.adb.client import ADBClient, ADBError, ADBTimeoutError
 from host.adb.device import DeviceHelper
 from host.config import LOCAL_TZ, TIMING
 from host.database import db
@@ -64,6 +64,20 @@ from host.engine.shifter import AppShifter
 from host.models.identity import IdentityRead, IdentityStatus
 
 logger = logging.getLogger("host.flows.genesis")
+
+
+async def _auto_start_hookguard() -> None:
+    """Start HookGuard automatically after a successful flow."""
+    try:
+        import host.main as _main
+        guard = getattr(_main, "_hookguard", None)
+        if guard and not guard.is_running:
+            await guard.start()
+            logger.info("HookGuard automatisch gestartet")
+        elif guard and guard.is_running:
+            logger.debug("HookGuard laeuft bereits")
+    except Exception as e:
+        logger.warning("HookGuard Auto-Start fehlgeschlagen: %s", e)
 
 
 # =============================================================================
@@ -208,13 +222,7 @@ class GenesisFlow:
             step_start = _now_ms()
 
             logger.info("[1/11] Flugmodus AN (Netz sofort trennen)...")
-            await self._adb.shell(
-                "settings put global airplane_mode_on 1", root=True,
-            )
-            await self._adb.shell(
-                "am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true",
-                root=True,
-            )
+            await _airplane_on_safe(self._adb)
 
             step.status = FlowStepStatus.SUCCESS
             step.detail = "Flugmodus AN — Modem getrennt"
@@ -299,14 +307,38 @@ class GenesisFlow:
             step_start = _now_ms()
 
             logger.info("[3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...")
-            # v4.0: include_gms=False — GMS/GSF/Vending NIEMALS anrühren!
             clean_results = await self._shifter.deep_clean(include_gms=False)
             success_count = sum(1 for v in clean_results.values() if v)
+            failed_ops = [k for k, v in clean_results.items() if not v]
 
-            step.status = FlowStepStatus.SUCCESS
-            step.detail = f"{success_count}/{len(clean_results)} Operationen (GMS geschützt)"
-            step.duration_ms = _now_ms() - step_start
-            logger.info("[3/11] Sterilize: OK (%s)", step.detail)
+            critical_failures = [
+                op for op in failed_ops
+                if op.startswith("pm_clear_")
+            ]
+
+            if critical_failures:
+                step.status = FlowStepStatus.ERROR
+                step.detail = (
+                    f"{success_count}/{len(clean_results)} OK — "
+                    f"KRITISCH FEHLGESCHLAGEN: {', '.join(critical_failures)}"
+                )
+                step.duration_ms = _now_ms() - step_start
+                logger.error(
+                    "[3/11] Sterilize: FEHLER — pm clear fehlgeschlagen: %s",
+                    critical_failures,
+                )
+                raise ADBError(
+                    f"Sterilize fehlgeschlagen: pm clear gescheitert für "
+                    f"{', '.join(critical_failures)}",
+                )
+            else:
+                step.status = FlowStepStatus.SUCCESS
+                detail_parts = [f"{success_count}/{len(clean_results)} Operationen (GMS geschützt)"]
+                if failed_ops:
+                    detail_parts.append(f"nicht-kritisch fehlgeschlagen: {', '.join(failed_ops)}")
+                step.detail = " | ".join(detail_parts)
+                step.duration_ms = _now_ms() - step_start
+                logger.info("[3/11] Sterilize: OK (%s)", step.detail)
 
             # Clipboard wipe before app start
             await self._shifter._clear_clipboard()
@@ -442,8 +474,16 @@ class GenesisFlow:
 
             logger.info("[7/11] Hard Reset: adb reboot...")
 
-            # Robust Reboot: ADB-Verbindung trennt sich beim Reboot sofort —
-            # das ist erwartetes Verhalten, kein Fehler.
+            # LSPosed DB sichern VOR dem Reboot (Schutz gegen Korruption)
+            try:
+                await self._adb.shell(
+                    "cp /data/adb/lspd/config/modules_config.db "
+                    "/data/adb/lspd/config/modules_config.db.pre_reboot 2>/dev/null",
+                    root=True, timeout=5,
+                )
+            except (ADBError, ADBTimeoutError):
+                pass
+
             try:
                 await self._adb.reboot()
             except ADBError as e:
@@ -496,6 +536,32 @@ class GenesisFlow:
             if not await self._adb.is_connected():
                 logger.warning("[7/11] ADB nach Boot-Settle weg — Reconnect...")
                 await self._adb.ensure_connection(timeout=60)
+
+            # LSPosed DB Integritätsprüfung nach Reboot
+            try:
+                db_check = await self._adb.shell(
+                    "su -c '"
+                    "if [ -f /data/adb/lspd/config/modules_config.db ]; then "
+                    "  head -c 16 /data/adb/lspd/config/modules_config.db "
+                    "  | grep -q SQLite && echo OK || echo CORRUPT; "
+                    "else echo MISSING; fi'",
+                    root=False, timeout=5,
+                )
+                db_state = db_check.stdout.strip()
+                if db_state != "OK":
+                    logger.warning(
+                        "[7/11] LSPosed DB %s nach Reboot! "
+                        "Stelle aus Backup wieder her...", db_state,
+                    )
+                    await self._adb.shell(
+                        "cp /data/adb/lspd/config/modules_config.db.pre_reboot "
+                        "/data/adb/lspd/config/modules_config.db && "
+                        "chmod 600 /data/adb/lspd/config/modules_config.db",
+                        root=True, timeout=5,
+                    )
+                    logger.info("[7/11] LSPosed DB wiederhergestellt")
+            except (ADBError, ADBTimeoutError):
+                pass
 
             # =============================================================
             # POPUP HAMMER — VOR dem Unlock!
@@ -637,11 +703,13 @@ class GenesisFlow:
                 dg_cleaned = await self._shifter._sanitize_droidguard()
                 if dg_cleaned:
                     logger.info("[7b/11] DroidGuard-Cache gelöscht — erzwinge GMS-Neustart...")
-                    # GMS force-stop → startet automatisch neu mit frischen Tokens
+                    # v7.1: gms.unstable ZUERST beenden (Zombie-Prävention)
+                    await self._shifter._reap_gms_zombies()
                     await self._adb.shell(
                         "am force-stop com.google.android.gms", root=True, timeout=10,
                     )
-                    # Kurz warten bis GMS sich selbst neu startet
+                    # Nochmal prüfen ob force-stop einen neuen Zombie erzeugt hat
+                    await self._shifter._reap_gms_zombies()
                     await asyncio.sleep(5)
                     logger.info("[7b/11] GMS neu gestartet — frische Attestierung eingeleitet")
                 else:
@@ -752,6 +820,16 @@ class GenesisFlow:
                 logger.warning("[7c/11] Bewohntes Haus Check fehlgeschlagen: %s", e)
 
             # =================================================================
+            # PRE-NETWORK: HookGuard starten BEVOR das Netz eingeschaltet wird
+            # =================================================================
+            # HookGuard muss aktiv sein bevor TikTok Netzwerkzugriff bekommt.
+            # Sonst können bei einem Hook-Versagen 15+ Sekunden lang
+            # ungeschützte Daten an TikTok-Server fließen.
+            # =================================================================
+            logger.info("[7d/11] HookGuard Pre-Network Start...")
+            await _auto_start_hookguard()
+
+            # =================================================================
             # Schritt 8: NETWORK INIT (Flugmodus AUS + neue IP)
             # =================================================================
             # Flugmodus war seit Schritt 1 AN. Das Gerät hat mit
@@ -770,13 +848,7 @@ class GenesisFlow:
             await asyncio.sleep(20)
 
             # Flugmodus AUS → Modem verbindet sich FRISCH
-            await self._adb.shell(
-                "settings put global airplane_mode_on 0", root=True,
-            )
-            await self._adb.shell(
-                "am broadcast -a android.intent.action.AIRPLANE_MODE --ez state false",
-                root=True,
-            )
+            await _airplane_off(self._adb)
             logger.info("[8/11] Flugmodus: AUS — Modem verbindet sich neu")
 
             # IP-Cache invalidieren (neue IP erwartet)
@@ -1064,7 +1136,7 @@ class GenesisFlow:
             # DB: Audit in audit_history + identities speichern
             audit_detail_json = json.dumps(
                 [{"name": c.name, "status": c.status.value, "expected": c.expected,
-                  "actual": c.actual, "detail": c.detail}
+                  "actual": c.actual, "detail": c.detail, "critical": c.critical}
                  for c in audit.checks],
                 ensure_ascii=False,
             )
@@ -1096,11 +1168,9 @@ class GenesisFlow:
 
             if audit.passed:
                 step.status = FlowStepStatus.SUCCESS
-                step.detail = (
-                    f"Score: {audit.score_percent}% | {account_detail}"
-                    f" | {install_id_detail}" if install_id_detail else
-                    f"Score: {audit.score_percent}% | {account_detail}"
-                )
+                base = f"Score: {audit.score_percent}% | {account_detail}"
+                suffix = f" | {install_id_detail}" if install_id_detail else ""
+                step.detail = base + suffix
                 logger.info("[11/11] Audit: PASS (%d%%) | %s", audit.score_percent, account_detail)
             else:
                 step.status = FlowStepStatus.FAILED
@@ -1213,6 +1283,23 @@ class GenesisFlow:
             result.finished_at = datetime.now(LOCAL_TZ).isoformat()
             result.duration_ms = _now_ms() - flow_start
 
+            # ─── ERROR RECOVERY: Flugmodus + Backup-Manager reparieren ───
+            if not result.success:
+                logger.warning("ERROR RECOVERY: Flow fehlgeschlagen — räume auf...")
+                try:
+                    await _airplane_off(self._adb)
+                    logger.info("ERROR RECOVERY: Flugmodus AUS")
+                except Exception as recovery_err:
+                    logger.error(
+                        "ERROR RECOVERY: Flugmodus konnte nicht deaktiviert werden: %s",
+                        recovery_err,
+                    )
+                try:
+                    await self._adb.shell("bmgr enable true", root=True, timeout=5)
+                    logger.info("ERROR RECOVERY: Backup-Manager reaktiviert")
+                except Exception:
+                    pass
+
             # Flow-History: Finalize
             if flow_history_id:
                 try:
@@ -1241,6 +1328,9 @@ class GenesisFlow:
             )
             logger.info("  %s", result.step_summary)
             logger.info("=" * 60)
+
+            if result.success:
+                await _auto_start_hookguard()
 
         return result
 
@@ -1338,37 +1428,15 @@ class GenesisFlow:
             )
 
     async def _airplane_mode_cycle(self) -> None:
-        """
-        Flugmodus-Cycle für O2-Lease-Reset.
-
-        Airplane Mode ON → 12 Sekunden warten → Airplane Mode OFF.
-        Zwingt das Modem, eine neue IP-Lease vom O2-Netz anzufordern,
-        wodurch die alte Tracking-Session getrennt wird.
-        """
-        # Flugmodus AN
-        await self._adb.shell(
-            "settings put global airplane_mode_on 1", root=True,
-        )
-        await self._adb.shell(
-            "am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true",
-            root=True,
-        )
+        """Flugmodus-Cycle für O2-Lease-Reset (Wireless-ADB-safe)."""
+        await _airplane_on_safe(self._adb)
         logger.info("Flugmodus: AN")
 
-        # Lease-Wait (12 Sekunden)
         await asyncio.sleep(TIMING.AIRPLANE_MODE_LEASE_SECONDS)
 
-        # Flugmodus AUS
-        await self._adb.shell(
-            "settings put global airplane_mode_on 0", root=True,
-        )
-        await self._adb.shell(
-            "am broadcast -a android.intent.action.AIRPLANE_MODE --ez state false",
-            root=True,
-        )
+        await _airplane_off(self._adb)
         logger.info("Flugmodus: AUS (nach %ds Lease-Wait)", TIMING.AIRPLANE_MODE_LEASE_SECONDS)
 
-        # Kurz warten bis Netzwerk wieder steht
         await asyncio.sleep(3)
 
 
@@ -1379,3 +1447,27 @@ class GenesisFlow:
 def _now_ms() -> int:
     """Aktuelle Zeit in Millisekunden (für Duration-Tracking)."""
     return int(datetime.now(LOCAL_TZ).timestamp() * 1000)
+
+
+async def _airplane_on_safe(adb: ADBClient) -> None:
+    """Flugmodus AN."""
+    await adb.shell(
+        "settings put global airplane_mode_on 1", root=True,
+    )
+    await adb.shell(
+        "am broadcast -a android.intent.action.AIRPLANE_MODE "
+        "--ez state true",
+        root=True,
+    )
+
+
+async def _airplane_off(adb: ADBClient) -> None:
+    """Flugmodus AUS."""
+    await adb.shell(
+        "settings put global airplane_mode_on 0", root=True,
+    )
+    await adb.shell(
+        "am broadcast -a android.intent.action.AIRPLANE_MODE "
+        "--ez state false",
+        root=True,
+    )

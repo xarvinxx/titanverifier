@@ -2,6 +2,7 @@ package com.oem.hardware.service.xposed
 
 import android.os.Process
 import android.os.SystemClock
+import android.util.Log
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -140,7 +141,9 @@ object DataAccessMonitor {
                     logBuffer.forEach { writer.appendLine(it) }
                 }
             }
-        } catch (_: Throwable) {}
+        } catch (e: Throwable) {
+            Log.e("TitanMonitor", "flush() log write FAILED: ${e.message}")
+        }
 
         try {
             val criticalRealApis = mutableListOf<String>()
@@ -195,6 +198,8 @@ object DataAccessMonitor {
                 writer.appendLine("  }")
                 writer.appendLine("}")
             }
-        } catch (_: Throwable) {}
-    }
+        } catch (e: Throwable) {
+            Log.e("TitanMonitor", "flush() JSON write FAILED: ${e.message}")
+        }
+}
 }

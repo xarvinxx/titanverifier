@@ -524,7 +524,6 @@ class NetworkChecker:
             )
             logger.debug("[IP-Rotation] Flugmodus AN — warte %ds (Lease-Reset)...", lease_wait)
 
-            # Lease-Wait (DHCP-Lease verfallen lassen)
             await asyncio.sleep(lease_wait)
 
             # Flugmodus AUS

@@ -1,4 +1,7 @@
 # ninja log v5
-0	64	1771295193021606003	CMakeFiles/native-lib.dir/native-lib.cpp.o	405811bd93ce9532
-2	455	1771295193411194349	CMakeFiles/native-lib.dir/audit_engine.cpp.o	999db90195bbfa43
 455	550	1771295193483878334	/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/build/intermediates/cxx/Debug/6l48734n/obj/arm64-v8a/libnative-lib.so	498fa4cc3414609d
+2	455	1771295193411194349	CMakeFiles/native-lib.dir/audit_engine.cpp.o	999db90195bbfa43
+0	64	1771295193021606003	CMakeFiles/native-lib.dir/native-lib.cpp.o	405811bd93ce9532
+10	1200	1771411017949665673	CMakeFiles/native-lib.dir/native-lib.cpp.o	405811bd93ce9532
+11	1528	1771411018275077357	CMakeFiles/native-lib.dir/audit_engine.cpp.o	999db90195bbfa43
+1528	2380	1771411019104130523	/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/build/intermediates/cxx/Debug/6l48734n/obj/arm64-v8a/libnative-lib.so	498fa4cc3414609d

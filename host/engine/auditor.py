@@ -34,7 +34,7 @@ from enum import Enum
 from typing import Optional
 
 from host.adb.client import ADBClient, ADBError
-from host.config import BRIDGE_FILE_PATH
+from host.config import BRIDGE_FILE_PATH, DEVICE_PROFILES
 from host.models.identity import IdentityRead
 
 logger = logging.getLogger("host.auditor")
@@ -304,6 +304,74 @@ class DeviceAuditor:
             logger.error("Quick Audit fehlgeschlagen: %s", e)
             return False
 
+    async def consistency_audit(self) -> AuditResult:
+        """Pre-flight check: verify spoofed values are internally consistent with target device."""
+        checks = []
+        profile = DEVICE_PROFILES.get("Pixel 6", {})
+
+        # GPU check
+        try:
+            result = await self._adb.shell(
+                "dumpsys SurfaceFlinger 2>/dev/null | grep -i 'GLES'",
+                root=True, timeout=10,
+            )
+            raw = result.output if result.success else ""
+            gpu_expected = profile.get("gpu_contains", "Mali-G78")
+            if raw and gpu_expected.lower() in raw.lower():
+                checks.append(AuditCheck("GPU Renderer", CheckStatus.PASS, gpu_expected, raw.strip()[:80]))
+            else:
+                checks.append(AuditCheck("GPU Renderer", CheckStatus.FAIL, gpu_expected, raw.strip()[:80] if raw else "N/A", critical=True))
+        except Exception as e:
+            checks.append(AuditCheck("GPU Renderer", CheckStatus.SKIP, "", str(e)))
+
+        # Screen size check
+        try:
+            result = await self._adb.shell("wm size", root=True, timeout=5)
+            raw = result.output if result.success else ""
+            expected_size = profile.get("screen_size", "1080x2400")
+            if raw and expected_size in raw:
+                checks.append(AuditCheck("Screen Size", CheckStatus.PASS, expected_size, raw.strip()))
+            else:
+                checks.append(AuditCheck("Screen Size", CheckStatus.FAIL, expected_size, raw.strip() if raw else "N/A", critical=True))
+        except Exception as e:
+            checks.append(AuditCheck("Screen Size", CheckStatus.SKIP, "", str(e)))
+
+        # RAM check
+        try:
+            result = await self._adb.shell("cat /proc/meminfo | head -1", root=True, timeout=5)
+            raw = result.output if result.success else ""
+            if raw:
+                m = re.search(r'(\d+)', raw)
+                if m:
+                    ram_kb = int(m.group(1))
+                    ram_gb = ram_kb / (1024 * 1024)
+                    min_gb = profile.get("ram_min_gb", 7)
+                    max_gb = profile.get("ram_max_gb", 9)
+                    if min_gb <= ram_gb <= max_gb:
+                        checks.append(AuditCheck("RAM", CheckStatus.PASS, f"{min_gb}-{max_gb}GB", f"{ram_gb:.1f}GB"))
+                    else:
+                        checks.append(AuditCheck("RAM", CheckStatus.WARN, f"{min_gb}-{max_gb}GB", f"{ram_gb:.1f}GB"))
+        except Exception as e:
+            checks.append(AuditCheck("RAM", CheckStatus.SKIP, "", str(e)))
+
+        # SoC check
+        try:
+            result = await self._adb.shell("getprop ro.hardware", root=True, timeout=5)
+            raw = result.output if result.success else ""
+            soc_expected = profile.get("soc_props", ["oriole"])
+            if raw and raw.strip() in soc_expected:
+                checks.append(AuditCheck("SoC", CheckStatus.PASS, str(soc_expected), raw.strip()))
+            else:
+                checks.append(AuditCheck("SoC", CheckStatus.FAIL, str(soc_expected), raw.strip() if raw else "N/A", critical=True))
+        except Exception as e:
+            checks.append(AuditCheck("SoC", CheckStatus.SKIP, "", str(e)))
+
+        return AuditResult(
+            identity_name="consistency",
+            identity_serial="",
+            checks=checks,
+        )
+
     # =========================================================================
     # Bridge-Datei lesen und parsen
     # =========================================================================
@@ -564,3 +632,70 @@ class DeviceAuditor:
             )
 
         return check
+
+    # =========================================================================
+    # Data Access Monitor — Pull + Analyse
+    # =========================================================================
+
+    async def pull_access_monitor(
+        self,
+        package: str = "com.zhiliaoapp.musically",
+    ) -> Optional[dict]:
+        """
+        Liest den DataAccessMonitor-Report vom Gerät.
+
+        Der Xposed-Monitor schreibt alle 30s eine JSON-Summary in die App-Daten.
+        Diese Methode pullt die Datei und gibt sie als Dict zurück.
+
+        Returns:
+            Dict mit API-Zugriffsstatistiken oder None bei Fehler
+        """
+        import json
+
+        summary_path = f"/data/data/{package}/files/.titan_access_summary.json"
+        log_path = f"/data/data/{package}/files/.titan_access.log"
+
+        try:
+            result = await self._adb.shell(
+                f"cat {summary_path}", root=True, timeout=10,
+            )
+            if result.success and result.output.strip().startswith("{"):
+                data = json.loads(result.output.strip())
+                logger.info(
+                    "[Monitor] %s: %d Events, %d APIs überwacht",
+                    package,
+                    data.get("total_events", 0),
+                    len(data.get("apis", {})),
+                )
+                return data
+            else:
+                logger.debug("[Monitor] Kein Summary vorhanden (App noch nicht gestartet?)")
+                return None
+        except (ADBError, json.JSONDecodeError) as e:
+            logger.debug("[Monitor] Pull fehlgeschlagen: %s", e)
+            return None
+
+    async def pull_access_log(
+        self,
+        package: str = "com.zhiliaoapp.musically",
+        tail: int = 100,
+    ) -> list[str]:
+        """
+        Liest die letzten N Zeilen des Access-Logs.
+
+        Returns:
+            Liste der Log-Zeilen
+        """
+        log_path = f"/data/data/{package}/files/.titan_access.log"
+        try:
+            result = await self._adb.shell(
+                f"tail -{tail} {log_path}", root=True, timeout=10,
+            )
+            if result.success:
+                return [
+                    line for line in result.output.splitlines()
+                    if line.strip()
+                ]
+        except ADBError:
+            pass
+        return []

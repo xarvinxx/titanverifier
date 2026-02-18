@@ -1,0 +1,27 @@
+{
+  "buildFiles": [
+    "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/arvin/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/.cxx/RelWithDebInfo/26v625b3/arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/arvin/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/.cxx/RelWithDebInfo/26v625b3/arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "native-lib::@6890427a1f51a3e7e1df": {
+      "artifactName": "native-lib",
+      "abi": "arm64-v8a",
+      "output": "/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/build/intermediates/cxx/RelWithDebInfo/26v625b3/obj/arm64-v8a/libnative-lib.so",
+      "runtimeFiles": []
+    }
+  }
+}

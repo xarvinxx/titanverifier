@@ -23,13 +23,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import AsyncGenerator
 
-from fastapi import FastAPI, Request, WebSocket
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from host.config import API_HOST, API_PORT, API_TITLE, API_VERSION, DATABASE_PATH, LOCAL_TZ
 from host.database import db
+from host.engine.hookguard import HookGuard
 
 # =============================================================================
 # Logging Setup — MUSS vor allen anderen Modul-Imports passieren
@@ -113,6 +114,9 @@ templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 # Lifespan (Startup / Shutdown)
 # =============================================================================
 
+_hookguard = None  # HookGuard instance, set in lifespan
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
@@ -132,6 +136,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Backup-Verzeichnis erstellen
     from host.config import BACKUP_DIR
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+
+    # HookGuard init
+    global _hookguard
+    try:
+        from host.adb.client import ADBClient
+        adb = ADBClient()
+        _hookguard = HookGuard(adb)
+    except Exception as e:
+        logger.warning("HookGuard init failed: %s", e)
+        _hookguard = None
 
     logger.info("Command Center bereit.")
 
@@ -179,6 +193,22 @@ app.include_router(vault_router)
 async def ws_logs_endpoint(ws: WebSocket):
     """Echtzeit Log-Stream via WebSocket."""
     await websocket_logs(ws)
+
+
+@app.websocket("/ws/hookguard")
+async def ws_hookguard_endpoint(ws: WebSocket):
+    await ws.accept()
+    guard = _hookguard
+    if guard:
+        guard.register_ws(ws)
+    try:
+        while True:
+            await ws.receive_text()  # keep alive
+    except WebSocketDisconnect:
+        pass
+    finally:
+        if guard:
+            guard.unregister_ws(ws)
 
 
 # =============================================================================

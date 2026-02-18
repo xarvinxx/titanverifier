@@ -484,3 +484,49 @@ async def audit_history(
 # =============================================================================
 # FIX-27: GET /api/dashboard/farm-stats ENTFERNT (redundant mit /stats)
 # =============================================================================
+
+
+# ── HookGuard Endpoints ─────────────────────────────────────────
+
+def _get_hookguard():
+    """Get the global HookGuard instance (lazy init)."""
+    import host.main as _main
+    return getattr(_main, "_hookguard", None)
+
+
+@router.get("/hookguard")
+async def hookguard_status():
+    """Current HookGuard state including hook status, kill history, etc."""
+    from host.engine.hookguard import HookGuard
+    guard = _get_hookguard()
+    if not guard:
+        return {"status": "unavailable", "message": "HookGuard not initialized"}
+    import dataclasses
+    state_dict = dataclasses.asdict(guard.state)
+    state_dict["status"] = guard.state.status.value
+    state_dict["is_running"] = guard.is_running
+    return state_dict
+
+
+@router.post("/hookguard/toggle")
+async def hookguard_toggle():
+    """Start or stop the HookGuard monitor."""
+    guard = _get_hookguard()
+    if not guard:
+        return {"error": "HookGuard not initialized"}
+    if guard.is_running:
+        await guard.stop()
+        return {"status": "stopped"}
+    else:
+        await guard.start()
+        return {"status": "started"}
+
+
+@router.post("/hookguard/reactivate")
+async def hookguard_reactivate():
+    """After kill-switch: re-enable TikTok, disable airplane mode."""
+    guard = _get_hookguard()
+    if not guard:
+        return {"error": "HookGuard not initialized"}
+    await guard.reactivate()
+    return {"status": "reactivated"}

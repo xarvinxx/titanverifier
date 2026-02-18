@@ -218,12 +218,17 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
         private var cachedSimOperator: String? = null
         private var cachedSimOperatorName: String? = null
         private var cachedVoicemailNumber: String? = null
+        private var cachedUptimeOffsetMs: Long = 0L
     }
     
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
         if (lpparam.packageName !in TARGET_PACKAGES) return
         
         log("Phase 10.0 Full Spectrum Stealth for: ${lpparam.packageName}")
+        
+        val proc = lpparam.processName ?: lpparam.packageName
+        val procSuffix = if (proc == lpparam.packageName) "main" else proc.substringAfterLast(":")
+        DataAccessMonitor.init(lpparam.packageName, procSuffix)
         
         // ===== Build & Hardware Identity =====
         safeHook("Build-Fields") { hookBuildFields(lpparam) }
@@ -265,6 +270,16 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
         safeHook("SystemFeatures") { hookSystemFeatures(lpparam) }
         safeHook("Debug-Detection-Hide") { hookDebugDetection(lpparam) }
         safeHook("AccessibilityService-Hide") { hookAccessibilityHide(lpparam) }
+        safeHook("SystemClock-Uptime") { hookSystemClock() }
+        
+        log("Hooks applied: ${DataAccessMonitor.appliedHooks.get()}/28 for $proc")
+        
+        Thread {
+            while (true) {
+                try { Thread.sleep(3_000) } catch (_: InterruptedException) { break }
+                DataAccessMonitor.flush()
+            }
+        }.apply { isDaemon = true; name = "TitanMonitorFlush-$procSuffix" }.start()
         
         log("Phase 11.0 Full Spectrum + Anti-Detection complete for ${lpparam.packageName}")
     }
@@ -286,6 +301,12 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
             cachedSimOperator = ServiceConfigReader.getSimOperator()
             cachedSimOperatorName = ServiceConfigReader.getSimOperatorName()
             cachedVoicemailNumber = ServiceConfigReader.getVoicemailNumber()
+            cachedUptimeOffsetMs = try {
+                ServiceConfigReader.getUptimeOffsetMs()
+            } catch (_: Throwable) {
+                // Default: random 2-48h offset if not in bridge
+                (7_200_000L..172_800_000L).random()
+            }
             bridgeLoaded = true
             log("Bridge loaded: GSF=$cachedGsfId, MAC=$cachedMac, WV=$cachedWidevine, Phone=$cachedPhoneNumber")
         } catch (e: Throwable) {
@@ -296,6 +317,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
     private inline fun safeHook(name: String, block: () -> Unit) {
         try {
             block()
+            DataAccessMonitor.incrementAppliedHooks()
             log("Applied: $name")
         } catch (e: Throwable) {
             log("Failed: $name - ${e.message}")
@@ -314,14 +336,20 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                 ensureBridgeLoaded()
                 val slot = param.args[0] as Int
                 val v = if (slot == 0) cachedImei1 else cachedImei2
-                v?.let { param.result = it; log("Spoofed IMEI($slot)") }
+                v?.let {
+                    param.result = it; log("Spoofed IMEI($slot)")
+                    DataAccessMonitor.record(DataAccessMonitor.Category.TELEPHONY, "TelephonyManager.getImei($slot)", it, true)
+                } ?: DataAccessMonitor.record(DataAccessMonitor.Category.TELEPHONY, "TelephonyManager.getImei($slot)", null, false)
             }
         })
         
         XposedHelpers.findAndHookMethod(tm, "getImei", object : XC_MethodHook() {
             override fun beforeHookedMethod(param: MethodHookParam) {
                 ensureBridgeLoaded()
-                cachedImei1?.let { param.result = it; log("Spoofed IMEI()") }
+                cachedImei1?.let {
+                    param.result = it; log("Spoofed IMEI()")
+                    DataAccessMonitor.record(DataAccessMonitor.Category.TELEPHONY, "TelephonyManager.getImei()", it, true)
+                } ?: DataAccessMonitor.record(DataAccessMonitor.Category.TELEPHONY, "TelephonyManager.getImei()", null, false)
             }
         })
         
@@ -330,13 +358,19 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     ensureBridgeLoaded()
                     val slot = param.args[0] as Int
-                    (if (slot == 0) cachedImei1 else cachedImei2)?.let { param.result = it }
+                    (if (slot == 0) cachedImei1 else cachedImei2)?.let {
+                        param.result = it
+                        DataAccessMonitor.record(DataAccessMonitor.Category.TELEPHONY, "TelephonyManager.getDeviceId($slot)", it, true)
+                    }
                 }
             })
             XposedHelpers.findAndHookMethod(tm, "getDeviceId", object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     ensureBridgeLoaded()
-                    cachedImei1?.let { param.result = it }
+                    cachedImei1?.let {
+                        param.result = it
+                        DataAccessMonitor.record(DataAccessMonitor.Category.TELEPHONY, "TelephonyManager.getDeviceId()", it, true)
+                    }
                 }
             })
         } catch (_: Throwable) {}
@@ -345,19 +379,28 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
             XposedHelpers.findAndHookMethod(tm, "getSubscriberId", object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     ensureBridgeLoaded()
-                    cachedImsi?.let { param.result = it }
+                    cachedImsi?.let {
+                        param.result = it
+                        DataAccessMonitor.record(DataAccessMonitor.Category.TELEPHONY, "TelephonyManager.getSubscriberId()", it.take(6) + "...", true)
+                    }
                 }
             })
             XposedHelpers.findAndHookMethod(tm, "getSimSerialNumber", object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     ensureBridgeLoaded()
-                    cachedSimSerial?.let { param.result = it }
+                    cachedSimSerial?.let {
+                        param.result = it
+                        DataAccessMonitor.record(DataAccessMonitor.Category.TELEPHONY, "TelephonyManager.getSimSerialNumber()", it.take(8) + "...", true)
+                    }
                 }
             })
             XposedHelpers.findAndHookMethod(tm, "getNetworkOperatorName", object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     ensureBridgeLoaded()
-                    cachedOperator?.let { param.result = it }
+                    cachedOperator?.let {
+                        param.result = it
+                        DataAccessMonitor.record(DataAccessMonitor.Category.TELEPHONY, "TelephonyManager.getNetworkOperatorName()", it, true)
+                    }
                 }
             })
         } catch (_: Throwable) {}
@@ -379,7 +422,19 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                         cachedAndroidId?.let {
                             param.result = it
                             log("Spoofed ANDROID_ID -> $it")
-                        }
+                            DataAccessMonitor.record(
+                                DataAccessMonitor.Category.IDENTITY,
+                                "Settings.Secure.ANDROID_ID", it, true
+                            )
+                        } ?: DataAccessMonitor.record(
+                            DataAccessMonitor.Category.IDENTITY,
+                            "Settings.Secure.ANDROID_ID", null, false
+                        )
+                    } else {
+                        DataAccessMonitor.record(
+                            DataAccessMonitor.Category.SETTINGS,
+                            "Settings.Secure.$name", null, false
+                        )
                     }
                 }
             }
@@ -414,13 +469,22 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
         // Bridge-basierte Identity Properties
         when {
             key.contains("gsf", ignoreCase = true) || key == "ro.com.google.gservices.gsf.id" -> {
-                cachedGsfId?.let { param.result = it; log("Spoofed SystemProperties($key) -> $it") }
+                cachedGsfId?.let {
+                    param.result = it; log("Spoofed SystemProperties($key) -> $it")
+                    DataAccessMonitor.record(DataAccessMonitor.Category.IDENTITY, "SystemProperties.$key", it, true)
+                }
                 return
             }
             key == "ro.serialno" || key == "ro.boot.serialno" -> {
-                cachedSerial?.let { param.result = it }
+                cachedSerial?.let {
+                    param.result = it
+                    DataAccessMonitor.record(DataAccessMonitor.Category.IDENTITY, "SystemProperties.$key", it, true)
+                }
                 return
             }
+        }
+        PIXEL6_PROP_MAP[key]?.let {
+            DataAccessMonitor.record(DataAccessMonitor.Category.HARDWARE, "SystemProperties.$key", it, true)
         }
         
         // Hardcoded Pixel 6 Build Properties
@@ -454,7 +518,8 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                             cursor.addRow(arrayOf("device_id", gsfId))
                             param.result = cursor
                             log("GSF query(5-arg) -> $gsfId")
-                        }
+                            DataAccessMonitor.record(DataAccessMonitor.Category.IDENTITY, "ContentResolver.query(GSF)", gsfId, true)
+                        } ?: DataAccessMonitor.record(DataAccessMonitor.Category.IDENTITY, "ContentResolver.query(GSF)", null, false)
                     }
                 }
             }
@@ -537,6 +602,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                                 val cursor = MatrixCursor(arrayOf("name", "value"))
                                 cursor.addRow(arrayOf("android_id", gsfId))
                                 param.result = cursor
+                                DataAccessMonitor.record(DataAccessMonitor.Category.IDENTITY, "ContentProviderClient.query(GSF)", gsfId, true)
                                 log("GSF ContentProviderClient -> $gsfId")
                             }
                         }
@@ -561,7 +627,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                         val key = param.args[1] as? String ?: return
                         if (key == "android_id" || key.contains("gsf", ignoreCase = true)) {
                             ensureBridgeLoaded()
-                            cachedGsfId?.let { param.result = it; log("Gservices.getString($key) -> $it") }
+                            cachedGsfId?.let { param.result = it; DataAccessMonitor.record(DataAccessMonitor.Category.IDENTITY, "Gservices.getString($key)", it, true); log("Gservices.getString($key) -> $it") }
                         }
                     }
                 }
@@ -574,7 +640,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                         val key = param.args[1] as? String ?: return
                         if (key == "android_id" || key.contains("gsf", ignoreCase = true)) {
                             ensureBridgeLoaded()
-                            cachedGsfId?.toLongOrNull()?.let { param.result = it; log("Gservices.getLong($key) -> $it") }
+                            cachedGsfId?.toLongOrNull()?.let { param.result = it; DataAccessMonitor.record(DataAccessMonitor.Category.IDENTITY, "Gservices.getLong($key)", it.toString(), true); log("Gservices.getLong($key) -> $it") }
                         }
                     }
                 }
@@ -592,7 +658,10 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
         XposedHelpers.findAndHookMethod(WifiInfo::class.java, "getMacAddress", object : XC_MethodHook() {
             override fun beforeHookedMethod(param: MethodHookParam) {
                 ensureBridgeLoaded()
-                cachedMac?.let { param.result = it; log("WifiInfo.getMacAddress -> $it") }
+                cachedMac?.let {
+                    param.result = it; log("WifiInfo.getMacAddress -> $it")
+                    DataAccessMonitor.record(DataAccessMonitor.Category.NETWORK, "WifiInfo.getMacAddress()", it, true)
+                } ?: DataAccessMonitor.record(DataAccessMonitor.Category.NETWORK, "WifiInfo.getMacAddress()", null, false)
             }
         })
     }
@@ -613,8 +682,9 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                     parseMacToBytes(mac)?.let {
                         param.result = it
                         log("NetworkInterface($name).getHardwareAddress -> $mac")
+                        DataAccessMonitor.record(DataAccessMonitor.Category.NETWORK, "NetworkInterface($name).getHardwareAddress()", mac, true)
                     }
-                }
+                } ?: DataAccessMonitor.record(DataAccessMonitor.Category.NETWORK, "NetworkInterface($name).getHardwareAddress()", null, false)
             }
         })
         
@@ -737,7 +807,6 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
     // =========================================================================
     
     private fun hookFileInputStreamMac() {
-        // File constructor
         XposedHelpers.findAndHookConstructor(FileInputStream::class.java, File::class.java, object : XC_MethodHook() {
             override fun beforeHookedMethod(param: MethodHookParam) {
                 val file = param.args[0] as? File ?: return
@@ -748,13 +817,12 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                         tempFile.writeText("$mac\n")
                         tempFile.deleteOnExit()
                         param.args[0] = tempFile
-                        log("FileInputStream(File) MAC redirect -> $mac")
+                        DataAccessMonitor.record(DataAccessMonitor.Category.FILESYSTEM, "FileInputStream(${file.absolutePath})", mac, true)
                     }
                 }
             }
         })
         
-        // String path constructor
         XposedHelpers.findAndHookConstructor(FileInputStream::class.java, String::class.java, object : XC_MethodHook() {
             override fun beforeHookedMethod(param: MethodHookParam) {
                 val path = param.args[0] as? String ?: return
@@ -765,7 +833,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                         tempFile.writeText("$mac\n")
                         tempFile.deleteOnExit()
                         param.args[0] = tempFile.absolutePath
-                        log("FileInputStream(String) MAC redirect -> $mac")
+                        DataAccessMonitor.record(DataAccessMonitor.Category.FILESYSTEM, "FileInputStream($path)", mac, true)
                     }
                 }
             }
@@ -788,7 +856,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                             ensureBridgeLoaded()
                             cachedMac?.let {
                                 param.result = "$it\n"
-                                log("File.readText MAC -> $it")
+                                DataAccessMonitor.record(DataAccessMonitor.Category.FILESYSTEM, "File.readText(${file.absolutePath})", it, true)
                             }
                         }
                     }
@@ -837,6 +905,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                         hexToBytes(widevineHex)?.let { bytes ->
                             param.result = bytes
                             log("MediaDrm.getPropertyByteArray($prop) -> ${bytes.size} bytes SPOOFED")
+                            DataAccessMonitor.record(DataAccessMonitor.Category.DRM, "MediaDrm.getPropertyByteArray($prop)", widevineHex.take(16), true)
                         }
                     }
                 }
@@ -893,6 +962,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                 val result = param.result as? IntArray
                 if (result == null || result.isEmpty()) {
                     param.result = intArrayOf(1, 2, 3)
+                    DataAccessMonitor.record(DataAccessMonitor.Category.HARDWARE, "InputManager.getInputDeviceIds()", "[1,2,3]", true)
                     log("InputManager.getInputDeviceIds() -> [1, 2, 3]")
                 }
             }
@@ -1018,6 +1088,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
         }
         
         log("Build fields overridden (${PIXEL6_BUILD_FIELDS.size} + ${PIXEL6_VERSION_FIELDS.size} fields)")
+        DataAccessMonitor.record(DataAccessMonitor.Category.IDENTITY, "Build.fields", "${PIXEL6_BUILD_FIELDS.size}+${PIXEL6_VERSION_FIELDS.size} overridden", true)
         
         // Hook Build.getSerial() - gibt Bridge-Serial zurück
         try {
@@ -1028,6 +1099,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                         ensureBridgeLoaded()
                         cachedSerial?.let { 
                             param.result = it
+                            DataAccessMonitor.record(DataAccessMonitor.Category.IDENTITY, "Build.getSerial()", it, true)
                             log("Build.getSerial() -> $it")
                         }
                     }
@@ -1059,6 +1131,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                     ensureBridgeLoaded()
                     val number = cachedPhoneNumber ?: "+12025551234"
                     param.result = number
+                    DataAccessMonitor.record(DataAccessMonitor.Category.TELEPHONY, "TelephonyManager.getLine1Number()", number, true)
                     log("TelephonyManager.getLine1Number -> $number")
                 }
             })
@@ -1071,6 +1144,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                     ensureBridgeLoaded()
                     val vm = cachedVoicemailNumber ?: "+18056377243"
                     param.result = vm
+                    DataAccessMonitor.record(DataAccessMonitor.Category.TELEPHONY, "TelephonyManager.getVoiceMailNumber()", vm, true)
                 }
             })
         } catch (_: Throwable) {}
@@ -1081,6 +1155,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     ensureBridgeLoaded()
                     param.result = cachedSimOperator ?: "310260"
+                    DataAccessMonitor.record(DataAccessMonitor.Category.TELEPHONY, "TelephonyManager.getSimOperator()", param.result as String, true)
                 }
             })
         } catch (_: Throwable) {}
@@ -1091,6 +1166,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     ensureBridgeLoaded()
                     param.result = cachedSimOperatorName ?: cachedOperator ?: "T-Mobile"
+                    DataAccessMonitor.record(DataAccessMonitor.Category.TELEPHONY, "TelephonyManager.getSimOperatorName()", param.result as String, true)
                 }
             })
         } catch (_: Throwable) {}
@@ -1101,6 +1177,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     ensureBridgeLoaded()
                     param.result = cachedSimOperator ?: "310260"
+                    DataAccessMonitor.record(DataAccessMonitor.Category.TELEPHONY, "TelephonyManager.getNetworkOperator()", param.result as String, true)
                 }
             })
         } catch (_: Throwable) {}
@@ -1216,6 +1293,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
         dm.scaledDensity = PIXEL6_SCALED_DENSITY
         dm.xdpi = PIXEL6_XDPI
         dm.ydpi = PIXEL6_YDPI
+        DataAccessMonitor.record(DataAccessMonitor.Category.HARDWARE, "DisplayMetrics", "${PIXEL6_WIDTH}x${PIXEL6_HEIGHT}@${PIXEL6_DENSITY_DPI}", true)
     }
     
     // =========================================================================
@@ -1257,6 +1335,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                     
                     if (filtered.size != sensors.size) {
                         param.result = filtered
+                        DataAccessMonitor.record(DataAccessMonitor.Category.HARDWARE, "SensorManager.getSensorList()", "filtered ${sensors.size}->${filtered.size}", true)
                         log("SensorManager: Filtered ${sensors.size - filtered.size} virtual sensors (${filtered.size} remain)")
                     }
                 }
@@ -1319,7 +1398,10 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                 object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         when (param.args[0] as Int) {
-                            BatteryManager.BATTERY_PROPERTY_CAPACITY -> param.result = sessionBattery
+                            BatteryManager.BATTERY_PROPERTY_CAPACITY -> {
+                                param.result = sessionBattery
+                                DataAccessMonitor.record(DataAccessMonitor.Category.HARDWARE, "BatteryManager.getIntProperty(CAPACITY)", sessionBattery.toString(), true)
+                            }
                             BatteryManager.BATTERY_PROPERTY_STATUS -> {
                                 param.result = if (sessionBattery < 90) 
                                     BatteryManager.BATTERY_STATUS_DISCHARGING 
@@ -1418,6 +1500,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         param.result = fakeAaid
                         log("AAID: Info.getId() spoofed -> $fakeAaid")
+                        DataAccessMonitor.record(DataAccessMonitor.Category.ADVERTISING, "AdvertisingId.getId()", fakeAaid, true)
                     }
                 }
             )
@@ -1584,6 +1667,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                 object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         param.result = fakeBtMac
+                        DataAccessMonitor.record(DataAccessMonitor.Category.NETWORK, "BluetoothAdapter.getAddress()", fakeBtMac, true)
                     }
                 }
             )
@@ -1667,6 +1751,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                     val original = param.result as? MutableList<PackageInfo> ?: return
                     val filtered = original.filter { it.packageName !in HIDDEN_PACKAGES }
                     param.result = ArrayList(filtered)
+                    DataAccessMonitor.record(DataAccessMonitor.Category.PACKAGE, "PM.getInstalledPackages()", "filtered:${original.size}->${filtered.size}", true)
                 }
             }
         )
@@ -1775,6 +1860,8 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                 "getAccounts",
                 object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
+                        val original = param.result as? Array<*>
+                        DataAccessMonitor.record(DataAccessMonitor.Category.ACCOUNT, "AccountManager.getAccounts()", "hidden(was ${original?.size ?: 0})", true)
                         param.result = emptyArray<Account>()
                     }
                 }
@@ -1789,6 +1876,9 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                 String::class.java,
                 object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
+                        val type = param.args[0] as? String ?: "?"
+                        val original = param.result as? Array<*>
+                        DataAccessMonitor.record(DataAccessMonitor.Category.ACCOUNT, "AccountManager.getAccountsByType($type)", "hidden(was ${original?.size ?: 0})", true)
                         param.result = emptyArray<Account>()
                     }
                 }
@@ -1847,6 +1937,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                         val name = param.args[1] as? String ?: return
                         val fakeValue = HIDDEN_GLOBAL_SETTINGS[name] ?: return
                         param.result = fakeValue.toIntOrNull() ?: return
+                        DataAccessMonitor.record(DataAccessMonitor.Category.SETTINGS, "Settings.Global.$name", fakeValue, true)
                     }
                 }
             )
@@ -1920,6 +2011,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                         // TRANSPORT_VPN = 4
                         if (transport == NetworkCapabilities.TRANSPORT_VPN) {
                             param.result = false
+                            DataAccessMonitor.record(DataAccessMonitor.Category.NETWORK, "NetworkCapabilities.hasTransport(VPN)", "false", true)
                         }
                     }
                 }
@@ -2000,8 +2092,14 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                         val feature = param.args[0] as? String ?: return
                         when {
                             // Emulator-Features → false
-                            feature.contains("android.hardware.type.pc") -> param.result = false
-                            feature.contains("com.google.android.feature.EMULATOR") -> param.result = false
+                            feature.contains("android.hardware.type.pc") -> {
+                                param.result = false
+                                DataAccessMonitor.record(DataAccessMonitor.Category.ENVIRONMENT, "PM.hasSystemFeature($feature)", "hidden", true)
+                            }
+                            feature.contains("com.google.android.feature.EMULATOR") -> {
+                                param.result = false
+                                DataAccessMonitor.record(DataAccessMonitor.Category.ENVIRONMENT, "PM.hasSystemFeature($feature)", "hidden", true)
+                            }
                             // Echte Pixel 6 Features → true
                             feature == "android.hardware.fingerprint" -> param.result = true
                             feature == "android.hardware.camera.flash" -> param.result = true
@@ -2029,6 +2127,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                         val feature = param.args[0] as? String ?: return
                         if (feature.contains("EMULATOR") || feature.contains("type.pc")) {
                             param.result = false
+                            DataAccessMonitor.record(DataAccessMonitor.Category.ENVIRONMENT, "PM.hasSystemFeature($feature)", "hidden", true)
                         }
                     }
                 }
@@ -2159,6 +2258,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                             path.contains("/data/adb/modules") || path.contains("/sbin/.magisk") ||
                             path.contains("zygisk") || path.contains("lsposed") || path.contains("xposed")) {
                             param.result = false
+                            DataAccessMonitor.record(DataAccessMonitor.Category.ENVIRONMENT, "File.exists($path)", "hidden", true)
                         }
                     }
                 }
@@ -2185,6 +2285,7 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
                 object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         param.result = emptyList<Any>()
+                        DataAccessMonitor.record(DataAccessMonitor.Category.ENVIRONMENT, "AccessibilityManager.getEnabledServiceList()", "empty", true)
                     }
                 }
             )
@@ -2204,6 +2305,47 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
         } catch (_: Throwable) {}
         
         log("Accessibility: Services hidden")
+    }
+    
+    // =========================================================================
+    // Phase 12.0: SystemClock Uptime Spoofing
+    // Prevents short-uptime detection after profile-switch reboots
+    // =========================================================================
+    
+    private fun hookSystemClock() {
+        val offset = cachedUptimeOffsetMs
+        if (offset <= 0) return
+        
+        // SystemClock.elapsedRealtime()
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.os.SystemClock", null,
+                "elapsedRealtime",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val real = param.result as Long
+                        param.result = real + offset
+                        DataAccessMonitor.record(DataAccessMonitor.Category.RUNTIME, "SystemClock.elapsedRealtime()", "${real + offset}", true)
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        // SystemClock.uptimeMillis()
+        try {
+            XposedHelpers.findAndHookMethod(
+                "android.os.SystemClock", null,
+                "uptimeMillis",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val real = param.result as Long
+                        param.result = real + offset
+                    }
+                }
+            )
+        } catch (_: Throwable) {}
+        
+        log("SystemClock: Uptime offset = +${offset / 3600000}h ${(offset % 3600000) / 60000}m")
     }
     
     // =========================================================================

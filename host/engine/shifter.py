@@ -49,6 +49,7 @@ from host.config import (
     BACKUP_GMS_SUBDIR,
     BACKUP_SANDBOX_SUBDIR,
     BACKUP_TIKTOK_SUBDIR,
+    BRIDGE_FILE_PATH,
     GMS_BACKUP_PACKAGES,
     GMS_PACKAGES,
     SYSTEM_ACCOUNT_DBS,
@@ -689,14 +690,24 @@ class AppShifter:
                     root=True, timeout=15,
                 )
 
-                # v6.5 FIX: --keep-old-files schützt den lib-Symlink!
-                # Ohne dieses Flag überschreibt tar den lib-Symlink mit einem
-                # normalen Verzeichnis → native libs fehlen → App crasht sofort.
-                restore_result = await self._adb.exec_in_from_file(
-                    "tar -xf - -C / --keep-old-files 2>/dev/null; echo EXIT=$?",
-                    str(app_tar),
-                    timeout=timeout,
+                # v6.6 FIX: Push-then-Extract statt Pipe.
+                # Stdin-Pipe kann Binärdaten korrumpieren. Toybox tar kennt
+                # kein --keep-old-files. lib-Schutz via Smart Clean oben.
+                device_tar = "/data/local/tmp/_titan_dual_restore.tar"
+                await self._adb.push(
+                    str(app_tar), device_tar, timeout=timeout,
                 )
+                restore_result = await self._adb.shell(
+                    f"tar -xf {device_tar} -C /",
+                    root=True, timeout=timeout,
+                )
+                # Cleanup temp tar
+                try:
+                    await self._adb.shell(
+                        f"rm -f {device_tar}", root=True, timeout=10,
+                    )
+                except (ADBError, ADBTimeoutError):
+                    pass
 
                 if restore_result.success or restore_result.returncode in (0, 1):
                     results["app_data"] = True
@@ -709,7 +720,7 @@ class AppShifter:
                     )
                     if "MISSING" in (lib_check.output or ""):
                         logger.warning(
-                            "[Restore] lib-Symlink FEHLT nach tar — versuche Repair via install-existing"
+                            "[Restore] lib-Symlink FEHLT — Repair via install-existing"
                         )
                         await self._adb.shell(
                             f"cmd package install-existing --user 0 {self._package}",
@@ -754,12 +765,21 @@ class AppShifter:
                     f"mkdir -p {sandbox_path}", root=True,
                 )
 
-                # Sandbox wurde mit -C <sandbox_path> erstellt → Restore dorthin
-                restore_result = await self._adb.exec_in_from_file(
-                    f"tar -xf - -C {sandbox_path}",
-                    str(sandbox_tar),
-                    timeout=timeout,
+                # v6.6: Push-then-Extract (Sandbox)
+                device_sandbox_tar = "/data/local/tmp/_titan_sandbox_restore.tar"
+                await self._adb.push(
+                    str(sandbox_tar), device_sandbox_tar, timeout=timeout,
                 )
+                restore_result = await self._adb.shell(
+                    f"tar -xf {device_sandbox_tar} -C {sandbox_path}",
+                    root=True, timeout=timeout,
+                )
+                try:
+                    await self._adb.shell(
+                        f"rm -f {device_sandbox_tar}", root=True, timeout=10,
+                    )
+                except (ADBError, ADBTimeoutError):
+                    pass
 
                 if restore_result.success or restore_result.returncode == 1:
                     results["sandbox"] = True
@@ -889,6 +909,59 @@ class AppShifter:
         except (ADBError, Exception):
             return False
 
+    async def _clear_clipboard(self) -> None:
+        """Clear system clipboard to prevent identity leaks via clipboard data."""
+        logger.info("Clearing system clipboard...")
+        cmds = [
+            "service call clipboard 2 i32 1 2>/dev/null",
+            "am broadcast -a clipclear 2>/dev/null",
+        ]
+        for cmd in cmds:
+            try:
+                await self._adb.shell(cmd, root=True, timeout=5)
+            except Exception:
+                pass
+        logger.info("Clipboard cleared")
+
+    async def _disable_google_backup(self) -> None:
+        """Disable Google auto-backup to prevent TikTok data restoration from cloud."""
+        logger.info("Disabling Google auto-backup for TikTok packages...")
+        try:
+            await self._adb.shell("bmgr enable false", root=True, timeout=5)
+        except Exception as e:
+            logger.warning("bmgr disable failed: %s", e)
+
+        for pkg in TIKTOK_PACKAGES:
+            try:
+                await self._adb.shell(
+                    f"bmgr backupnow --cancel {pkg}", root=True, timeout=5,
+                )
+            except Exception:
+                pass
+            try:
+                await self._adb.shell(
+                    f"bmgr wipe com.google.android.gms/.backup.BackupTransportService {pkg}",
+                    root=True, timeout=10,
+                )
+            except Exception:
+                pass
+        logger.info("Google backup disabled for TikTok packages")
+
+    async def _randomize_timestamps(self, package: str) -> None:
+        """Randomize file modification times to prevent restore-detection via uniform timestamps."""
+        logger.info("Randomizing file timestamps for %s...", package)
+        script = (
+            f'for f in $(find /data/data/{package} -type f -not -path "*/lib/*" 2>/dev/null | head -200); do '
+            f'  h=$((RANDOM % 336 + 1)); '
+            f'  touch -d "@$(($(date +%s) - h * 3600))" "$f" 2>/dev/null; '
+            f'done'
+        )
+        try:
+            await self._adb.shell(script, root=True, timeout=30)
+            logger.info("Timestamps randomized for %s", package)
+        except Exception as e:
+            logger.warning("Timestamp randomization failed for %s: %s", package, e)
+
     def _find_latest_tar(self, directory: Path, prefix: str = "") -> Optional[Path]:
         """Findet die neueste tar-Datei mit optionalem Prefix in einem Verzeichnis."""
         if not directory.exists():
@@ -998,32 +1071,48 @@ class AppShifter:
                 clean_result.returncode, clean_result.output[:200],
             )
 
-        # ─── Phase 4: tar entpacken ──────────────────────────────────
-        logger.info("[Restore] Phase 4: tar entpacken (%s)...", tar_path.name)
+        # ─── Phase 4: tar entpacken (Push-then-Extract) ────────────
+        # v6.6 FIX: Stdin-Pipe (exec_in_from_file) korrumpiert Binärdaten
+        # bei manchen adb-Versionen. Sicherer Weg: Push → Extract → Cleanup.
+        logger.info("[Restore] Phase 4: tar aufs Gerät pushen + entpacken (%s)...", tar_path.name)
 
-        # --keep-old-files: Überschreibt NICHT existierende Dateien (lib!)
-        # --no-overwrite-dir: Überschreibt keine Verzeichnis-Metadaten
-        restore_result = await self._adb.exec_in_from_file(
-            f"tar -xf - -C / --keep-old-files 2>/dev/null; echo EXIT=$?",
-            str(tar_path),
-            timeout=timeout,
+        device_tar = "/data/local/tmp/_titan_restore.tar"
+        try:
+            push_result = await self._adb.push(
+                str(tar_path), device_tar, timeout=timeout,
+            )
+            logger.debug("[Restore] Push OK: %s → %s", tar_path.name, device_tar)
+        except (ADBError, ADBTimeoutError) as e:
+            logger.error("[Restore] Push fehlgeschlagen: %s", e)
+            raise
+
+        extract_result = await self._adb.shell(
+            f"tar -xf {device_tar} -C /",
+            root=True, timeout=timeout,
         )
 
-        # tar --keep-old-files gibt exit 1 bei "already exists" — das
-        # ist erwartet (lib existiert). Prüfe ob die Daten da sind.
+        # Verifiziere dass Daten tatsächlich extrahiert wurden
         verify = await self._adb.shell(
             f"test -d {self._data_path}/shared_prefs && echo OK || echo FAIL",
             root=True, timeout=5,
         )
         if "OK" in verify.output:
             logger.info("[Restore] tar-Entpacken OK (Daten verifiziert)")
-        elif restore_result.success:
+        elif extract_result.success:
             logger.info("[Restore] tar-Entpacken OK (exit 0)")
         else:
-            logger.warning(
-                "[Restore] tar-Entpacken: exit=%d (prüfe Datenintegrität) — %s",
-                restore_result.returncode, restore_result.output[:200],
+            logger.error(
+                "[Restore] tar-Entpacken FEHLGESCHLAGEN: exit=%d — %s",
+                extract_result.returncode, extract_result.output[:200],
             )
+
+        # Temp-Tar aufräumen
+        try:
+            await self._adb.shell(
+                f"rm -f {device_tar}", root=True, timeout=10,
+            )
+        except (ADBError, ADBTimeoutError):
+            pass
 
         # ─── Phase 5: Permission Fix (KRITISCH!) ─────────────────────
         logger.info("[Restore] Phase 5: Permission Fix (UID=%s)...", uid)
@@ -2153,12 +2242,42 @@ class AppShifter:
             except (ADBError, ADBTimeoutError) as e:
                 logger.debug("FIX-14: settings list %s fehlgeschlagen: %s", settings_ns, e)
 
+        # =====================================================================
+        # v6.6: Spuren die pm clear + uninstall NICHT entfernen
+        # =====================================================================
+        for pkg in TIKTOK_PACKAGES:
+            external_targets = [
+                f"/data/misc/profiles/ref/{pkg}",
+                f"/data/system_ce/0/shortcut_service/packages/{pkg}.xml",
+                f"/data/system_ce/0/shortcut_service/packages/{pkg}.xml.reservecopy",
+                f"/data/system/graphicsstats/*/{pkg}",
+            ]
+            for target in external_targets:
+                try:
+                    await self._adb.shell(
+                        f"rm -rf {target}", root=True, timeout=5,
+                    )
+                    results[f"ext_{target.split('/')[-1]}_{pkg}"] = True
+                except (ADBError, ADBTimeoutError):
+                    results[f"ext_{target.split('/')[-1]}_{pkg}"] = False
+
+        # v6.6: AAID Reset — TikTok verknüpft Advertising ID mit Profil
+        try:
+            await self._adb.shell(
+                "rm -f /data/data/com.google.android.gms/shared_prefs/adid_settings.xml",
+                root=True, timeout=5,
+            )
+            results["aaid_reset"] = True
+            logger.info("AAID (Advertising ID) resetted")
+        except (ADBError, ADBTimeoutError):
+            results["aaid_reset"] = False
+
         # Zusammenfassung
         success_count = sum(1 for v in results.values() if v)
         total_count = len(results)
         logger.info(
             "Deep Clean abgeschlossen: %d/%d Operationen erfolgreich "
-            "(inkl. MediaStore, Compiler-Cache, ART-Profile, Settings)",
+            "(inkl. MediaStore, Compiler-Cache, ART-Profile, Shortcuts, AAID, Settings)",
             success_count, total_count,
         )
 
@@ -2841,12 +2960,21 @@ class AppShifter:
             "SQLite Safety v3.2: WAL/SHM gelöscht + 2s Filesystem-Settle"
         )
 
-        # tar-Restore (alle Pakete auf einmal — tar enthält data/data/pkg/...)
-        restore_result = await self._adb.exec_in_from_file(
-            "tar -xf - -C /",
-            str(tar_path),
-            timeout=timeout,
+        # v6.6: Push-then-Extract (GMS tar)
+        device_gms_tar = "/data/local/tmp/_titan_gms_restore.tar"
+        await self._adb.push(
+            str(tar_path), device_gms_tar, timeout=timeout,
         )
+        restore_result = await self._adb.shell(
+            f"tar -xf {device_gms_tar} -C /",
+            root=True, timeout=timeout,
+        )
+        try:
+            await self._adb.shell(
+                f"rm -f {device_gms_tar}", root=True, timeout=10,
+            )
+        except (ADBError, ADBTimeoutError):
+            pass
 
         if not restore_result.success:
             raise ADBError(
@@ -3000,13 +3128,22 @@ class AppShifter:
         )
 
         try:
-            # --- Phase 1: tar in Temp-Dir extrahieren ---
+            # v6.6: Push-then-Extract (Account-DB tar)
             logger.debug("Phase 1: tar → %s", TEMP_DIR)
-            restore_result = await self._adb.exec_in_from_file(
-                f"tar -xf - -C {TEMP_DIR}",
-                str(tar_path),
-                timeout=30,
+            device_acc_tar = "/data/local/tmp/_titan_acc_restore.tar"
+            await self._adb.push(
+                str(tar_path), device_acc_tar, timeout=30,
             )
+            restore_result = await self._adb.shell(
+                f"tar -xf {device_acc_tar} -C {TEMP_DIR}",
+                root=True, timeout=30,
+            )
+            try:
+                await self._adb.shell(
+                    f"rm -f {device_acc_tar}", root=True, timeout=10,
+                )
+            except (ADBError, ADBTimeoutError):
+                pass
             if not restore_result.success:
                 raise ADBError(
                     f"Account-DB tar-Extract fehlgeschlagen: "
@@ -3383,92 +3520,151 @@ class AppShifter:
         return deleted > 0
 
     # =========================================================================
-    # FIX-30: Deep-Clean TikTok Storage (MMKV, DBs, WebView, no_backup)
+    # =========================================================================
+    # v6.6: Nuclear Clean — Wie frisch installiert
     # =========================================================================
 
     async def _deep_clean_tiktok_storage(
         self, pkg: str = TIKTOK_PRIMARY,
     ) -> dict[str, bool]:
         """
-        v6.0: Radikale Bereinigung — NUR shared_prefs/ überlebt.
+        v6.6: Totale Sterilisierung — App-Zustand wie bei Erstinstallation.
 
-        TikToks Anti-Fraud-System (libsscronet.so) speichert Device-
-        Fingerprints in ALLEN Daten-Verzeichnissen:
-          - files/mmkv/       → Tencent MMKV mit install_id, device_id (KRITISCH!)
-          - databases/        → SQLite DBs mit Tracking-IDs
-          - app_webview/      → WebView Cookies & LocalStorage
-          - no_backup/        → Nicht-gesicherte Device-Fingerprints
-          - files/tracker/    → ByteDance Analytics SDK
-          - cache/            → HTTP Cache mit Session-Tokens
-          - code_cache/       → DEX/OAT Cache
+        Getestet und verifiziert: Nur diese Kombination entfernt ALLE Spuren,
+        inklusive TikToks Account-Authenticator im Android AccountManager.
 
-        v5.1 hat versucht selektiv zu löschen — das reicht NICHT.
-        MMKV ist ein binärer Key-Value-Store, `rm -f` auf einzelne
-        MMKV-Dateien hinterlässt interne Indizes. TikTok erkennt die
-        Diskrepanz: 'MMKV-Index vorhanden aber Daten fehlen' → Ban.
+        Ablauf:
+          1. pm clear (löscht App-Daten + registered Accounts + Caches)
+          2. Externe Spuren: Sandbox, ART Profiles, Shortcuts, Graphics
+          3. AAID Reset (neue Google Advertising ID)
 
-        NEUE STRATEGIE: Alles außer shared_prefs/ wird radikal gelöscht.
-        shared_prefs/ wird separat via _sanitize_shared_prefs() bereinigt.
-        Der Login-Token ist in shared_prefs/ gespeichert und überlebt.
-
-        MUSS NACH dem Restore und NACH _sanitize_shared_prefs() aufgerufen
-        werden, aber VOR dem Permission-Fix (_apply_magic_permissions).
+        pm clear ist der Schlüssel: Es entfernt auch den TikTok-Account
+        aus dem Android AccountManager (com.zhiliaoapp.account), der sonst
+        "Willkommen zurück <username>" triggert.
         """
-        data_path = f"/data/data/{pkg}"
         results: dict[str, bool] = {}
 
-        # v6.0: Radikal-Löschung — ALLES außer shared_prefs/
-        nuke_dirs = [
-            "files/mmkv",           # MMKV komplett (KRITISCH für Anti-Fraud!)
-            "databases",            # Alle SQLite DBs inkl. Tracking
-            "app_webview",          # WebView LocalStorage, Cookies, IndexedDB
-            "no_backup",            # Device-Fingerprints (nicht von Android gesichert)
-            "files/tracker",        # ByteDance Analytics SDK
-            "files/cachemgr",       # Cache Manager mit Fingerprints
-            "cache",                # HTTP/Image Cache
-            "code_cache",           # DEX/OAT Cache
-            "files/recently_attached_image",
-            "files/react_cache",    # React Native Cache
-            "files/alog",           # ByteDance Logging
-            "files/tombstone",      # Crash Reports mit Device-Info
+        # 1. Force-Stop (verhindert sofortige Neuerstellung)
+        try:
+            await self._adb.shell(
+                f"am force-stop {pkg}", root=True, timeout=5,
+            )
+            results["force_stop"] = True
+        except (ADBError, ADBTimeoutError):
+            results["force_stop"] = False
+
+        # 2. pm clear — der wichtigste Schritt
+        # Löscht: /data/data/<pkg>/*, /data/user_de/0/<pkg>/*,
+        # Android Accounts (com.zhiliaoapp.account), Runtime Permissions
+        try:
+            clear_res = await self._adb.shell(
+                f"pm clear {pkg}", root=True, timeout=15,
+            )
+            results["pm_clear"] = "success" in (clear_res.output or "").lower()
+            if results["pm_clear"]:
+                logger.info("[v6.6 NuclearClean] pm clear %s: OK", pkg)
+            else:
+                logger.warning(
+                    "[v6.6 NuclearClean] pm clear %s: %s",
+                    pkg, clear_res.output.strip()[:100],
+                )
+        except (ADBError, ADBTimeoutError) as e:
+            logger.error("[v6.6 NuclearClean] pm clear fehlgeschlagen: %s", e)
+            results["pm_clear"] = False
+
+        # 3. Externe Spuren entfernen (pm clear räumt diese NICHT auf)
+        external_targets = [
+            # Sandbox / External Storage
+            f"/sdcard/Android/data/{pkg}",
+            f"/data/media/0/Android/data/{pkg}",
+            # ART Compiler Profiles
+            f"/data/misc/profiles/cur/0/{pkg}",
+            f"/data/misc/profiles/ref/{pkg}",
+            # Shortcut Service (Launcher-Verknüpfungen)
+            f"/data/system_ce/0/shortcut_service/packages/{pkg}.xml",
+            f"/data/system_ce/0/shortcut_service/packages/{pkg}.xml.reservecopy",
+            # Graphics Stats
+            f"/data/system/graphicsstats/*/{pkg}",
         ]
 
-        for dir_name in nuke_dirs:
-            full_path = f"{data_path}/{dir_name}"
+        for target in external_targets:
             try:
-                result = await self._adb.shell(
-                    f"rm -rf {full_path}", root=True, timeout=5,
+                res = await self._adb.shell(
+                    f"rm -rf {target}", root=True, timeout=5,
                 )
-                results[dir_name] = result.success
-                if result.success:
-                    logger.debug("[v6.0 DeepClean] Gelöscht: %s", full_path)
+                results[target.split("/")[-1]] = True
             except (ADBError, ADBTimeoutError):
-                results[dir_name] = False
+                results[target.split("/")[-1]] = False
 
-        # Einzelne Tracking-Dateien im files/ Ordner
-        dangerous_files = [
-            "files/.tiktok_device_id",
-            "files/.apollo_device_id",
-            "files/device_id",
-            "files/ies_sdk_iid",
-            "files/hybrid_verify_token",
-            "files/applog_state",
-        ]
-        for file_name in dangerous_files:
-            full_path = f"{data_path}/{file_name}"
-            try:
-                result = await self._adb.shell(
-                    f"rm -f {full_path}", root=True, timeout=3,
+        # 4. AAID Reset (Google Advertising ID)
+        # TikTok verknüpft die AAID mit dem Profil — muss bei Identity-Wechsel
+        # ebenfalls rotiert werden.
+        try:
+            await self._adb.shell(
+                "rm -f /data/data/com.google.android.gms/shared_prefs/adid_settings.xml",
+                root=True, timeout=5,
+            )
+            results["aaid_reset"] = True
+            logger.info("[v6.6 NuclearClean] AAID resetted")
+        except (ADBError, ADBTimeoutError):
+            results["aaid_reset"] = False
+
+        # 5. KRITISCH: Bridge-Datei re-injizieren!
+        # pm clear löscht /data/data/<pkg>/files/.hw_config — ohne die Datei
+        # starten alle Xposed-Hooks mit NULL-Werten (kein Identity Spoofing!).
+        # Die Bridge wird aus dem Module-Pfad zurückkopiert.
+        bridge_source = BRIDGE_FILE_PATH
+        bridge_target = f"/data/data/{pkg}/files/.hw_config"
+        try:
+            check_bridge = await self._adb.shell(
+                f"test -f {bridge_source} && echo OK || echo MISSING",
+                root=True, timeout=5,
+            )
+            if "OK" in (check_bridge.output or ""):
+                uid_res = await self._adb.shell(
+                    f"stat -c '%u' /data/data/{pkg} 2>/dev/null",
+                    root=True, timeout=5,
                 )
-                results[file_name] = result.success
-            except (ADBError, ADBTimeoutError):
-                results[file_name] = False
+                uid = uid_res.output.strip("'\" \n\r")
+                if not uid.isdigit():
+                    uid = "10299"  # Fallback TikTok UID
+                await self._adb.shell(
+                    f"mkdir -p /data/data/{pkg}/files && "
+                    f"cp {bridge_source} {bridge_target} && "
+                    f"chown {uid}:{uid} /data/data/{pkg}/files && "
+                    f"chown {uid}:{uid} {bridge_target} && "
+                    f"chmod 600 {bridge_target} && "
+                    f"restorecon -F {bridge_target}",
+                    root=True, timeout=10,
+                )
+                results["bridge_reinject"] = True
+                logger.info(
+                    "[v6.6 NuclearClean] Bridge re-injiziert: %s → %s",
+                    bridge_source, bridge_target,
+                )
+            else:
+                results["bridge_reinject"] = False
+                logger.warning(
+                    "[v6.6 NuclearClean] Bridge-Quelle fehlt: %s — Hooks werden "
+                    "ohne Identity starten!", bridge_source,
+                )
+        except (ADBError, ADBTimeoutError) as e:
+            results["bridge_reinject"] = False
+            logger.error("[v6.6 NuclearClean] Bridge re-inject fehlgeschlagen: %s", e)
+
+        # 6. Nochmal Force-Stop (TikTok startet sich gerne via Broadcast neu)
+        try:
+            await self._adb.shell(
+                f"am force-stop {pkg}", root=True, timeout=5,
+            )
+        except (ADBError, ADBTimeoutError):
+            pass
 
         deleted = sum(1 for v in results.values() if v)
         total = len(results)
         logger.info(
-            "[v6.0 DeepClean] %s: %d/%d Verzeichnisse/Dateien radikal gelöscht "
-            "(NUR shared_prefs/ überlebt — MMKV+DBs+WebView komplett entfernt)",
+            "[v6.6 NuclearClean] %s: %d/%d Operationen OK "
+            "(pm clear + externe Spuren + AAID + Bridge — Zustand: wie Erstinstallation)",
             pkg, deleted, total,
         )
         return results

@@ -133,6 +133,8 @@ object ServiceConfigReader {
 
     fun getVoicemailNumber(): String? = loadBridgeValues()["voicemail_number"]
 
+    fun getUptimeOffsetMs(): Long = loadBridgeValues()["uptime_offset_ms"]?.toLongOrNull() ?: 0L
+
     fun isBridgeAvailable(): Boolean {
         return loadBridgeValues().isNotEmpty()
     }

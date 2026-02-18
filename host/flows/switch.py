@@ -620,6 +620,16 @@ class SwitchFlow:
                 except Exception as e:
                     logger.warning("[8/10] Verifikation fehlgeschlagen: %s", e)
 
+            # Randomize timestamps to hide restore signature
+            for pkg in TIKTOK_PACKAGES:
+                await self._shifter._randomize_timestamps(pkg)
+
+            # Clipboard wipe
+            await self._shifter._clear_clipboard()
+
+            # Disable Google backup
+            await self._shifter._disable_google_backup()
+
             # =================================================================
             # Schritt 9: NETWORK INIT (Flugmodus AUS + neue IP)
             # =================================================================

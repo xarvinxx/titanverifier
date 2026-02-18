@@ -1,0 +1,3 @@
+/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/.cxx/RelWithDebInfo/26v625b3/arm64-v8a/CMakeFiles/native-lib.dir
+/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/.cxx/RelWithDebInfo/26v625b3/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/app/.cxx/RelWithDebInfo/26v625b3/arm64-v8a/CMakeFiles/rebuild_cache.dir

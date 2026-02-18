@@ -116,6 +116,18 @@ PIXEL6_DEVICE_PROPS: dict[str, str] = {
     "ro.soc.model": "Tensor",
 }
 
+# Pre-flight consistency audit: expected values for Pixel 6 (GPU, screen, RAM, SoC)
+DEVICE_PROFILES = {
+    "Pixel 6": {
+        "gpu_contains": "Mali-G78",
+        "screen_size": "1080x2400",
+        "ram_min_gb": 7,
+        "ram_max_gb": 9,
+        "soc_props": ["oriole", "gs101"],
+        "camera_count": 3,
+    },
+}
+
 # =============================================================================
 # 4. O2 Germany Carrier Spezifikation
 # =============================================================================

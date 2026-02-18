@@ -308,6 +308,12 @@ class GenesisFlow:
             step.duration_ms = _now_ms() - step_start
             logger.info("[3/11] Sterilize: OK (%s)", step.detail)
 
+            # Clipboard wipe before app start
+            await self._shifter._clear_clipboard()
+
+            # Disable Google backup to prevent cloud restore
+            await self._shifter._disable_google_backup()
+
             # =================================================================
             # Schritt 4: GENERATE
             # =================================================================

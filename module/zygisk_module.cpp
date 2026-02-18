@@ -27,9 +27,11 @@
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 #include <string>
 #include <atomic>
 #include <mutex>
+#include <deque>
 #include <unordered_set>
 #include <unordered_map>
 
@@ -280,6 +282,66 @@ static std::unordered_set<int> g_macFileFds;
 // Cached MAC bytes
 static unsigned char g_spoofedMacBytes[6] = {0};
 static bool g_macParsed = false;
+
+// ==================== Native Access Monitor ====================
+namespace NativeMonitor {
+    static std::mutex g_log_mutex;
+    static std::deque<std::string> g_log_buffer;
+    static constexpr size_t MAX_LOG_LINES = 500;
+    static constexpr const char* LOG_PATH = "/data/local/tmp/.titan_native_access.log";
+    static time_t g_last_heartbeat = 0;
+    static constexpr int HEARTBEAT_INTERVAL_SEC = 5;
+    static thread_local bool g_in_monitor = false;
+
+    static void record(const char* flag, const char* hook_name, const char* key, const char* value) {
+        if (g_in_monitor) return;
+        g_in_monitor = true;
+
+        struct timespec ts;
+        clock_gettime(CLOCK_REALTIME, &ts);
+        char time_buf[32];
+        struct tm tm_info;
+        localtime_r(&ts.tv_sec, &tm_info);
+        snprintf(time_buf, sizeof(time_buf), "%02d:%02d:%02d.%03ld",
+                 tm_info.tm_hour, tm_info.tm_min, tm_info.tm_sec, ts.tv_nsec / 1000000);
+
+        char line[512];
+        snprintf(line, sizeof(line), "%s|%s|%s|%s|%.128s",
+                 time_buf, flag, hook_name, key ? key : "", value ? value : "");
+
+        {
+            std::lock_guard<std::mutex> lock(g_log_mutex);
+            g_log_buffer.push_back(std::string(line));
+            if (g_log_buffer.size() > MAX_LOG_LINES) {
+                g_log_buffer.pop_front();
+            }
+
+            // Lazy heartbeat + flush
+            if (ts.tv_sec - g_last_heartbeat >= HEARTBEAT_INTERVAL_SEC) {
+                g_last_heartbeat = ts.tv_sec;
+
+                // Add heartbeat line
+                char hb_line[64];
+                snprintf(hb_line, sizeof(hb_line), "%s|HEARTBEAT|native|%ld|", time_buf, (long)ts.tv_sec);
+                g_log_buffer.push_back(std::string(hb_line));
+                if (g_log_buffer.size() > MAX_LOG_LINES) {
+                    g_log_buffer.pop_front();
+                }
+
+                // Flush to file
+                FILE* f = fopen(LOG_PATH, "w");
+                if (f) {
+                    for (const auto& l : g_log_buffer) {
+                        fprintf(f, "%s\n", l.c_str());
+                    }
+                    fclose(f);
+                }
+            }
+        }
+
+        g_in_monitor = false;
+    }
+}
 
 // ==============================================================================
 // FIX-30 REVERTED: Build-Prop-Spoofing ENTFERNT (v5.1)
@@ -793,7 +855,9 @@ static int _hooked_system_property_get(const char* name, char* value) {
         if (spoofed[0]) {
             // FIX-12: Debug-Log
             if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed: %s", name, spoofed);
-            strncpy(value, spoofed, 91); value[91] = '\0'; return (int)strlen(value);
+            strncpy(value, spoofed, 91); value[91] = '\0';
+            NativeMonitor::record("SPOOF", "system_property_get", name, value);
+            return (int)strlen(value);
         }
     }
     
@@ -801,7 +865,9 @@ static int _hooked_system_property_get(const char* name, char* value) {
         hw.getGsfId(spoofed, sizeof(spoofed));
         if (spoofed[0]) {
             if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed GSF: %.8s...", name, spoofed);
-            strncpy(value, spoofed, 91); value[91] = '\0'; return (int)strlen(value);
+            strncpy(value, spoofed, 91); value[91] = '\0';
+            NativeMonitor::record("SPOOF", "system_property_get", name, value);
+            return (int)strlen(value);
         }
     }
     
@@ -809,7 +875,9 @@ static int _hooked_system_property_get(const char* name, char* value) {
         hw.getImei1(spoofed, sizeof(spoofed));
         if (spoofed[0]) {
             if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed IMEI1: %s", name, spoofed);
-            strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value);
+            strncpy(value, spoofed, 31); value[31] = '\0';
+            NativeMonitor::record("SPOOF", "system_property_get", name, value);
+            return (int)strlen(value);
         }
     }
     
@@ -818,7 +886,9 @@ static int _hooked_system_property_get(const char* name, char* value) {
         hw.getWifiMac(spoofed, sizeof(spoofed));
         if (spoofed[0]) {
             if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed MAC: %s", name, spoofed);
-            strncpy(value, spoofed, 23); value[23] = '\0'; return (int)strlen(value);
+            strncpy(value, spoofed, 23); value[23] = '\0';
+            NativeMonitor::record("SPOOF", "system_property_get", name, value);
+            return (int)strlen(value);
         }
     }
     
@@ -828,12 +898,18 @@ static int _hooked_system_property_get(const char* name, char* value) {
         hw.getImei1(spoofed, sizeof(spoofed));
         if (spoofed[0]) {
             if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed RIL-IMEI1: %s", name, spoofed);
-            strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value);
+            strncpy(value, spoofed, 31); value[31] = '\0';
+            NativeMonitor::record("SPOOF", "system_property_get", name, value);
+            return (int)strlen(value);
         }
     }
     if (strcmp(name, "ro.ril.oem.imei2") == 0 || strcmp(name, "persist.radio.imei2") == 0) {
         hw.getImei2(spoofed, sizeof(spoofed));
-        if (spoofed[0]) { strncpy(value, spoofed, 31); value[31] = '\0'; return (int)strlen(value); }
+        if (spoofed[0]) {
+            strncpy(value, spoofed, 31); value[31] = '\0';
+            NativeMonitor::record("SPOOF", "system_property_get", name, value);
+            return (int)strlen(value);
+        }
     }
     
     // --- v6.0: Dynamic Property Overrides (aus Bridge-Datei) ---
@@ -844,9 +920,10 @@ static int _hooked_system_property_get(const char* name, char* value) {
         memcpy(value, dynOverride, len);
         value[len] = '\0';
         if (g_debugHooks.load()) LOGI("[HOOK] %s → Dynamic: %s", name, dynOverride);
+        NativeMonitor::record("SPOOF", "system_property_get", name, value);
         return (int)len;
     }
-    
+
     return g_origSystemPropertyGet ? g_origSystemPropertyGet(name, value) : 0;
 }
 
@@ -1047,51 +1124,62 @@ static int _hooked_open(const char* pathname, int flags, mode_t mode) {
     // Wenn MAC-Pfad, redirect zu Fake-Datei
     if (pathname && g_macParsed && isMacPath(pathname)) {
         LOGI("[HW] open() MAC path detected: %s", pathname);
-        
+
         HwCompat& hw = HwCompat::getInstance();
         char macStr[24] = {};
         hw.getWifiMac(macStr, sizeof(macStr));
-        
+
         if (macStr[0]) {
             char macContent[32];
             int len = snprintf(macContent, sizeof(macContent), "%s\n", macStr);
             int fakeFd = createFakeOpenFd(pathname, flags, mode, macContent, (size_t)len, "mac_open");
-            if (fakeFd >= 0) return fakeFd;
+            if (fakeFd >= 0) {
+                NativeMonitor::record("SPOOF", "open", pathname, "redirected");
+                return fakeFd;
+            }
         }
     }
-    
+
     // Input Devices Pfad -> Fake Pixel 6 Device-Liste
     if (pathname && isInputDevicesPath(pathname)) {
         size_t contentLen = strlen(FAKE_INPUT_DEVICES);
         int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_INPUT_DEVICES, contentLen, "input_open");
         if (fakeFd >= 0) {
             LOGI("[HW] open() input devices redirected: %s (fd=%d, %zu bytes)", pathname, fakeFd, contentLen);
+            NativeMonitor::record("SPOOF", "open", pathname, "redirected");
             return fakeFd;
         }
     }
-    
+
     // /proc/cpuinfo -> Fake Tensor G1 CPU-Info
     if (pathname && isCpuInfoPath(pathname)) {
         size_t contentLen = strlen(FAKE_CPUINFO);
         int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_CPUINFO, contentLen, "cpuinfo");
         if (fakeFd >= 0) {
             LOGI("[HW] open() cpuinfo redirected (Tensor G1, %zu bytes)", contentLen);
+            NativeMonitor::record("SPOOF", "open", pathname, "redirected");
             return fakeFd;
         }
     }
-    
+
     // /proc/version -> Fake Kernel Version
     if (pathname && isKernelVersionPath(pathname)) {
         size_t contentLen = strlen(FAKE_KERNEL_VERSION);
         int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_KERNEL_VERSION, contentLen, "version");
-        if (fakeFd >= 0) return fakeFd;
+        if (fakeFd >= 0) {
+            NativeMonitor::record("SPOOF", "open", pathname, "redirected");
+            return fakeFd;
+        }
     }
-    
+
     // Phase 11.0: /proc/net/if_inet6 -> Fake (nur Loopback)
     if (pathname && isNetworkInfoPath(pathname)) {
         size_t contentLen = strlen(FAKE_IF_INET6);
         int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_IF_INET6, contentLen, "if_inet6");
-        if (fakeFd >= 0) return fakeFd;
+        if (fakeFd >= 0) {
+            NativeMonitor::record("SPOOF", "open", pathname, "redirected");
+            return fakeFd;
+        }
     }
     
     // Phase 11.0: Root-Detection Pfade → Fake ENOENT
@@ -1229,37 +1317,52 @@ static FILE* _hooked_fopen(const char* pathname, const char* mode) {
         HwCompat& hw = HwCompat::getInstance();
         char macStr[24] = {};
         hw.getWifiMac(macStr, sizeof(macStr));
-        
+
         if (macStr[0]) {
             char macContent[32];
             snprintf(macContent, sizeof(macContent), "%s\n", macStr);
             FILE* fake = createFakeFopen(pathname, mode, macContent, "mac");
-            if (fake) return fake;
+            if (fake) {
+                NativeMonitor::record("SPOOF", "fopen", pathname, "redirected");
+                return fake;
+            }
         }
     }
-    
+
     // Input Devices -> Fake Pixel 6 Device-Liste
     if (pathname && isInputDevicesPath(pathname)) {
         FILE* fake = createFakeFopen(pathname, mode, FAKE_INPUT_DEVICES, "input");
-        if (fake) return fake;
+        if (fake) {
+            NativeMonitor::record("SPOOF", "fopen", pathname, "redirected");
+            return fake;
+        }
     }
-    
+
     // /proc/cpuinfo -> Fake Tensor G1
     if (pathname && isCpuInfoPath(pathname)) {
         FILE* fake = createFakeFopen(pathname, mode, FAKE_CPUINFO, "cpuinfo");
-        if (fake) return fake;
+        if (fake) {
+            NativeMonitor::record("SPOOF", "fopen", pathname, "redirected");
+            return fake;
+        }
     }
-    
+
     // /proc/version -> Fake Kernel Version
     if (pathname && isKernelVersionPath(pathname)) {
         FILE* fake = createFakeFopen(pathname, mode, FAKE_KERNEL_VERSION, "version");
-        if (fake) return fake;
+        if (fake) {
+            NativeMonitor::record("SPOOF", "fopen", pathname, "redirected");
+            return fake;
+        }
     }
-    
+
     // Phase 11.0: /proc/net/if_inet6 -> Fake (nur Loopback)
     if (pathname && isNetworkInfoPath(pathname)) {
         FILE* fake = createFakeFopen(pathname, mode, FAKE_IF_INET6, "if_inet6");
-        if (fake) return fake;
+        if (fake) {
+            NativeMonitor::record("SPOOF", "fopen", pathname, "redirected");
+            return fake;
+        }
     }
     
     // Phase 11.0: Root-Detection Pfade → null + ENOENT

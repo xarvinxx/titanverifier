@@ -447,13 +447,35 @@ class SwitchFlow:
                     readiness["detail"],
                 )
             elif readiness["boot_ready"]:
-                step.status = FlowStepStatus.SUCCESS  # Boot OK, GMS nicht — weiter
-                step.detail = f"Boot OK, GMS-Timeout ({readiness['detail']})"
-                logger.warning("[6/10] GMS nicht bereit — Restore trotzdem fortsetzen")
+                # v6.5 FIX: GMS-Timeout ist gefährlich — prüfe Uptime
+                # Wenn Uptime < 30s trotz 180s Timeout → Gerät war im Bootloop
+                try:
+                    uptime_r = await self._adb.shell("cat /proc/uptime", root=False, timeout=5)
+                    uptime_secs = float(uptime_r.output.strip().split()[0]) if uptime_r.success else 999
+                except Exception:
+                    uptime_secs = 999
+
+                if uptime_secs < 60:
+                    # Gerät hat sich während des Wartens neugestartet → ABORT
+                    step.status = FlowStepStatus.FAILED
+                    step.detail = f"ABORT: Gerät instabil (uptime={uptime_secs:.0f}s, GMS-Timeout)"
+                    logger.error(
+                        "[6/10] ABORT — Gerät instabil: uptime=%.0fs nach 180s Warten. "
+                        "Wahrscheinlich Bootloop. Restore wird NICHT fortgesetzt.",
+                        uptime_secs,
+                    )
+                    raise ADBError(
+                        f"Gerät instabil (uptime={uptime_secs:.0f}s) — Switch abgebrochen"
+                    )
+                else:
+                    step.status = FlowStepStatus.SUCCESS
+                    step.detail = f"Boot OK, GMS-Timeout ({readiness['detail']})"
+                    logger.warning("[6/10] GMS nicht bereit — Restore fortsetzen (uptime=%.0fs OK)", uptime_secs)
             else:
                 step.status = FlowStepStatus.FAILED
                 step.detail = f"Boot-Timeout: {readiness['detail']}"
                 logger.error("[6/10] Gerät nach Soft Reset nicht erreichbar")
+                raise ADBError("Gerät nach Soft Reset nicht erreichbar — Switch abgebrochen")
 
             step.duration_ms = _now_ms() - step_start
 
@@ -493,14 +515,16 @@ class SwitchFlow:
                         )
                         logger.warning("[7/10] Partial Restore — Google Logout möglich")
                     else:
-                        step.status = FlowStepStatus.SUCCESS
-                        step.detail = "Keine GMS/Account Backups vorhanden"
-                        logger.warning("[7/10] Kein GMS-State vorhanden")
+                        # v6.5 FIX: FAILED statt SUCCESS wenn NICHTS restored wurde
+                        step.status = FlowStepStatus.FAILED
+                        step.detail = "KRITISCH: 0/2 Komponenten restored (GMS+Accounts fehlen)"
+                        logger.error("[7/10] KRITISCH: Kein GMS-State restored — Bootloop-Gefahr!")
 
                 except Exception as e:
-                    step.status = FlowStepStatus.SUCCESS
+                    # v6.5 FIX: Exception = FAILED, nicht SUCCESS
+                    step.status = FlowStepStatus.FAILED
                     step.detail = f"State Restore Fehler: {e}"
-                    logger.warning("[7/10] State Restore Fehler: %s", e)
+                    logger.error("[7/10] State Restore FEHLER: %s", e)
             else:
                 # Legacy-Modus: Kein GMS-Restore, aber DroidGuard trotzdem
                 # bereinigen! Die alten Attestierungs-Tokens passen nicht
@@ -547,9 +571,10 @@ class SwitchFlow:
                         step.status = FlowStepStatus.SKIPPED
                         step.detail = "Keine TikTok Backups vorhanden"
                 except Exception as e:
-                    step.status = FlowStepStatus.SUCCESS
-                    step.detail = f"TikTok-Restore Warnung: {e}"
-                    logger.warning("[8/10] TikTok-Restore fehlgeschlagen: %s", e)
+                    # v6.5 FIX: Exception = FAILED, nicht SUCCESS
+                    step.status = FlowStepStatus.FAILED
+                    step.detail = f"TikTok-Restore FEHLER: {e}"
+                    logger.error("[8/10] TikTok-Restore FEHLER: %s", e)
 
             elif backup_path:
                 logger.info("[8/10] Restore TikTok: Legacy-Modus...")
@@ -573,25 +598,25 @@ class SwitchFlow:
 
             step.duration_ms = _now_ms() - step_start
 
-            # Post-Restore Verifikation
+            # Post-Restore Verifikation (v6.5: KEIN pm clear mehr!)
+            # Das alte "Zombie-Schutz" pm clear hat die gerade restored Daten
+            # KOMPLETT gelöscht → Login-Session verloren → nutzloser Switch.
             if use_full_state or profile_name:
                 try:
                     verify = await self._shifter.verify_app_data_restored()
                     if not verify["ok"]:
                         logger.warning(
-                            "[8/10] Post-Restore Verifikation FEHL: %s — Zombie-Schutz",
+                            "[8/10] Post-Restore Verifikation WARNUNG: %s",
                             verify["detail"],
                         )
-                        try:
-                            await self._adb.shell(
-                                "pm clear com.zhiliaoapp.musically", root=True, timeout=15,
-                            )
-                        except ADBError:
-                            pass
+                        # v6.5 FIX: NUR warnen, NICHT pm clear!
+                        # pm clear zerstört die restored Login-Session.
                         tiktok_step = result.steps[7]
                         if tiktok_step.status == FlowStepStatus.SUCCESS:
                             tiktok_step.status = FlowStepStatus.FAILED
                             tiktok_step.detail = f"Verifikation FEHL: {verify['detail']}"
+                    else:
+                        logger.info("[8/10] Post-Restore Verifikation OK")
                 except Exception as e:
                     logger.warning("[8/10] Verifikation fehlgeschlagen: %s", e)
 

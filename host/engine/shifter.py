@@ -689,17 +689,32 @@ class AppShifter:
                     root=True, timeout=15,
                 )
 
-                # tar-Stream Restore (tar wurde relativ zu / erstellt)
+                # v6.5 FIX: --keep-old-files schützt den lib-Symlink!
+                # Ohne dieses Flag überschreibt tar den lib-Symlink mit einem
+                # normalen Verzeichnis → native libs fehlen → App crasht sofort.
                 restore_result = await self._adb.exec_in_from_file(
-                    "tar -xf - -C /",
+                    "tar -xf - -C / --keep-old-files 2>/dev/null; echo EXIT=$?",
                     str(app_tar),
                     timeout=timeout,
                 )
 
-                if restore_result.success or restore_result.returncode == 1:
-                    # returncode 1 = "file changed as we read it" (normal bei tar)
+                if restore_result.success or restore_result.returncode in (0, 1):
                     results["app_data"] = True
                     logger.info("Pfad A (App-Daten): Restored (%s)", app_tar.name)
+
+                    # lib-Symlink Verifikation
+                    lib_check = await self._adb.shell(
+                        f"test -L {self._data_path}/lib && echo SYMLINK || echo MISSING",
+                        root=True, timeout=5,
+                    )
+                    if "MISSING" in (lib_check.output or ""):
+                        logger.warning(
+                            "[Restore] lib-Symlink FEHLT nach tar — versuche Repair via install-existing"
+                        )
+                        await self._adb.shell(
+                            f"cmd package install-existing --user 0 {self._package}",
+                            root=False, timeout=30,
+                        )
                 else:
                     logger.error(
                         "Pfad A Restore fehlgeschlagen (exit %d)",
@@ -770,23 +785,18 @@ class AppShifter:
             except Exception as e:
                 logger.warning("TikTok Sanitize fehlgeschlagen (nicht kritisch): %s", e)
 
-        # 4c. FIX-30: Aggressives Deep-Clean (MMKV, DBs, WebView, Cache)
-        # MUSS nach shared_prefs Sanitize laufen, da _deep_clean das
-        # gesamte databases/ und files/mmkv/ löscht. shared_prefs/ bleibt.
-        if results["app_data"]:
-            for clean_pkg in TIKTOK_PACKAGES:
-                try:
-                    deep_results = await self._deep_clean_tiktok_storage(clean_pkg)
-                    deep_ok = sum(1 for v in deep_results.values() if v)
-                    logger.info(
-                        "FIX-30 DeepClean %s: %d Storage-Bereiche bereinigt",
-                        clean_pkg.split(".")[-1], deep_ok,
-                    )
-                except Exception as e:
-                    logger.warning(
-                        "FIX-30 DeepClean %s fehlgeschlagen: %s",
-                        clean_pkg, e,
-                    )
+        # v6.4: Deep-Clean hier ENTFERNT!
+        # FIX-30 _deep_clean_tiktok_storage() löschte databases/, files/mmkv/,
+        # app_webview/ — also genau die Daten, die gerade aus dem Backup
+        # wiederhergestellt wurden. Die Login-Session (in databases/ und
+        # files/mmkv/) wurde dadurch zerstört.
+        #
+        # Deep-Clean gehört NUR in den Genesis Flow (deep_clean() Methode),
+        # wo wir einen sauberen First-Launch-State wollen.
+        # Im Switch Flow (restore_tiktok_dual) wollen wir die Session ERHALTEN.
+        #
+        # shared_prefs Sanitizing (Step 4b oben) reicht: Es entfernt nur
+        # Tracking-IDs (install_id, device_id), nicht die Login-Tokens.
 
         # 5. PERMISSION-SYNC (KRITISCH!)
         if results["app_data"] and uid:
@@ -1275,6 +1285,11 @@ class AppShifter:
         """
         Hard-Reset einer App: APK sichern → Uninstall → Session-Install.
 
+        v6.4 — Fixes:
+          - Timeouts massiv erhöht (TikTok kann 30+ Split-APKs / 200+ MB haben)
+          - Fehler VOR dem Uninstall führen zu pm clear Fallback (nicht false-positive)
+          - Tracking ob Uninstall stattfand → Fallback weiß ob App noch Daten hat
+
         Ablauf:
           1. Existenz-Check + alle APK-Pfade ermitteln (base + splits)
           2. APKs in sicheres Temp-Verzeichnis kopieren
@@ -1288,13 +1303,24 @@ class AppShifter:
         Returns:
             True wenn App erfolgreich reinstalliert, False bei Fehler
         """
-        logger.info("[Reinstall v6.3] Hard-Reset starten: %s", pkg)
+        logger.info("[Reinstall v6.5] Hard-Reset starten: %s", pkg)
         backup_dir = f"{self._APK_BACKUP_DIR}/{pkg}"
+        uninstall_done = False
 
         try:
+            # ─── Step 0: LSPosed Scope sichern ────────────────────────────
+            # Uninstall entfernt die App aus ALLEN LSPosed-Modul-Scopes.
+            # Wir sichern die Einträge und stellen sie nach Reinstall wieder her.
+            lsposed_scope_backup = await self._backup_lsposed_scope(pkg)
+            if lsposed_scope_backup:
+                logger.info(
+                    "[Reinstall] LSPosed Scope gesichert: %d Modul(e) betroffen",
+                    len(lsposed_scope_backup),
+                )
+
             # ─── Step 1: Existenz-Check + APK-Pfade sammeln ─────────────
             check = await self._adb.shell(
-                f"pm path {pkg}", root=True, timeout=10,
+                f"pm path {pkg}", root=True, timeout=15,
             )
             if not check.success or "package:" not in check.output:
                 logger.error(
@@ -1316,49 +1342,66 @@ class AppShifter:
             logger.info(
                 "[Reinstall] %s: %d APK(s) gefunden — %s",
                 pkg, len(apk_paths),
-                ", ".join(p.rsplit("/", 1)[-1] for p in apk_paths),
+                ", ".join(p.rsplit("/", 1)[-1] for p in apk_paths[:10]),
             )
 
             # ─── Step 2: APKs in Backup-Verzeichnis kopieren ────────────
+            # Timeout großzügig: TikTok kann 30+ APKs haben, altes Backup
+            # kann hunderte MB groß sein → rm -rf braucht Zeit
             await self._adb.shell(
                 f"rm -rf {backup_dir} && mkdir -p {backup_dir}",
-                root=True, timeout=10,
+                root=True, timeout=60,
             )
 
             for apk in apk_paths:
                 filename = apk.rsplit("/", 1)[-1]
                 cp_res = await self._adb.shell(
                     f"cp \"{apk}\" \"{backup_dir}/{filename}\"",
-                    root=True, timeout=30,
+                    root=True, timeout=120,
                 )
                 if not cp_res.success:
                     logger.error(
                         "[Reinstall] APK-Backup fehlgeschlagen: %s → %s",
                         apk, cp_res.output.strip()[:100],
                     )
-                    return False
+                    # Backup fehlgeschlagen VOR Uninstall → pm clear als Fallback
+                    return await self._pm_clear_fallback(pkg)
 
             # APKs für shell-User lesbar machen (Session-Install läuft als shell)
-            # + Verzeichnis traversierbar machen
             await self._adb.shell(
                 f"chmod 755 {backup_dir} && chmod 644 {backup_dir}/*.apk",
-                root=True, timeout=10,
+                root=True, timeout=30,
             )
 
-            # Verifikation: Alle Dateien da?
+            # Verifikation: Anzahl APKs im Backup prüfen
             ls_res = await self._adb.shell(
-                f"ls -la {backup_dir}/", root=True, timeout=10,
+                f"ls {backup_dir}/*.apk | wc -l", root=True, timeout=10,
             )
+            backup_count = 0
+            if ls_res.success:
+                try:
+                    backup_count = int(ls_res.output.strip())
+                except ValueError:
+                    pass
+
+            if backup_count < len(apk_paths):
+                logger.error(
+                    "[Reinstall] APK-Backup unvollständig: %d/%d — Abbruch!",
+                    backup_count, len(apk_paths),
+                )
+                return await self._pm_clear_fallback(pkg)
+
             logger.info(
-                "[Reinstall] APK-Backup erstellt:\n%s",
-                ls_res.output.strip()[:500],
+                "[Reinstall] APK-Backup komplett: %d/%d APKs gesichert",
+                backup_count, len(apk_paths),
             )
 
             # ─── Step 3: Deinstallation ─────────────────────────────────
             uninstall_res = await self._adb.shell(
                 f"pm uninstall --user 0 {pkg}",
-                root=True, timeout=15,
+                root=True, timeout=30,
             )
+            uninstall_done = True
             logger.info(
                 "[Reinstall] pm uninstall --user 0 %s: %s",
                 pkg, uninstall_res.output.strip()[:80],
@@ -1369,14 +1412,12 @@ class AppShifter:
             # ─── Step 4: Session-Install (Split-APK-kompatibel) ─────────
             # WICHTIG: Session-Install MUSS als shell-User laufen (root=False)!
             # Grund: pm install-create bindet die Session an die Caller-UID.
-            # Wenn create als root (UID 0) läuft, aber write/commit als
-            # shell (UID 2000), gibt es eine SecurityException.
-            # ADB shell ohne su = UID 2000 (shell) = hat Install-Rechte.
+            # su = UID 0, adb shell = UID 2000. Session ist UID-gebunden.
 
             # Berechne Gesamtgröße aller APKs
             size_res = await self._adb.shell(
                 f"du -cb {backup_dir}/*.apk | tail -1",
-                root=True, timeout=10,
+                root=True, timeout=15,
             )
             total_size = "0"
             if size_res.success:
@@ -1422,9 +1463,10 @@ class AppShifter:
                 file_size = fsize_res.output.strip() if fsize_res.success else "0"
 
                 # APK in Session schreiben via cat-pipe (als shell-User!)
+                # Timeout 120s pro APK — base.apk kann 130+ MB sein
                 write_res = await self._adb.shell(
                     f"cat \"{local_path}\" | pm install-write -S {file_size} {session_id} {idx} -",
-                    root=False, timeout=60,
+                    root=False, timeout=120,
                 )
 
                 if not write_res.success or "success" not in write_res.output.lower():
@@ -1432,7 +1474,6 @@ class AppShifter:
                         "[Reinstall] install-write fehlgeschlagen für %s: %s",
                         filename, write_res.output.strip()[:150],
                     )
-                    # Session abbrechen (als shell-User!)
                     await self._adb.shell(
                         f"pm install-abandon {session_id}",
                         root=False, timeout=10,
@@ -1447,7 +1488,7 @@ class AppShifter:
             # 4c. Session committen (als shell-User!)
             commit_res = await self._adb.shell(
                 f"pm install-commit {session_id}",
-                root=False, timeout=30,
+                root=False, timeout=60,
             )
 
             if commit_res.success and "success" in commit_res.output.lower():
@@ -1461,36 +1502,276 @@ class AppShifter:
                     commit_res.output.strip()[:200],
                 )
 
-            # ─── Step 5: Finale Verifikation ────────────────────────────
+            # ─── Step 5: Finale Verifikation + LSPosed Scope Restore ─────
             await asyncio.sleep(1)
 
             if await self._verify_app_installed(pkg):
-                logger.info("[Reinstall] VERIFIZIERT: %s ist installiert ✓", pkg)
+                logger.info("[Reinstall] VERIFIZIERT: %s ist installiert", pkg)
+                # LSPosed Scope wiederherstellen (NACH Install!)
+                if lsposed_scope_backup:
+                    await self._restore_lsposed_scope(pkg, lsposed_scope_backup)
                 return True
 
             logger.warning(
                 "[Reinstall] Session-Install hat nicht verifiziert — "
                 "versuche Simple-Fallback..."
             )
-            return await self._reinstall_simple_fallback(pkg, backup_dir, apk_paths)
+            fallback_ok = await self._reinstall_simple_fallback(pkg, backup_dir, apk_paths)
+            if fallback_ok and lsposed_scope_backup:
+                await self._restore_lsposed_scope(pkg, lsposed_scope_backup)
+            return fallback_ok
 
         except Exception as e:
-            logger.error("[Reinstall] Unerwarteter Fehler für %s: %s", pkg, e)
-            # Notfall-Fallback
-            try:
-                return await self._reinstall_simple_fallback(pkg, backup_dir, apk_paths)
-            except Exception:
-                return False
+            logger.error("[Reinstall] Fehler für %s: %s", pkg, e)
+
+            if not uninstall_done:
+                # Fehler VOR dem Uninstall → App hat noch alte Daten!
+                # pm clear als sicherer Fallback (löscht Daten, behält App)
+                logger.warning(
+                    "[Reinstall] Fehler VOR Uninstall — App hat noch alte Daten! "
+                    "Fallback: pm clear"
+                )
+                return await self._pm_clear_fallback(pkg)
+            else:
+                # Fehler NACH dem Uninstall → App muss reinstalliert werden
+                try:
+                    return await self._reinstall_simple_fallback(pkg, backup_dir, apk_paths)
+                except Exception:
+                    logger.error(
+                        "[Reinstall] FATAL: %s wurde deinstalliert und konnte nicht "
+                        "wiederhergestellt werden!",
+                        pkg,
+                    )
+                    return False
         finally:
             # Cleanup: Backup-Verzeichnis entfernen
             try:
                 await self._adb.shell(
                     f"rm -rf {backup_dir}",
-                    root=True, timeout=10,
+                    root=True, timeout=60,
                 )
                 logger.debug("[Reinstall] Backup-Cleanup: %s entfernt", backup_dir)
             except (ADBError, ADBTimeoutError):
                 pass
+
+    # =========================================================================
+    # LSPosed Scope Backup / Restore (v6.5)
+    # =========================================================================
+
+    _LSPOSED_DB = "/data/adb/lspd/config/modules_config.db"
+
+    async def _backup_lsposed_scope(self, pkg: str) -> list[dict]:
+        """
+        Sichert alle LSPosed-Scope-Einträge für ein Paket.
+
+        LSPosed speichert Scopes in einer SQLite-DB:
+          /data/adb/lspd/config/modules_config.db
+          Tabelle: scope (mid INTEGER, app_pkg_name TEXT, user_id INTEGER)
+
+        Bei Uninstall entfernt LSPosed den Scope-Eintrag automatisch.
+        Wir sichern ihn VOR dem Uninstall und stellen ihn danach wieder her.
+
+        Returns:
+            Liste von {mid, user_id} Dicts (leere Liste wenn LSPosed nicht installiert)
+        """
+        try:
+            # Prüfe ob LSPosed DB existiert
+            check = await self._adb.shell(
+                f"test -f {self._LSPOSED_DB} && echo EXISTS",
+                root=True, timeout=5,
+            )
+            if "EXISTS" not in (check.output or ""):
+                logger.debug("[LSPosed] DB nicht gefunden — überspringe Scope-Backup")
+                return []
+
+            # Scope-Einträge für das Paket abfragen
+            # Da kein sqlite3 auf dem Gerät ist, nutzen wir cat + lokal parsen
+            # Alternative: Wir lesen die DB binär und parsen lokal
+            # Einfachere Lösung: Nutze den dd/strings-Trick oder kopiere die DB
+
+            # DB nach /data/local/tmp kopieren (lesbar für adb pull)
+            tmp_db = "/data/local/tmp/_lsposed_scope_backup.db"
+            await self._adb.shell(
+                f"cp {self._LSPOSED_DB} {tmp_db}",
+                root=True, timeout=10,
+            )
+
+            # DB auf Host ziehen und lokal mit sqlite3 parsen
+            import subprocess
+            import tempfile
+
+            with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tf:
+                local_db = tf.name
+
+            pull_result = subprocess.run(
+                ["adb", "shell", "su", "-c", f"cat {tmp_db}"],
+                capture_output=True, timeout=10,
+            )
+            if pull_result.returncode != 0:
+                logger.debug("[LSPosed] DB konnte nicht gelesen werden")
+                return []
+
+            import os
+            with open(local_db, "wb") as f:
+                f.write(pull_result.stdout)
+
+            # Lokal mit sqlite3 parsen
+            query = (
+                f"SELECT mid, user_id FROM scope "
+                f"WHERE app_pkg_name = '{pkg}';"
+            )
+            sql_result = subprocess.run(
+                ["sqlite3", local_db, query],
+                capture_output=True, text=True, timeout=5,
+            )
+
+            entries = []
+            if sql_result.returncode == 0 and sql_result.stdout.strip():
+                for line in sql_result.stdout.strip().splitlines():
+                    parts = line.split("|")
+                    if len(parts) == 2:
+                        entries.append({
+                            "mid": int(parts[0]),
+                            "user_id": int(parts[1]),
+                        })
+
+            # Aufräumen
+            os.unlink(local_db)
+            await self._adb.shell(f"rm -f {tmp_db}", root=True, timeout=5)
+
+            if entries:
+                logger.info(
+                    "[LSPosed] Scope-Backup für %s: %d Einträge (module IDs: %s)",
+                    pkg, len(entries),
+                    ", ".join(str(e["mid"]) for e in entries),
+                )
+            else:
+                logger.debug("[LSPosed] Keine Scope-Einträge für %s gefunden", pkg)
+
+            return entries
+
+        except Exception as e:
+            logger.debug("[LSPosed] Scope-Backup fehlgeschlagen (nicht kritisch): %s", e)
+            return []
+
+    async def _restore_lsposed_scope(
+        self, pkg: str, scope_entries: list[dict],
+    ) -> bool:
+        """
+        Stellt LSPosed-Scope-Einträge nach einem Reinstall wieder her.
+
+        Schreibt die gesicherten (mid, app_pkg_name, user_id) Tupel
+        zurück in die LSPosed-DB.
+
+        Args:
+            pkg:           Package-Name (z.B. "com.zhiliaoapp.musically")
+            scope_entries: Liste von {mid, user_id} Dicts aus _backup_lsposed_scope
+
+        Returns:
+            True wenn Restore erfolgreich
+        """
+        if not scope_entries:
+            return True
+
+        try:
+            import subprocess
+            import tempfile
+            import os
+
+            # DB vom Gerät holen
+            tmp_db = "/data/local/tmp/_lsposed_scope_restore.db"
+            await self._adb.shell(
+                f"cp {self._LSPOSED_DB} {tmp_db}",
+                root=True, timeout=10,
+            )
+
+            with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tf:
+                local_db = tf.name
+
+            pull_result = subprocess.run(
+                ["adb", "shell", "su", "-c", f"cat {tmp_db}"],
+                capture_output=True, timeout=10,
+            )
+            if pull_result.returncode != 0:
+                logger.warning("[LSPosed] DB konnte nicht für Restore gelesen werden")
+                return False
+
+            with open(local_db, "wb") as f:
+                f.write(pull_result.stdout)
+
+            # Scope-Einträge einfügen (INSERT OR IGNORE für Idempotenz)
+            insert_cmds = []
+            for entry in scope_entries:
+                insert_cmds.append(
+                    f"INSERT OR IGNORE INTO scope (mid, app_pkg_name, user_id) "
+                    f"VALUES ({entry['mid']}, '{pkg}', {entry['user_id']});"
+                )
+
+            sql_cmd = " ".join(insert_cmds)
+            sql_result = subprocess.run(
+                ["sqlite3", local_db, sql_cmd],
+                capture_output=True, text=True, timeout=5,
+            )
+
+            if sql_result.returncode != 0:
+                logger.error(
+                    "[LSPosed] Scope-Insert fehlgeschlagen: %s",
+                    sql_result.stderr.strip()[:200],
+                )
+                os.unlink(local_db)
+                return False
+
+            # Modifizierte DB zurück aufs Gerät pushen
+            push_result = subprocess.run(
+                ["adb", "push", local_db, "/data/local/tmp/_lsposed_fixed.db"],
+                capture_output=True, text=True, timeout=10,
+            )
+
+            if push_result.returncode != 0:
+                logger.error("[LSPosed] DB-Push fehlgeschlagen")
+                os.unlink(local_db)
+                return False
+
+            # Atomic swap: Backup → Replace → Fix Permissions
+            await self._adb.shell(
+                f"cp {self._LSPOSED_DB} {self._LSPOSED_DB}.bak",
+                root=True, timeout=10,
+            )
+            await self._adb.shell(
+                f"cp /data/local/tmp/_lsposed_fixed.db {self._LSPOSED_DB}",
+                root=True, timeout=10,
+            )
+            # Permissions wie Original setzen (root:root, 600)
+            await self._adb.shell(
+                f"chown root:root {self._LSPOSED_DB} && chmod 600 {self._LSPOSED_DB}",
+                root=True, timeout=5,
+            )
+            # WAL-Modus Artefakte bereinigen (sonst liest LSPosed alte Daten)
+            await self._adb.shell(
+                f"rm -f {self._LSPOSED_DB}-wal {self._LSPOSED_DB}-shm",
+                root=True, timeout=5,
+            )
+
+            # Cleanup
+            os.unlink(local_db)
+            await self._adb.shell(
+                "rm -f /data/local/tmp/_lsposed_scope_restore.db "
+                "/data/local/tmp/_lsposed_fixed.db",
+                root=True, timeout=5,
+            )
+
+            logger.info(
+                "[LSPosed] Scope wiederhergestellt: %s → %d Modul(e) (%s)",
+                pkg, len(scope_entries),
+                ", ".join(f"mid={e['mid']}" for e in scope_entries),
+            )
+            return True
+
+        except Exception as e:
+            logger.warning(
+                "[LSPosed] Scope-Restore fehlgeschlagen (nicht kritisch): %s", e,
+            )
+            return False
 
     async def _reinstall_simple_fallback(
         self, pkg: str, backup_dir: str, apk_paths: list[str],
@@ -1546,6 +1827,43 @@ class AppShifter:
             pkg,
         )
         return False
+
+    async def _pm_clear_fallback(self, pkg: str) -> bool:
+        """
+        Sicherer Fallback wenn Reinstall VOR dem Uninstall fehlschlägt.
+
+        Nutzt pm clear um alle App-Daten zu löschen, ohne die App zu
+        deinstallieren. Das ist weniger gründlich als Uninstall+Reinstall
+        (Package-Manager-State wie install_time bleibt), aber garantiert
+        dass die App danach im First-Launch-State ist und keine alten
+        Login-Sessions überlebt haben.
+
+        Returns:
+            True wenn pm clear erfolgreich, False sonst
+        """
+        logger.info(
+            "[Reinstall-pmclear] Fallback: pm clear %s (App bleibt installiert)", pkg,
+        )
+        try:
+            res = await self._adb.shell(
+                f"pm clear {pkg}", root=True, timeout=30,
+            )
+            if res.success and "Success" in res.output:
+                logger.info(
+                    "[Reinstall-pmclear] pm clear %s: ERFOLG — "
+                    "App-Daten gelöscht, App bleibt installiert ✓",
+                    pkg,
+                )
+                return True
+
+            logger.error(
+                "[Reinstall-pmclear] pm clear %s fehlgeschlagen: %s",
+                pkg, res.output.strip()[:150],
+            )
+            return False
+        except (ADBError, ADBTimeoutError) as e:
+            logger.error("[Reinstall-pmclear] Fehler bei pm clear %s: %s", pkg, e)
+            return False
 
     # =========================================================================
     # Deep Clean: Vollständige Sterilisierung
@@ -2346,7 +2664,7 @@ class AppShifter:
         results: dict[str, bool] = {
             "gms": False,
             "accounts": False,
-            "tiktok": False,
+            "tiktok": True,  # v6.5: Immer True — TikTok wird in Step 8 separat behandelt
         }
 
         profile_dir = self._backup_dir / profile_name
@@ -2391,27 +2709,19 @@ class AppShifter:
         else:
             logger.info("Kein Account-DB-Backup vorhanden — überspringe")
 
-        # --- 3. TikTok App-Daten restoren ---
-        tiktok_dir = profile_dir / BACKUP_TIKTOK_SUBDIR
-        if tiktok_dir.exists():
-            try:
-                tiktok_tar = self._find_latest_tar(tiktok_dir)
-                if tiktok_tar:
-                    await self.restore(tiktok_tar, timeout=timeout)
-                    results["tiktok"] = True
-                    logger.info("TikTok Restore: OK")
-                else:
-                    logger.warning("Kein TikTok-Backup in %s", tiktok_dir)
-            except (ADBError, FileNotFoundError, Exception) as e:
-                logger.error("TikTok Restore fehlgeschlagen: %s", e)
-        else:
-            logger.info("Kein TikTok-Backup vorhanden — überspringe")
+        # --- 3. TikTok NICHT hier restoren ---
+        # v6.5 FIX: TikTok wird separat in Step 8 (restore_tiktok_dual) behandelt.
+        # Vorher wurde TikTok hier UND in Step 8 restored → Doppel-Restore
+        # zerstörte lib-Symlink und überschrieb sauberen State.
+        logger.info("TikTok-Restore übersprungen — wird in Step 8 (Dual-Path) behandelt")
 
-        # Zusammenfassung
-        success_count = sum(1 for v in results.values() if v)
+        # Zusammenfassung (v6.5: nur GMS+Accounts, TikTok separat in Step 8)
+        gms_ok = results["gms"]
+        acc_ok = results["accounts"]
         logger.info(
-            "Full-State Restore abgeschlossen: %d/3 Komponenten wiederhergestellt",
-            success_count,
+            "Full-State Restore abgeschlossen: GMS=%s, Accounts=%s (TikTok → Step 8)",
+            "OK" if gms_ok else "FAIL",
+            "OK" if acc_ok else "FAIL",
         )
         return results
 

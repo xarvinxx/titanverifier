@@ -10957,3 +10957,983 @@ AttributeError: type object 'FlowStepStatus' has no attribute 'ERROR'
 2026-02-18 23:27:48 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54046)
 2026-02-18 23:27:48 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54047)
 2026-02-18 23:27:48 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54047)
+2026-02-18 23:37:30 [watchfiles.main] INFO: 70 changes detected
+2026-02-18 23:37:35 [watchfiles.main] INFO: 110 changes detected
+2026-02-18 23:37:41 [watchfiles.main] INFO: 4 changes detected
+2026-02-18 23:37:48 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54046)
+2026-02-18 23:37:48 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54046)
+2026-02-18 23:38:56 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:39:27 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:41:00 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:41:16 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:42:05 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:42:05 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54047)
+2026-02-18 23:42:05 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54047)
+2026-02-18 23:42:05 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:42:05 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:42:05 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:42:05 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:42:05 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:42:05 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:42:05 [watchfiles.main] INFO: 4 changes detected
+2026-02-18 23:42:05 [host.main] INFO: ============================================================
+2026-02-18 23:42:05 [host.main] INFO: ============================================================
+2026-02-18 23:42:05 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:42:05 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:42:05 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:42:05 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:42:05 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:42:05 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:42:05 [host.main] INFO: ============================================================
+2026-02-18 23:42:05 [host.main] INFO: ============================================================
+2026-02-18 23:42:05 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:42:05 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:42:05 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:42:05 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:42:05 [host.main] INFO: Command Center bereit.
+2026-02-18 23:42:05 [host.main] INFO: Command Center bereit.
+2026-02-18 23:42:05 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:42:08 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54652)
+2026-02-18 23:42:08 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54652)
+2026-02-18 23:42:42 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:43:35 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:43:35 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54652)
+2026-02-18 23:43:35 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54652)
+2026-02-18 23:43:36 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:43:36 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:43:36 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:43:36 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:43:36 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:43:36 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:43:36 [watchfiles.main] INFO: 3 changes detected
+2026-02-18 23:43:36 [watchfiles.main] INFO: 3 changes detected
+2026-02-18 23:43:36 [host.main] INFO: ============================================================
+2026-02-18 23:43:36 [host.main] INFO: ============================================================
+2026-02-18 23:43:36 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:43:36 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:43:36 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:43:36 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:43:36 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:43:36 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:43:36 [host.main] INFO: ============================================================
+2026-02-18 23:43:36 [host.main] INFO: ============================================================
+2026-02-18 23:43:36 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:43:36 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:43:36 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:43:36 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:43:36 [host.main] INFO: Command Center bereit.
+2026-02-18 23:43:36 [host.main] INFO: Command Center bereit.
+2026-02-18 23:43:37 [watchfiles.main] INFO: 2 changes detected
+2026-02-18 23:43:39 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54702)
+2026-02-18 23:43:39 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54702)
+2026-02-18 23:43:42 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:43:42 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54702)
+2026-02-18 23:43:42 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54702)
+2026-02-18 23:43:42 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:43:42 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:43:42 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:43:42 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:43:42 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:43:42 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:43:43 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:43:43 [host.main] INFO: ============================================================
+2026-02-18 23:43:43 [host.main] INFO: ============================================================
+2026-02-18 23:43:43 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:43:43 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:43:43 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:43:43 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:43:43 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:43:43 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:43:43 [host.main] INFO: ============================================================
+2026-02-18 23:43:43 [host.main] INFO: ============================================================
+2026-02-18 23:43:43 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:43:43 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:43:43 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:43:52 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:43:52 [host.main] INFO: ============================================================
+2026-02-18 23:43:52 [host.main] INFO: ============================================================
+2026-02-18 23:43:52 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:43:52 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:43:52 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:43:52 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:43:52 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:43:52 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:43:52 [host.main] INFO: ============================================================
+2026-02-18 23:43:52 [host.main] INFO: ============================================================
+2026-02-18 23:43:52 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:43:52 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:43:52 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:43:52 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:43:52 [host.main] INFO: Command Center bereit.
+2026-02-18 23:43:52 [host.main] INFO: Command Center bereit.
+2026-02-18 23:43:52 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54706)
+2026-02-18 23:43:52 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54706)
+2026-02-18 23:43:52 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:44:30 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:44:30 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54706)
+2026-02-18 23:44:30 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54706)
+2026-02-18 23:44:30 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:44:30 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:44:30 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:44:30 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:44:30 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:44:30 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:44:31 [watchfiles.main] INFO: 7 changes detected
+2026-02-18 23:44:31 [host.main] INFO: ============================================================
+2026-02-18 23:44:31 [host.main] INFO: ============================================================
+2026-02-18 23:44:31 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:44:31 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:44:31 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:44:31 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:44:31 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:44:31 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:44:31 [host.main] INFO: ============================================================
+2026-02-18 23:44:31 [host.main] INFO: ============================================================
+2026-02-18 23:44:31 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:44:31 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:44:31 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:44:31 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:44:31 [host.main] INFO: Command Center bereit.
+2026-02-18 23:44:31 [host.main] INFO: Command Center bereit.
+2026-02-18 23:44:31 [watchfiles.main] INFO: 2 changes detected
+2026-02-18 23:44:34 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54741)
+2026-02-18 23:44:34 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54741)
+2026-02-18 23:45:58 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:45:58 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54741)
+2026-02-18 23:45:58 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54741)
+2026-02-18 23:45:58 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:45:58 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:45:58 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:45:58 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:45:58 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:45:58 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:45:59 [watchfiles.main] INFO: 3 changes detected
+2026-02-18 23:45:59 [host.main] INFO: ============================================================
+2026-02-18 23:45:59 [host.main] INFO: ============================================================
+2026-02-18 23:45:59 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:45:59 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:45:59 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:45:59 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:45:59 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:45:59 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:45:59 [host.main] INFO: ============================================================
+2026-02-18 23:45:59 [host.main] INFO: ============================================================
+2026-02-18 23:45:59 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:45:59 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:45:59 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:45:59 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:45:59 [host.main] INFO: Command Center bereit.
+2026-02-18 23:45:59 [host.main] INFO: Command Center bereit.
+2026-02-18 23:45:59 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:46:02 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54795)
+2026-02-18 23:46:02 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54795)
+2026-02-18 23:46:18 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:46:18 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54795)
+2026-02-18 23:46:18 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54795)
+2026-02-18 23:46:18 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:46:18 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:46:18 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:46:18 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:46:18 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:46:18 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:46:19 [watchfiles.main] INFO: 3 changes detected
+2026-02-18 23:46:19 [host.main] INFO: ============================================================
+2026-02-18 23:46:19 [host.main] INFO: ============================================================
+2026-02-18 23:46:19 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:46:19 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:46:19 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:19 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:19 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:46:19 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:46:19 [host.main] INFO: ============================================================
+2026-02-18 23:46:19 [host.main] INFO: ============================================================
+2026-02-18 23:46:19 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:19 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:19 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:46:19 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:46:19 [host.main] INFO: Command Center bereit.
+2026-02-18 23:46:19 [host.main] INFO: Command Center bereit.
+2026-02-18 23:46:19 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:46:22 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54825)
+2026-02-18 23:46:22 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54825)
+2026-02-18 23:46:25 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:46:25 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54825)
+2026-02-18 23:46:25 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54825)
+2026-02-18 23:46:25 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:46:25 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:46:25 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:46:25 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:46:25 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:46:25 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:46:25 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:46:26 [host.main] INFO: ============================================================
+2026-02-18 23:46:26 [host.main] INFO: ============================================================
+2026-02-18 23:46:26 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:46:26 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:46:26 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:26 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:26 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:46:26 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:46:26 [host.main] INFO: ============================================================
+2026-02-18 23:46:26 [host.main] INFO: ============================================================
+2026-02-18 23:46:26 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:26 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:26 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:46:26 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:46:26 [host.main] INFO: Command Center bereit.
+2026-02-18 23:46:26 [host.main] INFO: Command Center bereit.
+2026-02-18 23:46:26 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:46:28 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54827)
+2026-02-18 23:46:28 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54827)
+2026-02-18 23:46:37 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:46:37 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54827)
+2026-02-18 23:46:37 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54827)
+2026-02-18 23:46:37 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:46:37 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:46:37 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:46:37 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:46:37 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:46:37 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:46:37 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:46:37 [host.main] INFO: ============================================================
+2026-02-18 23:46:37 [host.main] INFO: ============================================================
+2026-02-18 23:46:37 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:46:37 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:46:37 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:37 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:37 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:46:37 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:46:37 [host.main] INFO: ============================================================
+2026-02-18 23:46:37 [host.main] INFO: ============================================================
+2026-02-18 23:46:37 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:37 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:37 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:46:37 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:46:37 [host.main] INFO: Command Center bereit.
+2026-02-18 23:46:37 [host.main] INFO: Command Center bereit.
+2026-02-18 23:46:38 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:46:40 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54837)
+2026-02-18 23:46:40 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54837)
+2026-02-18 23:46:42 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:46:42 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54837)
+2026-02-18 23:46:42 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54837)
+2026-02-18 23:46:42 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:46:42 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:46:42 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:46:42 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:46:42 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:46:42 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:46:42 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:46:42 [host.main] INFO: ============================================================
+2026-02-18 23:46:42 [host.main] INFO: ============================================================
+2026-02-18 23:46:42 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:46:42 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:46:42 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:42 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:42 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:46:42 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:46:42 [host.main] INFO: ============================================================
+2026-02-18 23:46:42 [host.main] INFO: ============================================================
+2026-02-18 23:46:42 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:42 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:46:42 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:46:42 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:46:42 [host.main] INFO: Command Center bereit.
+2026-02-18 23:46:42 [host.main] INFO: Command Center bereit.
+2026-02-18 23:46:42 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:46:45 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54841)
+2026-02-18 23:46:45 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54841)
+2026-02-18 23:47:02 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:47:02 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54841)
+2026-02-18 23:47:02 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54841)
+2026-02-18 23:47:02 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:47:02 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:47:02 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:47:02 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:47:02 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:47:02 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:47:02 [watchfiles.main] INFO: 3 changes detected
+2026-02-18 23:47:02 [host.main] INFO: ============================================================
+2026-02-18 23:47:02 [host.main] INFO: ============================================================
+2026-02-18 23:47:02 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:47:02 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:47:02 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:02 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:02 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:47:02 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:47:02 [host.main] INFO: ============================================================
+2026-02-18 23:47:02 [host.main] INFO: ============================================================
+2026-02-18 23:47:02 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:02 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:02 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:47:02 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:47:02 [host.main] INFO: Command Center bereit.
+2026-02-18 23:47:02 [host.main] INFO: Command Center bereit.
+2026-02-18 23:47:02 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:47:05 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54854)
+2026-02-18 23:47:05 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54854)
+2026-02-18 23:47:07 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:47:07 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54854)
+2026-02-18 23:47:07 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54854)
+2026-02-18 23:47:07 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:47:07 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:47:07 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:47:07 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:47:07 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:47:07 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:47:08 [watchfiles.main] INFO: 8 changes detected
+2026-02-18 23:47:08 [host.main] INFO: ============================================================
+2026-02-18 23:47:08 [host.main] INFO: ============================================================
+2026-02-18 23:47:08 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:47:08 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:47:08 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:08 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:08 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:47:08 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:47:08 [host.main] INFO: ============================================================
+2026-02-18 23:47:08 [host.main] INFO: ============================================================
+2026-02-18 23:47:08 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:08 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:08 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:47:08 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:47:08 [host.main] INFO: Command Center bereit.
+2026-02-18 23:47:08 [host.main] INFO: Command Center bereit.
+2026-02-18 23:47:08 [watchfiles.main] INFO: 2 changes detected
+2026-02-18 23:47:11 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54881)
+2026-02-18 23:47:11 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54881)
+2026-02-18 23:47:25 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:47:25 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54881)
+2026-02-18 23:47:25 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54881)
+2026-02-18 23:47:25 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:47:25 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:47:25 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:47:25 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:47:25 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:47:25 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:47:26 [watchfiles.main] INFO: 3 changes detected
+2026-02-18 23:47:26 [host.main] INFO: ============================================================
+2026-02-18 23:47:26 [host.main] INFO: ============================================================
+2026-02-18 23:47:26 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:47:26 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:47:26 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:26 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:26 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:47:26 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:47:26 [host.main] INFO: ============================================================
+2026-02-18 23:47:26 [host.main] INFO: ============================================================
+2026-02-18 23:47:26 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:26 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:26 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:47:26 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:47:26 [host.main] INFO: Command Center bereit.
+2026-02-18 23:47:26 [host.main] INFO: Command Center bereit.
+2026-02-18 23:47:26 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:47:29 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54886)
+2026-02-18 23:47:29 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54886)
+2026-02-18 23:47:50 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:47:50 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54886)
+2026-02-18 23:47:50 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54886)
+2026-02-18 23:47:50 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:47:50 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-18 23:47:50 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:47:50 [host.database] INFO: Datenbank geschlossen.
+2026-02-18 23:47:50 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:47:50 [host.main] INFO: Command Center gestoppt.
+2026-02-18 23:47:51 [watchfiles.main] INFO: 3 changes detected
+2026-02-18 23:47:51 [host.main] INFO: ============================================================
+2026-02-18 23:47:51 [host.main] INFO: ============================================================
+2026-02-18 23:47:51 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:47:51 [host.main] INFO:   Device Manager v1.0.0
+2026-02-18 23:47:51 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:51 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:51 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:47:51 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-18 23:47:51 [host.main] INFO: ============================================================
+2026-02-18 23:47:51 [host.main] INFO: ============================================================
+2026-02-18 23:47:51 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:51 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-18 23:47:51 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:47:51 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-18 23:47:51 [host.main] INFO: Command Center bereit.
+2026-02-18 23:47:51 [host.main] INFO: Command Center bereit.
+2026-02-18 23:47:51 [watchfiles.main] INFO: 5 changes detected
+2026-02-18 23:47:54 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54895)
+2026-02-18 23:47:54 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54895)
+2026-02-18 23:48:12 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:49:03 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:49:15 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:51:50 [host.db_ops] INFO: Profile log captured: profile=41 trigger=manual apis=12 spoofed=100.0% hooks=? leaks=0 kills=0
+2026-02-18 23:51:50 [host.db_ops] INFO: Profile log captured: profile=41 trigger=manual apis=12 spoofed=100.0% hooks=? leaks=0 kills=0
+2026-02-18 23:51:54 [host.db_ops] INFO: Profile log captured: profile=41 trigger=manual apis=12 spoofed=100.0% hooks=? leaks=0 kills=0
+2026-02-18 23:51:54 [host.db_ops] INFO: Profile log captured: profile=41 trigger=manual apis=12 spoofed=100.0% hooks=? leaks=0 kills=0
+2026-02-18 23:52:11 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=55078)
+2026-02-18 23:52:11 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=55078)
+2026-02-18 23:52:27 [host.api.control] INFO: Genesis-Flow gestartet: pleasebruv
+2026-02-18 23:52:27 [host.api.control] INFO: Genesis-Flow gestartet: pleasebruv
+2026-02-18 23:52:27 [host.flows.genesis] INFO: ============================================================
+2026-02-18 23:52:27 [host.flows.genesis] INFO: ============================================================
+2026-02-18 23:52:27 [host.flows.genesis] INFO:   GENESIS FLOW: pleasebruv
+2026-02-18 23:52:27 [host.flows.genesis] INFO:   GENESIS FLOW: pleasebruv
+2026-02-18 23:52:27 [host.flows.genesis] INFO: ============================================================
+2026-02-18 23:52:27 [host.flows.genesis] INFO: ============================================================
+2026-02-18 23:52:27 [host.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-18 23:52:27 [host.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-18 23:52:27 [host.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-18 23:52:27 [host.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-18 23:52:27 [host.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-18 23:52:27 [host.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-18 23:52:27 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'ehnicht' hat keinen TikTok-Account — Checkbox nicht gesetzt
+2026-02-18 23:52:27 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'ehnicht' hat keinen TikTok-Account — Checkbox nicht gesetzt
+2026-02-18 23:52:27 [host.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-18 23:52:27 [host.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-18 23:52:27 [host.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-18 23:52:27 [host.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-18 23:52:28 [host.shifter] INFO: [Clean] pm clear com.zhiliaoapp.musically: OK (firstInstallTime unverändert)
+2026-02-18 23:52:28 [host.shifter] INFO: [Clean] pm clear com.zhiliaoapp.musically: OK (firstInstallTime unverändert)
+2026-02-18 23:52:28 [host.shifter] INFO: [Clean] com.ss.android.ugc.trill nicht installiert — überspringe
+2026-02-18 23:52:28 [host.shifter] INFO: [Clean] com.ss.android.ugc.trill nicht installiert — überspringe
+2026-02-18 23:52:28 [host.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-18 23:52:28 [host.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-18 23:52:28 [host.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-18 23:52:28 [host.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-18 23:52:29 [host.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-18 23:52:29 [host.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-18 23:52:33 [host.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-18 23:52:33 [host.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-18 23:52:34 [host.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-18 23:52:34 [host.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-18 23:52:36 [host.shifter] INFO: AAID Reset: über Content-Provider (GMS-Dateien unberührt)
+2026-02-18 23:52:36 [host.shifter] INFO: AAID Reset: über Content-Provider (GMS-Dateien unberührt)
+2026-02-18 23:52:36 [host.shifter] WARNING: Deep Clean: 40/41 OK — FEHLGESCHLAGEN: compiler_reset_com.ss.android.ugc.trill
+2026-02-18 23:52:36 [host.shifter] WARNING: Deep Clean: 40/41 OK — FEHLGESCHLAGEN: compiler_reset_com.ss.android.ugc.trill
+2026-02-18 23:52:36 [host.flows.genesis] INFO: [3/11] Sterilize: OK (40/41 Operationen (GMS geschützt) | nicht-kritisch fehlgeschlagen: compiler_reset_com.ss.android.ugc.trill)
+2026-02-18 23:52:36 [host.flows.genesis] INFO: [3/11] Sterilize: OK (40/41 Operationen (GMS geschützt) | nicht-kritisch fehlgeschlagen: compiler_reset_com.ss.android.ugc.trill)
+2026-02-18 23:52:36 [host.shifter] INFO: Clearing system clipboard...
+2026-02-18 23:52:36 [host.shifter] INFO: Clearing system clipboard...
+2026-02-18 23:52:36 [host.shifter] INFO: Clipboard cleared
+2026-02-18 23:52:36 [host.shifter] INFO: Clipboard cleared
+2026-02-18 23:52:36 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-18 23:52:36 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-18 23:52:43 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-18 23:52:43 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-18 23:52:43 [host.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-18 23:52:43 [host.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-18 23:52:43 [host.identity] INFO: Identität generiert: name=pleasebruv serial=ELW2UQ8T6S1N imei1=355543…9595 carrier=O2-DE
+2026-02-18 23:52:43 [host.identity] INFO: Identität generiert: name=pleasebruv serial=ELW2UQ8T6S1N imei1=355543…9595 carrier=O2-DE
+2026-02-18 23:52:43 [host.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 3155...8427 (v5.0 — FINAL, kein Platzhalter)
+2026-02-18 23:52:43 [host.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 3155...8427 (v5.0 — FINAL, kein Platzhalter)
+2026-02-18 23:52:43 [host.flows.genesis] INFO: [4/11] Generate: OK (serial=ELW2UQ8T6S1N)
+2026-02-18 23:52:43 [host.flows.genesis] INFO: [4/11] Generate: OK (serial=ELW2UQ8T6S1N)
+2026-02-18 23:52:43 [host.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-18 23:52:43 [host.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-18 23:52:43 [host.db_ops] INFO: Auto-Profil erstellt: id=43, name=pleasebruv
+2026-02-18 23:52:43 [host.db_ops] INFO: Auto-Profil erstellt: id=43, name=pleasebruv
+2026-02-18 23:52:43 [host.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=43
+2026-02-18 23:52:43 [host.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=43
+2026-02-18 23:52:43 [host.flows.genesis] INFO: [5/11] Persist: OK (identity_id=49, profile_id=43)
+2026-02-18 23:52:43 [host.flows.genesis] INFO: [5/11] Persist: OK (identity_id=49, profile_id=43)
+2026-02-18 23:52:43 [host.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-18 23:52:43 [host.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-18 23:52:43 [host.injector] INFO: Injecting identity: serial=ELW2UQ8T6S1N imei1=355543…9595
+2026-02-18 23:52:43 [host.injector] INFO: Injecting identity: serial=ELW2UQ8T6S1N imei1=355543…9595
+2026-02-18 23:52:43 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/bridge_x2_jkp4r.bridge → /data/local/tmp/.bridge_staging
+2026-02-18 23:52:43 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/bridge_x2_jkp4r.bridge → /data/local/tmp/.bridge_staging
+2026-02-18 23:52:43 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-18 23:52:43 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-18 23:52:43 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-18 23:52:43 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-18 23:52:43 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #49 auf 'active' gesetzt
+2026-02-18 23:52:43 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #49 auf 'active' gesetzt
+2026-02-18 23:52:47 [host.injector] INFO: Bridge verteilt an 8/10 Apps
+2026-02-18 23:52:47 [host.injector] INFO: Bridge verteilt an 8/10 Apps
+2026-02-18 23:52:48 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → 381b51cf-4537-4d79-af31-2f9901f5aad1
+2026-02-18 23:52:48 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → 381b51cf-4537-4d79-af31-2f9901f5aad1
+2026-02-18 23:52:48 [host.injector] INFO: Injection komplett + verifiziert: ELW2UQ8T6S1N
+2026-02-18 23:52:48 [host.injector] INFO: Injection komplett + verifiziert: ELW2UQ8T6S1N
+2026-02-18 23:52:48 [host.flows.genesis] INFO: [6/11] PIF v5.0: autopif4-First Strategie (BASIC_INTEGRITY)...
+2026-02-18 23:52:48 [host.flows.genesis] INFO: [6/11] PIF v5.0: autopif4-First Strategie (BASIC_INTEGRITY)...
+2026-02-18 23:52:48 [host.injector] INFO: PIF v5.0: autopif4 Canary-Fingerprint gefunden — verwende diesen (NICHT unseren statischen Pool)
+2026-02-18 23:52:48 [host.injector] INFO: PIF v5.0: autopif4 Canary-Fingerprint gefunden — verwende diesen (NICHT unseren statischen Pool)
+2026-02-18 23:52:48 [host.injector] INFO: PIF autopif4: FP=google/oriole_beta/oriole:CANARY/ZP11.260123.011/1… | Patch=2026-02-05 | Estimated Expiry: 2026-03-26
+2026-02-18 23:52:48 [host.injector] INFO: PIF autopif4: FP=google/oriole_beta/oriole:CANARY/ZP11.260123.011/1… | Patch=2026-02-05 | Estimated Expiry: 2026-03-26
+2026-02-18 23:52:48 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/pif_14doivyy.prop → /data/local/tmp/.pif_staging.prop
+2026-02-18 23:52:48 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/pif_14doivyy.prop → /data/local/tmp/.pif_staging.prop
+2026-02-18 23:52:48 [host.injector] INFO: PIF v5.0 OK [autopif4-canary]: custom.pif.prop → /data/adb/modules/playintegrityfix/custom.pif.prop
+2026-02-18 23:52:48 [host.injector] INFO: PIF v5.0 OK [autopif4-canary]: custom.pif.prop → /data/adb/modules/playintegrityfix/custom.pif.prop
+2026-02-18 23:52:48 [host.flows.genesis] INFO: [6/11] PIF: custom.pif.prop erfolgreich gepusht
+2026-02-18 23:52:48 [host.flows.genesis] INFO: [6/11] PIF: custom.pif.prop erfolgreich gepusht
+2026-02-18 23:52:48 [host.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-18 23:52:48 [host.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-18 23:52:48 [host.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-18 23:52:48 [host.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-18 23:52:48 [host.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Kill-Switch entfernt | PIF=OK)
+2026-02-18 23:52:48 [host.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Kill-Switch entfernt | PIF=OK)
+2026-02-18 23:52:48 [host.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-18 23:52:48 [host.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-18 23:52:48 [host.adb] INFO: Reboot: mode=normal
+2026-02-18 23:52:48 [host.adb] INFO: Reboot: mode=normal
+2026-02-18 23:52:55 [host.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-18 23:52:55 [host.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-18 23:53:10 [host.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-18 23:53:10 [host.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-18 23:53:10 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-18 23:53:10 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-18 23:53:10 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-18 23:53:10 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-18 23:53:14 [host.adb] INFO: ADB Daemon gestartet
+2026-02-18 23:53:14 [host.adb] INFO: ADB Daemon gestartet
+2026-02-18 23:53:15 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-18 23:53:15 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-18 23:53:29 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-18 23:53:29 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-18 23:53:31 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-18 23:53:31 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-18 23:53:31 [host.flows.genesis] INFO: [7/11] Warte auf Boot (unbegrenzt, pollt alle 3s)...
+2026-02-18 23:53:31 [host.flows.genesis] INFO: [7/11] Warte auf Boot (unbegrenzt, pollt alle 3s)...
+2026-02-18 23:53:31 [host.adb] INFO: Warte auf Gerät (unbegrenzt, pollt alle 3s)...
+2026-02-18 23:53:31 [host.adb] INFO: Warte auf Gerät (unbegrenzt, pollt alle 3s)...
+2026-02-18 23:53:40 [host.adb] INFO: Gerät gebootet nach 9.0s
+2026-02-18 23:53:40 [host.adb] INFO: Gerät gebootet nach 9.0s
+2026-02-18 23:53:40 [host.flows.genesis] INFO: [7/11] Boot erkannt — warte 5s post-boot...
+2026-02-18 23:53:40 [host.flows.genesis] INFO: [7/11] Boot erkannt — warte 5s post-boot...
+2026-02-18 23:53:48 [host.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-18 23:53:48 [host.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7/11] Bridge [primär]: OK (serial=ELW2UQ8T6S1N)
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7/11] Bridge [primär]: OK (serial=ELW2UQ8T6S1N)
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7/11] Bridge [sdcard]: OK (serial=ELW2UQ8T6S1N)
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7/11] Bridge [sdcard]: OK (serial=ELW2UQ8T6S1N)
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7/11] Bridge [app]: OK (serial=ELW2UQ8T6S1N)
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7/11] Bridge [app]: OK (serial=ELW2UQ8T6S1N)
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7/11] Bridge-Verifikation: Primärpfad OK
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7/11] Bridge-Verifikation: Primärpfad OK
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7/11] Hard Reset: OK (Boot + Unlock in 60.0s)
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7/11] Hard Reset: OK (Boot + Unlock in 60.0s)
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7b/11] DroidGuard Sanitize: Stale Attestierungs-Tokens löschen...
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7b/11] DroidGuard Sanitize: Stale Attestierungs-Tokens löschen...
+2026-02-18 23:53:48 [host.shifter] INFO: [DroidGuard] Sanitized: 5/5 Einträge gelöscht (Neu-Attestierung erzwungen)
+2026-02-18 23:53:48 [host.shifter] INFO: [DroidGuard] Sanitized: 5/5 Einträge gelöscht (Neu-Attestierung erzwungen)
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7b/11] DroidGuard-Cache gelöscht — erzwinge GMS-Neustart...
+2026-02-18 23:53:48 [host.flows.genesis] INFO: [7b/11] DroidGuard-Cache gelöscht — erzwinge GMS-Neustart...
+2026-02-18 23:53:54 [host.flows.genesis] INFO: [7b/11] GMS neu gestartet — frische Attestierung eingeleitet
+2026-02-18 23:53:54 [host.flows.genesis] INFO: [7b/11] GMS neu gestartet — frische Attestierung eingeleitet
+2026-02-18 23:53:54 [host.flows.genesis] INFO: [7c/11] Bewohntes Haus: Prüfe Dummy-App-Präsenz...
+2026-02-18 23:53:54 [host.flows.genesis] INFO: [7c/11] Bewohntes Haus: Prüfe Dummy-App-Präsenz...
+2026-02-18 23:53:54 [host.flows.genesis] WARNING: [7c/11] BEWOHNTES HAUS: 10/12 Apps vorhanden (83%). Fehlend: Google Keep, Google Translate — Gerät könnte als 'frisch' erkannt werden!
+2026-02-18 23:53:54 [host.flows.genesis] WARNING: [7c/11] BEWOHNTES HAUS: 10/12 Apps vorhanden (83%). Fehlend: Google Keep, Google Translate — Gerät könnte als 'frisch' erkannt werden!
+2026-02-18 23:53:54 [host.flows.genesis] INFO: [7d/11] HookGuard Pre-Network Start...
+2026-02-18 23:53:54 [host.flows.genesis] INFO: [7d/11] HookGuard Pre-Network Start...
+2026-02-18 23:53:54 [hookguard] INFO: HookGuard started (expected bridge hash: e55e423c44be568ba576db9a7df257f4)
+2026-02-18 23:53:54 [hookguard] INFO: HookGuard started (expected bridge hash: e55e423c44be568ba576db9a7df257f4)
+2026-02-18 23:53:54 [host.flows.genesis] INFO: HookGuard automatisch gestartet
+2026-02-18 23:53:54 [host.flows.genesis] INFO: HookGuard automatisch gestartet
+2026-02-18 23:53:54 [host.flows.genesis] INFO: [8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS...
+2026-02-18 23:53:54 [host.flows.genesis] INFO: [8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS...
+2026-02-18 23:54:14 [host.flows.genesis] INFO: [8/11] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-18 23:54:14 [host.flows.genesis] INFO: [8/11] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-18 23:54:14 [host.flows.genesis] INFO: [8/11] Warte 15s auf neue Mobilfunk-Verbindung...
+2026-02-18 23:54:14 [host.flows.genesis] INFO: [8/11] Warte 15s auf neue Mobilfunk-Verbindung...
+2026-02-18 23:54:29 [host.network] INFO: HTTP-Tool erkannt: busybox wget (/data/adb/ksu/bin/busybox)
+2026-02-18 23:54:29 [host.network] INFO: HTTP-Tool erkannt: busybox wget (/data/adb/ksu/bin/busybox)
+2026-02-18 23:54:30 [host.network] INFO: Öffentliche IP: 176.6.0.239 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-18 23:54:30 [host.network] INFO: Öffentliche IP: 176.6.0.239 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [8/11] Network Init: Neue IP = 176.6.0.239 (via api.ipify.org)
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [8/11] Network Init: Neue IP = 176.6.0.239 (via api.ipify.org)
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [9/11] GMS Ready: Dynamisches Readiness-Polling (v6.0)...
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [9/11] GMS Ready: Dynamisches Readiness-Polling (v6.0)...
+2026-02-18 23:54:30 [host.shifter] INFO: [Readiness] Warte auf sys.boot_completed=1...
+2026-02-18 23:54:30 [host.shifter] INFO: [Readiness] Warte auf sys.boot_completed=1...
+2026-02-18 23:54:30 [host.shifter] INFO: [Readiness] Boot bestätigt nach 0s
+2026-02-18 23:54:30 [host.shifter] INFO: [Readiness] Boot bestätigt nach 0s
+2026-02-18 23:54:30 [host.shifter] INFO: [Readiness] Warte auf GmsCore Service...
+2026-02-18 23:54:30 [host.shifter] INFO: [Readiness] Warte auf GmsCore Service...
+2026-02-18 23:54:30 [host.shifter] INFO: [Readiness] GmsCore aktiv nach 0s
+2026-02-18 23:54:30 [host.shifter] INFO: [Readiness] GmsCore aktiv nach 0s
+2026-02-18 23:54:30 [host.shifter] INFO: [Readiness] System bereit — Boot: 0s | GMS: 0s (GMS Verbindung steht - Bereit zum Loslegen!)
+2026-02-18 23:54:30 [host.shifter] INFO: [Readiness] System bereit — Boot: 0s | GMS: 0s (GMS Verbindung steht - Bereit zum Loslegen!)
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [9/11] GSF-ID: Generierte ID beibehalten. Bridge-GSF: 3155...8427
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [9/11] GSF-ID: Generierte ID beibehalten. Bridge-GSF: 3155...8427
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [9/11] GMS Verbindung steht - Bereit zum Loslegen! (Boot: 0s | GMS: 0s)
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [9/11] GMS Verbindung steht - Bereit zum Loslegen! (Boot: 0s | GMS: 0s)
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [9/11] GMS Ready: GMS Verbindung steht (0s) | GSF-ID: generiert beibehalten
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [9/11] GMS Ready: GMS Verbindung steht (0s) | GSF-ID: generiert beibehalten
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...
+2026-02-18 23:54:30 [host.auditor] INFO: Audit starten: pleasebruv (serial=ELW2UQ8T6S1N)
+2026-02-18 23:54:30 [host.auditor] INFO: Audit starten: pleasebruv (serial=ELW2UQ8T6S1N)
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_serial: pass — serial=ELW2UQ8T6S1N, boot_serial=ELW2UQ8T6S1N — korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_serial: pass — serial=ELW2UQ8T6S1N, boot_serial=ELW2UQ8T6S1N — korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: a4:77:33:02:a4:b6
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: a4:77:33:02:a4:b6
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-18 23:54:30 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-18 23:54:30 [host.auditor] INFO: Audit [pleasebruv]: 100% (14/14 passed)
+2026-02-18 23:54:30 [host.auditor] INFO: Audit [pleasebruv]: 100% (14/14 passed)
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Integrität bestätigt (100%)
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Integrität bestätigt (100%)
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline sichern...
+2026-02-18 23:54:30 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline sichern...
+2026-02-18 23:54:30 [host.shifter] INFO: ============================================================
+2026-02-18 23:54:30 [host.shifter] INFO: ============================================================
+2026-02-18 23:54:30 [host.shifter] INFO:   GOLDEN BASELINE CAPTURE: pleasebruv
+2026-02-18 23:54:30 [host.shifter] INFO:   GOLDEN BASELINE CAPTURE: pleasebruv
+2026-02-18 23:54:30 [host.shifter] INFO:   GSF-ID: 3155...8427
+2026-02-18 23:54:30 [host.shifter] INFO:   GSF-ID: 3155...8427
+2026-02-18 23:54:30 [host.shifter] INFO: ============================================================
+2026-02-18 23:54:30 [host.shifter] INFO: ============================================================
+2026-02-18 23:54:30 [host.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-18 23:54:30 [host.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-18 23:54:31 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:54:33 [host.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-18 23:54:33 [host.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-18 23:54:33 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:54:33 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/pleasebruv/gms/gms_20260218_235433.tar.tmp
+2026-02-18 23:54:33 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/pleasebruv/gms/gms_20260218_235433.tar.tmp
+2026-02-18 23:54:33 [watchfiles.main] INFO: 1 change detected
+2026-02-18 23:54:40 [host.adb] INFO: Exec-Out fertig: 76907520 Bytes geschrieben
+2026-02-18 23:54:40 [host.adb] INFO: Exec-Out fertig: 76907520 Bytes geschrieben
+2026-02-18 23:54:40 [host.shifter] INFO: GMS Backup (3 Pakete): OK (73.3 MB, Versuch 1/3)
+2026-02-18 23:54:40 [host.shifter] INFO: GMS Backup (3 Pakete): OK (73.3 MB, Versuch 1/3)
+2026-02-18 23:54:40 [host.shifter] INFO: GMS tar: gms_20260218_235433.tar (73.3 MB) — 3 Pakete
+2026-02-18 23:54:40 [host.shifter] INFO: GMS tar: gms_20260218_235433.tar (73.3 MB) — 3 Pakete
+2026-02-18 23:54:40 [host.shifter] INFO: Golden Baseline GMS: OK (gms_20260218_235433.tar)
+2026-02-18 23:54:40 [host.shifter] INFO: Golden Baseline GMS: OK (gms_20260218_235433.tar)
+2026-02-18 23:54:40 [watchfiles.main] INFO: 4 changes detected
+2026-02-18 23:54:40 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/pleasebruv/accounts/accounts_20260218_235440.tar.tmp
+2026-02-18 23:54:40 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/pleasebruv/accounts/accounts_20260218_235440.tar.tmp
+2026-02-18 23:54:40 [host.adb] INFO: Exec-Out fertig: 185856 Bytes geschrieben
+2026-02-18 23:54:40 [host.adb] INFO: Exec-Out fertig: 185856 Bytes geschrieben
+2026-02-18 23:54:40 [host.shifter] INFO: Account-DBs (1 Dateien): OK (0.2 MB, Versuch 1/3)
+2026-02-18 23:54:40 [host.shifter] INFO: Account-DBs (1 Dateien): OK (0.2 MB, Versuch 1/3)
+2026-02-18 23:54:40 [host.shifter] INFO: Account-DBs tar: accounts_20260218_235440.tar (185856 Bytes, 1 Dateien)
+2026-02-18 23:54:40 [host.shifter] INFO: Account-DBs tar: accounts_20260218_235440.tar (185856 Bytes, 1 Dateien)
+2026-02-18 23:54:40 [host.shifter] INFO: Golden Baseline Accounts: OK (accounts_20260218_235440.tar)
+2026-02-18 23:54:40 [host.shifter] INFO: Golden Baseline Accounts: OK (accounts_20260218_235440.tar)
+2026-02-18 23:54:40 [host.shifter] INFO: Golden Baseline: 2/2 Komponenten gesichert
+2026-02-18 23:54:40 [host.shifter] INFO: Golden Baseline: 2/2 Komponenten gesichert
+2026-02-18 23:54:40 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline komplett
+2026-02-18 23:54:40 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline komplett
+2026-02-18 23:54:40 [host.flows.genesis] INFO: [11/11] Audit + Account-Check + TikTok ID-Validation (v6.1)...
+2026-02-18 23:54:40 [host.flows.genesis] INFO: [11/11] Audit + Account-Check + TikTok ID-Validation (v6.1)...
+2026-02-18 23:54:40 [host.auditor] INFO: Audit starten: pleasebruv (serial=ELW2UQ8T6S1N)
+2026-02-18 23:54:40 [host.auditor] INFO: Audit starten: pleasebruv (serial=ELW2UQ8T6S1N)
+2026-02-18 23:54:40 [watchfiles.main] INFO: 3 changes detected
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_serial: pass — serial=ELW2UQ8T6S1N, boot_serial=ELW2UQ8T6S1N — korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_serial: pass — serial=ELW2UQ8T6S1N, boot_serial=ELW2UQ8T6S1N — korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: a4:77:33:02:a4:b6
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: a4:77:33:02:a4:b6
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-18 23:54:41 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-18 23:54:41 [host.auditor] INFO: Audit [pleasebruv]: 100% (14/14 passed)
+2026-02-18 23:54:41 [host.auditor] INFO: Audit [pleasebruv]: 100% (14/14 passed)
+2026-02-18 23:54:41 [host.shifter] INFO: [Account-Check] Google-Account gefunden: arvinvaha@gmail.com
+2026-02-18 23:54:41 [host.shifter] INFO: [Account-Check] Google-Account gefunden: arvinvaha@gmail.com
+2026-02-18 23:54:41 [host.flows.genesis] INFO: [11/11] Google-Account: arvinvaha@gmail.com
+2026-02-18 23:54:41 [host.flows.genesis] INFO: [11/11] Google-Account: arvinvaha@gmail.com
+2026-02-18 23:54:41 [host.flows.genesis] INFO: [11/11] TikTok Silent Launch: ID-Generierung starten...
+2026-02-18 23:54:41 [host.flows.genesis] INFO: [11/11] TikTok Silent Launch: ID-Generierung starten...
+2026-02-18 23:54:41 [host.shifter] INFO: [SilentLaunch] Starte com.zhiliaoapp.musically für ID-Generierung (15s)...
+2026-02-18 23:54:41 [host.shifter] INFO: [SilentLaunch] Starte com.zhiliaoapp.musically für ID-Generierung (15s)...
+2026-02-18 23:54:43 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:54:43 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:54:55 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:54:55 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:54:58 [host.flows.genesis] WARNING: [11/11] install_id nicht extrahierbar (TikTok nicht installiert?)
+2026-02-18 23:54:58 [host.flows.genesis] WARNING: [11/11] install_id nicht extrahierbar (TikTok nicht installiert?)
+2026-02-18 23:54:58 [host.flows.genesis] INFO: [11/11] Audit: PASS (100%) | Google-Account: arvinvaha@gmail.com
+2026-02-18 23:54:58 [host.flows.genesis] INFO: [11/11] Audit: PASS (100%) | Google-Account: arvinvaha@gmail.com
+2026-02-18 23:54:58 [host.flows.genesis] INFO: ============================================================
+2026-02-18 23:54:58 [host.flows.genesis] INFO: ============================================================
+2026-02-18 23:54:58 [host.flows.genesis] INFO:   GENESIS ERFOLG: pleasebruv (151643 ms)
+2026-02-18 23:54:58 [host.flows.genesis] INFO:   GENESIS ERFOLG: pleasebruv (151643 ms)
+2026-02-18 23:54:58 [host.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
+2026-02-18 23:54:58 [host.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
+2026-02-18 23:54:58 [host.flows.genesis] INFO: ============================================================
+2026-02-18 23:54:58 [host.flows.genesis] INFO: ============================================================
+2026-02-18 23:54:59 [host.db_ops] INFO: Profile log captured: profile=43 trigger=genesis_end apis=11 spoofed=100.0% hooks=28-28/28 leaks=0 kills=0
+2026-02-18 23:54:59 [host.db_ops] INFO: Profile log captured: profile=43 trigger=genesis_end apis=11 spoofed=100.0% hooks=28-28/28 leaks=0 kills=0
+2026-02-18 23:54:59 [host.flows.genesis] INFO: Profile snapshot captured: log_id=3 trigger=genesis_end
+2026-02-18 23:54:59 [host.flows.genesis] INFO: Profile snapshot captured: log_id=3 trigger=genesis_end
+2026-02-18 23:55:54 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54895)
+2026-02-18 23:55:54 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54895)
+2026-02-18 23:56:39 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:56:39 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:56:40 [hookguard] CRITICAL: KILL-SWITCH ACTIVATED: HEARTBEAT_TIMEOUT: 106062ms since last beat
+2026-02-18 23:56:40 [hookguard] CRITICAL: KILL-SWITCH ACTIVATED: HEARTBEAT_TIMEOUT: 106062ms since last beat
+2026-02-18 23:56:40 [hookguard] INFO: TikTok autostart components disabled
+2026-02-18 23:56:40 [hookguard] INFO: TikTok autostart components disabled
+2026-02-18 23:56:44 [hookguard] CRITICAL: KILL-SWITCH ACTIVATED: HEARTBEAT_TIMEOUT: 110297ms since last beat
+2026-02-18 23:56:44 [hookguard] CRITICAL: KILL-SWITCH ACTIVATED: HEARTBEAT_TIMEOUT: 110297ms since last beat
+2026-02-18 23:56:44 [hookguard] INFO: TikTok autostart components disabled
+2026-02-18 23:56:44 [hookguard] INFO: TikTok autostart components disabled
+2026-02-18 23:57:11 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:57:11 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:57:11 [hookguard] CRITICAL: KILL-SWITCH ACTIVATED: HEARTBEAT_TIMEOUT: 137566ms since last beat
+2026-02-18 23:57:11 [hookguard] CRITICAL: KILL-SWITCH ACTIVATED: HEARTBEAT_TIMEOUT: 137566ms since last beat
+2026-02-18 23:57:12 [hookguard] INFO: TikTok autostart components disabled
+2026-02-18 23:57:12 [hookguard] INFO: TikTok autostart components disabled
+2026-02-18 23:57:16 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=56702)
+2026-02-18 23:57:16 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=56702)
+2026-02-18 23:57:25 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:57:25 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:57:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:57:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:57:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:57:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:58:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:58:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:58:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:58:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:58:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:58:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:58:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:58:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:58:42 [hookguard] INFO: HookGuard stopped
+2026-02-18 23:58:42 [hookguard] INFO: HookGuard stopped
+2026-02-18 23:58:43 [hookguard] INFO: HookGuard started (expected bridge hash: e55e423c44be568ba576db9a7df257f4)
+2026-02-18 23:58:43 [hookguard] INFO: HookGuard started (expected bridge hash: e55e423c44be568ba576db9a7df257f4)
+2026-02-18 23:58:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:58:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:59:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:59:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:59:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:59:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:59:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:59:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:59:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:59:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:59:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-18 23:59:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:00:01 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:00:01 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:00:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:00:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:00:26 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:00:26 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:00:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:00:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:00:50 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:00:50 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:01:03 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:01:03 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:01:14 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:01:14 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:01:26 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:01:26 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:01:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:01:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:01:51 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:01:51 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:02:03 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:02:03 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:02:14 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:02:14 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 00:02:56 [host.api.control] INFO: Genesis-Flow gestartet: Plsbrrr
+2026-02-19 00:02:56 [host.api.control] INFO: Genesis-Flow gestartet: Plsbrrr
+2026-02-19 00:02:56 [host.flows.genesis] INFO: ============================================================
+2026-02-19 00:02:56 [host.flows.genesis] INFO: ============================================================
+2026-02-19 00:02:56 [host.flows.genesis] INFO:   GENESIS FLOW: Plsbrrr
+2026-02-19 00:02:56 [host.flows.genesis] INFO:   GENESIS FLOW: Plsbrrr
+2026-02-19 00:02:56 [host.flows.genesis] INFO: ============================================================
+2026-02-19 00:02:56 [host.flows.genesis] INFO: ============================================================
+2026-02-19 00:02:57 [host.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-19 00:02:57 [host.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-19 00:02:57 [host.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-19 00:02:57 [host.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-19 00:02:57 [host.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-19 00:02:57 [host.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-19 00:02:57 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'pleasebruv' wird gesichert (Checkbox aktiviert (kein TikTok-Account))...
+2026-02-19 00:02:57 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'pleasebruv' wird gesichert (Checkbox aktiviert (kein TikTok-Account))...
+2026-02-19 00:02:57 [host.shifter] INFO: ==================================================
+2026-02-19 00:02:57 [host.shifter] INFO: ==================================================
+2026-02-19 00:02:57 [host.shifter] INFO:   DUAL-PATH BACKUP: pleasebruv (TikTok)
+2026-02-19 00:02:57 [host.shifter] INFO:   DUAL-PATH BACKUP: pleasebruv (TikTok)
+2026-02-19 00:02:57 [host.shifter] INFO: ==================================================
+2026-02-19 00:02:57 [host.shifter] INFO: ==================================================
+2026-02-19 00:02:57 [watchfiles.main] INFO: 1 change detected
+2026-02-19 00:02:57 [host.adb] INFO: Exec-Out Stream: su -c 'tar -C /data/data/com.zhiliaoapp.musically -cf - shared_prefs databases files 2>/dev/null' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/pleasebruv/tiktok/tiktok_app_20260219_000257.tar.tmp
+2026-02-19 00:02:57 [host.adb] INFO: Exec-Out Stream: su -c 'tar -C /data/data/com.zhiliaoapp.musically -cf - shared_prefs databases files 2>/dev/null' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/pleasebruv/tiktok/tiktok_app_20260219_000257.tar.tmp
+2026-02-19 00:02:58 [watchfiles.main] INFO: 1 change detected
+2026-02-19 00:03:13 [host.adb] INFO: Exec-Out fertig: 178366976 Bytes geschrieben
+2026-02-19 00:03:13 [host.adb] INFO: Exec-Out fertig: 178366976 Bytes geschrieben
+2026-02-19 00:03:13 [host.shifter] INFO: Pfad A (App-Daten, Whitelist: shared_prefs, databases, files): OK (170.1 MB, Versuch 1/3)
+2026-02-19 00:03:13 [host.shifter] INFO: Pfad A (App-Daten, Whitelist: shared_prefs, databases, files): OK (170.1 MB, Versuch 1/3)
+2026-02-19 00:03:13 [watchfiles.main] INFO: 3 changes detected
+2026-02-19 00:03:14 [watchfiles.main] INFO: 1 change detected
+2026-02-19 00:03:14 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C /storage/emulated/0/Android/data/com.zhiliaoapp.musically . 2>/dev/null' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/pleasebruv/sandbox/tiktok_sandbox_20260219_000257.tar.tmp
+2026-02-19 00:03:14 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C /storage/emulated/0/Android/data/com.zhiliaoapp.musically . 2>/dev/null' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/pleasebruv/sandbox/tiktok_sandbox_20260219_000257.tar.tmp
+2026-02-19 00:03:14 [host.adb] INFO: Exec-Out fertig: 595456 Bytes geschrieben
+2026-02-19 00:03:14 [host.adb] INFO: Exec-Out fertig: 595456 Bytes geschrieben
+2026-02-19 00:03:14 [host.shifter] INFO: Pfad B (Sandbox): OK (0.6 MB, Versuch 1/3)
+2026-02-19 00:03:14 [host.shifter] INFO: Pfad B (Sandbox): OK (0.6 MB, Versuch 1/3)
+2026-02-19 00:03:14 [host.shifter] INFO: Dual-Path Backup: 2/2 Komponenten gesichert
+2026-02-19 00:03:14 [host.shifter] INFO: Dual-Path Backup: 2/2 Komponenten gesichert
+2026-02-19 00:03:14 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'pleasebruv': 2/2 Komponenten (Checkbox aktiviert (kein TikTok-Account))
+2026-02-19 00:03:14 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'pleasebruv': 2/2 Komponenten (Checkbox aktiviert (kein TikTok-Account))
+2026-02-19 00:03:14 [host.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-19 00:03:14 [host.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-19 00:03:14 [host.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-19 00:03:14 [host.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-19 00:03:14 [watchfiles.main] INFO: 3 changes detected
+2026-02-19 00:03:15 [host.shifter] INFO: [Clean] pm clear com.zhiliaoapp.musically: OK (firstInstallTime unverändert)
+2026-02-19 00:03:15 [host.shifter] INFO: [Clean] pm clear com.zhiliaoapp.musically: OK (firstInstallTime unverändert)
+2026-02-19 00:03:15 [host.shifter] INFO: [Clean] com.ss.android.ugc.trill nicht installiert — überspringe
+2026-02-19 00:03:15 [host.shifter] INFO: [Clean] com.ss.android.ugc.trill nicht installiert — überspringe
+2026-02-19 00:03:15 [host.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-19 00:03:15 [host.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-19 00:03:15 [host.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-19 00:03:15 [host.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-19 00:03:16 [host.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-19 00:03:16 [host.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-19 00:03:22 [host.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-19 00:03:22 [host.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-19 00:03:22 [host.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-19 00:03:22 [host.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-19 00:03:24 [host.shifter] INFO: AAID Reset: über Content-Provider (GMS-Dateien unberührt)
+2026-02-19 00:03:24 [host.shifter] INFO: AAID Reset: über Content-Provider (GMS-Dateien unberührt)
+2026-02-19 00:03:24 [host.shifter] WARNING: Deep Clean: 40/41 OK — FEHLGESCHLAGEN: compiler_reset_com.ss.android.ugc.trill
+2026-02-19 00:03:24 [host.shifter] WARNING: Deep Clean: 40/41 OK — FEHLGESCHLAGEN: compiler_reset_com.ss.android.ugc.trill
+2026-02-19 00:03:24 [host.flows.genesis] INFO: [3/11] Sterilize: OK (40/41 Operationen (GMS geschützt) | nicht-kritisch fehlgeschlagen: compiler_reset_com.ss.android.ugc.trill)
+2026-02-19 00:03:24 [host.flows.genesis] INFO: [3/11] Sterilize: OK (40/41 Operationen (GMS geschützt) | nicht-kritisch fehlgeschlagen: compiler_reset_com.ss.android.ugc.trill)
+2026-02-19 00:03:24 [host.shifter] INFO: Clearing system clipboard...
+2026-02-19 00:03:24 [host.shifter] INFO: Clearing system clipboard...
+2026-02-19 00:03:25 [host.shifter] INFO: Clipboard cleared
+2026-02-19 00:03:25 [host.shifter] INFO: Clipboard cleared
+2026-02-19 00:03:25 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-19 00:03:25 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-19 00:03:31 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-19 00:03:31 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-19 00:03:31 [host.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-19 00:03:31 [host.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-19 00:03:31 [host.identity] INFO: Identität generiert: name=Plsbrrr serial=KQVX3B71P7CJ imei1=355543…2954 carrier=O2-DE
+2026-02-19 00:03:31 [host.identity] INFO: Identität generiert: name=Plsbrrr serial=KQVX3B71P7CJ imei1=355543…2954 carrier=O2-DE
+2026-02-19 00:03:31 [host.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 8801...7915 (v5.0 — FINAL, kein Platzhalter)
+2026-02-19 00:03:31 [host.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 8801...7915 (v5.0 — FINAL, kein Platzhalter)
+2026-02-19 00:03:31 [host.flows.genesis] INFO: [4/11] Generate: OK (serial=KQVX3B71P7CJ)
+2026-02-19 00:03:31 [host.flows.genesis] INFO: [4/11] Generate: OK (serial=KQVX3B71P7CJ)
+2026-02-19 00:03:31 [host.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-19 00:03:31 [host.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-19 00:03:31 [host.db_ops] INFO: Auto-Profil erstellt: id=44, name=Plsbrrr
+2026-02-19 00:03:31 [host.db_ops] INFO: Auto-Profil erstellt: id=44, name=Plsbrrr
+2026-02-19 00:03:31 [host.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=44
+2026-02-19 00:03:31 [host.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=44
+2026-02-19 00:03:31 [host.flows.genesis] INFO: [5/11] Persist: OK (identity_id=50, profile_id=44)
+2026-02-19 00:03:31 [host.flows.genesis] INFO: [5/11] Persist: OK (identity_id=50, profile_id=44)
+2026-02-19 00:03:31 [host.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-19 00:03:31 [host.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-19 00:03:31 [host.injector] INFO: Injecting identity: serial=KQVX3B71P7CJ imei1=355543…2954
+2026-02-19 00:03:31 [host.injector] INFO: Injecting identity: serial=KQVX3B71P7CJ imei1=355543…2954
+2026-02-19 00:03:31 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/bridge_08h_313c.bridge → /data/local/tmp/.bridge_staging
+2026-02-19 00:03:31 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/bridge_08h_313c.bridge → /data/local/tmp/.bridge_staging
+2026-02-19 00:03:31 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-19 00:03:31 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-19 00:03:32 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-19 00:03:32 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-19 00:03:33 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #50 auf 'active' gesetzt
+2026-02-19 00:03:33 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #50 auf 'active' gesetzt
+2026-02-19 00:03:35 [host.injector] INFO: Bridge verteilt an 8/10 Apps
+2026-02-19 00:03:35 [host.injector] INFO: Bridge verteilt an 8/10 Apps
+2026-02-19 00:03:36 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → 48a37eeb-f63c-4365-802c-eda7a6a1fbe2
+2026-02-19 00:03:36 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → 48a37eeb-f63c-4365-802c-eda7a6a1fbe2
+2026-02-19 00:03:36 [host.injector] INFO: Injection komplett + verifiziert: KQVX3B71P7CJ
+2026-02-19 00:03:36 [host.injector] INFO: Injection komplett + verifiziert: KQVX3B71P7CJ
+2026-02-19 00:03:36 [host.flows.genesis] INFO: [6/11] PIF v5.0: autopif4-First Strategie (BASIC_INTEGRITY)...
+2026-02-19 00:03:36 [host.flows.genesis] INFO: [6/11] PIF v5.0: autopif4-First Strategie (BASIC_INTEGRITY)...
+2026-02-19 00:03:36 [host.injector] INFO: PIF v5.0: autopif4 Canary-Fingerprint gefunden — verwende diesen (NICHT unseren statischen Pool)
+2026-02-19 00:03:36 [host.injector] INFO: PIF v5.0: autopif4 Canary-Fingerprint gefunden — verwende diesen (NICHT unseren statischen Pool)
+2026-02-19 00:03:36 [host.injector] INFO: PIF autopif4: FP=google/oriole_beta/oriole:CANARY/ZP11.260123.011/1… | Patch=2026-02-05 | Estimated Expiry: 2026-03-26
+2026-02-19 00:03:36 [host.injector] INFO: PIF autopif4: FP=google/oriole_beta/oriole:CANARY/ZP11.260123.011/1… | Patch=2026-02-05 | Estimated Expiry: 2026-03-26
+2026-02-19 00:03:36 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/pif_e6hi04nv.prop → /data/local/tmp/.pif_staging.prop
+2026-02-19 00:03:36 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/pif_e6hi04nv.prop → /data/local/tmp/.pif_staging.prop
+2026-02-19 00:03:36 [host.injector] INFO: PIF v5.0 OK [autopif4-canary]: custom.pif.prop → /data/adb/modules/playintegrityfix/custom.pif.prop
+2026-02-19 00:03:36 [host.injector] INFO: PIF v5.0 OK [autopif4-canary]: custom.pif.prop → /data/adb/modules/playintegrityfix/custom.pif.prop
+2026-02-19 00:03:36 [host.flows.genesis] INFO: [6/11] PIF: custom.pif.prop erfolgreich gepusht
+2026-02-19 00:03:36 [host.flows.genesis] INFO: [6/11] PIF: custom.pif.prop erfolgreich gepusht
+2026-02-19 00:03:36 [host.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-19 00:03:36 [host.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-19 00:03:37 [host.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-19 00:03:37 [host.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-19 00:03:37 [host.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Kill-Switch entfernt | PIF=OK)
+2026-02-19 00:03:37 [host.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Kill-Switch entfernt | PIF=OK)
+2026-02-19 00:03:37 [host.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-19 00:03:37 [host.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-19 00:03:37 [host.adb] INFO: Reboot: mode=normal
+2026-02-19 00:03:37 [host.adb] INFO: Reboot: mode=normal
+2026-02-19 00:03:43 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-19 00:03:43 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-19 00:03:43 [host.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-19 00:03:43 [host.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-19 00:03:43 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-19 00:03:43 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-19 00:03:43 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 00:03:43 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 00:03:43 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 00:03:43 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 00:03:43 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 00:03:43 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 00:03:43 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 00:03:43 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 00:03:45 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 00:03:45 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 00:03:46 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 00:03:46 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 00:03:47 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 00:03:47 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 00:03:48 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 00:03:48 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 00:03:57 [watchfiles.main] INFO: 2 changes detected
+2026-02-19 00:03:58 [host.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-19 00:03:58 [host.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-19 00:03:58 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 00:03:58 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 00:03:58 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 00:03:58 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 00:03:58 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 00:03:58 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 00:03:58 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 00:03:58 [host.adb] INFO: ADB wait-for-device: Gerät gefunden

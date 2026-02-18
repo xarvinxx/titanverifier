@@ -54,6 +54,7 @@ from host.config import GMS_BACKUP_PACKAGES, LOCAL_TZ, TIKTOK_PACKAGES, TIMING
 from host.database import db
 from host.engine.auditor import DeviceAuditor
 from host.engine.db_ops import (
+    capture_profile_log,
     check_ip_collision,
     create_flow_history,
     find_profile_by_identity,
@@ -72,6 +73,7 @@ from host.flows.genesis import (
     _airplane_off,
     _airplane_on_safe,
     _auto_start_hookguard,
+    _capture_profile_snapshot,
 )
 from host.models.identity import IdentityRead, IdentityStatus
 
@@ -300,6 +302,16 @@ class SwitchFlow:
                 logger.warning("[2/10] Auto-Backup fehlgeschlagen (nicht kritisch): %s", e)
 
             step.duration_ms = _now_ms() - step_start
+
+            # switch_out: Snapshot des bisherigen Profils (vor dem Wechsel)
+            if active_profile and active_profile["id"] != profile_id:
+                try:
+                    await _capture_profile_snapshot(
+                        self._adb, active_profile["id"],
+                        active_profile.get("identity_id"), "switch_out",
+                    )
+                except Exception:
+                    pass
 
             # =================================================================
             # Schritt 3: SAFETY KILL (GMS + TikTok + Vending)
@@ -893,6 +905,12 @@ class SwitchFlow:
 
             if result.success:
                 await _auto_start_hookguard()
+
+                # switch_in: Snapshot des neuen Profils (nach dem Wechsel)
+                if profile_id:
+                    await _capture_profile_snapshot(
+                        self._adb, profile_id, identity_id, "switch_in",
+                    )
 
         return result
 

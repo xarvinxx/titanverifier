@@ -919,3 +919,100 @@ async def check_install_id_collision(
         "existing_profile_name": None,
         "message": "install_id ist unique",
     }
+
+
+# =============================================================================
+# Profile Logs — Live Monitor + HookGuard Snapshots
+# =============================================================================
+
+async def capture_profile_log(
+    profile_id: int,
+    identity_id: Optional[int],
+    trigger: str,
+    live_summary: Optional[dict] = None,
+    hookguard_state: Optional[dict] = None,
+    kill_events: Optional[list] = None,
+) -> int:
+    """
+    Speichert einen Snapshot der Live-Monitor- und HookGuard-Daten
+    für ein bestimmtes Profil.
+
+    Args:
+        profile_id:     Profil-ID
+        identity_id:    Identity-ID
+        trigger:        Auslöser ('genesis_end', 'switch_in', 'switch_out', 'manual', 'periodic')
+        live_summary:   Parsed .titan_access_summary.json (Dict mit 'apis', 'hooks', etc.)
+        hookguard_state: HookState als Dict (dataclasses.asdict)
+        kill_events:    Liste von Kill-Switch Events
+
+    Returns:
+        ID des erstellten Log-Eintrags
+    """
+    live_api_count = 0
+    live_spoofed_pct = None
+    if live_summary:
+        apis = live_summary.get("apis", {})
+        live_api_count = len(apis)
+        if live_api_count > 0:
+            spoofed = sum(1 for a in apis.values() if a.get("spoofed"))
+            live_spoofed_pct = round(spoofed / live_api_count * 100, 1)
+
+    hook_count = None
+    bridge_intact = None
+    heartbeat_ok = None
+    leaks = 0
+    if hookguard_state:
+        hook_count = f"{hookguard_state.get('min_hooks', 0)}-{hookguard_state.get('applied_hooks', 0)}/{hookguard_state.get('expected_hooks', 28)}"
+        bridge_intact = 1 if hookguard_state.get("bridge_intact") else 0
+        heartbeat_ok = 1 if hookguard_state.get("last_heartbeat_ms", 0) > 0 else 0
+        leaks = hookguard_state.get("real_count", 0)
+
+    kill_count = len(kill_events) if kill_events else 0
+
+    now = _now()
+    async with db.connection() as conn:
+        cursor = await conn.execute(
+            """INSERT INTO profile_logs (
+                profile_id, identity_id, trigger,
+                live_summary_json, live_api_count, live_spoofed_pct,
+                hookguard_json, hook_count, bridge_intact, heartbeat_ok, leaks_detected,
+                kill_events_json, kill_event_count,
+                captured_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                profile_id, identity_id, trigger,
+                json.dumps(live_summary) if live_summary else None,
+                live_api_count, live_spoofed_pct,
+                json.dumps(hookguard_state) if hookguard_state else None,
+                hook_count, bridge_intact, heartbeat_ok, leaks,
+                json.dumps(kill_events) if kill_events else None,
+                kill_count,
+                now,
+            ),
+        )
+        await conn.commit()
+        log_id = cursor.lastrowid
+        logger.info(
+            "Profile log captured: profile=%d trigger=%s apis=%d spoofed=%.1f%% hooks=%s leaks=%d kills=%d",
+            profile_id, trigger, live_api_count,
+            live_spoofed_pct or 0, hook_count or "?", leaks, kill_count,
+        )
+        return log_id
+
+
+async def get_profile_logs(profile_id: int, limit: int = 20) -> list[dict]:
+    """Gibt alle Log-Snapshots für ein Profil zurück (neueste zuerst)."""
+    async with db.connection() as conn:
+        cursor = await conn.execute(
+            """SELECT id, profile_id, identity_id, trigger,
+                      live_summary_json, live_api_count, live_spoofed_pct,
+                      hookguard_json, hook_count, bridge_intact, heartbeat_ok, leaks_detected,
+                      kill_events_json, kill_event_count,
+                      captured_at
+               FROM profile_logs
+               WHERE profile_id = ?
+               ORDER BY captured_at DESC
+               LIMIT ?""",
+            (profile_id, limit),
+        )
+        return [dict(r) for r in await cursor.fetchall()]

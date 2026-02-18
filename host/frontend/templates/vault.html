@@ -528,19 +528,19 @@
 <!-- MODAL: Profile Detail -->
 <!-- =============================================================== -->
 <div id="detail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
-    <div class="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800 sticky top-0 bg-gray-900 z-10">
+    <div class="bg-gray-950 border border-gray-700/60 rounded-2xl shadow-2xl w-full max-w-4xl mx-4 max-h-[92vh] flex flex-col">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800/60 bg-gray-950 rounded-t-2xl shrink-0">
             <div>
-                <h3 class="text-sm font-semibold text-white" id="pd-title">Detail</h3>
-                <p class="text-[10px] text-gray-500" id="pd-subtitle"></p>
+                <h3 class="text-base font-bold text-white tracking-tight" id="pd-title">Detail</h3>
+                <p class="text-xs text-gray-500 mt-0.5" id="pd-subtitle"></p>
             </div>
-            <button onclick="closeDetailModal()" class="text-gray-500 hover:text-white transition-colors p-1">
+            <button onclick="closeDetailModal()" class="text-gray-500 hover:text-white transition-colors p-1.5 hover:bg-gray-800 rounded-lg">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
         </div>
-        <div id="pd-body" class="p-6 space-y-5">
+        <div id="pd-body" class="p-6 space-y-4 overflow-y-auto flex-1">
             <div class="text-center py-8 text-gray-600 text-sm">Lade...</div>
         </div>
     </div>
@@ -859,173 +859,389 @@
             const ips = data.ip_history || [];
             const flows = data.flow_history || [];
             const audits = data.audit_history || [];
+            const plogs = data.profile_logs || [];
 
             document.getElementById('pd-title').textContent = p.name;
             document.getElementById('pd-subtitle').textContent = `Profil #${p.id} — Identity #${p.identity_id} — ${(p.status || '').toUpperCase()}`;
 
             body.innerHTML = `
-                <!-- Spoofed Hardware Identity (vollständig) -->
-                <div class="bg-gray-800/40 rounded-lg p-4 border border-gray-800">
-                    <h4 class="text-xs font-semibold text-cyan-400 uppercase tracking-wider mb-3">
-                        Spoofed Hardware Identity
-                        <span class="text-gray-600 font-normal normal-case ml-1">(Bridge-Datei)</span>
-                    </h4>
-
-                    <!-- Säule 1: Property Fingerprinting -->
-                    <p class="text-[9px] text-gray-600 uppercase tracking-wider mt-2 mb-1">Säule 1 — Serial / Build</p>
-                    <div class="grid grid-cols-2 gap-x-6 gap-y-0.5">
-                        ${dr('Serial', p.serial)}
-                        ${dr('Boot Serial', p.boot_serial)}
-                        ${dr('Build ID', p.build_id)}
-                        ${dr('Fingerprint', p.build_fingerprint)}
-                        ${dr('Security Patch', p.security_patch)}
+                <!-- ============================================= -->
+                <!-- HARDWARE IDENTITY                             -->
+                <!-- ============================================= -->
+                <div class="rounded-xl border border-gray-800/60 overflow-hidden">
+                    <div class="px-5 py-3 bg-gray-800/30 border-b border-gray-800/40">
+                        <h4 class="text-sm font-semibold text-cyan-400 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            Spoofed Hardware Identity
+                        </h4>
                     </div>
+                    <div class="p-5 space-y-5">
 
-                    <!-- Säule 2: IMEI / SIM -->
-                    <p class="text-[9px] text-gray-600 uppercase tracking-wider mt-3 mb-1">Säule 2 — IMEI / SIM / Telephony</p>
-                    <div class="grid grid-cols-2 gap-x-6 gap-y-0.5">
-                        ${dr('IMEI 1', p.imei1)}
-                        ${dr('IMEI 2', p.imei2)}
-                        ${dr('IMSI', p.imsi)}
-                        ${dr('SIM Serial (ICCID)', p.sim_serial)}
-                        ${dr('Phone', p.phone_number)}
-                        ${dr('Carrier', p.operator_name)}
-                        ${dr('SIM Operator', p.sim_operator)}
-                        ${dr('SIM Op. Name', p.sim_operator_name)}
-                        ${dr('Voicemail', p.voicemail_number)}
-                    </div>
+                        <!-- Säule 1 -->
+                        ${sectionHead('1', 'Serial / Build', 'cyan')}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1">
+                            ${row('Serial', p.serial)}
+                            ${row('Boot Serial', p.boot_serial)}
+                            ${row('Build ID', p.build_id)}
+                            ${row('Security Patch', p.security_patch)}
+                        </div>
+                        <div class="mt-1">
+                            ${rowWide('Fingerprint', p.build_fingerprint)}
+                        </div>
 
-                    <!-- Säule 3: Network Fingerprinting -->
-                    <p class="text-[9px] text-gray-600 uppercase tracking-wider mt-3 mb-1">Säule 3 — Network Fingerprinting</p>
-                    <div class="grid grid-cols-2 gap-x-6 gap-y-0.5">
-                        ${dr('WiFi MAC', p.wifi_mac)}
-                        ${dr('Bluetooth MAC', p.bluetooth_mac)}
-                    </div>
+                        <!-- Säule 2 -->
+                        ${sectionHead('2', 'IMEI / SIM / Telephony', 'violet')}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1">
+                            ${row('IMEI 1', p.imei1)}
+                            ${row('IMEI 2', p.imei2)}
+                            ${row('IMSI', p.imsi)}
+                            ${row('SIM Serial (ICCID)', p.sim_serial)}
+                            ${row('Phone', p.phone_number)}
+                            ${row('Carrier', p.operator_name)}
+                            ${row('SIM Operator', p.sim_operator)}
+                            ${row('SIM Op. Name', p.sim_operator_name)}
+                            ${row('Voicemail', p.voicemail_number)}
+                        </div>
 
-                    <!-- Säule 4: DRM Fingerprinting -->
-                    <p class="text-[9px] text-gray-600 uppercase tracking-wider mt-3 mb-1">Säule 4 — DRM Fingerprinting</p>
-                    <div class="grid grid-cols-2 gap-x-6 gap-y-0.5">
-                        ${dr('Widevine ID', p.widevine_id)}
-                    </div>
+                        <!-- Säule 3 -->
+                        ${sectionHead('3', 'Network Fingerprinting', 'green')}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1">
+                            ${row('WiFi MAC', p.wifi_mac)}
+                            ${row('Bluetooth MAC', p.bluetooth_mac)}
+                        </div>
 
-                    <!-- Säule 5: ID Correlation -->
-                    <p class="text-[9px] text-gray-600 uppercase tracking-wider mt-3 mb-1">Säule 5 — ID Correlation</p>
-                    <div class="grid grid-cols-2 gap-x-6 gap-y-0.5">
-                        ${dr('GSF ID', p.gsf_id)}
-                        ${dr('Android ID (hex)', p.android_id)}
-                        ${dr('Advertising ID', p.advertising_id)}
+                        <!-- Säule 4 -->
+                        ${sectionHead('4', 'DRM Fingerprinting', 'amber')}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1">
+                            ${row('Widevine ID', p.widevine_id)}
+                        </div>
+
+                        <!-- Säule 5 -->
+                        ${sectionHead('5', 'ID Correlation', 'pink')}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1">
+                            ${row('GSF ID', p.gsf_id)}
+                            ${row('Android ID', p.android_id)}
+                            ${row('Advertising ID', p.advertising_id)}
+                        </div>
                     </div>
                 </div>
 
-                <!-- Social Media Credentials -->
-                <div class="bg-gray-800/40 rounded-lg p-4 border border-gray-800">
-                    <h4 class="text-xs font-semibold text-pink-400 uppercase tracking-wider mb-3">Social Media Accounts</h4>
-                    <div class="space-y-2">
+                <!-- ============================================= -->
+                <!-- STATUS ROW: Network + Audit + Usage           -->
+                <!-- ============================================= -->
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="rounded-xl border border-gray-800/60 p-4 bg-gray-800/20">
+                        <div class="text-[10px] font-semibold text-green-400 uppercase tracking-wider mb-2">Netzwerk</div>
+                        ${row('IP', p.identity_last_ip)}
+                        ${row('Service', p.identity_last_ip_service)}
+                        ${row('Zeit', p.identity_last_ip_at ? fmtDate(p.identity_last_ip_at) : null)}
+                    </div>
+                    <div class="rounded-xl border border-gray-800/60 p-4 bg-gray-800/20">
+                        <div class="text-[10px] font-semibold text-amber-400 uppercase tracking-wider mb-2">Audit</div>
+                        <div class="text-2xl font-bold ${p.identity_audit_score >= 100 ? 'text-green-400' : p.identity_audit_score != null ? 'text-amber-400' : 'text-gray-600'}">${p.identity_audit_score != null ? p.identity_audit_score + '%' : '—'}</div>
+                        <div class="text-[10px] text-gray-500 mt-1">${(p.identity_total_audits || 0)} Audits durchgefuehrt</div>
+                    </div>
+                    <div class="rounded-xl border border-gray-800/60 p-4 bg-gray-800/20">
+                        <div class="text-[10px] font-semibold text-blue-400 uppercase tracking-wider mb-2">Nutzung</div>
+                        <div class="text-2xl font-bold text-blue-400">${p.identity_usage_count || 0}x</div>
+                        <div class="text-[10px] text-gray-500 mt-1">${(p.switch_count || 0)} Switches</div>
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- SOCIAL MEDIA                                  -->
+                <!-- ============================================= -->
+                <div class="rounded-xl border border-gray-800/60 overflow-hidden">
+                    <div class="px-5 py-3 bg-gray-800/30 border-b border-gray-800/40">
+                        <h4 class="text-sm font-semibold text-pink-400 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            Social Media Accounts
+                        </h4>
+                    </div>
+                    <div class="p-5 space-y-3">
                         ${smSection('TikTok', 'pink', p.tiktok_username, p.tiktok_email, p.tiktok_password,
                             p.tiktok_followers || p.tiktok_likes ? `${fmtNum(p.tiktok_followers)}F / ${fmtNum(p.tiktok_following)}Fg / ${fmtNum(p.tiktok_likes)}L` : null)}
-                        ${p.tiktok_install_id ? `<div class="ml-4 mt-1 text-[10px]"><span class="text-gray-500">install_id:</span> <span class="font-mono text-amber-400/80">${p.tiktok_install_id.slice(0,8)}…${p.tiktok_install_id.slice(-4)}</span></div>` : ''}
+                        ${p.tiktok_install_id ? `<div class="ml-6 -mt-1 mb-2"><span class="text-[10px] text-gray-600">install_id:</span> <span class="font-mono text-[10px] text-amber-400/70">${p.tiktok_install_id.slice(0,12)}...${p.tiktok_install_id.slice(-6)}</span></div>` : ''}
                         ${smSection('Instagram', 'purple', p.instagram_username, p.instagram_email, p.instagram_password)}
                         ${smSection('YouTube', 'red', p.youtube_username, p.youtube_email, p.youtube_password)}
                         ${smSection('Snapchat', 'yellow', p.snapchat_username, p.snapchat_email, p.snapchat_password)}
                     </div>
                 </div>
 
-                <!-- Google + Contact -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-800/40 rounded-lg p-4 border border-gray-800">
-                        <h4 class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-2">Google</h4>
-                        ${dr('Email', p.google_email)} ${dr('Password', p.google_password ? '***' : '—')}
+                <!-- ============================================= -->
+                <!-- GOOGLE + CONTACT                              -->
+                <!-- ============================================= -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="rounded-xl border border-gray-800/60 p-4 bg-gray-800/20">
+                        <div class="text-[10px] font-semibold text-blue-400 uppercase tracking-wider mb-2">Google Account</div>
+                        ${row('Email', p.google_email)}
+                        ${row('Password', p.google_password ? '***' : null)}
                     </div>
-                    <div class="bg-gray-800/40 rounded-lg p-4 border border-gray-800">
-                        <h4 class="text-xs font-semibold text-cyan-400 uppercase tracking-wider mb-2">Kontakt Email</h4>
-                        ${dr('Email', p.contact_email)} ${dr('Password', p.contact_password ? '***' : '—')}
-                    </div>
-                </div>
-
-                <!-- Network + Audit -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-800/40 rounded-lg p-4 border border-gray-800">
-                        <h4 class="text-xs font-semibold text-green-400 uppercase tracking-wider mb-2">Netzwerk</h4>
-                        ${dr('Letzte IP', p.identity_last_ip)}
-                        ${dr('Service', p.identity_last_ip_service)}
-                        ${dr('Zeitpunkt', p.identity_last_ip_at ? fmtDate(p.identity_last_ip_at) : '—')}
-                    </div>
-                    <div class="bg-gray-800/40 rounded-lg p-4 border border-gray-800">
-                        <h4 class="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2">Audit</h4>
-                        ${dr('Score', p.identity_audit_score != null ? p.identity_audit_score + '%' : '—')}
-                        ${dr('Total', (p.identity_total_audits || 0) + ' Audits')}
-                        ${dr('Switches', (p.switch_count || 0) + 'x')}
+                    <div class="rounded-xl border border-gray-800/60 p-4 bg-gray-800/20">
+                        <div class="text-[10px] font-semibold text-cyan-400 uppercase tracking-wider mb-2">Kontakt Email</div>
+                        ${row('Email', p.contact_email)}
+                        ${row('Password', p.contact_password ? '***' : null)}
                     </div>
                 </div>
 
-                <!-- Backups -->
-                <div class="bg-gray-800/40 rounded-lg p-4 border border-gray-800">
-                    <h4 class="text-xs font-semibold text-violet-400 uppercase tracking-wider mb-3">Backups</h4>
-                    <div class="grid grid-cols-3 gap-3">
+                <!-- ============================================= -->
+                <!-- BACKUPS                                       -->
+                <!-- ============================================= -->
+                <div class="rounded-xl border border-gray-800/60 overflow-hidden">
+                    <div class="px-5 py-3 bg-gray-800/30 border-b border-gray-800/40">
+                        <h4 class="text-sm font-semibold text-violet-400 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg>
+                            Backups
+                        </h4>
+                    </div>
+                    <div class="p-5 grid grid-cols-3 gap-3">
                         ${bkpCard('TikTok', p.backup_status, p.backup_path, p.backup_size_bytes, p.backup_created_at)}
                         ${bkpCard('GMS', p.gms_backup_status, p.gms_backup_path, p.gms_backup_size, p.gms_backup_at)}
                         ${bkpCard('Accounts', p.accounts_backup_status, p.accounts_backup_path, null, p.accounts_backup_at)}
                     </div>
                 </div>
 
-                <!-- IP History -->
-                ${ips.length > 0 ? `
-                <div class="bg-gray-800/40 rounded-lg p-4 border border-gray-800">
-                    <h4 class="text-xs font-semibold text-cyan-400 uppercase tracking-wider mb-2">IP History (${ips.length})</h4>
-                    ${ips.map(ip => `
-                        <div class="flex items-center justify-between py-1 border-b border-gray-800/30 last:border-0">
-                            <span class="font-mono text-xs text-cyan-300">${ip.public_ip}</span>
-                            <span class="text-[10px] text-gray-500">${ip.ip_service || ''} — ${fmtDate(ip.detected_at)}</span>
-                        </div>
-                    `).join('')}
-                </div>` : ''}
+                <!-- ============================================= -->
+                <!-- MONITORING LOGS                               -->
+                <!-- ============================================= -->
+                <div class="rounded-xl border border-gray-800/60 overflow-hidden">
+                    <div class="px-5 py-3 bg-gray-800/30 border-b border-gray-800/40 flex items-center justify-between">
+                        <h4 class="text-sm font-semibold text-teal-400 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            Monitoring Logs (${plogs.length})
+                        </h4>
+                        <button onclick="captureProfileLog(${p.id})"
+                                class="text-[10px] px-2.5 py-1 rounded-md bg-teal-500/10 text-teal-400 border border-teal-500/20 hover:bg-teal-500/20 transition-all font-medium">
+                            Snapshot jetzt
+                        </button>
+                    </div>
+                    <div class="p-5">
+                        ${plogs.length > 0 ? `
+                        <div class="space-y-2">
+                        ${plogs.map((log, idx) => {
+                            const triggerLabels = {genesis_end:'Genesis', switch_in:'Switch In', switch_out:'Switch Out', manual:'Manuell', periodic:'Auto'};
+                            const triggerColors = {genesis_end:'emerald', switch_in:'cyan', switch_out:'amber', manual:'blue', periodic:'gray'};
+                            const tc = triggerColors[log.trigger] || 'gray';
+                            const tl = triggerLabels[log.trigger] || log.trigger;
 
-                <!-- Flow History -->
-                ${flows.length > 0 ? `
-                <div class="bg-gray-800/40 rounded-lg p-4 border border-gray-800">
-                    <h4 class="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2">Flow History (${flows.length})</h4>
-                    ${flows.map(f => `
-                        <div class="flex items-center justify-between py-1 border-b border-gray-800/30 last:border-0">
-                            <div class="flex items-center gap-2">
-                                ${typeBadge(f.flow_type)} ${stBadge(f.status)}
-                                ${f.public_ip ? `<span class="font-mono text-[10px] text-gray-500">${f.public_ip}</span>` : ''}
+                            let liveApis = [];
+                            try { const s = JSON.parse(log.live_summary_json || '{}'); liveApis = Object.entries(s.apis || {}); } catch(_){}
+
+                            let hg = null;
+                            try { hg = JSON.parse(log.hookguard_json || 'null'); } catch(_){}
+
+                            let kills = [];
+                            try { kills = JSON.parse(log.kill_events_json || '[]'); } catch(_){}
+
+                            return `
+                            <div class="rounded-lg border border-gray-800/40 overflow-hidden">
+                                <button onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-90')"
+                                        class="w-full flex items-center justify-between py-2.5 px-4 bg-gray-800/30 hover:bg-gray-800/50 transition-colors cursor-pointer text-left">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-3.5 h-3.5 text-gray-500 transition-transform duration-200 chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-${tc}-500/15 text-${tc}-400 font-semibold">${tl}</span>
+                                        <div class="flex items-center gap-3 text-[10px]">
+                                            <span class="text-gray-400">${log.live_api_count} APIs</span>
+                                            <span class="${log.live_spoofed_pct >= 100 ? 'text-green-400' : log.live_spoofed_pct != null ? 'text-amber-400' : 'text-gray-600'}">${log.live_spoofed_pct != null ? log.live_spoofed_pct + '% spoofed' : 'kein Monitor'}</span>
+                                            ${log.hook_count ? `<span class="text-gray-500">Hooks: ${log.hook_count}</span>` : ''}
+                                            ${log.leaks_detected > 0 ? `<span class="text-red-400">${log.leaks_detected} Leaks!</span>` : ''}
+                                            ${log.kill_event_count > 0 ? `<span class="text-red-400">${log.kill_event_count} Kills</span>` : ''}
+                                        </div>
+                                    </div>
+                                    <span class="text-[10px] text-gray-500 shrink-0 ml-3">${fmtDate(log.captured_at)}</span>
+                                </button>
+                                <div class="hidden">
+                                    <div class="px-4 py-3 bg-gray-900/50 border-t border-gray-800/30 space-y-3">
+
+                                        ${hg ? `
+                                        <div>
+                                            <div class="text-[10px] font-semibold text-teal-400 uppercase tracking-wider mb-1.5">HookGuard Status</div>
+                                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                                <div class="text-center p-2 rounded-lg bg-gray-800/40">
+                                                    <div class="text-[10px] text-gray-500">Status</div>
+                                                    <div class="text-xs font-semibold ${hg.status === 'monitoring' ? 'text-green-400' : 'text-gray-400'}">${hg.status || '?'}</div>
+                                                </div>
+                                                <div class="text-center p-2 rounded-lg bg-gray-800/40">
+                                                    <div class="text-[10px] text-gray-500">Hooks</div>
+                                                    <div class="text-xs font-semibold text-cyan-400">${log.hook_count || '?'}</div>
+                                                </div>
+                                                <div class="text-center p-2 rounded-lg bg-gray-800/40">
+                                                    <div class="text-[10px] text-gray-500">Bridge</div>
+                                                    <div class="text-xs font-semibold ${log.bridge_intact ? 'text-green-400' : 'text-red-400'}">${log.bridge_intact ? 'Intakt' : 'Fehlt/Kaputt'}</div>
+                                                </div>
+                                                <div class="text-center p-2 rounded-lg bg-gray-800/40">
+                                                    <div class="text-[10px] text-gray-500">Leaks</div>
+                                                    <div class="text-xs font-semibold ${log.leaks_detected > 0 ? 'text-red-400' : 'text-green-400'}">${log.leaks_detected}</div>
+                                                </div>
+                                            </div>
+                                        </div>` : '<div class="text-[10px] text-gray-600">HookGuard war nicht aktiv</div>'}
+
+                                        ${liveApis.length > 0 ? `
+                                        <div>
+                                            <div class="text-[10px] font-semibold text-teal-400 uppercase tracking-wider mb-1.5">Live Monitor (${liveApis.length} APIs)</div>
+                                            <div class="max-h-48 overflow-y-auto space-y-0.5 rounded-lg bg-gray-800/30 p-2">
+                                                ${liveApis.map(([api, info]) => `
+                                                    <div class="flex items-center justify-between py-1 px-2 rounded hover:bg-gray-800/50 text-[10px]">
+                                                        <div class="flex items-center gap-2 min-w-0">
+                                                            <span class="${info.spoofed ? 'text-green-400' : 'text-red-400'}">${info.spoofed ? '&#10003;' : '&#10007;'}</span>
+                                                            <span class="font-mono text-gray-300 truncate">${esc(api)}</span>
+                                                        </div>
+                                                        <div class="flex items-center gap-2 shrink-0 ml-2">
+                                                            <span class="text-gray-500">${info.count || 0}x</span>
+                                                            <span class="font-mono text-gray-400 max-w-[120px] truncate" title="${esc(String(info.last_value || ''))}">${esc(String(info.last_value || '').slice(0, 20))}</span>
+                                                        </div>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>` : ''}
+
+                                        ${kills.length > 0 ? `
+                                        <div>
+                                            <div class="text-[10px] font-semibold text-red-400 uppercase tracking-wider mb-1.5">Kill-Switch Events (${kills.length})</div>
+                                            <div class="space-y-1">
+                                                ${kills.map(k => `
+                                                    <div class="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-300 font-mono">${esc(k.raw || k.type || JSON.stringify(k))}</div>
+                                                `).join('')}
+                                            </div>
+                                        </div>` : ''}
+                                    </div>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                        </div>
+                        ` : '<div class="text-center py-4 text-gray-600 text-xs">Noch keine Monitoring-Daten. Logs werden automatisch bei Genesis/Switch erstellt.</div>'}
+                    </div>
+                </div>
+
+                <!-- ============================================= -->
+                <!-- HISTORY (IP / Flow / Audit)                   -->
+                <!-- ============================================= -->
+                ${(ips.length || flows.length || audits.length) ? `
+                <div class="rounded-xl border border-gray-800/60 overflow-hidden">
+                    <div class="px-5 py-3 bg-gray-800/30 border-b border-gray-800/40">
+                        <h4 class="text-sm font-semibold text-gray-400 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Historie
+                        </h4>
+                    </div>
+                    <div class="p-5 space-y-4">
+                        ${ips.length > 0 ? `
+                        <div>
+                            <div class="text-[10px] font-semibold text-cyan-400 uppercase tracking-wider mb-2">IP History (${ips.length})</div>
+                            <div class="space-y-1">
+                            ${ips.map(ip => `
+                                <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-gray-800/30 hover:bg-gray-800/50 transition-colors">
+                                    <span class="font-mono text-xs text-cyan-300">${ip.public_ip}</span>
+                                    <span class="text-[10px] text-gray-500">${ip.ip_service || ''} ${fmtDate(ip.detected_at)}</span>
+                                </div>
+                            `).join('')}
                             </div>
-                            <span class="text-[10px] text-gray-600">${fmtDate(f.started_at)} ${f.duration_ms ? '(' + (f.duration_ms/1000).toFixed(1) + 's)' : ''}</span>
-                        </div>
-                    `).join('')}
+                        </div>` : ''}
+
+                        ${flows.length > 0 ? `
+                        <div>
+                            <div class="text-[10px] font-semibold text-amber-400 uppercase tracking-wider mb-2">Flow History (${flows.length})</div>
+                            <div class="space-y-1">
+                            ${flows.map(f => `
+                                <div class="flex items-center justify-between py-1.5 px-3 rounded-lg bg-gray-800/30 hover:bg-gray-800/50 transition-colors">
+                                    <div class="flex items-center gap-2">
+                                        ${typeBadge(f.flow_type)} ${stBadge(f.status)}
+                                        ${f.public_ip ? `<span class="font-mono text-[10px] text-gray-500">${f.public_ip}</span>` : ''}
+                                    </div>
+                                    <span class="text-[10px] text-gray-500">${fmtDate(f.started_at)} ${f.duration_ms ? '(' + (f.duration_ms/1000).toFixed(1) + 's)' : ''}</span>
+                                </div>
+                            `).join('')}
+                            </div>
+                        </div>` : ''}
+
+                        ${audits.length > 0 ? `
+                        <div>
+                            <div class="text-[10px] font-semibold text-emerald-400 uppercase tracking-wider mb-2">Audit History (${audits.length})</div>
+                            <div class="space-y-2">
+                            ${audits.map((a, idx) => {
+                                let checks = [];
+                                try { checks = JSON.parse(a.checks_json || '[]'); } catch(_) {}
+                                const passed = checks.filter(c => c.status === 'pass').length;
+                                const failed = checks.filter(c => c.status === 'fail').length;
+                                const skipped = checks.filter(c => c.status === 'skip' || c.status === 'warn').length;
+                                return `
+                                <div class="rounded-lg border border-gray-800/40 overflow-hidden">
+                                    <button onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-90')"
+                                            class="w-full flex items-center justify-between py-2.5 px-4 bg-gray-800/30 hover:bg-gray-800/50 transition-colors cursor-pointer text-left">
+                                        <div class="flex items-center gap-3">
+                                            <svg class="w-3.5 h-3.5 text-gray-500 transition-transform duration-200 chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                            <span class="font-bold text-sm ${a.score_percent >= 100 ? 'text-green-400' : a.score_percent >= 80 ? 'text-amber-400' : 'text-red-400'}">${a.score_percent}%</span>
+                                            <div class="flex items-center gap-1.5 text-[10px]">
+                                                <span class="text-green-400/80">${passed} pass</span>
+                                                ${failed > 0 ? `<span class="text-red-400/80">${failed} fail</span>` : ''}
+                                                ${skipped > 0 ? `<span class="text-gray-500">${skipped} skip</span>` : ''}
+                                            </div>
+                                        </div>
+                                        <span class="text-[10px] text-gray-500 shrink-0 ml-3">${fmtDate(a.created_at)}</span>
+                                    </button>
+                                    <div class="hidden">
+                                        <div class="px-4 py-3 space-y-1 bg-gray-900/50 border-t border-gray-800/30">
+                                            ${checks.map(c => {
+                                                const icon = c.status === 'pass' ? '<span class="text-green-400">&#10003;</span>'
+                                                           : c.status === 'fail' ? '<span class="text-red-400">&#10007;</span>'
+                                                           : '<span class="text-gray-500">&#8212;</span>';
+                                                const nameColor = c.status === 'pass' ? 'text-gray-300' : c.status === 'fail' ? 'text-red-300' : 'text-gray-500';
+                                                return `<div class="flex items-start gap-2 py-1.5 border-b border-gray-800/20 last:border-0">
+                                                    <span class="text-xs w-4 text-center shrink-0 mt-0.5">${icon}</span>
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="flex items-baseline justify-between gap-2">
+                                                            <span class="text-xs font-mono ${nameColor} truncate">${c.name}</span>
+                                                            ${c.critical ? '<span class="text-[9px] px-1 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 shrink-0">critical</span>' : ''}
+                                                        </div>
+                                                        ${c.detail ? `<div class="text-[10px] text-gray-500 mt-0.5 break-words">${esc(c.detail)}</div>` : ''}
+                                                        ${c.status === 'fail' && c.expected ? `<div class="text-[10px] mt-0.5"><span class="text-gray-600">Erwartet:</span> <span class="text-amber-400/70 font-mono">${esc(String(c.expected).slice(0,60))}</span></div>` : ''}
+                                                        ${c.status === 'fail' && c.actual ? `<div class="text-[10px]"><span class="text-gray-600">Aktuell:</span> <span class="text-red-400/70 font-mono">${esc(String(c.actual).slice(0,60))}</span></div>` : ''}
+                                                    </div>
+                                                </div>`;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                            </div>
+                        </div>` : ''}
+                    </div>
                 </div>` : ''}
 
-                <!-- Audit History -->
-                ${audits.length > 0 ? `
-                <div class="bg-gray-800/40 rounded-lg p-4 border border-gray-800">
-                    <h4 class="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">Audit History (${audits.length})</h4>
-                    ${audits.map(a => `
-                        <div class="flex items-center justify-between py-1 border-b border-gray-800/30 last:border-0">
-                            <span class="font-semibold text-xs ${a.score_percent >= 100 ? 'text-green-400' : 'text-red-400'}">${a.score_percent}% (${a.passed_checks}/${a.total_checks})</span>
-                            <span class="text-[10px] text-gray-600">${fmtDate(a.created_at)}</span>
-                        </div>
-                    `).join('')}
-                </div>` : ''}
-
-                <!-- Actions -->
-                <div class="flex gap-2 pt-2 border-t border-gray-800">
+                <!-- ============================================= -->
+                <!-- ACTIONS                                       -->
+                <!-- ============================================= -->
+                <div class="flex gap-2 pt-3">
                     <button onclick="closeDetailModal(); openEditModal(${p.id})"
-                            class="px-3 py-2 rounded-lg text-xs font-medium bg-blue-600/20 text-blue-400 border border-blue-600/30 hover:bg-blue-600/30 transition-all">Bearbeiten</button>
+                            class="px-4 py-2.5 rounded-lg text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all">Bearbeiten</button>
                     <button onclick="closeDetailModal(); loadProfile(${p.identity_id}, '${esc(p.name)}')"
-                            class="px-3 py-2 rounded-lg text-xs font-medium bg-accent-600/20 text-accent-400 border border-accent-600/30 hover:bg-accent-600/30 transition-all">Switch laden</button>
+                            class="px-4 py-2.5 rounded-lg text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 transition-all">Switch laden</button>
                     ${p.status === 'archived'
                         ? `<button onclick="closeDetailModal(); unarchiveProfile(${p.id})"
-                                  class="px-3 py-2 rounded-lg text-xs font-medium bg-amber-600/20 text-amber-400 border border-amber-600/30 hover:bg-amber-600/30 transition-all">Wiederherstellen</button>`
+                                  class="px-4 py-2.5 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all">Wiederherstellen</button>`
                         : `<button onclick="closeDetailModal(); archiveProfile(${p.id}, '${esc(p.name)}')"
-                                  class="px-3 py-2 rounded-lg text-xs font-medium bg-gray-600/20 text-gray-400 border border-gray-600/30 hover:bg-gray-600/30 transition-all">Archivieren</button>`
+                                  class="px-4 py-2.5 rounded-lg text-xs font-semibold bg-gray-500/10 text-gray-400 border border-gray-500/20 hover:bg-gray-500/20 transition-all">Archivieren</button>`
                     }
                     <button onclick="closeDetailModal(); deleteProfile(${p.id}, '${esc(p.name)}')"
-                            class="px-3 py-2 rounded-lg text-xs font-medium bg-red-600/20 text-red-400 border border-red-600/30 hover:bg-red-600/30 transition-all ml-auto">Loeschen</button>
+                            class="px-4 py-2.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all ml-auto">Loeschen</button>
                 </div>
             `;
         } catch (e) { body.innerHTML = `<div class="text-center py-8 text-red-400">Fehler: ${esc(e.message)}</div>`; }
     }
     function closeDetailModal() { document.getElementById('detail-modal').classList.add('hidden'); }
+
+    async function captureProfileLog(profileId) {
+        try {
+            const res = await fetch(`/api/vault/${profileId}/capture`, {method: 'POST'});
+            const data = await res.json();
+            if (res.ok) {
+                showToast(`Snapshot gespeichert: ${data.apis} APIs, HookGuard: ${data.hookguard ? 'Ja' : 'Nein'}`, 'success');
+                openDetail(profileId);
+            } else {
+                showToast(data.detail || 'Fehler', 'error');
+            }
+        } catch (e) { showToast('Fehler: ' + e.message, 'error'); }
+    }
 
     // ===================================================================
     // Helpers
@@ -1035,12 +1251,30 @@
     function esc(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
     function dr(label, value) {
-        const v = String(value || '—');
-        return `<div>
-            <div class="flex items-center justify-between py-0.5">
-                <span class="text-[11px] text-gray-500">${label}</span>
-                <span class="text-[11px] font-mono text-gray-300">${esc(v)}</span>
-            </div>
+        return row(label, value);
+    }
+
+    function row(label, value) {
+        const v = value ? String(value) : null;
+        return `<div class="flex items-baseline justify-between py-1 group">
+            <span class="text-xs text-gray-500 shrink-0 mr-4">${label}</span>
+            <span class="text-xs font-mono text-gray-200 text-right truncate ${v ? 'cursor-pointer hover:text-white' : 'text-gray-600'}" ${v ? `onclick="navigator.clipboard.writeText('${esc(v)}');this.classList.add('text-green-400');setTimeout(()=>this.classList.remove('text-green-400'),600)" title="Klick zum Kopieren"` : ''}>${v ? esc(v) : '—'}</span>
+        </div>`;
+    }
+
+    function rowWide(label, value) {
+        const v = value ? String(value) : null;
+        return `<div class="py-1">
+            <span class="text-xs text-gray-500 block mb-0.5">${label}</span>
+            <span class="text-[11px] font-mono text-gray-200 break-all leading-relaxed ${v ? 'cursor-pointer hover:text-white' : 'text-gray-600'}" ${v ? `onclick="navigator.clipboard.writeText('${esc(v)}');this.classList.add('text-green-400');setTimeout(()=>this.classList.remove('text-green-400'),600)" title="Klick zum Kopieren"` : ''}>${v ? esc(v) : '—'}</span>
+        </div>`;
+    }
+
+    function sectionHead(num, title, color) {
+        return `<div class="flex items-center gap-2 pt-3 first:pt-0">
+            <span class="w-5 h-5 rounded-md bg-${color}-500/15 text-${color}-400 text-[10px] font-bold flex items-center justify-center">${num}</span>
+            <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">${title}</span>
+            <div class="flex-1 h-px bg-gray-800/60"></div>
         </div>`;
     }
 

@@ -614,18 +614,106 @@ async def get_profile_detail(profile_id: int):
         if identity_id:
             cursor = await conn.execute(
                 """SELECT score_percent, total_checks, passed_checks,
-                          failed_checks, created_at, error
+                          failed_checks, checks_json, created_at, error
                    FROM audit_history WHERE identity_id = ?
                    ORDER BY created_at DESC LIMIT 5""",
                 (identity_id,),
             )
             audit_rows = [dict(r) for r in await cursor.fetchall()]
 
+        # Profile Logs (Live Monitor + HookGuard Snapshots, letzte 10)
+        log_rows = []
+        try:
+            cursor = await conn.execute(
+                """SELECT id, trigger, live_summary_json, live_api_count, live_spoofed_pct,
+                          hookguard_json, hook_count, bridge_intact, heartbeat_ok, leaks_detected,
+                          kill_events_json, kill_event_count, captured_at
+                   FROM profile_logs WHERE profile_id = ?
+                   ORDER BY captured_at DESC LIMIT 10""",
+                (profile_id,),
+            )
+            log_rows = [dict(r) for r in await cursor.fetchall()]
+        except Exception:
+            pass
+
     return {
         "profile": profile,
         "ip_history": ip_rows,
         "flow_history": flow_rows,
         "audit_history": audit_rows,
+        "profile_logs": log_rows,
+    }
+
+
+# =============================================================================
+# POST /api/vault/{id}/capture — Manueller Log-Snapshot
+# =============================================================================
+
+@router.post("/{profile_id}/capture")
+async def capture_profile_snapshot(profile_id: int):
+    """
+    Erstellt einen manuellen Snapshot der Live-Monitor- und HookGuard-Daten.
+    Liest die aktuellen Daten vom Gerät und speichert sie in der DB.
+    """
+    import dataclasses
+    import json as _json
+
+    from host.adb.client import ADBClient
+    from host.engine.db_ops import capture_profile_log
+
+    # Identity-ID für dieses Profil ermitteln
+    async with db.connection() as conn:
+        cursor = await conn.execute(
+            "SELECT identity_id FROM profiles WHERE id = ?", (profile_id,),
+        )
+        row = await cursor.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail=f"Profil #{profile_id} nicht gefunden")
+        identity_id = row["identity_id"]
+
+    adb = ADBClient()
+
+    # Live Monitor Summary
+    live_summary = None
+    for pkg in ("com.zhiliaoapp.musically", "com.ss.android.ugc.trill"):
+        try:
+            result = await adb.shell(
+                f"cat /data/data/{pkg}/files/.titan_access_summary.json 2>/dev/null",
+                root=True, timeout=5,
+            )
+            if result.success and result.output.strip().startswith("{"):
+                live_summary = _json.loads(result.output.strip())
+                break
+        except Exception:
+            pass
+
+    # HookGuard State
+    hookguard_dict = None
+    kill_events = None
+    try:
+        import host.main as _main
+        guard = getattr(_main, "_hookguard", None)
+        if guard and guard.is_running:
+            hookguard_dict = dataclasses.asdict(guard.state)
+            hookguard_dict["status"] = guard.state.status.value
+            kill_events = hookguard_dict.pop("device_kill_events", [])
+    except Exception:
+        pass
+
+    log_id = await capture_profile_log(
+        profile_id=profile_id,
+        identity_id=identity_id,
+        trigger="manual",
+        live_summary=live_summary,
+        hookguard_state=hookguard_dict,
+        kill_events=kill_events,
+    )
+
+    return {
+        "log_id": log_id,
+        "message": f"Snapshot gespeichert (log #{log_id})",
+        "apis": len(live_summary.get("apis", {})) if live_summary else 0,
+        "hookguard": bool(hookguard_dict),
     }
 
 

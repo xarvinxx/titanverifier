@@ -272,6 +272,45 @@ CREATE TABLE IF NOT EXISTS audit_history (
 """
 
 # =============================================================================
+# SQL Schema: Tabelle 6 — profile_logs (Live Monitor + HookGuard Snapshots)
+# =============================================================================
+
+_SQL_CREATE_PROFILE_LOGS = """
+CREATE TABLE IF NOT EXISTS profile_logs (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    profile_id          INTEGER REFERENCES profiles(id) ON DELETE CASCADE,
+    identity_id         INTEGER REFERENCES identities(id) ON DELETE SET NULL,
+
+    -- Typ: wann wurde der Snapshot erstellt?
+    trigger             TEXT NOT NULL
+                            CHECK (trigger IN (
+                                'genesis_end', 'switch_in', 'switch_out',
+                                'manual', 'periodic'
+                            )),
+
+    -- Live Monitor Snapshot (Xposed DataAccessMonitor)
+    live_summary_json   TEXT,
+    live_api_count      INTEGER NOT NULL DEFAULT 0,
+    live_spoofed_pct    REAL,
+
+    -- HookGuard Snapshot
+    hookguard_json      TEXT,
+    hook_count          TEXT,
+    bridge_intact       INTEGER,
+    heartbeat_ok        INTEGER,
+    leaks_detected      INTEGER NOT NULL DEFAULT 0,
+
+    -- Device Kill-Switch Events
+    kill_events_json    TEXT,
+    kill_event_count    INTEGER NOT NULL DEFAULT 0,
+
+    -- Auto-Timestamp
+    captured_at         TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+);
+"""
+
+# =============================================================================
 # Indizes für Performance
 # =============================================================================
 
@@ -308,6 +347,11 @@ CREATE INDEX IF NOT EXISTS idx_audit_time               ON audit_history(created
 -- v6.2: TikTok install_id (Unique-Constraint für Collision-Detection)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_install_id ON profiles(tiktok_install_id)
     WHERE tiktok_install_id IS NOT NULL;
+
+-- Profile Logs
+CREATE INDEX IF NOT EXISTS idx_profile_logs_profile    ON profile_logs(profile_id);
+CREATE INDEX IF NOT EXISTS idx_profile_logs_identity   ON profile_logs(identity_id);
+CREATE INDEX IF NOT EXISTS idx_profile_logs_time       ON profile_logs(captured_at DESC);
 """
 
 # =============================================================================
@@ -429,6 +473,7 @@ class HostDatabase:
             + _SQL_CREATE_FLOW_HISTORY
             + _SQL_CREATE_IP_HISTORY
             + _SQL_CREATE_AUDIT_HISTORY
+            + _SQL_CREATE_PROFILE_LOGS
         )
         await self._connection.commit()
 

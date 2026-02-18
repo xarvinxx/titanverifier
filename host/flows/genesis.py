@@ -48,6 +48,7 @@ from host.config import LOCAL_TZ, TIMING
 from host.database import db
 from host.engine.auditor import AuditResult, DeviceAuditor
 from host.engine.db_ops import (
+    capture_profile_log,
     check_ip_collision,
     create_flow_history,
     create_profile_auto,
@@ -78,6 +79,77 @@ async def _auto_start_hookguard() -> None:
             logger.debug("HookGuard laeuft bereits")
     except Exception as e:
         logger.warning("HookGuard Auto-Start fehlgeschlagen: %s", e)
+
+
+async def _capture_profile_snapshot(
+    adb: ADBClient,
+    profile_id: int,
+    identity_id: Optional[int],
+    trigger: str,
+) -> None:
+    """
+    Liest Live Monitor + HookGuard Daten vom Gerät und speichert
+    einen Snapshot in der DB.
+    """
+    import dataclasses
+    import json as _json
+
+    live_summary = None
+    hookguard_dict = None
+    kill_events = None
+
+    # 1. Live Monitor Summary lesen
+    try:
+        for pkg in ("com.zhiliaoapp.musically", "com.ss.android.ugc.trill"):
+            result = await adb.shell(
+                f"cat /data/data/{pkg}/files/.titan_access_summary.json 2>/dev/null",
+                root=True, timeout=5,
+            )
+            if result.success and result.output.strip().startswith("{"):
+                live_summary = _json.loads(result.output.strip())
+                break
+    except Exception as e:
+        logger.debug("Live Monitor read failed: %s", e)
+
+    # 2. HookGuard State lesen
+    try:
+        import host.main as _main
+        guard = getattr(_main, "_hookguard", None)
+        if guard and guard.is_running:
+            hookguard_dict = dataclasses.asdict(guard.state)
+            hookguard_dict["status"] = guard.state.status.value
+            kill_events = hookguard_dict.pop("device_kill_events", [])
+    except Exception as e:
+        logger.debug("HookGuard state read failed: %s", e)
+
+    # 3. Device Kill Events aus logcat (Fallback falls HookGuard nicht läuft)
+    if not kill_events:
+        try:
+            result = await adb.shell(
+                "logcat -d -s TitanKillSwitch:* -v time 2>/dev/null | tail -20",
+                root=True, timeout=5,
+            )
+            if result.success and result.output:
+                kill_events = []
+                for line in result.output.strip().split("\n"):
+                    if "TitanKillSwitch" in line:
+                        kill_events.append({"raw": line.strip()})
+        except Exception:
+            pass
+
+    # 4. In DB speichern
+    try:
+        log_id = await capture_profile_log(
+            profile_id=profile_id,
+            identity_id=identity_id,
+            trigger=trigger,
+            live_summary=live_summary,
+            hookguard_state=hookguard_dict,
+            kill_events=kill_events,
+        )
+        logger.info("Profile snapshot captured: log_id=%d trigger=%s", log_id, trigger)
+    except Exception as e:
+        logger.warning("Profile snapshot capture failed: %s", e)
 
 
 # =============================================================================
@@ -1291,6 +1363,13 @@ class GenesisFlow:
 
             if result.success:
                 await _auto_start_hookguard()
+
+                # Profile Log Snapshot: Dokumentiert den Zustand nach Genesis
+                if result.profile_id:
+                    await _capture_profile_snapshot(
+                        self._adb, result.profile_id,
+                        db_identity_id, "genesis_end",
+                    )
 
         return result
 

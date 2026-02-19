@@ -150,9 +150,6 @@ object ServiceConfigReader {
         lastLoadTime = 0
     }
 
-    private fun log(msg: String) {
-        try {
-            XposedBridge.log("[$TAG] $msg")
-        } catch (_: Throwable) {}
-    }
+    @Suppress("UNUSED_PARAMETER")
+    private fun log(msg: String) { }
 }

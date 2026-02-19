@@ -16706,3 +16706,719 @@ AttributeError: type object 'FlowStepStatus' has no attribute 'ERROR'
 2026-02-19 20:58:05 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
 2026-02-19 20:58:09 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
 2026-02-19 20:58:10 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:13 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:17 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:58:18 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:21 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:25 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:29 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:58:30 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:33 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:37 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:41 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:41 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:58:42 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:46 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:50 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:54 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:58:54 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:58 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:02 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:05 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:59:06 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:10 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:14 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:14 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:18 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:59:18 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:22 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:26 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:30 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:59:30 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:34 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:38 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:42 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:59:42 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:46 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:46 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:50 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:54 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:59:55 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:59:59 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:03 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:06 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:00:07 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:11 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:15 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:19 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:19 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:00:19 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:23 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:27 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:31 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:00:32 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:35 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:39 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:43 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:00:44 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:48 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:51 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:52 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:00:56 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:00:56 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:00 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:04 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:08 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:01:08 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:12 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:16 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:19 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:01:20 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:24 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:24 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:28 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:32 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:01:32 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:36 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:40 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:44 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:01:44 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:48 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:52 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:56 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 21:01:56 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:01:57 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:01 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:04 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:08 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:02:09 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:13 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:17 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:20 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:02:21 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:25 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:29 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:29 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:33 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:02:33 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:37 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:41 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:45 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:02:45 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:49 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:53 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:02:57 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:02:57 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:01 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:02 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:06 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:10 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:03:10 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:14 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:18 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:22 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:03:22 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:26 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:30 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:34 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:34 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:03:35 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:39 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:42 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:46 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:03:47 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:51 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:55 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:03:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:03:59 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:03 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:07 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:07 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:11 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:04:11 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:15 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:19 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:04:23 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:27 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:31 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:35 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:04:35 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:39 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:40 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:44 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:48 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:04:48 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:52 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:55 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:04:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:04:59 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:05:03 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:05:07 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:05:11 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 21:05:11 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:05:12 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:05:16 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 21:05:48 [hookguard] WARNING: Bridge file missing for com.zhiliaoapp.musically!
+2026-02-19 21:05:48 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 21:05:48 [hookguard] CRITICAL: KILL-SWITCH ACTIVATED: BRIDGE_TAMPERED: hash=MISSING
+2026-02-19 21:05:49 [hookguard] CRITICAL: DATA LEAK confirmed — activating airplane mode
+2026-02-19 21:05:49 [hookguard] INFO: TikTok autostart components disabled
+2026-02-19 21:05:53 [hookguard] CRITICAL: KILL-SWITCH ACTIVATED: BRIDGE_TAMPERED: hash=MISSING
+2026-02-19 21:05:53 [hookguard] CRITICAL: DATA LEAK confirmed — activating airplane mode
+2026-02-19 21:05:53 [hookguard] INFO: TikTok autostart components disabled
+2026-02-19 22:28:17 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-19 22:28:17 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 22:28:17 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 22:28:21 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 22:28:22 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 22:28:51 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 22:28:53 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-19 22:28:53 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-19 22:30:10 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-19 22:30:10 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 22:30:10 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 22:30:14 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 22:30:15 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 22:30:48 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 22:30:50 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-19 22:30:50 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-19 22:34:54 [hookguard] WARNING: Bridge file missing for com.zhiliaoapp.musically!
+2026-02-19 22:34:55 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:34:55 [hookguard] CRITICAL: KILL-SWITCH ACTIVATED: BRIDGE_TAMPERED: hash=MISSING
+2026-02-19 22:34:55 [hookguard] CRITICAL: DATA LEAK confirmed — activating airplane mode
+2026-02-19 22:34:56 [hookguard] INFO: TikTok autostart components disabled
+2026-02-19 22:37:17 [host.api.control] INFO: Genesis-Flow gestartet: stealth_v8_test1
+2026-02-19 22:37:17 [host.flows.genesis] INFO: ============================================================
+2026-02-19 22:37:17 [host.flows.genesis] INFO:   GENESIS FLOW: stealth_v8_test1
+2026-02-19 22:37:17 [host.flows.genesis] INFO: ============================================================
+2026-02-19 22:37:17 [host.flows.genesis] INFO: Genesis Frequency: 1/2h, 10/24h, 51 total (Limits: 9999/2h, 9999/24h, Cooldown 0min)
+2026-02-19 22:37:17 [host.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-19 22:37:17 [host.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-19 22:37:17 [host.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-19 22:37:17 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'zuvieleversuche5' hat keinen TikTok-Account — Checkbox nicht gesetzt
+2026-02-19 22:37:17 [host.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-19 22:37:17 [host.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-19 22:37:18 [host.shifter] INFO: [Clean] pm clear com.zhiliaoapp.musically: OK (firstInstallTime unverändert)
+2026-02-19 22:37:18 [host.shifter] INFO: [Clean] com.ss.android.ugc.trill nicht installiert — überspringe
+2026-02-19 22:37:18 [host.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-19 22:37:18 [host.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-19 22:37:19 [host.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-19 22:37:25 [host.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-19 22:37:25 [host.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-19 22:37:27 [host.shifter] INFO: AAID Reset: über Content-Provider (GMS-Dateien unberührt)
+2026-02-19 22:37:27 [host.shifter] WARNING: Deep Clean: 40/41 OK — FEHLGESCHLAGEN: compiler_reset_com.ss.android.ugc.trill
+2026-02-19 22:37:27 [host.flows.genesis] INFO: [3/11] Sterilize: OK (40/41 Operationen (GMS geschützt) | nicht-kritisch fehlgeschlagen: compiler_reset_com.ss.android.ugc.trill)
+2026-02-19 22:37:27 [host.shifter] INFO: Clearing system clipboard...
+2026-02-19 22:37:27 [host.shifter] INFO: Clipboard cleared
+2026-02-19 22:37:27 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-19 22:37:35 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-19 22:37:35 [host.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-19 22:37:35 [host.identity] INFO: Identität generiert: name=stealth_v8_test1 serial=MEW7S9REU4ZX imei1=355543…3998 carrier=O2-DE
+2026-02-19 22:37:35 [host.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 9114...0083 (v5.0 — FINAL, kein Platzhalter)
+2026-02-19 22:37:35 [host.flows.genesis] INFO: [4/11] Generate: OK (serial=MEW7S9REU4ZX)
+2026-02-19 22:37:35 [host.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-19 22:37:35 [host.db_ops] INFO: Auto-Profil erstellt: id=52, name=stealth_v8_test1
+2026-02-19 22:37:35 [host.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=52
+2026-02-19 22:37:35 [host.flows.genesis] INFO: [5/11] Persist: OK (identity_id=58, profile_id=52)
+2026-02-19 22:37:35 [host.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-19 22:37:35 [host.injector] INFO: Injecting identity: serial=MEW7S9REU4ZX imei1=355543…3998
+2026-02-19 22:37:35 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/bridge_ovshnexu.bridge → /data/local/tmp/.bridge_staging
+2026-02-19 22:37:35 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-19 22:37:36 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-19 22:37:39 [host.injector] INFO: Bridge verteilt an 8/10 Apps
+2026-02-19 22:37:40 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → ac559716-bd16-446f-8742-9aa107b7bd4f
+2026-02-19 22:37:40 [host.injector] INFO: Injection komplett + verifiziert: MEW7S9REU4ZX
+2026-02-19 22:37:40 [host.flows.genesis] INFO: [6/11] PIF v5.0: autopif4-First Strategie (BASIC_INTEGRITY)...
+2026-02-19 22:37:40 [host.injector] INFO: PIF v5.0: autopif4 Canary-Fingerprint gefunden — verwende diesen (NICHT unseren statischen Pool)
+2026-02-19 22:37:40 [host.injector] INFO: PIF autopif4: FP=google/oriole_beta/oriole:CANARY/ZP11.260123.011/1… | Patch=2026-02-05 | Estimated Expiry: 2026-03-26
+2026-02-19 22:37:40 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/pif_a_vafk2r.prop → /data/local/tmp/.pif_staging.prop
+2026-02-19 22:37:40 [host.injector] INFO: PIF v5.0 OK [autopif4-canary]: custom.pif.prop → /data/adb/modules/playintegrityfix/custom.pif.prop
+2026-02-19 22:37:40 [host.flows.genesis] INFO: [6/11] PIF: custom.pif.prop erfolgreich gepusht
+2026-02-19 22:37:40 [host.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-19 22:37:40 [host.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-19 22:37:40 [host.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Kill-Switch entfernt | PIF=OK)
+2026-02-19 22:37:40 [host.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-19 22:37:40 [host.adb] INFO: Reboot: mode=normal
+2026-02-19 22:37:47 [host.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-19 22:37:47 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-19 22:37:47 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 22:37:47 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 22:37:51 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 22:37:52 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 22:38:02 [host.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-19 22:38:02 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 22:38:02 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 22:38:02 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 22:38:06 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 22:38:06 [host.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-19 22:38:06 [host.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-19 22:38:06 [host.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-19 22:38:07 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 22:38:08 [host.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-19 22:38:21 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 22:38:23 [host.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-19 22:38:23 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-19 22:38:23 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-19 22:38:23 [host.flows.genesis] INFO: [7/11] Warte auf Boot (unbegrenzt, pollt alle 3s)...
+2026-02-19 22:38:23 [host.adb] INFO: Warte auf Gerät (unbegrenzt, pollt alle 3s)...
+2026-02-19 22:38:32 [host.adb] INFO: Gerät gebootet nach 9.0s
+2026-02-19 22:38:32 [host.flows.genesis] INFO: [7/11] Boot erkannt — warte 5s post-boot...
+2026-02-19 22:38:40 [host.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-19 22:38:40 [host.flows.genesis] INFO: [7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...
+2026-02-19 22:38:40 [host.flows.genesis] INFO: [7/11] Bridge [primär]: OK (serial=MEW7S9REU4ZX)
+2026-02-19 22:38:40 [host.flows.genesis] INFO: [7/11] Bridge [sdcard]: OK (serial=MEW7S9REU4ZX)
+2026-02-19 22:38:40 [host.flows.genesis] INFO: [7/11] Bridge [app]: OK (serial=MEW7S9REU4ZX)
+2026-02-19 22:38:40 [host.flows.genesis] INFO: [7/11] Bridge-Verifikation: Primärpfad OK
+2026-02-19 22:38:40 [host.flows.genesis] INFO: [7/11] Hard Reset: OK (Boot + Unlock in 59.5s)
+2026-02-19 22:38:40 [host.flows.genesis] INFO: [7b/11] DroidGuard Sanitize: Stale Attestierungs-Tokens löschen...
+2026-02-19 22:38:40 [host.shifter] INFO: [DroidGuard+Analytics] Sanitized: 11/11 Einträge gelöscht (Neu-Attestierung + Cross-App-Correlation entfernt)
+2026-02-19 22:38:40 [host.flows.genesis] INFO: [7b/11] DroidGuard-Cache gelöscht — erzwinge GMS-Neustart...
+2026-02-19 22:38:46 [host.flows.genesis] INFO: [7b/11] GMS neu gestartet — frische Attestierung eingeleitet
+2026-02-19 22:38:46 [host.flows.genesis] INFO: [7c/11] Bewohntes Haus: Prüfe Dummy-App-Präsenz...
+2026-02-19 22:38:46 [host.flows.genesis] WARNING: [7c/11] BEWOHNTES HAUS: 10/12 Apps vorhanden (83%). Fehlend: Google Keep, Google Translate — Gerät könnte als 'frisch' erkannt werden!
+2026-02-19 22:38:46 [host.flows.genesis] INFO: [7d/11] Post-Reboot Sterilisierung...
+2026-02-19 22:38:46 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-19 22:38:54 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-19 22:38:54 [host.flows.genesis] INFO: [7d/11] Post-Reboot: Sauber — keine Artefakte gefunden
+2026-02-19 22:38:54 [host.flows.genesis] INFO: [7e/11] HookGuard Pre-Network Start...
+2026-02-19 22:38:54 [host.flows.genesis] INFO: [8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS...
+2026-02-19 22:38:57 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #58 auf 'active' gesetzt
+2026-02-19 22:39:14 [host.flows.genesis] INFO: [8/11] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-19 22:39:14 [host.flows.genesis] INFO: [8/11] Warte 15s auf neue Mobilfunk-Verbindung...
+2026-02-19 22:39:29 [host.network] INFO: Öffentliche IP: 176.6.90.38 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-19 22:39:29 [host.flows.genesis] INFO: [8/11] Network Init: Neue IP = 176.6.90.38 (via api.ipify.org)
+2026-02-19 22:39:29 [host.flows.genesis] WARNING: [8/11] SUBNET SÄTTIGUNG: 11 verschiedene Identitäten von 176.6.x.x in 24h — TikTok rate-limitet auf Carrier/ASN-Ebene!
+2026-02-19 22:39:29 [host.flows.genesis] INFO: [9/11] GMS Ready: Dynamisches Readiness-Polling (v6.0)...
+2026-02-19 22:39:29 [host.shifter] INFO: [Readiness] Warte auf sys.boot_completed=1...
+2026-02-19 22:39:29 [host.shifter] INFO: [Readiness] Boot bestätigt nach 0s
+2026-02-19 22:39:29 [host.shifter] INFO: [Readiness] Warte auf GmsCore Service...
+2026-02-19 22:39:29 [host.shifter] INFO: [Readiness] GMS-Prozess aktiv nach 0s
+2026-02-19 22:39:30 [host.shifter] INFO: [Readiness] System bereit — Boot: 0s | GMS(pid): 0s (GMS Verbindung steht - Bereit zum Loslegen!)
+2026-02-19 22:39:30 [host.flows.genesis] INFO: [9/11] GSF-ID: Generierte ID beibehalten. Bridge-GSF: 9114...0083
+2026-02-19 22:39:30 [host.flows.genesis] INFO: [9/11] GMS Verbindung steht - Bereit zum Loslegen! (Boot: 0s | GMS(pid): 0s)
+2026-02-19 22:39:30 [host.flows.genesis] INFO: [9/11] GMS Ready: GMS Verbindung steht (0s) | GSF-ID: generiert beibehalten
+2026-02-19 22:39:30 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...
+2026-02-19 22:39:30 [host.auditor] INFO: Audit starten: stealth_v8_test1 (serial=MEW7S9REU4ZX)
+2026-02-19 22:39:30 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-19 22:39:30 [host.auditor] INFO:   [+] bridge_serial: pass — serial=MEW7S9REU4ZX, boot_serial=MEW7S9REU4ZX — korrekt
+2026-02-19 22:39:30 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-19 22:39:30 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: f4:f5:d8:28:37:fa
+2026-02-19 22:39:30 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-19 22:39:30 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-19 22:39:30 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-19 22:39:30 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-19 22:39:30 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-19 22:39:30 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-19 22:39:30 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-19 22:39:30 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-19 22:39:30 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-19 22:39:30 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-19 22:39:30 [host.auditor] INFO: Audit [stealth_v8_test1]: 100% (14/14 passed)
+2026-02-19 22:39:30 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Integrität bestätigt (100%)
+2026-02-19 22:39:30 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline sichern...
+2026-02-19 22:39:30 [host.shifter] INFO: ============================================================
+2026-02-19 22:39:30 [host.shifter] INFO:   GOLDEN BASELINE CAPTURE: stealth_v8_test1
+2026-02-19 22:39:30 [host.shifter] INFO:   GSF-ID: 9114...0083
+2026-02-19 22:39:30 [host.shifter] INFO: ============================================================
+2026-02-19 22:39:30 [host.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-19 22:39:32 [host.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-19 22:39:32 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/stealth_v8_test1/gms/gms_20260219_223932.tar.tmp
+2026-02-19 22:39:39 [host.adb] INFO: Exec-Out fertig: 78924800 Bytes geschrieben
+2026-02-19 22:39:39 [host.shifter] INFO: GMS Backup (3 Pakete): OK (75.3 MB, Versuch 1/3)
+2026-02-19 22:39:39 [host.shifter] INFO: GMS tar: gms_20260219_223932.tar (75.3 MB) — 3 Pakete
+2026-02-19 22:39:39 [host.shifter] INFO: Golden Baseline GMS: OK (gms_20260219_223932.tar)
+2026-02-19 22:39:39 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/stealth_v8_test1/accounts/accounts_20260219_223939.tar.tmp
+2026-02-19 22:39:39 [host.adb] INFO: Exec-Out fertig: 202240 Bytes geschrieben
+2026-02-19 22:39:39 [host.shifter] INFO: Account-DBs (1 Dateien): OK (0.2 MB, Versuch 1/3)
+2026-02-19 22:39:39 [host.shifter] INFO: Account-DBs tar: accounts_20260219_223939.tar (202240 Bytes, 1 Dateien)
+2026-02-19 22:39:39 [host.shifter] INFO: Golden Baseline Accounts: OK (accounts_20260219_223939.tar)
+2026-02-19 22:39:39 [host.shifter] INFO: Golden Baseline: 2/2 Komponenten gesichert
+2026-02-19 22:39:39 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline komplett
+2026-02-19 22:39:39 [host.flows.genesis] INFO: [11/11] Audit + Account-Check + TikTok ID-Validation (v6.1)...
+2026-02-19 22:39:39 [host.auditor] INFO: Audit starten: stealth_v8_test1 (serial=MEW7S9REU4ZX)
+2026-02-19 22:39:39 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-19 22:39:39 [host.auditor] INFO:   [+] bridge_serial: pass — serial=MEW7S9REU4ZX, boot_serial=MEW7S9REU4ZX — korrekt
+2026-02-19 22:39:39 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-19 22:39:39 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: f4:f5:d8:28:37:fa
+2026-02-19 22:39:39 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-19 22:39:39 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-19 22:39:39 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-19 22:39:39 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-19 22:39:39 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-19 22:39:39 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-19 22:39:39 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-19 22:39:39 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-19 22:39:39 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-19 22:39:39 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-19 22:39:39 [host.auditor] INFO: Audit [stealth_v8_test1]: 100% (14/14 passed)
+2026-02-19 22:39:39 [host.shifter] INFO: [Account-Check] Google-Account gefunden: arvinvaha@gmail.com
+2026-02-19 22:39:39 [host.flows.genesis] INFO: [11/11] Google-Account: arvinvaha@gmail.com
+2026-02-19 22:39:39 [host.flows.genesis] INFO: [11/11] TikTok Silent Launch: ID-Generierung starten...
+2026-02-19 22:39:39 [host.shifter] INFO: [SilentLaunch] Starte com.zhiliaoapp.musically für ID-Generierung (15s)...
+2026-02-19 22:39:42 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:39:43 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:39:43 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:39:47 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:39:50 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:39:54 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:39:55 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:39:57 [host.flows.genesis] WARNING: [11/11] install_id nicht extrahierbar (TikTok nicht installiert?)
+2026-02-19 22:39:57 [host.flows.genesis] INFO: [11/11] Audit: PASS (100%) | Google-Account: arvinvaha@gmail.com
+2026-02-19 22:39:57 [host.flows.genesis] INFO: ============================================================
+2026-02-19 22:39:57 [host.flows.genesis] INFO:   GENESIS ERFOLG: stealth_v8_test1 (159864 ms)
+2026-02-19 22:39:57 [host.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
+2026-02-19 22:39:57 [host.flows.genesis] INFO: ============================================================
+2026-02-19 22:39:57 [host.db_ops] INFO: Profile log captured: profile=52 trigger=genesis_end apis=0 spoofed=0.0% hooks=0-0/28 leaks=0 kills=0
+2026-02-19 22:39:57 [host.flows.genesis] INFO: Profile snapshot captured: log_id=12 trigger=genesis_end
+2026-02-19 22:40:24 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:40:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:40:25 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:40:29 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:40:32 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:40:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:40:36 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:40:40 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:40:44 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:40:51 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:40:51 [hookguard] WARNING: Bridge unverified: 7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:40:55 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:40:55 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:40:58 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:41:02 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:41:02 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:41:06 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:41:09 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:41:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:41:13 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:41:16 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:05 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:05 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:44:05 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:09 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:12 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:16 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:44:16 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:19 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:23 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:44:27 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:30 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:37 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:44:38 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:41 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:45 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:44:49 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:52 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:56 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:44:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:44:59 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:45:12 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:45:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:45:13 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:45:19 [hookguard] WARNING: Bridge unverified: 7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:45:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:45:23 [hookguard] WARNING: Bridge unverified: 7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:45:27 [hookguard] WARNING: Bridge unverified: 7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:45:30 [hookguard] WARNING: Bridge unverified: 7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:45:34 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:45:34 [hookguard] WARNING: Bridge unverified: 7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:45:38 [hookguard] WARNING: Bridge unverified: 7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:45:41 [hookguard] WARNING: Bridge unverified: 7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:45:45 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:45:45 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:45:45 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:45:55 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:45:55 [hookguard] WARNING: Bridge unverified: 7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:45:59 [hookguard] WARNING: Bridge unverified: 7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:46:02 [hookguard] WARNING: Bridge unverified: 7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:46:06 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:46:06 [hookguard] WARNING: Bridge unverified: 7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:46:09 [hookguard] WARNING: Bridge unverified: 7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:46:13 [hookguard] WARNING: Bridge unverified: 7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:46:17 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:46:17 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:46:17 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:50:19 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-19 22:50:19 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 22:50:19 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 22:50:23 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 22:50:24 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 22:50:53 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 22:50:55 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-19 22:50:55 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-19 22:51:27 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:51:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:51:27 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:51:31 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:51:34 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:51:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:51:38 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:51:42 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:51:45 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:51:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:51:49 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:51:52 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:51:56 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:00 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:52:00 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:03 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:07 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:11 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:52:11 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:14 [hookguard] WARNING: Heartbeat never seen: TikTok running for 48s — module may not be injecting
+2026-02-19 22:52:14 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:18 [hookguard] WARNING: Heartbeat never seen: TikTok running for 52s — module may not be injecting
+2026-02-19 22:52:18 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:22 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:52:22 [hookguard] WARNING: Heartbeat never seen: TikTok running for 55s — module may not be injecting
+2026-02-19 22:52:22 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:25 [hookguard] WARNING: Heartbeat never seen: TikTok running for 59s — module may not be injecting
+2026-02-19 22:52:25 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:29 [hookguard] WARNING: Heartbeat never seen: TikTok running for 63s — module may not be injecting
+2026-02-19 22:52:29 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:33 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:33 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:52:33 [hookguard] WARNING: Heartbeat never seen: TikTok running for 67s — module may not be injecting
+2026-02-19 22:52:33 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:37 [hookguard] WARNING: Heartbeat never seen: TikTok running for 70s — module may not be injecting
+2026-02-19 22:52:37 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:40 [hookguard] WARNING: Heartbeat never seen: TikTok running for 74s — module may not be injecting
+2026-02-19 22:52:40 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:44 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:52:44 [hookguard] WARNING: Heartbeat never seen: TikTok running for 77s — module may not be injecting
+2026-02-19 22:52:44 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:47 [hookguard] WARNING: Heartbeat never seen: TikTok running for 81s — module may not be injecting
+2026-02-19 22:52:47 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:51 [hookguard] WARNING: Heartbeat never seen: TikTok running for 84s — module may not be injecting
+2026-02-19 22:52:51 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:54 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:52:54 [hookguard] WARNING: Heartbeat never seen: TikTok running for 88s — module may not be injecting
+2026-02-19 22:52:54 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:52:58 [hookguard] WARNING: Heartbeat never seen: TikTok running for 91s — module may not be injecting
+2026-02-19 22:52:58 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:53:01 [hookguard] WARNING: Heartbeat never seen: TikTok running for 95s — module may not be injecting
+2026-02-19 22:53:01 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:53:05 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:53:05 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:53:05 [hookguard] WARNING: Heartbeat never seen: TikTok running for 99s — module may not be injecting
+2026-02-19 22:53:05 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:53:09 [hookguard] WARNING: Heartbeat never seen: TikTok running for 102s — module may not be injecting
+2026-02-19 22:53:09 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:53:12 [hookguard] WARNING: Heartbeat never seen: TikTok running for 106s — module may not be injecting
+2026-02-19 22:53:12 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:53:16 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 22:53:16 [hookguard] WARNING: Heartbeat never seen: TikTok running for 110s — module may not be injecting
+2026-02-19 22:53:16 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:53:20 [hookguard] WARNING: Heartbeat never seen: TikTok running for 113s — module may not be injecting
+2026-02-19 22:53:20 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 22:53:23 [hookguard] WARNING: Heartbeat never seen: TikTok running for 117s — module may not be injecting
+2026-02-19 22:53:23 [hookguard] WARNING: Bridge mismatch (warning): hash=7e901b33c6beca6fe260e71117dfaec7
+2026-02-19 23:17:20 [host.api.control] INFO: Genesis-Flow gestartet: genesisWlanVersuch
+2026-02-19 23:17:20 [host.flows.genesis] INFO: ============================================================
+2026-02-19 23:17:20 [host.flows.genesis] INFO:   GENESIS FLOW: genesisWlanVersuch
+2026-02-19 23:17:20 [host.flows.genesis] INFO: ============================================================
+2026-02-19 23:17:20 [host.flows.genesis] INFO: Genesis Frequency: 2/2h, 11/24h, 52 total (Limits: 9999/2h, 9999/24h, Cooldown 0min)
+2026-02-19 23:17:20 [host.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-19 23:17:21 [host.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-19 23:17:21 [host.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-19 23:17:21 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'stealth_v8_test1' hat keinen TikTok-Account — Checkbox nicht gesetzt
+2026-02-19 23:17:21 [host.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-19 23:17:21 [host.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-19 23:17:21 [host.shifter] INFO: [Clean] pm clear com.zhiliaoapp.musically: OK (firstInstallTime unverändert)
+2026-02-19 23:17:22 [host.shifter] INFO: [Clean] com.ss.android.ugc.trill nicht installiert — überspringe
+2026-02-19 23:17:22 [host.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-19 23:17:22 [host.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-19 23:17:23 [host.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-19 23:17:27 [host.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-19 23:17:28 [host.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-19 23:17:30 [host.shifter] INFO: AAID Reset: über Content-Provider (GMS-Dateien unberührt)
+2026-02-19 23:17:30 [host.shifter] WARNING: Deep Clean: 40/41 OK — FEHLGESCHLAGEN: compiler_reset_com.ss.android.ugc.trill
+2026-02-19 23:17:30 [host.flows.genesis] INFO: [3/11] Sterilize: OK (40/41 Operationen (GMS geschützt) | nicht-kritisch fehlgeschlagen: compiler_reset_com.ss.android.ugc.trill)
+2026-02-19 23:17:30 [host.shifter] INFO: Clearing system clipboard...
+2026-02-19 23:17:30 [host.shifter] INFO: Clipboard cleared
+2026-02-19 23:17:30 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-19 23:17:38 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-19 23:17:38 [host.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-19 23:17:38 [host.identity] INFO: Identität generiert: name=genesisWlanVersuch serial=5JHXUBB6YCB5 imei1=355543…9198 carrier=O2-DE
+2026-02-19 23:17:38 [host.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 1065...6395 (v5.0 — FINAL, kein Platzhalter)
+2026-02-19 23:17:38 [host.flows.genesis] INFO: [4/11] Generate: OK (serial=5JHXUBB6YCB5)
+2026-02-19 23:17:38 [host.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-19 23:17:38 [host.db_ops] INFO: Auto-Profil erstellt: id=53, name=genesisWlanVersuch
+2026-02-19 23:17:38 [host.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=53
+2026-02-19 23:17:38 [host.flows.genesis] INFO: [5/11] Persist: OK (identity_id=59, profile_id=53)
+2026-02-19 23:17:38 [host.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-19 23:17:38 [host.injector] INFO: Injecting identity: serial=5JHXUBB6YCB5 imei1=355543…9198
+2026-02-19 23:17:38 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/bridge_jgjeqsfi.bridge → /data/local/tmp/.bridge_staging
+2026-02-19 23:17:38 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-19 23:17:39 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-19 23:17:39 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #59 auf 'active' gesetzt
+2026-02-19 23:17:42 [host.injector] INFO: Bridge verteilt an 8/10 Apps
+2026-02-19 23:17:43 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → fdd41015-caf0-4949-be59-39eed5e3a33b
+2026-02-19 23:17:43 [host.injector] INFO: Injection komplett + verifiziert: 5JHXUBB6YCB5
+2026-02-19 23:17:43 [host.flows.genesis] INFO: [6/11] PIF v5.0: autopif4-First Strategie (BASIC_INTEGRITY)...
+2026-02-19 23:17:43 [host.injector] INFO: PIF v5.0: autopif4 Canary-Fingerprint gefunden — verwende diesen (NICHT unseren statischen Pool)
+2026-02-19 23:17:43 [host.injector] INFO: PIF autopif4: FP=google/oriole_beta/oriole:CANARY/ZP11.260123.011/1… | Patch=2026-02-05 | Estimated Expiry: 2026-03-26
+2026-02-19 23:17:43 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/pif_ezhknm5_.prop → /data/local/tmp/.pif_staging.prop
+2026-02-19 23:17:44 [host.injector] INFO: PIF v5.0 OK [autopif4-canary]: custom.pif.prop → /data/adb/modules/playintegrityfix/custom.pif.prop
+2026-02-19 23:17:44 [host.flows.genesis] INFO: [6/11] PIF: custom.pif.prop erfolgreich gepusht
+2026-02-19 23:17:44 [host.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-19 23:17:44 [host.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-19 23:17:44 [host.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Kill-Switch entfernt | PIF=OK)
+2026-02-19 23:17:44 [host.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-19 23:17:44 [host.adb] INFO: Reboot: mode=normal
+2026-02-19 23:17:50 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-19 23:17:50 [host.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-19 23:17:50 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-19 23:17:50 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 23:17:50 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 23:17:50 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 23:17:50 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 23:17:52 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 23:17:53 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 23:17:55 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 23:17:56 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 23:18:05 [host.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-19 23:18:05 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 23:18:05 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 23:18:05 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 23:18:05 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 23:18:09 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 23:18:09 [host.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-19 23:18:09 [host.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-19 23:18:09 [host.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-19 23:18:09 [host.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-19 23:18:09 [host.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-19 23:18:09 [host.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-19 23:18:10 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 23:18:11 [host.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-19 23:18:11 [host.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-19 23:18:24 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 23:18:26 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-19 23:18:26 [host.flows.genesis] INFO: [7/11] Warte auf Boot (unbegrenzt, pollt alle 3s)...
+2026-02-19 23:18:26 [host.adb] INFO: Warte auf Gerät (unbegrenzt, pollt alle 3s)...
+2026-02-19 23:18:26 [host.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-19 23:18:26 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "id"
+2026-02-19 23:18:26 [host.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-19 23:18:26 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-19 23:18:26 [host.adb] INFO: ADB Erfolg nach 2 Versuchen: adb shell su -c "id"
+2026-02-19 23:18:35 [host.adb] INFO: Gerät gebootet nach 9.0s
+2026-02-19 23:18:35 [host.flows.genesis] INFO: [7/11] Boot erkannt — warte 5s post-boot...
+2026-02-19 23:18:43 [host.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-19 23:18:43 [host.flows.genesis] INFO: [7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...
+2026-02-19 23:18:43 [host.flows.genesis] INFO: [7/11] Bridge [primär]: OK (serial=5JHXUBB6YCB5)
+2026-02-19 23:18:43 [host.flows.genesis] INFO: [7/11] Bridge [sdcard]: OK (serial=5JHXUBB6YCB5)
+2026-02-19 23:18:43 [host.flows.genesis] INFO: [7/11] Bridge [app]: OK (serial=5JHXUBB6YCB5)
+2026-02-19 23:18:43 [host.flows.genesis] INFO: [7/11] Bridge-Verifikation: Primärpfad OK
+2026-02-19 23:18:43 [host.flows.genesis] INFO: [7/11] Hard Reset: OK (Boot + Unlock in 59.7s)
+2026-02-19 23:18:43 [host.flows.genesis] INFO: [7b/11] DroidGuard Sanitize: Stale Attestierungs-Tokens löschen...
+2026-02-19 23:18:44 [host.shifter] INFO: [DroidGuard+Analytics] Sanitized: 11/11 Einträge gelöscht (Neu-Attestierung + Cross-App-Correlation entfernt)
+2026-02-19 23:18:44 [host.flows.genesis] INFO: [7b/11] DroidGuard-Cache gelöscht — erzwinge GMS-Neustart...
+2026-02-19 23:18:50 [host.flows.genesis] INFO: [7b/11] GMS neu gestartet — frische Attestierung eingeleitet
+2026-02-19 23:18:50 [host.flows.genesis] INFO: [7c/11] Bewohntes Haus: Prüfe Dummy-App-Präsenz...
+2026-02-19 23:18:50 [host.flows.genesis] WARNING: [7c/11] BEWOHNTES HAUS: 10/12 Apps vorhanden (83%). Fehlend: Google Keep, Google Translate — Gerät könnte als 'frisch' erkannt werden!
+2026-02-19 23:18:50 [host.flows.genesis] INFO: [7d/11] Post-Reboot Sterilisierung...
+2026-02-19 23:18:50 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-19 23:18:58 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-19 23:18:58 [host.flows.genesis] INFO: [7d/11] Post-Reboot: Sauber — keine Artefakte gefunden
+2026-02-19 23:18:58 [host.flows.genesis] INFO: [7e/11] HookGuard Pre-Network Start...
+2026-02-19 23:18:58 [host.flows.genesis] INFO: [8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS...
+2026-02-19 23:19:18 [host.flows.genesis] INFO: [8/11] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-19 23:19:18 [host.flows.genesis] INFO: [8/11] Warte 15s auf neue Mobilfunk-Verbindung...
+2026-02-19 23:19:33 [host.network] INFO: Öffentliche IP: 176.6.45.71 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-19 23:19:33 [host.flows.genesis] INFO: [8/11] Network Init: Neue IP = 176.6.45.71 (via api.ipify.org)
+2026-02-19 23:19:33 [host.flows.genesis] WARNING: [8/11] SUBNET SÄTTIGUNG: 11 verschiedene Identitäten von 176.6.x.x in 24h — TikTok rate-limitet auf Carrier/ASN-Ebene!
+2026-02-19 23:19:33 [host.flows.genesis] INFO: [9/11] GMS Ready: Dynamisches Readiness-Polling (v6.0)...
+2026-02-19 23:19:33 [host.shifter] INFO: [Readiness] Warte auf sys.boot_completed=1...
+2026-02-19 23:19:33 [host.shifter] INFO: [Readiness] Boot bestätigt nach 0s
+2026-02-19 23:19:33 [host.shifter] INFO: [Readiness] Warte auf GmsCore Service...
+2026-02-19 23:19:33 [host.shifter] INFO: [Readiness] GMS-Prozess aktiv nach 0s
+2026-02-19 23:19:33 [host.shifter] INFO: [Readiness] System bereit — Boot: 0s | GMS(pid): 0s (GMS Verbindung steht - Bereit zum Loslegen!)
+2026-02-19 23:19:33 [host.flows.genesis] INFO: [9/11] GSF-ID: Generierte ID beibehalten. Bridge-GSF: 1065...6395
+2026-02-19 23:19:33 [host.flows.genesis] INFO: [9/11] GMS Verbindung steht - Bereit zum Loslegen! (Boot: 0s | GMS(pid): 0s)
+2026-02-19 23:19:33 [host.flows.genesis] INFO: [9/11] GMS Ready: GMS Verbindung steht (0s) | GSF-ID: generiert beibehalten
+2026-02-19 23:19:33 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...
+2026-02-19 23:19:33 [host.auditor] INFO: Audit starten: genesisWlanVersuch (serial=5JHXUBB6YCB5)
+2026-02-19 23:19:34 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-19 23:19:34 [host.auditor] INFO:   [+] bridge_serial: pass — serial=5JHXUBB6YCB5, boot_serial=5JHXUBB6YCB5 — korrekt
+2026-02-19 23:19:34 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-19 23:19:34 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: 3c:5a:b4:27:07:96
+2026-02-19 23:19:34 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-19 23:19:34 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-19 23:19:34 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-19 23:19:34 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-19 23:19:34 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-19 23:19:34 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-19 23:19:34 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-19 23:19:34 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-19 23:19:34 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-19 23:19:34 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-19 23:19:34 [host.auditor] INFO: Audit [genesisWlanVersuch]: 100% (14/14 passed)
+2026-02-19 23:19:34 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Integrität bestätigt (100%)
+2026-02-19 23:19:34 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline sichern...
+2026-02-19 23:19:34 [host.shifter] INFO: ============================================================
+2026-02-19 23:19:34 [host.shifter] INFO:   GOLDEN BASELINE CAPTURE: genesisWlanVersuch
+2026-02-19 23:19:34 [host.shifter] INFO:   GSF-ID: 1065...6395
+2026-02-19 23:19:34 [host.shifter] INFO: ============================================================
+2026-02-19 23:19:34 [host.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-19 23:19:36 [host.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-19 23:19:37 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/genesisWlanVersuch/gms/gms_20260219_231937.tar.tmp
+2026-02-19 23:19:44 [host.adb] INFO: Exec-Out fertig: 80383488 Bytes geschrieben
+2026-02-19 23:19:44 [host.shifter] INFO: GMS Backup (3 Pakete): OK (76.7 MB, Versuch 1/3)
+2026-02-19 23:19:44 [host.shifter] INFO: GMS tar: gms_20260219_231937.tar (76.7 MB) — 3 Pakete
+2026-02-19 23:19:44 [host.shifter] INFO: Golden Baseline GMS: OK (gms_20260219_231937.tar)
+2026-02-19 23:19:45 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/genesisWlanVersuch/accounts/accounts_20260219_231945.tar.tmp
+2026-02-19 23:19:45 [host.adb] INFO: Exec-Out fertig: 206336 Bytes geschrieben
+2026-02-19 23:19:45 [host.shifter] INFO: Account-DBs (1 Dateien): OK (0.2 MB, Versuch 1/3)
+2026-02-19 23:19:45 [host.shifter] INFO: Account-DBs tar: accounts_20260219_231945.tar (206336 Bytes, 1 Dateien)
+2026-02-19 23:19:45 [host.shifter] INFO: Golden Baseline Accounts: OK (accounts_20260219_231945.tar)
+2026-02-19 23:19:45 [host.shifter] INFO: Golden Baseline: 2/2 Komponenten gesichert
+2026-02-19 23:19:45 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline komplett
+2026-02-19 23:19:45 [host.flows.genesis] INFO: [11/11] Audit + Account-Check + TikTok ID-Validation (v6.1)...
+2026-02-19 23:19:45 [host.auditor] INFO: Audit starten: genesisWlanVersuch (serial=5JHXUBB6YCB5)
+2026-02-19 23:19:45 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-19 23:19:45 [host.auditor] INFO:   [+] bridge_serial: pass — serial=5JHXUBB6YCB5, boot_serial=5JHXUBB6YCB5 — korrekt
+2026-02-19 23:19:45 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-19 23:19:45 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: 3c:5a:b4:27:07:96
+2026-02-19 23:19:45 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-19 23:19:45 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-19 23:19:45 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-19 23:19:45 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-19 23:19:45 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-19 23:19:45 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-19 23:19:45 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-19 23:19:45 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-19 23:19:45 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-19 23:19:45 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-19 23:19:45 [host.auditor] INFO: Audit [genesisWlanVersuch]: 100% (14/14 passed)
+2026-02-19 23:19:45 [host.shifter] INFO: [Account-Check] Google-Account gefunden: arvinvaha@gmail.com
+2026-02-19 23:19:45 [host.flows.genesis] INFO: [11/11] Google-Account: arvinvaha@gmail.com
+2026-02-19 23:19:45 [host.flows.genesis] INFO: [11/11] TikTok Silent Launch: ID-Generierung starten...
+2026-02-19 23:19:45 [host.shifter] INFO: [SilentLaunch] Starte com.zhiliaoapp.musically für ID-Generierung (15s)...
+2026-02-19 23:19:47 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-19 23:19:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 23:19:47 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-19 23:19:51 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-19 23:19:54 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-19 23:19:58 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 23:19:58 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-19 23:20:03 [host.flows.genesis] WARNING: [11/11] install_id nicht extrahierbar (TikTok nicht installiert?)
+2026-02-19 23:20:03 [host.flows.genesis] INFO: [11/11] Audit: PASS (100%) | Google-Account: arvinvaha@gmail.com
+2026-02-19 23:20:03 [host.flows.genesis] INFO: ============================================================
+2026-02-19 23:20:03 [host.flows.genesis] INFO:   GENESIS ERFOLG: genesisWlanVersuch (162547 ms)
+2026-02-19 23:20:03 [host.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
+2026-02-19 23:20:03 [host.flows.genesis] INFO: ============================================================
+2026-02-19 23:20:03 [host.db_ops] INFO: Profile log captured: profile=53 trigger=genesis_end apis=0 spoofed=0.0% hooks=0-0/28 leaks=0 kills=0
+2026-02-19 23:20:03 [host.flows.genesis] INFO: Profile snapshot captured: log_id=13 trigger=genesis_end
+2026-02-20 00:23:19 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 00:23:19 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 00:23:19 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:23:23 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:23:27 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:23:30 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 00:23:30 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:23:34 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:23:37 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501

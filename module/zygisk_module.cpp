@@ -2,9 +2,6 @@
  * Hardware Compatibility Overlay - Zygisk Module
  */
 
-// Release mode: disable all logging output
-#define STEALTH_MODE
-
 #include <jni.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -31,7 +28,7 @@
 #include <string>
 #include <atomic>
 #include <mutex>
-#include <deque>
+
 #include <unordered_set>
 #include <unordered_map>
 
@@ -39,7 +36,7 @@
 #include <linux/memfd.h>   // FIX-24: memfd_create (MFD_CLOEXEC)
 
 #include "../include/zygisk.hpp"
-#include "../include/dobby.h"
+// Dobby removed (v8.0 — signal-based hooks)
 #include "../common/hw_compat.h"
 
 // =============================================================================
@@ -81,9 +78,9 @@ static inline int _memfd_create(unsigned int flags) {
     #define LOGW(...) ((void)0)
     #define LOGE(...) ((void)0)
 #else
-    #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,  "HwOverlay", __VA_ARGS__)
-    #define LOGW(...) __android_log_print(ANDROID_LOG_WARN,  "HwOverlay", __VA_ARGS__)
-    #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "HwOverlay", __VA_ARGS__)
+    #define LOGI(...) __android_log_print(ANDROID_LOG_INFO,  "sys", __VA_ARGS__)
+    #define LOGW(...) __android_log_print(ANDROID_LOG_WARN,  "sys", __VA_ARGS__)
+    #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "sys", __VA_ARGS__)
 #endif
 
 // ==============================================================================
@@ -105,17 +102,63 @@ static const unsigned char _ENC_BRIDGE_PATH[] = {
 };
 #define BRIDGE_PATH_LEN 39
 
+static const unsigned char _ENC_PATH_PROC_SELF_MAPS[] = {0x75,0x2a,0x28,0x35,0x39,0x75,0x29,0x3f,0x36,0x3c,0x75,0x37,0x3b,0x2a,0x29};
+#define _ENC_PATH_PROC_SELF_MAPS_LEN 15
+static const unsigned char _ENC_PATH_PROC_NET_ARP[] = {0x75,0x2a,0x28,0x35,0x39,0x75,0x34,0x3f,0x2e,0x75,0x3b,0x28,0x2a};
+#define _ENC_PATH_PROC_NET_ARP_LEN 13
+static const unsigned char _ENC_PATH_PROC_INPUT_DEV[] = {0x75,0x2a,0x28,0x35,0x39,0x75,0x38,0x2f,0x29,0x75,0x33,0x34,0x2a,0x2f,0x2e,0x75,0x3e,0x3f,0x2c,0x33,0x39,0x3f,0x29};
+#define _ENC_PATH_PROC_INPUT_DEV_LEN 23
+static const unsigned char _ENC_PATH_PROC_CPUINFO[] = {0x75,0x2a,0x28,0x35,0x39,0x75,0x39,0x2a,0x2f,0x33,0x34,0x3c,0x35};
+#define _ENC_PATH_PROC_CPUINFO_LEN 13
+static const unsigned char _ENC_PATH_PROC_VERSION[] = {0x75,0x2a,0x28,0x35,0x39,0x75,0x2c,0x3f,0x28,0x29,0x33,0x35,0x34};
+#define _ENC_PATH_PROC_VERSION_LEN 13
+static const unsigned char _ENC_PATH_SYS_WLAN0_ADDR[] = {0x75,0x29,0x23,0x29,0x75,0x39,0x36,0x3b,0x29,0x29,0x75,0x34,0x3f,0x2e,0x75,0x2d,0x36,0x3b,0x34,0x6a,0x75,0x3b,0x3e,0x3e,0x28,0x3f,0x29,0x29};
+#define _ENC_PATH_SYS_WLAN0_ADDR_LEN 28
+static const unsigned char _ENC_PATH_SYS_ETH0_ADDR[] = {0x75,0x29,0x23,0x29,0x75,0x39,0x36,0x3b,0x29,0x29,0x75,0x34,0x3f,0x2e,0x75,0x3f,0x2e,0x32,0x6a,0x75,0x3b,0x3e,0x3e,0x28,0x3f,0x29,0x29};
+#define _ENC_PATH_SYS_ETH0_ADDR_LEN 27
+static const unsigned char _ENC_PATH_DATA_TMP_PREFIX[] = {0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x36,0x35,0x39,0x3b,0x36,0x75,0x2e,0x37,0x2a,0x75,0x74,0x2e,0x05};
+#define _ENC_PATH_DATA_TMP_PREFIX_LEN 19
+static const unsigned char _ENC_PATH_PROC_SELF_MEM[] = {0x75,0x2a,0x28,0x35,0x39,0x75,0x29,0x3f,0x36,0x3c,0x75,0x37,0x3f,0x37};
+#define _ENC_PATH_PROC_SELF_MEM_LEN 14
+
 static char g_killSwitchPath[KILL_SWITCH_LEN + 1] = {};
 static char g_bridgePath[BRIDGE_PATH_LEN + 1] = {};
+static char g_pathProcSelfMaps[_ENC_PATH_PROC_SELF_MAPS_LEN + 1] = {};
+static char g_pathProcNetArp[_ENC_PATH_PROC_NET_ARP_LEN + 1] = {};
+static char g_pathProcInputDev[_ENC_PATH_PROC_INPUT_DEV_LEN + 1] = {};
+static char g_pathProcCpuinfo[_ENC_PATH_PROC_CPUINFO_LEN + 1] = {};
+static char g_pathProcVersion[_ENC_PATH_PROC_VERSION_LEN + 1] = {};
+static char g_pathSysWlan0Addr[_ENC_PATH_SYS_WLAN0_ADDR_LEN + 1] = {};
+static char g_pathSysEth0Addr[_ENC_PATH_SYS_ETH0_ADDR_LEN + 1] = {};
+static char g_pathDataTmpPrefix[_ENC_PATH_DATA_TMP_PREFIX_LEN + 1] = {};
+static char g_pathProcSelfMem[_ENC_PATH_PROC_SELF_MEM_LEN + 1] = {};
 static std::once_flag g_pathsDecoded;
 
 static void _decodePaths() {
     _xdec(g_killSwitchPath, _ENC_KILL_SWITCH, KILL_SWITCH_LEN);
     _xdec(g_bridgePath, _ENC_BRIDGE_PATH, BRIDGE_PATH_LEN);
+    _xdec(g_pathProcSelfMaps, _ENC_PATH_PROC_SELF_MAPS, _ENC_PATH_PROC_SELF_MAPS_LEN);
+    _xdec(g_pathProcNetArp, _ENC_PATH_PROC_NET_ARP, _ENC_PATH_PROC_NET_ARP_LEN);
+    _xdec(g_pathProcInputDev, _ENC_PATH_PROC_INPUT_DEV, _ENC_PATH_PROC_INPUT_DEV_LEN);
+    _xdec(g_pathProcCpuinfo, _ENC_PATH_PROC_CPUINFO, _ENC_PATH_PROC_CPUINFO_LEN);
+    _xdec(g_pathProcVersion, _ENC_PATH_PROC_VERSION, _ENC_PATH_PROC_VERSION_LEN);
+    _xdec(g_pathSysWlan0Addr, _ENC_PATH_SYS_WLAN0_ADDR, _ENC_PATH_SYS_WLAN0_ADDR_LEN);
+    _xdec(g_pathSysEth0Addr, _ENC_PATH_SYS_ETH0_ADDR, _ENC_PATH_SYS_ETH0_ADDR_LEN);
+    _xdec(g_pathDataTmpPrefix, _ENC_PATH_DATA_TMP_PREFIX, _ENC_PATH_DATA_TMP_PREFIX_LEN);
+    _xdec(g_pathProcSelfMem, _ENC_PATH_PROC_SELF_MEM, _ENC_PATH_PROC_SELF_MEM_LEN);
 }
 
-#define KILL_SWITCH_PATH  (std::call_once(g_pathsDecoded, _decodePaths), g_killSwitchPath)
-#define BRIDGE_FILE_PATH  (std::call_once(g_pathsDecoded, _decodePaths), g_bridgePath)
+#define KILL_SWITCH_PATH    (std::call_once(g_pathsDecoded, _decodePaths), g_killSwitchPath)
+#define BRIDGE_FILE_PATH    (std::call_once(g_pathsDecoded, _decodePaths), g_bridgePath)
+#define PATH_PROC_SELF_MAPS (std::call_once(g_pathsDecoded, _decodePaths), g_pathProcSelfMaps)
+#define PATH_PROC_NET_ARP   (std::call_once(g_pathsDecoded, _decodePaths), g_pathProcNetArp)
+#define PATH_PROC_INPUT_DEV (std::call_once(g_pathsDecoded, _decodePaths), g_pathProcInputDev)
+#define PATH_PROC_CPUINFO   (std::call_once(g_pathsDecoded, _decodePaths), g_pathProcCpuinfo)
+#define PATH_PROC_VERSION   (std::call_once(g_pathsDecoded, _decodePaths), g_pathProcVersion)
+#define PATH_SYS_WLAN0_ADDR (std::call_once(g_pathsDecoded, _decodePaths), g_pathSysWlan0Addr)
+#define PATH_SYS_ETH0_ADDR  (std::call_once(g_pathsDecoded, _decodePaths), g_pathSysEth0Addr)
+#define PATH_DATA_TMP_PREFIX (std::call_once(g_pathsDecoded, _decodePaths), g_pathDataTmpPrefix)
+#define PATH_PROC_SELF_MEM   (std::call_once(g_pathsDecoded, _decodePaths), g_pathProcSelfMem)
 
 // Target Apps
 struct EncPackage { const unsigned char* data; size_t len; };
@@ -153,6 +196,32 @@ static const EncPackage ENC_TARGET_APPS[] = {
     {_ENC_PKG_DEVICEID,  15},   // tw.reh.deviceid
 };
 static const int ENC_TARGET_APPS_COUNT = 7;
+
+static const unsigned char _ENC_GOT_MUSICALLY[] = {0x37,0x2f,0x29,0x33,0x39,0x3b,0x36,0x36,0x23};
+static const unsigned char _ENC_GOT_SS_ANDROID[] = {0x29,0x29,0x74,0x3b,0x34,0x3e,0x28,0x35,0x33,0x3e};
+static const unsigned char _ENC_GOT_BYTEDANCE[] = {0x38,0x23,0x2e,0x3f,0x3e,0x3b,0x34,0x39,0x3f};
+static const unsigned char _ENC_GOT_SSCRONET[] = {0x29,0x29,0x39,0x28,0x35,0x34,0x3f,0x2e};
+static const unsigned char _ENC_GOT_TTBORINGSSL[] = {0x2e,0x2e,0x38,0x35,0x28,0x33,0x34,0x3d,0x29,0x29,0x36};
+static const unsigned char _ENC_GOT_PANGLE[] = {0x2a,0x3b,0x34,0x3d,0x36,0x3f};
+static const unsigned char _ENC_GOT_APPLOG[] = {0x3b,0x2a,0x2a,0x36,0x35,0x3d};
+static const unsigned char _ENC_GOT_METASEC[] = {0x37,0x3f,0x2e,0x3b,0x29,0x3f,0x39};
+static const unsigned char _ENC_GOT_MSAOAIDSEC[] = {0x37,0x29,0x3b,0x35,0x3b,0x33,0x3e,0x29,0x3f,0x39};
+static const unsigned char _ENC_GOT_SEC_SDK[] = {0x29,0x3f,0x39,0x05,0x29,0x3e,0x31};
+
+struct EncGotStr { const unsigned char* data; size_t len; };
+static const EncGotStr ENC_GOT_LIBS[] = {
+    {_ENC_GOT_MUSICALLY,  9},
+    {_ENC_GOT_SS_ANDROID, 10},
+    {_ENC_GOT_BYTEDANCE,  9},
+    {_ENC_GOT_SSCRONET,   8},
+    {_ENC_GOT_TTBORINGSSL,11},
+    {_ENC_GOT_PANGLE,     6},
+    {_ENC_GOT_APPLOG,     6},
+    {_ENC_GOT_METASEC,    7},
+    {_ENC_GOT_MSAOAIDSEC, 10},
+    {_ENC_GOT_SEC_SDK,    7},
+};
+static const int ENC_GOT_LIBS_COUNT = 10;
 
 // FIX-20: Hardcoded Defaults ENTFERNT.
 // Wenn die Bridge-Datei nicht geladen werden kann, werden die Hooks
@@ -284,82 +353,94 @@ static std::unordered_set<int> g_macFileFds;
 static unsigned char g_spoofedMacBytes[6] = {0};
 static bool g_macParsed = false;
 
-// ==================== Native Access Monitor ====================
-namespace NativeMonitor {
-    static std::mutex g_log_mutex;
-    static std::deque<std::string> g_log_buffer;
-    static constexpr size_t MAX_LOG_LINES = 2000;
-    static constexpr const char* LOG_PATH = "/data/local/tmp/.titan_native_access.log";
-    static time_t g_last_heartbeat = 0;
-    static constexpr int HEARTBEAT_INTERVAL_SEC = 5;
-    static thread_local bool g_in_monitor = false;
+// NativeMonitor removed (v8.0 Stealth)
 
-    static std::deque<std::string> g_critical_buffer;
-    static constexpr size_t MAX_CRITICAL_LINES = 200;
-    static constexpr const char* CRITICAL_LOG_PATH = "/data/local/tmp/.titan_native_critical.log";
+// ==============================================================================
+// ARM64 Inline Hook Engine (no signal handler, immune to handler overwrites)
+// ==============================================================================
+// Patches 16 bytes at function entry: LDR X16,#8 + BR X16 + .quad hookAddr
+// Trampoline in memfd-backed RX page: original 4 insns + LDR+BR back to target+16
+// Uses /proc/self/mem for W^X bypass (no mprotect traces)
+// ==============================================================================
 
-    static void record(const char* flag, const char* hook_name, const char* key, const char* value) {
-        if (g_in_monitor) return;
-        g_in_monitor = true;
+static bool _is_pc_relative(uint32_t insn) {
+    if ((insn & 0x9F000000) == 0x90000000) return true;  // ADRP
+    if ((insn & 0x9F000000) == 0x10000000) return true;  // ADR
+    if ((insn & 0xFC000000) == 0x14000000) return true;  // B
+    if ((insn & 0xFC000000) == 0x94000000) return true;  // BL
+    if ((insn & 0xFE000000) == 0x54000000) return true;  // B.cond
+    if ((insn & 0x7E000000) == 0x34000000) return true;  // CBZ/CBNZ
+    if ((insn & 0x7E000000) == 0x36000000) return true;  // TBZ/TBNZ
+    if ((insn & 0x3B000000) == 0x18000000) return true;  // LDR (literal)
+    return false;
+}
 
-        struct timespec ts;
-        clock_gettime(CLOCK_REALTIME, &ts);
-        char time_buf[32];
-        struct tm tm_info;
-        localtime_r(&ts.tv_sec, &tm_info);
-        snprintf(time_buf, sizeof(time_buf), "%02d:%02d:%02d.%03ld",
-                 tm_info.tm_hour, tm_info.tm_min, tm_info.tm_sec, ts.tv_nsec / 1000000);
+static bool install_inline_hook(void* target, void* hook, void** orig) {
+    if (!target || !hook || !orig)
+        return false;
 
-        char line[512];
-        snprintf(line, sizeof(line), "%s|%s|%s|%s|%.128s",
-                 time_buf, flag, hook_name, key ? key : "", value ? value : "");
+    uint32_t origInsns[4];
+    memcpy(origInsns, target, 16);
 
-        {
-            std::lock_guard<std::mutex> lock(g_log_mutex);
-            g_log_buffer.push_back(std::string(line));
-            if (g_log_buffer.size() > MAX_LOG_LINES) {
-                g_log_buffer.pop_front();
-            }
-
-            if (strcmp(flag, "REAL") == 0 || strcmp(flag, "CRITICAL") == 0) {
-                g_critical_buffer.push_back(std::string(line));
-                if (g_critical_buffer.size() > MAX_CRITICAL_LINES) {
-                    g_critical_buffer.pop_front();
-                }
-            }
-
-            if (ts.tv_sec - g_last_heartbeat >= HEARTBEAT_INTERVAL_SEC) {
-                g_last_heartbeat = ts.tv_sec;
-
-                char hb_line[64];
-                snprintf(hb_line, sizeof(hb_line), "%s|HEARTBEAT|native|%ld|", time_buf, (long)ts.tv_sec);
-                g_log_buffer.push_back(std::string(hb_line));
-                if (g_log_buffer.size() > MAX_LOG_LINES) {
-                    g_log_buffer.pop_front();
-                }
-
-                FILE* f = fopen(LOG_PATH, "w");
-                if (f) {
-                    for (const auto& l : g_log_buffer) {
-                        fprintf(f, "%s\n", l.c_str());
-                    }
-                    fclose(f);
-                }
-
-                if (!g_critical_buffer.empty()) {
-                    FILE* cf = fopen(CRITICAL_LOG_PATH, "w");
-                    if (cf) {
-                        for (const auto& l : g_critical_buffer) {
-                            fprintf(cf, "%s\n", l.c_str());
-                        }
-                        fclose(cf);
-                    }
-                }
-            }
+    for (int i = 0; i < 4; i++) {
+        if (_is_pc_relative(origInsns[i])) {
+            LOGW("[HW] PC-relative insn at %p+%d (0x%08x), skipping inline hook",
+                 target, i * 4, origInsns[i]);
+            return false;
         }
-
-        g_in_monitor = false;
     }
+
+    int mfd = _memfd_create(MFD_CLOEXEC);
+    if (mfd < 0) return false;
+
+    static constexpr uint32_t kLdrX16_8 = 0x58000050;  // LDR X16, [PC, #8]
+    static constexpr uint32_t kBrX16    = 0xD61F0200;   // BR X16
+    uint64_t retAddr = reinterpret_cast<uint64_t>(target) + 16;
+
+    uint8_t tramp[32];
+    memcpy(tramp + 0,  origInsns, 16);       // original 4 instructions
+    memcpy(tramp + 16, &kLdrX16_8, 4);       // LDR X16, [PC, #8]
+    memcpy(tramp + 20, &kBrX16,    4);       // BR X16
+    memcpy(tramp + 24, &retAddr,   8);       // .quad target+16
+
+    if (write(mfd, tramp, sizeof(tramp)) != static_cast<ssize_t>(sizeof(tramp))) {
+        close(mfd);
+        return false;
+    }
+
+    void* tramAddr = mmap(nullptr, 4096, PROT_READ | PROT_EXEC,
+                          MAP_PRIVATE, mfd, 0);
+    if (tramAddr == MAP_FAILED) {
+        close(mfd);
+        return false;
+    }
+    close(mfd);
+    *orig = tramAddr;
+
+    uint8_t patch[16];
+    uint64_t hookAddr = reinterpret_cast<uint64_t>(hook);
+    memcpy(patch + 0, &kLdrX16_8, 4);        // LDR X16, [PC, #8]
+    memcpy(patch + 4, &kBrX16,    4);         // BR X16
+    memcpy(patch + 8, &hookAddr,  8);         // .quad hook
+
+    int memFd = _raw_openat(PATH_PROC_SELF_MEM, O_RDWR);
+    if (memFd >= 0) {
+        lseek(memFd, reinterpret_cast<off_t>(target), SEEK_SET);
+        write(memFd, patch, 16);
+        _raw_close(memFd);
+    } else {
+        uintptr_t pageStart = reinterpret_cast<uintptr_t>(target) & ~(uintptr_t)0xFFF;
+        uintptr_t pageEnd   = (reinterpret_cast<uintptr_t>(target) + 16 + 0xFFF) & ~(uintptr_t)0xFFF;
+        size_t len = pageEnd - pageStart;
+        mprotect(reinterpret_cast<void*>(pageStart), len, PROT_READ | PROT_WRITE | PROT_EXEC);
+        memcpy(target, patch, 16);
+        mprotect(reinterpret_cast<void*>(pageStart), len, PROT_READ | PROT_EXEC);
+    }
+
+    __builtin___clear_cache(static_cast<char*>(target),
+                            static_cast<char*>(target) + 16);
+
+    return true;
 }
 
 // ==============================================================================
@@ -563,8 +644,8 @@ static void loadBridge() {
 static bool isMacPath(const char* path) {
     if (!path) return false;
     return (strstr(path, "/sys/class/net/") && strstr(path, "/address")) ||
-           strcmp(path, "/sys/class/net/wlan0/address") == 0 ||
-           strcmp(path, "/sys/class/net/eth0/address") == 0 ||
+           strcmp(path, PATH_SYS_WLAN0_ADDR) == 0 ||
+           strcmp(path, PATH_SYS_ETH0_ADDR) == 0 ||
            strstr(path, "/sys/class/bluetooth/") != nullptr;
 }
 
@@ -613,17 +694,17 @@ static bool isRootDetectionPath(const char* path) {
 
 static bool isInputDevicesPath(const char* path) {
     if (!path) return false;
-    return strcmp(path, "/proc/bus/input/devices") == 0;
+    return strcmp(path, PATH_PROC_INPUT_DEV) == 0;
 }
 
 static bool isCpuInfoPath(const char* path) {
     if (!path) return false;
-    return strcmp(path, "/proc/cpuinfo") == 0;
+    return strcmp(path, PATH_PROC_CPUINFO) == 0;
 }
 
 static bool isKernelVersionPath(const char* path) {
     if (!path) return false;
-    return strcmp(path, "/proc/version") == 0;
+    return strcmp(path, PATH_PROC_VERSION) == 0;
 }
 
 // Phase 11.0: Dynamischer /proc/net/if_inet6 mit Fake-MAC EUI-64
@@ -874,7 +955,6 @@ static int _hooked_system_property_get(const char* name, char* value) {
             // FIX-12: Debug-Log
             if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed: %s", name, spoofed);
             strncpy(value, spoofed, 91); value[91] = '\0';
-            NativeMonitor::record("SPOOF", "system_property_get", name, value);
             return (int)strlen(value);
         }
     }
@@ -884,7 +964,6 @@ static int _hooked_system_property_get(const char* name, char* value) {
         if (spoofed[0]) {
             if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed GSF: %.8s...", name, spoofed);
             strncpy(value, spoofed, 91); value[91] = '\0';
-            NativeMonitor::record("SPOOF", "system_property_get", name, value);
             return (int)strlen(value);
         }
     }
@@ -894,7 +973,6 @@ static int _hooked_system_property_get(const char* name, char* value) {
         if (spoofed[0]) {
             if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed IMEI1: %s", name, spoofed);
             strncpy(value, spoofed, 31); value[31] = '\0';
-            NativeMonitor::record("SPOOF", "system_property_get", name, value);
             return (int)strlen(value);
         }
     }
@@ -905,19 +983,16 @@ static int _hooked_system_property_get(const char* name, char* value) {
         if (spoofed[0]) {
             if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed MAC: %s", name, spoofed);
             strncpy(value, spoofed, 23); value[23] = '\0';
-            NativeMonitor::record("SPOOF", "system_property_get", name, value);
             return (int)strlen(value);
         }
     }
     
-    // IMEI via RIL Properties (TikTok libsscronet.so liest diese!)
     if (strcmp(name, "ro.ril.oem.imei") == 0 || strcmp(name, "ro.ril.oem.imei1") == 0 ||
         strcmp(name, "persist.radio.imei") == 0) {
         hw.getImei1(spoofed, sizeof(spoofed));
         if (spoofed[0]) {
             if (g_debugHooks.load()) LOGI("[HOOK] %s → Spoofed RIL-IMEI1: %s", name, spoofed);
             strncpy(value, spoofed, 31); value[31] = '\0';
-            NativeMonitor::record("SPOOF", "system_property_get", name, value);
             return (int)strlen(value);
         }
     }
@@ -925,12 +1000,10 @@ static int _hooked_system_property_get(const char* name, char* value) {
         hw.getImei2(spoofed, sizeof(spoofed));
         if (spoofed[0]) {
             strncpy(value, spoofed, 31); value[31] = '\0';
-            NativeMonitor::record("SPOOF", "system_property_get", name, value);
             return (int)strlen(value);
         }
     }
     
-    // --- v6.0: Dynamic Property Overrides (aus Bridge-Datei) ---
     const char* dynOverride = lookupDynamicProp(name);
     if (dynOverride) {
         size_t len = strlen(dynOverride);
@@ -938,7 +1011,6 @@ static int _hooked_system_property_get(const char* name, char* value) {
         memcpy(value, dynOverride, len);
         value[len] = '\0';
         if (g_debugHooks.load()) LOGI("[HOOK] %s → Dynamic: %s", name, dynOverride);
-        NativeMonitor::record("SPOOF", "system_property_get", name, value);
         return (int)len;
     }
 
@@ -1153,7 +1225,7 @@ static int createFakeOpenFd(const char* origPath, int flags, mode_t mode,
     // Fallback: Temp-Datei (sollte auf Pixel 6 nie passieren)
     if (!g_origOpen) return -1;
     char tempPath[128];
-    snprintf(tempPath, sizeof(tempPath), "/data/local/tmp/.t_%d_%s", getpid(), tag);
+    snprintf(tempPath, sizeof(tempPath), "%s%d_%s", PATH_DATA_TMP_PREFIX, getpid(), tag);
     
     int writeFd = g_origOpen(tempPath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (writeFd >= 0) {
@@ -1187,18 +1259,16 @@ static int _hooked_open(const char* pathname, int flags, mode_t mode) {
             int len = snprintf(macContent, sizeof(macContent), "%s\n", macStr);
             int fakeFd = createFakeOpenFd(pathname, flags, mode, macContent, (size_t)len, "mac_open");
             if (fakeFd >= 0) {
-                NativeMonitor::record("SPOOF", "open", pathname, "redirected");
                 return fakeFd;
             }
         }
     }
 
     // ARP-Tabelle -> Fake leere Tabelle (Struktur erhalten!)
-    if (pathname && strcmp(pathname, "/proc/net/arp") == 0) {
+    if (pathname && strcmp(pathname, PATH_PROC_NET_ARP) == 0) {
         const char* fakeArp = "IP address       HW type     Flags       HW address            Mask     Device\n";
         int fakeFd = createFakeOpenFd(pathname, flags, mode, fakeArp, strlen(fakeArp), "arp_open");
         if (fakeFd >= 0) {
-            NativeMonitor::record("SPOOF", "open", pathname, "redirected_arp");
             return fakeFd;
         }
     }
@@ -1209,7 +1279,6 @@ static int _hooked_open(const char* pathname, int flags, mode_t mode) {
         int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_INPUT_DEVICES, contentLen, "input_open");
         if (fakeFd >= 0) {
             LOGI("[HW] open() input devices redirected: %s (fd=%d, %zu bytes)", pathname, fakeFd, contentLen);
-            NativeMonitor::record("SPOOF", "open", pathname, "redirected");
             return fakeFd;
         }
     }
@@ -1220,7 +1289,6 @@ static int _hooked_open(const char* pathname, int flags, mode_t mode) {
         int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_CPUINFO, contentLen, "cpuinfo");
         if (fakeFd >= 0) {
             LOGI("[HW] open() cpuinfo redirected (Tensor G1, %zu bytes)", contentLen);
-            NativeMonitor::record("SPOOF", "open", pathname, "redirected");
             return fakeFd;
         }
     }
@@ -1230,7 +1298,6 @@ static int _hooked_open(const char* pathname, int flags, mode_t mode) {
         size_t contentLen = strlen(FAKE_KERNEL_VERSION);
         int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_KERNEL_VERSION, contentLen, "version");
         if (fakeFd >= 0) {
-            NativeMonitor::record("SPOOF", "open", pathname, "redirected");
             return fakeFd;
         }
     }
@@ -1240,7 +1307,6 @@ static int _hooked_open(const char* pathname, int flags, mode_t mode) {
         size_t contentLen = strlen(FAKE_IF_INET6);
         int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_IF_INET6, contentLen, "if_inet6");
         if (fakeFd >= 0) {
-            NativeMonitor::record("SPOOF", "open", pathname, "redirected");
             return fakeFd;
         }
     }
@@ -1355,7 +1421,7 @@ static FILE* createFakeFopen(const char* origPath, const char* mode,
     // Fallback: Temp-Datei mit sofortigem unlink
     if (!g_origFopen) return nullptr;
     char tempPath[128];
-    snprintf(tempPath, sizeof(tempPath), "/data/local/tmp/.t_%d_%s", getpid(), tag);
+    snprintf(tempPath, sizeof(tempPath), "%s%d_%s", PATH_DATA_TMP_PREFIX, getpid(), tag);
     
     FILE* tempFp = g_origFopen(tempPath, "w");
     if (tempFp) {
@@ -1386,18 +1452,16 @@ static FILE* _hooked_fopen(const char* pathname, const char* mode) {
             snprintf(macContent, sizeof(macContent), "%s\n", macStr);
             FILE* fake = createFakeFopen(pathname, mode, macContent, "mac");
             if (fake) {
-                NativeMonitor::record("SPOOF", "fopen", pathname, "redirected");
                 return fake;
             }
         }
     }
 
     // ARP-Tabelle -> Fake leere Tabelle (Struktur erhalten!)
-    if (pathname && strcmp(pathname, "/proc/net/arp") == 0) {
+    if (pathname && strcmp(pathname, PATH_PROC_NET_ARP) == 0) {
         const char* fakeArp = "IP address       HW type     Flags       HW address            Mask     Device\n";
         FILE* fake = createFakeFopen(pathname, mode, fakeArp, "arp");
         if (fake) {
-            NativeMonitor::record("SPOOF", "fopen", pathname, "redirected_arp");
             return fake;
         }
     }
@@ -1406,7 +1470,6 @@ static FILE* _hooked_fopen(const char* pathname, const char* mode) {
     if (pathname && isInputDevicesPath(pathname)) {
         FILE* fake = createFakeFopen(pathname, mode, FAKE_INPUT_DEVICES, "input");
         if (fake) {
-            NativeMonitor::record("SPOOF", "fopen", pathname, "redirected");
             return fake;
         }
     }
@@ -1415,7 +1478,6 @@ static FILE* _hooked_fopen(const char* pathname, const char* mode) {
     if (pathname && isCpuInfoPath(pathname)) {
         FILE* fake = createFakeFopen(pathname, mode, FAKE_CPUINFO, "cpuinfo");
         if (fake) {
-            NativeMonitor::record("SPOOF", "fopen", pathname, "redirected");
             return fake;
         }
     }
@@ -1424,7 +1486,6 @@ static FILE* _hooked_fopen(const char* pathname, const char* mode) {
     if (pathname && isKernelVersionPath(pathname)) {
         FILE* fake = createFakeFopen(pathname, mode, FAKE_KERNEL_VERSION, "version");
         if (fake) {
-            NativeMonitor::record("SPOOF", "fopen", pathname, "redirected");
             return fake;
         }
     }
@@ -1433,7 +1494,6 @@ static FILE* _hooked_fopen(const char* pathname, const char* mode) {
     if (pathname && isNetworkInfoPath(pathname)) {
         FILE* fake = createFakeFopen(pathname, mode, FAKE_IF_INET6, "if_inet6");
         if (fake) {
-            NativeMonitor::record("SPOOF", "fopen", pathname, "redirected");
             return fake;
         }
     }
@@ -1533,8 +1593,6 @@ static AMediaDrm* _hooked_AMediaDrm_createByUUID(const uint8_t uuid[16]) {
         
         LOGI("[HW] AMediaDrm_createByUUID(Widevine) -> Fake proxy %p (real=%p)",
              fakeDrm, realDrm);
-        NativeMonitor::record("SPOOF", "AMediaDrm_createByUUID", "Widevine",
-                              "fake_proxy_returned");
         return fakeDrm;
     }
     
@@ -1592,8 +1650,6 @@ static media_status_t _hooked_AMediaDrm_getPropertyByteArray(
         propertyValue->ptr = s_widevineResult;
         propertyValue->length = 16;
         
-        NativeMonitor::record("SPOOF", "AMediaDrm_getPropertyByteArray",
-                              "deviceUniqueId", MASTER_WIDEVINE_HEX);
         LOGI("[HW] AMediaDrm_getPropertyByteArray(deviceUniqueId) -> Spoofed");
         return AMEDIA_OK;
     }
@@ -1771,7 +1827,7 @@ static SystemPropertyReadCallbackFn g_origPropReadCallback = nullptr;
 static int g_privatizedRegions = 0;
 
 static void privatizePropertyMappings() {
-    FILE* maps = fopen("/proc/self/maps", "r");
+    FILE* maps = fopen(PATH_PROC_SELF_MAPS, "r");
     if (!maps) {
         LOGW("[MEM] Cannot open /proc/self/maps");
         return;
@@ -2121,19 +2177,8 @@ static bool verifyIdentityAtomicity() {
 }
 
 // ==============================================================================
-// GOT Patching — Dobby-Alternative für Funktionen mit problematischem Prolog
-// ==============================================================================
-// Dobby's Inline-Hooking schreibt ein Trampoline in die ersten Bytes einer
-// Funktion. Bei AMediaDrm_getPropertyByteArray/String führt das zu SIGILL
-// weil der Funktionsprolog zu kurz oder unaligned ist.
-//
-// GOT-Patching modifiziert stattdessen die Global Offset Table (GOT) in
-// geladenen ELF-Modulen. Wenn TikTok's .so-Dateien AMediaDrm_* aufrufen,
-// geht der Call zuerst durch die PLT → GOT → Zieladresse.
-// Wir ersetzen die Zieladresse in der GOT.
-//
-// Vorteil: Kein Schreibzugriff auf Code-Pages nötig (kein SIGILL Risiko).
-// Nachteil: Muss für jedes geladene Modul separat gepatcht werden.
+// GOT Patching — for functions with short prologues (AMediaDrm_getProperty*)
+// Modifies the GOT in loaded ELF modules so PLT calls go through our hooks.
 // ==============================================================================
 
 #include <elf.h>
@@ -2151,18 +2196,14 @@ static int _got_patch_callback(struct dl_phdr_info* info, size_t size, void* dat
     
     if (!info->dlpi_name || !info->dlpi_name[0]) return 0;
     
-    // Nur TikTok/App-Libraries patchen, keine System-Libs
     const char* name = info->dlpi_name;
-    bool isAppLib = (strstr(name, "musically") != nullptr ||
-                     strstr(name, "ss.android") != nullptr ||
-                     strstr(name, "bytedance") != nullptr ||
-                     strstr(name, "sscronet") != nullptr ||
-                     strstr(name, "ttboringssl") != nullptr ||
-                     strstr(name, "pangle") != nullptr ||
-                     strstr(name, "applog") != nullptr ||
-                     strstr(name, "metasec") != nullptr ||
-                     strstr(name, "msaoaidsec") != nullptr ||
-                     strstr(name, "sec_sdk") != nullptr);
+    bool isAppLib = false;
+    for (int i = 0; i < ENC_GOT_LIBS_COUNT; i++) {
+        char decoded[16];
+        _xdec(decoded, ENC_GOT_LIBS[i].data, ENC_GOT_LIBS[i].len);
+        decoded[ENC_GOT_LIBS[i].len] = '\0';
+        if (strstr(name, decoded) != nullptr) { isAppLib = true; break; }
+    }
     if (!isAppLib) return 0;
     
     ElfW(Addr) base = info->dlpi_addr;
@@ -2250,193 +2291,64 @@ static void installAllHooks() {
     }
     
     int installed = 0;
-    
-#ifdef USE_DOBBY
-    // __system_property_get
-    void* propAddr = dlsym(libc, "__system_property_get");
-    if (propAddr && DobbyHook(propAddr, (dobby_dummy_func_t)_hooked_system_property_get, 
-                              (dobby_dummy_func_t*)&g_origSystemPropertyGet) == 0) {
-        installed++;
-        LOGI("[HW] Property hook OK");
+
+    struct { const char* sym; void* hook; void** orig; } libcHooks[] = {
+        {"__system_property_get",           (void*)_hooked_system_property_get,   (void**)&g_origSystemPropertyGet},
+        {"__system_property_read_callback", (void*)_hooked_prop_read_callback,    (void**)&g_origPropReadCallback},
+        {"__system_property_read",          (void*)_hooked_system_property_read,  (void**)&g_origSysPropRead},
+        {"sendmsg",                         (void*)_hooked_sendmsg,              (void**)&g_origSendmsg},
+        {"getifaddrs",                      (void*)_hooked_getifaddrs,           (void**)&g_origGetifaddrs},
+        {"ioctl",                           (void*)_hooked_ioctl,                (void**)&g_origIoctl},
+        {"recvmsg",                         (void*)_hooked_recvmsg,              (void**)&g_origRecvmsg},
+        {"open",                            (void*)_hooked_open,                 (void**)&g_origOpen},
+        {"read",                            (void*)_hooked_read,                 (void**)&g_origRead},
+        {"fopen",                           (void*)_hooked_fopen,                (void**)&g_origFopen},
+        {"fgets",                           (void*)_hooked_fgets,                (void**)&g_origFgets},
+        {"opendir",                         (void*)_hooked_opendir,              (void**)&g_origOpendir},
+        {"readdir",                         (void*)_hooked_readdir,              (void**)&g_origReaddir},
+        {"closedir",                        (void*)_hooked_closedir,             (void**)&g_origClosedir},
+    };
+
+    for (auto& h : libcHooks) {
+        void* addr = dlsym(libc, h.sym);
+        if (addr && install_inline_hook(addr, h.hook, h.orig))
+            installed++;
     }
-    
-    // __system_property_read_callback (neuere API, ab Android 8)
-    void* propReadCbAddr = dlsym(libc, "__system_property_read_callback");
-    if (propReadCbAddr && DobbyHook(propReadCbAddr, (dobby_dummy_func_t)_hooked_prop_read_callback,
-                                     (dobby_dummy_func_t*)&g_origPropReadCallback) == 0) {
-        installed++;
-        LOGI("[HW] __system_property_read_callback hook OK");
-    }
-    
-    // __system_property_read (ältere API - manche NDK Libs nutzen diese statt _get)
-    void* propReadAddr = dlsym(libc, "__system_property_read");
-    if (propReadAddr && DobbyHook(propReadAddr, (dobby_dummy_func_t)_hooked_system_property_read,
-                                   (dobby_dummy_func_t*)&g_origSysPropRead) == 0) {
-        installed++;
-        LOGI("[HW] __system_property_read (legacy) hook OK");
-    }
-    
-    // sendmsg (Netlink RTM_GETLINK Tracking)
-    void* sendmsgAddr = dlsym(libc, "sendmsg");
-    if (sendmsgAddr && DobbyHook(sendmsgAddr, (dobby_dummy_func_t)_hooked_sendmsg,
-                                  (dobby_dummy_func_t*)&g_origSendmsg) == 0) {
-        installed++;
-        LOGI("[HW] sendmsg (Netlink) hook OK");
-    }
-    
-    // getifaddrs
-    void* getifaddrsAddr = dlsym(libc, "getifaddrs");
-    if (getifaddrsAddr && DobbyHook(getifaddrsAddr, (dobby_dummy_func_t)_hooked_getifaddrs,
-                                    (dobby_dummy_func_t*)&g_origGetifaddrs) == 0) {
-        installed++;
-        LOGI("[HW] getifaddrs hook OK");
-    }
-    
-    // ioctl
-    void* ioctlAddr = dlsym(libc, "ioctl");
-    if (ioctlAddr && DobbyHook(ioctlAddr, (dobby_dummy_func_t)_hooked_ioctl,
-                               (dobby_dummy_func_t*)&g_origIoctl) == 0) {
-        installed++;
-        LOGI("[HW] ioctl hook OK");
-    }
-    
-    // recvmsg (Netlink)
-    void* recvmsgAddr = dlsym(libc, "recvmsg");
-    if (recvmsgAddr && DobbyHook(recvmsgAddr, (dobby_dummy_func_t)_hooked_recvmsg,
-                                 (dobby_dummy_func_t*)&g_origRecvmsg) == 0) {
-        installed++;
-        LOGI("[HW] recvmsg (Netlink) hook OK");
-    }
-    
-    // open
-    void* openAddr = dlsym(libc, "open");
-    if (openAddr && DobbyHook(openAddr, (dobby_dummy_func_t)_hooked_open,
-                              (dobby_dummy_func_t*)&g_origOpen) == 0) {
-        installed++;
-        LOGI("[HW] open hook OK");
-    }
-    
-    // read
-    void* readAddr = dlsym(libc, "read");
-    if (readAddr && DobbyHook(readAddr, (dobby_dummy_func_t)_hooked_read,
-                              (dobby_dummy_func_t*)&g_origRead) == 0) {
-        installed++;
-        LOGI("[HW] read hook OK");
-    }
-    
-    // fopen (für std::ifstream)
-    void* fopenAddr = dlsym(libc, "fopen");
-    if (fopenAddr && DobbyHook(fopenAddr, (dobby_dummy_func_t)_hooked_fopen,
-                               (dobby_dummy_func_t*)&g_origFopen) == 0) {
-        installed++;
-        LOGI("[HW] fopen hook OK");
-    }
-    
-    // fgets (für std::ifstream getline)
-    void* fgetsAddr = dlsym(libc, "fgets");
-    if (fgetsAddr && DobbyHook(fgetsAddr, (dobby_dummy_func_t)_hooked_fgets,
-                               (dobby_dummy_func_t*)&g_origFgets) == 0) {
-        installed++;
-        LOGI("[HW] fgets hook OK");
-    }
-    
-    // opendir (Input Virtualizer)
-    void* opendirAddr = dlsym(libc, "opendir");
-    if (opendirAddr && DobbyHook(opendirAddr, (dobby_dummy_func_t)_hooked_opendir,
-                                  (dobby_dummy_func_t*)&g_origOpendir) == 0) {
-        installed++;
-        LOGI("[HW] opendir hook OK");
-    }
-    
-    // readdir (Input Virtualizer)
-    void* readdirAddr = dlsym(libc, "readdir");
-    if (readdirAddr && DobbyHook(readdirAddr, (dobby_dummy_func_t)_hooked_readdir,
-                                  (dobby_dummy_func_t*)&g_origReaddir) == 0) {
-        installed++;
-        LOGI("[HW] readdir hook OK");
-    }
-    
-    // closedir (Input Virtualizer cleanup)
-    void* closedirAddr = dlsym(libc, "closedir");
-    if (closedirAddr && DobbyHook(closedirAddr, (dobby_dummy_func_t)_hooked_closedir,
-                                   (dobby_dummy_func_t*)&g_origClosedir) == 0) {
-        installed++;
-        LOGI("[HW] closedir hook OK");
-    }
-    
-    // Widevine NDK Hooks - Phase 10.0: Full Native Coverage
-    // createByUUID: Dobby inline-hook → gibt IMMER Fake-Proxy zurück
-    // release: Dobby inline-hook → gibt internes Real-DRM frei
-    // getPropertyByteArray: GOT-Patch (Dobby SIGILL workaround)
-    //   → deviceUniqueId IMMER aus Bridge, andere Props an Real-DRM delegiert
-    // getPropertyString: GOT-Patch
-    // isCryptoSchemeSupported: Dobby inline-hook
+    LOGI("[HW] libc hooks: %d/%d via inline dispatch",
+         installed, (int)(sizeof(libcHooks)/sizeof(libcHooks[0])));
+
+    // Widevine NDK Hooks via signal-based dispatch + GOT-Patching
     void* mediandk = dlopen("libmediandk.so", RTLD_NOW | RTLD_NOLOAD);
-    if (!mediandk) {
+    if (!mediandk)
         mediandk = dlopen("libmediandk.so", RTLD_NOW);
-    }
-    
+
     if (mediandk) {
-        // SAFE: createByUUID - gibt Fake-Objekt zurück wenn HAL defekt
-        void* createAddr = dlsym(mediandk, "AMediaDrm_createByUUID");
-        if (createAddr && DobbyHook(createAddr, (dobby_dummy_func_t)_hooked_AMediaDrm_createByUUID,
-                                    (dobby_dummy_func_t*)&g_origAMediaDrmCreateByUUID) == 0) {
-            installed++;
-            LOGI("[HW] AMediaDrm_createByUUID hook OK");
+        struct { const char* sym; void* hook; void** orig; } ndkHooks[] = {
+            {"AMediaDrm_createByUUID",            (void*)_hooked_AMediaDrm_createByUUID,            (void**)&g_origAMediaDrmCreateByUUID},
+            {"AMediaDrm_release",                 (void*)_hooked_AMediaDrm_release,                 (void**)&g_origAMediaDrmRelease},
+            {"AMediaDrm_isCryptoSchemeSupported",  (void*)_hooked_AMediaDrm_isCryptoSchemeSupported, (void**)&g_origAMediaDrmIsCryptoSchemeSupported},
+        };
+        for (auto& h : ndkHooks) {
+            void* addr = dlsym(mediandk, h.sym);
+            if (addr && install_inline_hook(addr, h.hook, h.orig))
+                installed++;
         }
-        
-        // SAFE: release - Fake-Objekte korrekt freigeben
-        void* releaseAddr = dlsym(mediandk, "AMediaDrm_release");
-        if (releaseAddr && DobbyHook(releaseAddr, (dobby_dummy_func_t)_hooked_AMediaDrm_release,
-                                     (dobby_dummy_func_t*)&g_origAMediaDrmRelease) == 0) {
-            installed++;
-            LOGI("[HW] AMediaDrm_release hook OK");
-        }
-        
-        // SAFE: isCryptoSchemeSupported - Widevine immer true
-        void* isSupportedAddr = dlsym(mediandk, "AMediaDrm_isCryptoSchemeSupported");
-        if (isSupportedAddr && DobbyHook(isSupportedAddr, (dobby_dummy_func_t)_hooked_AMediaDrm_isCryptoSchemeSupported,
-                                         (dobby_dummy_func_t*)&g_origAMediaDrmIsCryptoSchemeSupported) == 0) {
-            installed++;
-            LOGI("[HW] AMediaDrm_isCryptoSchemeSupported hook OK");
-        }
-        
-        // getPropertyByteArray: GOT-Patching statt Dobby (SIGILL workaround)
+
+        // GOT-Patching for getPropertyByteArray/String (short prologues)
         if (installGotHook("AMediaDrm_getPropertyByteArray",
                            (void*)_hooked_AMediaDrm_getPropertyByteArray,
-                           (void**)&g_origAMediaDrmGetPropertyByteArray)) {
+                           (void**)&g_origAMediaDrmGetPropertyByteArray))
             installed++;
-            LOGI("[HW] AMediaDrm_getPropertyByteArray hook OK (GOT-Patch)");
-        } else {
-            // Fallback: Dobby-Versuch (kann SIGILL geben, aber wir haben createByUUID-Schutz)
-            void* getPropAddr = dlsym(mediandk, "AMediaDrm_getPropertyByteArray");
-            if (getPropAddr) {
-                if (DobbyHook(getPropAddr, (dobby_dummy_func_t)_hooked_AMediaDrm_getPropertyByteArray,
-                              (dobby_dummy_func_t*)&g_origAMediaDrmGetPropertyByteArray) == 0) {
-                    installed++;
-                    LOGI("[HW] AMediaDrm_getPropertyByteArray hook OK (Dobby fallback)");
-                } else {
-                    LOGW("[HW] AMediaDrm_getPropertyByteArray: Dobby+GOT both failed! "
-                         "createByUUID proxy schützt trotzdem (Fake-DRM-Objekt)");
-                }
-            }
-        }
-        
-        // getPropertyString: GOT-Patching
+
         if (installGotHook("AMediaDrm_getPropertyString",
                            (void*)_hooked_AMediaDrm_getPropertyString,
-                           (void**)&g_origAMediaDrmGetPropertyString)) {
+                           (void**)&g_origAMediaDrmGetPropertyString))
             installed++;
-            LOGI("[HW] AMediaDrm_getPropertyString hook OK (GOT-Patch)");
-        }
-        
-        LOGI("[HW] Widevine: hooks installed (createByUUID=proxy, getProperty=GOT-Patch)");
-    } else {
-        LOGW("[HW] libmediandk.so not available");
+
+        LOGI("[HW] Widevine hooks installed (inline+GOT)");
     }
-#endif
-    
-    LOGI("[HW] Total hooks installed: %d/13", installed);
+
+    LOGI("[HW] Total hooks installed: %d", installed);
 }
 
 // ==============================================================================

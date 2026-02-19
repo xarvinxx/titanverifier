@@ -387,6 +387,7 @@ def create_identity(name: str, carrier_key: str = "o2_de",
         "phone_number": phone_number,
         "sim_operator": carrier["mcc_mnc"],
         "sim_operator_name": carrier["sim_operator_name"],
+        "sim_country_iso": carrier.get("country_iso", "de"),
         "voicemail_number": carrier["voicemail"],
         
         # Build Fingerprint (intern konsistent!)

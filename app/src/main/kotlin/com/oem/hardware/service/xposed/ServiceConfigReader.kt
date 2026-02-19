@@ -133,6 +133,8 @@ object ServiceConfigReader {
 
     fun getVoicemailNumber(): String? = loadBridgeValues()["voicemail_number"]
 
+    fun getSimCountryIso(): String? = loadBridgeValues()["sim_country_iso"] ?: loadBridgeValues()["country_iso"]
+
     fun getAdvertisingId(): String? = loadBridgeValues()["advertising_id"]
 
     fun getBluetoothMac(): String? = loadBridgeValues()["bluetooth_mac"]

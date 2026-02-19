@@ -15071,3 +15071,1638 @@ AttributeError: type object 'FlowStepStatus' has no attribute 'ERROR'
 2026-02-19 18:59:20 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
 2026-02-19 18:59:23 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=49925)
 2026-02-19 18:59:23 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=54246)
+2026-02-19 18:59:32 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 18:59:44 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 18:59:56 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:00:08 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:00:20 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:00:32 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:00:45 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:00:57 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:01:09 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:01:22 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:01:34 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:01:46 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:01:58 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:02:10 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:02:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:02:34 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:02:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:02:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:03:11 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:03:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:03:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:03:48 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:04:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:04:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:04:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:04:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:04:48 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:05:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:05:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:05:25 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:05:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:05:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:06:01 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:06:14 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:06:25 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:06:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:06:50 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:07:02 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:07:14 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:07:26 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:07:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:07:51 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:08:03 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:08:15 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:08:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:08:39 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:08:51 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:09:03 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:09:15 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:09:28 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:09:40 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:09:52 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:10:04 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:10:16 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:10:28 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:10:40 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:10:52 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:11:05 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:11:17 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:11:29 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:11:42 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:11:53 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:12:06 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:12:18 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:12:30 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:12:42 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:12:54 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:13:06 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:13:18 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:13:30 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:13:43 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:13:55 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:14:06 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:14:11 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=54246)
+2026-02-19 19:14:11 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-19 19:14:11 [host.database] INFO: Datenbank geschlossen.
+2026-02-19 19:14:11 [host.main] INFO: Command Center gestoppt.
+2026-02-19 19:14:11 [host.main] INFO: ============================================================
+2026-02-19 19:14:11 [host.main] INFO:   Device Manager v1.0.0
+2026-02-19 19:14:11 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-19 19:14:11 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-19 19:14:11 [host.main] INFO: ============================================================
+2026-02-19 19:14:11 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-19 19:14:11 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-19 19:14:11 [host.main] INFO: Command Center bereit.
+2026-02-19 19:14:15 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=59902)
+2026-02-19 19:35:44 [host.api.control] INFO: Genesis-Flow gestartet: zuvieleversuche4
+2026-02-19 19:35:44 [host.flows.genesis] INFO: ============================================================
+2026-02-19 19:35:44 [host.flows.genesis] INFO:   GENESIS FLOW: zuvieleversuche4
+2026-02-19 19:35:44 [host.flows.genesis] INFO: ============================================================
+2026-02-19 19:35:44 [host.flows.genesis] INFO: Genesis Frequency: 1/2h, 8/24h, 49 total (Limits: 9999/2h, 9999/24h, Cooldown 0min)
+2026-02-19 19:35:44 [host.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-19 19:35:44 [host.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-19 19:35:44 [host.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-19 19:35:44 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'zuvieleversuche3' hat keinen TikTok-Account — Checkbox nicht gesetzt
+2026-02-19 19:35:44 [host.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-19 19:35:44 [host.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-19 19:35:46 [host.shifter] INFO: [Clean] pm clear com.zhiliaoapp.musically: OK (firstInstallTime unverändert)
+2026-02-19 19:35:46 [host.shifter] INFO: [Clean] com.ss.android.ugc.trill nicht installiert — überspringe
+2026-02-19 19:35:46 [host.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-19 19:35:46 [host.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-19 19:35:47 [host.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-19 19:35:53 [host.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-19 19:35:53 [host.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-19 19:35:55 [host.shifter] INFO: AAID Reset: über Content-Provider (GMS-Dateien unberührt)
+2026-02-19 19:35:55 [host.shifter] WARNING: Deep Clean: 40/41 OK — FEHLGESCHLAGEN: compiler_reset_com.ss.android.ugc.trill
+2026-02-19 19:35:55 [host.flows.genesis] INFO: [3/11] Sterilize: OK (40/41 Operationen (GMS geschützt) | nicht-kritisch fehlgeschlagen: compiler_reset_com.ss.android.ugc.trill)
+2026-02-19 19:35:55 [host.shifter] INFO: Clearing system clipboard...
+2026-02-19 19:35:56 [host.shifter] INFO: Clipboard cleared
+2026-02-19 19:35:56 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-19 19:36:04 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-19 19:36:04 [host.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-19 19:36:04 [host.identity] INFO: Identität generiert: name=zuvieleversuche4 serial=UNSS580LBKCM imei1=355543…7317 carrier=O2-DE
+2026-02-19 19:36:04 [host.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 1784...1704 (v5.0 — FINAL, kein Platzhalter)
+2026-02-19 19:36:04 [host.flows.genesis] INFO: [4/11] Generate: OK (serial=UNSS580LBKCM)
+2026-02-19 19:36:04 [host.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-19 19:36:04 [host.db_ops] INFO: Auto-Profil erstellt: id=50, name=zuvieleversuche4
+2026-02-19 19:36:04 [host.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=50
+2026-02-19 19:36:04 [host.flows.genesis] INFO: [5/11] Persist: OK (identity_id=56, profile_id=50)
+2026-02-19 19:36:04 [host.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-19 19:36:04 [host.injector] INFO: Injecting identity: serial=UNSS580LBKCM imei1=355543…7317
+2026-02-19 19:36:04 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/bridge_1kdvmh6t.bridge → /data/local/tmp/.bridge_staging
+2026-02-19 19:36:04 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-19 19:36:04 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-19 19:36:04 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #56 auf 'active' gesetzt
+2026-02-19 19:36:08 [host.injector] INFO: Bridge verteilt an 8/10 Apps
+2026-02-19 19:36:09 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → 82ec6622-a668-43fd-af12-5da61622599e
+2026-02-19 19:36:09 [host.injector] INFO: Injection komplett + verifiziert: UNSS580LBKCM
+2026-02-19 19:36:09 [host.flows.genesis] INFO: [6/11] PIF v5.0: autopif4-First Strategie (BASIC_INTEGRITY)...
+2026-02-19 19:36:09 [host.injector] INFO: PIF v5.0: autopif4 Canary-Fingerprint gefunden — verwende diesen (NICHT unseren statischen Pool)
+2026-02-19 19:36:09 [host.injector] INFO: PIF autopif4: FP=google/oriole_beta/oriole:CANARY/ZP11.260123.011/1… | Patch=2026-02-05 | Estimated Expiry: 2026-03-26
+2026-02-19 19:36:09 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/pif_rohwq3_m.prop → /data/local/tmp/.pif_staging.prop
+2026-02-19 19:36:09 [host.injector] INFO: PIF v5.0 OK [autopif4-canary]: custom.pif.prop → /data/adb/modules/playintegrityfix/custom.pif.prop
+2026-02-19 19:36:09 [host.flows.genesis] INFO: [6/11] PIF: custom.pif.prop erfolgreich gepusht
+2026-02-19 19:36:09 [host.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-19 19:36:09 [host.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-19 19:36:09 [host.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Kill-Switch entfernt | PIF=OK)
+2026-02-19 19:36:09 [host.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-19 19:36:09 [host.adb] INFO: Reboot: mode=normal
+2026-02-19 19:36:16 [host.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-19 19:36:16 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-19 19:36:16 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 19:36:16 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 19:36:20 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 19:36:21 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 19:36:31 [host.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-19 19:36:31 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 19:36:31 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 19:36:31 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 19:36:35 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 19:36:35 [host.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-19 19:36:35 [host.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-19 19:36:35 [host.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-19 19:36:36 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 19:36:37 [host.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-19 19:36:49 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 19:36:51 [host.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-19 19:36:51 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell getprop ro.serialno
+2026-02-19 19:36:51 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-19 19:36:51 [host.flows.genesis] INFO: [7/11] Warte auf Boot (unbegrenzt, pollt alle 3s)...
+2026-02-19 19:36:51 [host.adb] INFO: Warte auf Gerät (unbegrenzt, pollt alle 3s)...
+2026-02-19 19:36:51 [host.adb] INFO: ADB Erfolg nach 2 Versuchen: adb shell getprop ro.serialno
+2026-02-19 19:37:00 [host.adb] INFO: Gerät gebootet nach 9.0s
+2026-02-19 19:37:00 [host.flows.genesis] INFO: [7/11] Boot erkannt — warte 5s post-boot...
+2026-02-19 19:37:08 [host.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-19 19:37:08 [host.flows.genesis] INFO: [7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...
+2026-02-19 19:37:08 [host.flows.genesis] INFO: [7/11] Bridge [primär]: OK (serial=UNSS580LBKCM)
+2026-02-19 19:37:08 [host.flows.genesis] INFO: [7/11] Bridge [sdcard]: OK (serial=UNSS580LBKCM)
+2026-02-19 19:37:08 [host.flows.genesis] INFO: [7/11] Bridge [app]: OK (serial=UNSS580LBKCM)
+2026-02-19 19:37:08 [host.flows.genesis] INFO: [7/11] Bridge-Verifikation: Primärpfad OK
+2026-02-19 19:37:08 [host.flows.genesis] INFO: [7/11] Hard Reset: OK (Boot + Unlock in 59.2s)
+2026-02-19 19:37:08 [host.flows.genesis] INFO: [7b/11] DroidGuard Sanitize: Stale Attestierungs-Tokens löschen...
+2026-02-19 19:37:09 [host.shifter] INFO: [DroidGuard+Analytics] Sanitized: 11/11 Einträge gelöscht (Neu-Attestierung + Cross-App-Correlation entfernt)
+2026-02-19 19:37:09 [host.flows.genesis] INFO: [7b/11] DroidGuard-Cache gelöscht — erzwinge GMS-Neustart...
+2026-02-19 19:37:15 [host.flows.genesis] INFO: [7b/11] GMS neu gestartet — frische Attestierung eingeleitet
+2026-02-19 19:37:15 [host.flows.genesis] INFO: [7c/11] Bewohntes Haus: Prüfe Dummy-App-Präsenz...
+2026-02-19 19:37:15 [host.flows.genesis] WARNING: [7c/11] BEWOHNTES HAUS: 10/12 Apps vorhanden (83%). Fehlend: Google Keep, Google Translate — Gerät könnte als 'frisch' erkannt werden!
+2026-02-19 19:37:15 [host.flows.genesis] INFO: [7d/11] Post-Reboot Sterilisierung...
+2026-02-19 19:37:15 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-19 19:37:23 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-19 19:37:23 [host.flows.genesis] INFO: [7d/11] Post-Reboot: Sauber — keine Artefakte gefunden
+2026-02-19 19:37:23 [host.flows.genesis] INFO: [7e/11] HookGuard Pre-Network Start...
+2026-02-19 19:37:23 [hookguard] INFO: HookGuard started (expected bridge hash: 56e675585a8bd27422c6cab5e47b345d)
+2026-02-19 19:37:23 [host.flows.genesis] INFO: HookGuard automatisch gestartet
+2026-02-19 19:37:23 [host.flows.genesis] INFO: [8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS...
+2026-02-19 19:37:43 [host.flows.genesis] INFO: [8/11] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-19 19:37:43 [host.flows.genesis] INFO: [8/11] Warte 15s auf neue Mobilfunk-Verbindung...
+2026-02-19 19:37:58 [host.network] INFO: HTTP-Tool erkannt: busybox wget (/data/adb/ksu/bin/busybox)
+2026-02-19 19:37:59 [host.network] INFO: Öffentliche IP: 176.6.31.39 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-19 19:37:59 [host.flows.genesis] INFO: [8/11] Network Init: Neue IP = 176.6.31.39 (via api.ipify.org)
+2026-02-19 19:37:59 [host.flows.genesis] WARNING: [8/11] SUBNET SÄTTIGUNG: 9 verschiedene Identitäten von 176.6.x.x in 24h — TikTok rate-limitet auf Carrier/ASN-Ebene!
+2026-02-19 19:37:59 [host.flows.genesis] INFO: [9/11] GMS Ready: Dynamisches Readiness-Polling (v6.0)...
+2026-02-19 19:37:59 [host.shifter] INFO: [Readiness] Warte auf sys.boot_completed=1...
+2026-02-19 19:37:59 [host.shifter] INFO: [Readiness] Boot bestätigt nach 0s
+2026-02-19 19:37:59 [host.shifter] INFO: [Readiness] Warte auf GmsCore Service...
+2026-02-19 19:37:59 [host.shifter] INFO: [Readiness] GMS-Prozess aktiv nach 0s
+2026-02-19 19:37:59 [host.shifter] INFO: [Readiness] System bereit — Boot: 0s | GMS(pid): 0s (GMS Verbindung steht - Bereit zum Loslegen!)
+2026-02-19 19:37:59 [host.flows.genesis] INFO: [9/11] GSF-ID: Generierte ID beibehalten. Bridge-GSF: 1784...1704
+2026-02-19 19:37:59 [host.flows.genesis] INFO: [9/11] GMS Verbindung steht - Bereit zum Loslegen! (Boot: 0s | GMS(pid): 0s)
+2026-02-19 19:37:59 [host.flows.genesis] INFO: [9/11] GMS Ready: GMS Verbindung steht (0s) | GSF-ID: generiert beibehalten
+2026-02-19 19:37:59 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...
+2026-02-19 19:37:59 [host.auditor] INFO: Audit starten: zuvieleversuche4 (serial=UNSS580LBKCM)
+2026-02-19 19:37:59 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-19 19:37:59 [host.auditor] INFO:   [+] bridge_serial: pass — serial=UNSS580LBKCM, boot_serial=UNSS580LBKCM — korrekt
+2026-02-19 19:37:59 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-19 19:37:59 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: f4:f5:d8:4c:5f:4f
+2026-02-19 19:37:59 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-19 19:37:59 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-19 19:37:59 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-19 19:37:59 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-19 19:37:59 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-19 19:37:59 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-19 19:37:59 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-19 19:37:59 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-19 19:37:59 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-19 19:37:59 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-19 19:37:59 [host.auditor] INFO: Audit [zuvieleversuche4]: 100% (14/14 passed)
+2026-02-19 19:37:59 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Integrität bestätigt (100%)
+2026-02-19 19:37:59 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline sichern...
+2026-02-19 19:37:59 [host.shifter] INFO: ============================================================
+2026-02-19 19:37:59 [host.shifter] INFO:   GOLDEN BASELINE CAPTURE: zuvieleversuche4
+2026-02-19 19:37:59 [host.shifter] INFO:   GSF-ID: 1784...1704
+2026-02-19 19:37:59 [host.shifter] INFO: ============================================================
+2026-02-19 19:37:59 [host.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-19 19:38:01 [host.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-19 19:38:02 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/zuvieleversuche4/gms/gms_20260219_193802.tar.tmp
+2026-02-19 19:38:10 [host.adb] INFO: Exec-Out fertig: 79708672 Bytes geschrieben
+2026-02-19 19:38:10 [host.shifter] INFO: GMS Backup (3 Pakete): OK (76.0 MB, Versuch 1/3)
+2026-02-19 19:38:10 [host.shifter] INFO: GMS tar: gms_20260219_193802.tar (76.0 MB) — 3 Pakete
+2026-02-19 19:38:10 [host.shifter] INFO: Golden Baseline GMS: OK (gms_20260219_193802.tar)
+2026-02-19 19:38:10 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/zuvieleversuche4/accounts/accounts_20260219_193810.tar.tmp
+2026-02-19 19:38:10 [host.adb] INFO: Exec-Out fertig: 206336 Bytes geschrieben
+2026-02-19 19:38:10 [host.shifter] INFO: Account-DBs (1 Dateien): OK (0.2 MB, Versuch 1/3)
+2026-02-19 19:38:10 [host.shifter] INFO: Account-DBs tar: accounts_20260219_193810.tar (206336 Bytes, 1 Dateien)
+2026-02-19 19:38:10 [host.shifter] INFO: Golden Baseline Accounts: OK (accounts_20260219_193810.tar)
+2026-02-19 19:38:10 [host.shifter] INFO: Golden Baseline: 2/2 Komponenten gesichert
+2026-02-19 19:38:10 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline komplett
+2026-02-19 19:38:10 [host.flows.genesis] INFO: [11/11] Audit + Account-Check + TikTok ID-Validation (v6.1)...
+2026-02-19 19:38:10 [host.auditor] INFO: Audit starten: zuvieleversuche4 (serial=UNSS580LBKCM)
+2026-02-19 19:38:11 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-19 19:38:11 [host.auditor] INFO:   [+] bridge_serial: pass — serial=UNSS580LBKCM, boot_serial=UNSS580LBKCM — korrekt
+2026-02-19 19:38:11 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-19 19:38:11 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: f4:f5:d8:4c:5f:4f
+2026-02-19 19:38:11 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-19 19:38:11 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-19 19:38:11 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-19 19:38:11 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-19 19:38:11 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-19 19:38:11 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-19 19:38:11 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-19 19:38:11 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-19 19:38:11 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-19 19:38:11 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-19 19:38:11 [host.auditor] INFO: Audit [zuvieleversuche4]: 100% (14/14 passed)
+2026-02-19 19:38:11 [host.shifter] INFO: [Account-Check] Google-Account gefunden: arvinvaha@gmail.com
+2026-02-19 19:38:11 [host.flows.genesis] INFO: [11/11] Google-Account: arvinvaha@gmail.com
+2026-02-19 19:38:11 [host.flows.genesis] INFO: [11/11] TikTok Silent Launch: ID-Generierung starten...
+2026-02-19 19:38:11 [host.shifter] INFO: [SilentLaunch] Starte com.zhiliaoapp.musically für ID-Generierung (15s)...
+2026-02-19 19:38:15 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:38:26 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:38:28 [host.flows.genesis] WARNING: [11/11] install_id nicht extrahierbar (TikTok nicht installiert?)
+2026-02-19 19:38:28 [host.flows.genesis] INFO: [11/11] Audit: PASS (100%) | Google-Account: arvinvaha@gmail.com
+2026-02-19 19:38:28 [host.flows.genesis] INFO: ============================================================
+2026-02-19 19:38:28 [host.flows.genesis] INFO:   GENESIS ERFOLG: zuvieleversuche4 (164346 ms)
+2026-02-19 19:38:28 [host.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
+2026-02-19 19:38:28 [host.flows.genesis] INFO: ============================================================
+2026-02-19 19:38:29 [host.db_ops] INFO: Profile log captured: profile=50 trigger=genesis_end apis=11 spoofed=100.0% hooks=28-28/28 leaks=0 kills=0
+2026-02-19 19:38:29 [host.flows.genesis] INFO: Profile snapshot captured: log_id=10 trigger=genesis_end
+2026-02-19 19:48:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:48:24 [hookguard] WARNING: Heartbeat stale: 598506ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:48:35 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:48:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:48:58 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:49:09 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:49:21 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:49:32 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:49:39 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-19 19:49:39 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 19:49:39 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 19:49:43 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 19:49:44 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 19:50:30 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 19:50:32 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-19 19:50:32 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-19 19:50:32 [host.adb] INFO: ADB Erfolg nach 2 Versuchen: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-19 19:50:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:50:48 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:50:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:51:10 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:51:21 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:51:33 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:51:45 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:51:57 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:52:10 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:52:22 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:52:34 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:52:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:52:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:53:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:53:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:53:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:53:48 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:54:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:54:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:54:25 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:54:26 [hookguard] WARNING: Heartbeat stale: 45969ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:54:30 [hookguard] WARNING: Heartbeat stale: 49913ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:54:34 [hookguard] WARNING: Heartbeat stale: 53908ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:54:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:54:38 [hookguard] WARNING: Heartbeat stale: 58110ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:54:42 [hookguard] WARNING: Heartbeat stale: 62059ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:54:46 [hookguard] WARNING: Heartbeat stale: 66053ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:54:50 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:54:50 [hookguard] WARNING: Heartbeat stale: 70330ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:54:54 [hookguard] WARNING: Heartbeat stale: 74863ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:54:58 [hookguard] WARNING: Heartbeat stale: 78805ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:55:02 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:55:03 [hookguard] WARNING: Heartbeat stale: 83041ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:55:07 [hookguard] WARNING: Heartbeat stale: 86985ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:55:11 [hookguard] WARNING: Heartbeat stale: 90948ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:55:15 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:55:15 [hookguard] WARNING: Heartbeat stale: 95192ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:55:19 [hookguard] WARNING: Heartbeat stale: 99130ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:55:22 [hookguard] WARNING: Heartbeat stale: 102878ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:55:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:55:27 [hookguard] WARNING: Heartbeat stale: 107667ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:55:31 [hookguard] WARNING: Heartbeat stale: 111661ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:55:35 [hookguard] WARNING: Heartbeat stale: 115611ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:55:39 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:55:40 [hookguard] WARNING: Heartbeat stale: 119893ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:55:43 [hookguard] WARNING: Heartbeat stale: 123850ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:55:47 [hookguard] WARNING: Heartbeat stale: 127742ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:55:51 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:55:52 [hookguard] WARNING: Heartbeat stale: 131978ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:55:56 [hookguard] WARNING: Heartbeat stale: 135932ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:00 [hookguard] WARNING: Heartbeat stale: 140364ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:04 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:56:04 [hookguard] WARNING: Heartbeat stale: 144649ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:08 [hookguard] WARNING: Heartbeat stale: 148534ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:12 [hookguard] WARNING: Heartbeat stale: 152475ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:16 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:56:16 [hookguard] WARNING: Heartbeat stale: 156724ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:20 [hookguard] WARNING: Heartbeat stale: 160595ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:24 [hookguard] WARNING: Heartbeat stale: 164538ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:28 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:56:28 [hookguard] WARNING: Heartbeat stale: 168812ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:33 [hookguard] WARNING: Heartbeat stale: 173291ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:37 [hookguard] WARNING: Heartbeat stale: 177275ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:41 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:56:41 [hookguard] WARNING: Heartbeat stale: 181493ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:45 [hookguard] WARNING: Heartbeat stale: 185464ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:49 [hookguard] WARNING: Heartbeat stale: 189384ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:53 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:56:53 [hookguard] WARNING: Heartbeat stale: 193554ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:56:57 [hookguard] WARNING: Heartbeat stale: 197459ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:01 [hookguard] WARNING: Heartbeat stale: 201392ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:05 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:57:06 [hookguard] WARNING: Heartbeat stale: 206009ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:10 [hookguard] WARNING: Heartbeat stale: 209953ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:14 [hookguard] WARNING: Heartbeat stale: 213894ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:17 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:57:18 [hookguard] WARNING: Heartbeat stale: 218154ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:22 [hookguard] WARNING: Heartbeat stale: 222046ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:26 [hookguard] WARNING: Heartbeat stale: 225993ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:30 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:57:30 [hookguard] WARNING: Heartbeat stale: 230232ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:34 [hookguard] WARNING: Heartbeat stale: 234166ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:38 [hookguard] WARNING: Heartbeat stale: 238632ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:42 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:57:42 [hookguard] WARNING: Heartbeat stale: 242844ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:46 [hookguard] WARNING: Heartbeat stale: 246778ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:50 [hookguard] WARNING: Heartbeat stale: 250766ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:54 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:57:55 [hookguard] WARNING: Heartbeat stale: 255021ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:57:59 [hookguard] WARNING: Heartbeat stale: 258970ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:58:03 [hookguard] WARNING: Heartbeat stale: 262912ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:58:06 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:58:07 [hookguard] WARNING: Heartbeat stale: 267232ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:58:11 [hookguard] WARNING: Heartbeat stale: 271723ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:58:15 [hookguard] WARNING: Heartbeat stale: 275677ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:58:19 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:58:20 [hookguard] WARNING: Heartbeat stale: 279950ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:58:23 [hookguard] WARNING: Heartbeat stale: 283863ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:58:27 [hookguard] WARNING: Heartbeat stale: 287763ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:58:31 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:58:32 [hookguard] WARNING: Heartbeat stale: 292004ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:58:36 [hookguard] WARNING: Heartbeat stale: 296019ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:58:40 [hookguard] WARNING: Heartbeat stale: 299970ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:58:44 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:58:44 [hookguard] WARNING: Heartbeat stale: 304826ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:58:48 [hookguard] WARNING: Heartbeat stale: 308785ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:58:52 [hookguard] WARNING: Heartbeat stale: 312736ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:58:56 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:58:57 [hookguard] WARNING: Heartbeat stale: 316972ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:01 [hookguard] WARNING: Heartbeat stale: 320894ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:04 [hookguard] WARNING: Heartbeat stale: 324846ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:08 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:59:09 [hookguard] WARNING: Heartbeat stale: 329070ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:13 [hookguard] WARNING: Heartbeat stale: 332962ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:17 [hookguard] WARNING: Heartbeat stale: 337474ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:21 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:59:21 [hookguard] WARNING: Heartbeat stale: 341679ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:25 [hookguard] WARNING: Heartbeat stale: 345599ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:29 [hookguard] WARNING: Heartbeat stale: 349523ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:33 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:59:33 [hookguard] WARNING: Heartbeat stale: 353687ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:37 [hookguard] WARNING: Heartbeat stale: 357626ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:41 [hookguard] WARNING: Heartbeat stale: 361550ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:45 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:59:45 [hookguard] WARNING: Heartbeat stale: 365826ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:50 [hookguard] WARNING: Heartbeat stale: 370263ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:54 [hookguard] WARNING: Heartbeat stale: 374196ms since last beat (TikTok likely backgrounded)
+2026-02-19 19:59:58 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 19:59:58 [hookguard] WARNING: Heartbeat stale: 378467ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:00:02 [hookguard] WARNING: Heartbeat stale: 382428ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:00:06 [hookguard] WARNING: Heartbeat stale: 386354ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:00:10 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:00:10 [hookguard] WARNING: Heartbeat stale: 390624ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:00:14 [hookguard] WARNING: Heartbeat stale: 394582ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:00:18 [hookguard] WARNING: Heartbeat stale: 398524ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:00:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:00:23 [hookguard] WARNING: Heartbeat stale: 403326ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:00:27 [hookguard] WARNING: Heartbeat stale: 407307ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:00:31 [hookguard] WARNING: Heartbeat stale: 411226ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:00:35 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:00:35 [hookguard] WARNING: Heartbeat stale: 415494ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:00:39 [hookguard] WARNING: Heartbeat stale: 419426ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:00:43 [hookguard] WARNING: Heartbeat stale: 423327ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:00:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:00:47 [hookguard] WARNING: Heartbeat stale: 427596ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:00:51 [hookguard] WARNING: Heartbeat stale: 431588ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:00:56 [hookguard] WARNING: Heartbeat stale: 436069ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:01:00 [hookguard] WARNING: Heartbeat stale: 440322ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:04 [hookguard] WARNING: Heartbeat stale: 444245ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:08 [hookguard] WARNING: Heartbeat stale: 448156ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:01:12 [hookguard] WARNING: Heartbeat stale: 452412ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:16 [hookguard] WARNING: Heartbeat stale: 456377ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:20 [hookguard] WARNING: Heartbeat stale: 460363ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:01:24 [hookguard] WARNING: Heartbeat stale: 464617ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:29 [hookguard] WARNING: Heartbeat stale: 469075ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:33 [hookguard] WARNING: Heartbeat stale: 473022ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:01:37 [hookguard] WARNING: Heartbeat stale: 477243ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:41 [hookguard] WARNING: Heartbeat stale: 481217ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:45 [hookguard] WARNING: Heartbeat stale: 485136ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:01:49 [hookguard] WARNING: Heartbeat stale: 489408ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:53 [hookguard] WARNING: Heartbeat stale: 493302ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:01:57 [hookguard] WARNING: Heartbeat stale: 497197ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:01 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:02:02 [hookguard] WARNING: Heartbeat stale: 502053ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:06 [hookguard] WARNING: Heartbeat stale: 506046ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:10 [hookguard] WARNING: Heartbeat stale: 509978ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:14 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:02:14 [hookguard] WARNING: Heartbeat stale: 514258ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:18 [hookguard] WARNING: Heartbeat stale: 518160ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:22 [hookguard] WARNING: Heartbeat stale: 522122ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:26 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:02:26 [hookguard] WARNING: Heartbeat stale: 526393ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:30 [hookguard] WARNING: Heartbeat stale: 530351ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:34 [hookguard] WARNING: Heartbeat stale: 534849ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:02:39 [hookguard] WARNING: Heartbeat stale: 539116ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:43 [hookguard] WARNING: Heartbeat stale: 543037ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:47 [hookguard] WARNING: Heartbeat stale: 547008ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:51 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:02:51 [hookguard] WARNING: Heartbeat stale: 551268ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:55 [hookguard] WARNING: Heartbeat stale: 555218ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:02:59 [hookguard] WARNING: Heartbeat stale: 559117ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:03:03 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:03:03 [hookguard] WARNING: Heartbeat stale: 563326ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:03:07 [hookguard] WARNING: Heartbeat stale: 567786ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:03:11 [hookguard] WARNING: Heartbeat stale: 571722ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:03:15 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:03:16 [hookguard] WARNING: Heartbeat stale: 576006ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:03:20 [hookguard] WARNING: Heartbeat stale: 579973ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:03:24 [hookguard] WARNING: Heartbeat stale: 583928ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:03:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:03:28 [hookguard] WARNING: Heartbeat stale: 588178ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:03:32 [hookguard] WARNING: Heartbeat stale: 592102ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:03:36 [hookguard] WARNING: Heartbeat stale: 596037ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:03:40 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:03:40 [hookguard] WARNING: Heartbeat stale: 600857ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:03:44 [hookguard] WARNING: Heartbeat stale: 604774ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:03:48 [hookguard] WARNING: Heartbeat stale: 608724ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:03:52 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:03:53 [hookguard] WARNING: Heartbeat stale: 612998ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:03:57 [hookguard] WARNING: Heartbeat stale: 616929ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:00 [hookguard] WARNING: Heartbeat stale: 620792ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:04 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:04:05 [hookguard] WARNING: Heartbeat stale: 625045ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:09 [hookguard] WARNING: Heartbeat stale: 629008ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:13 [hookguard] WARNING: Heartbeat stale: 633466ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:17 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:04:17 [hookguard] WARNING: Heartbeat stale: 637753ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:21 [hookguard] WARNING: Heartbeat stale: 641687ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:25 [hookguard] WARNING: Heartbeat stale: 645614ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:29 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:04:29 [hookguard] WARNING: Heartbeat stale: 649866ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:33 [hookguard] WARNING: Heartbeat stale: 653794ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:37 [hookguard] WARNING: Heartbeat stale: 657742ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:41 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:04:42 [hookguard] WARNING: Heartbeat stale: 662040ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:46 [hookguard] WARNING: Heartbeat stale: 666530ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:50 [hookguard] WARNING: Heartbeat stale: 670512ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:54 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:04:54 [hookguard] WARNING: Heartbeat stale: 674757ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:04:58 [hookguard] WARNING: Heartbeat stale: 678686ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:05:02 [hookguard] WARNING: Heartbeat stale: 682599ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:05:06 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:05:07 [hookguard] WARNING: Heartbeat stale: 686886ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:05:10 [hookguard] WARNING: Heartbeat stale: 690861ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:05:14 [hookguard] WARNING: Heartbeat stale: 694856ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:05:19 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:05:19 [hookguard] WARNING: Heartbeat stale: 699692ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:05:23 [hookguard] WARNING: Heartbeat stale: 703634ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:05:27 [hookguard] WARNING: Heartbeat stale: 707600ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:05:31 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:05:32 [hookguard] WARNING: Heartbeat stale: 711892ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:05:35 [hookguard] WARNING: Heartbeat stale: 715784ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:05:39 [hookguard] WARNING: Heartbeat stale: 719705ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:05:43 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:05:44 [hookguard] WARNING: Heartbeat stale: 723918ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:05:47 [hookguard] WARNING: Heartbeat stale: 727869ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:05:52 [hookguard] WARNING: Heartbeat stale: 732386ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:05:56 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:05:56 [hookguard] WARNING: Heartbeat stale: 736696ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:00 [hookguard] WARNING: Heartbeat stale: 740577ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:04 [hookguard] WARNING: Heartbeat stale: 744518ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:08 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:06:08 [hookguard] WARNING: Heartbeat stale: 748775ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:12 [hookguard] WARNING: Heartbeat stale: 752669ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:16 [hookguard] WARNING: Heartbeat stale: 756619ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:20 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:06:20 [hookguard] WARNING: Heartbeat stale: 760817ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:25 [hookguard] WARNING: Heartbeat stale: 765373ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:29 [hookguard] WARNING: Heartbeat stale: 769182ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:33 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:06:33 [hookguard] WARNING: Heartbeat stale: 773408ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:37 [hookguard] WARNING: Heartbeat stale: 777350ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:41 [hookguard] WARNING: Heartbeat stale: 781298ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:45 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:06:45 [hookguard] WARNING: Heartbeat stale: 785505ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:49 [hookguard] WARNING: Heartbeat stale: 789477ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:53 [hookguard] WARNING: Heartbeat stale: 793403ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:06:57 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:06:58 [hookguard] WARNING: Heartbeat stale: 798056ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:02 [hookguard] WARNING: Heartbeat stale: 801919ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:06 [hookguard] WARNING: Heartbeat stale: 805897ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:09 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:07:10 [hookguard] WARNING: Heartbeat stale: 810193ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:14 [hookguard] WARNING: Heartbeat stale: 814111ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:18 [hookguard] WARNING: Heartbeat stale: 818040ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:22 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:07:22 [hookguard] WARNING: Heartbeat stale: 822310ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:26 [hookguard] WARNING: Heartbeat stale: 826224ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:30 [hookguard] WARNING: Heartbeat stale: 830677ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:34 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:07:35 [hookguard] WARNING: Heartbeat stale: 834962ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:38 [hookguard] WARNING: Heartbeat stale: 838877ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:42 [hookguard] WARNING: Heartbeat stale: 842781ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:46 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:07:47 [hookguard] WARNING: Heartbeat stale: 847049ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:51 [hookguard] WARNING: Heartbeat stale: 850996ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:55 [hookguard] WARNING: Heartbeat stale: 854914ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:07:58 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:07:59 [hookguard] WARNING: Heartbeat stale: 859110ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:08:03 [hookguard] WARNING: Heartbeat stale: 863578ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:08:07 [hookguard] WARNING: Heartbeat stale: 867539ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:08:11 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:08:11 [hookguard] WARNING: Heartbeat stale: 871792ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:08:15 [hookguard] WARNING: Heartbeat stale: 875695ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:08:19 [hookguard] WARNING: Heartbeat stale: 879650ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:08:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:08:23 [hookguard] WARNING: Heartbeat stale: 883855ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:08:27 [hookguard] WARNING: Heartbeat stale: 887818ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:08:31 [hookguard] WARNING: Heartbeat stale: 891754ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:08:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:08:36 [hookguard] WARNING: Heartbeat stale: 896574ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:08:40 [hookguard] WARNING: Heartbeat stale: 900547ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:08:44 [hookguard] WARNING: Heartbeat stale: 904476ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:08:48 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:08:48 [hookguard] WARNING: Heartbeat stale: 908674ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:08:52 [hookguard] WARNING: Heartbeat stale: 912619ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:08:56 [hookguard] WARNING: Heartbeat stale: 916471ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:09:00 [hookguard] WARNING: Heartbeat stale: 920711ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:04 [hookguard] WARNING: Heartbeat stale: 924689ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:09 [hookguard] WARNING: Heartbeat stale: 929127ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:09:13 [hookguard] WARNING: Heartbeat stale: 933297ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:17 [hookguard] WARNING: Heartbeat stale: 937254ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:21 [hookguard] WARNING: Heartbeat stale: 941200ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:25 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:09:25 [hookguard] WARNING: Heartbeat stale: 945493ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:29 [hookguard] WARNING: Heartbeat stale: 949407ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:33 [hookguard] WARNING: Heartbeat stale: 953301ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:09:37 [hookguard] WARNING: Heartbeat stale: 957548ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:42 [hookguard] WARNING: Heartbeat stale: 962054ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:46 [hookguard] WARNING: Heartbeat stale: 965924ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:50 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:09:50 [hookguard] WARNING: Heartbeat stale: 970207ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:54 [hookguard] WARNING: Heartbeat stale: 974191ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:09:58 [hookguard] WARNING: Heartbeat stale: 978103ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:02 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:10:02 [hookguard] WARNING: Heartbeat stale: 982374ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:06 [hookguard] WARNING: Heartbeat stale: 986312ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:10 [hookguard] WARNING: Heartbeat stale: 990288ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:14 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:10:15 [hookguard] WARNING: Heartbeat stale: 995021ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:19 [hookguard] WARNING: Heartbeat stale: 998926ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:22 [hookguard] WARNING: Heartbeat stale: 1002873ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:26 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:10:27 [hookguard] WARNING: Heartbeat stale: 1007137ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:31 [hookguard] WARNING: Heartbeat stale: 1011101ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:35 [hookguard] WARNING: Heartbeat stale: 1015045ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:39 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:10:39 [hookguard] WARNING: Heartbeat stale: 1019269ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:43 [hookguard] WARNING: Heartbeat stale: 1023198ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:47 [hookguard] WARNING: Heartbeat stale: 1027739ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:51 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:10:52 [hookguard] WARNING: Heartbeat stale: 1032013ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:56 [hookguard] WARNING: Heartbeat stale: 1035953ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:10:59 [hookguard] WARNING: Heartbeat stale: 1039835ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:11:03 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:11:04 [hookguard] WARNING: Heartbeat stale: 1044098ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:11:08 [hookguard] WARNING: Heartbeat stale: 1047932ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:11:11 [hookguard] WARNING: Heartbeat stale: 1051860ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:11:15 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:11:16 [hookguard] WARNING: Heartbeat stale: 1056079ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:11:20 [hookguard] WARNING: Heartbeat stale: 1060594ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:11:24 [hookguard] WARNING: Heartbeat stale: 1064535ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:11:28 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:11:28 [hookguard] WARNING: Heartbeat stale: 1068787ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:11:32 [hookguard] WARNING: Heartbeat stale: 1072735ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:11:36 [hookguard] WARNING: Heartbeat stale: 1076718ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:11:40 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:11:40 [hookguard] WARNING: Heartbeat stale: 1080863ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:11:44 [hookguard] WARNING: Heartbeat stale: 1084812ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:11:48 [hookguard] WARNING: Heartbeat stale: 1088759ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:11:53 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:11:53 [hookguard] WARNING: Heartbeat stale: 1093562ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:11:57 [hookguard] WARNING: Heartbeat stale: 1097377ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:01 [hookguard] WARNING: Heartbeat stale: 1101315ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:05 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:12:05 [hookguard] WARNING: Heartbeat stale: 1105590ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:09 [hookguard] WARNING: Heartbeat stale: 1109537ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:13 [hookguard] WARNING: Heartbeat stale: 1113454ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:17 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:12:17 [hookguard] WARNING: Heartbeat stale: 1117693ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:21 [hookguard] WARNING: Heartbeat stale: 1121608ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:26 [hookguard] WARNING: Heartbeat stale: 1126123ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:30 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:12:30 [hookguard] WARNING: Heartbeat stale: 1130384ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:34 [hookguard] WARNING: Heartbeat stale: 1134325ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:38 [hookguard] WARNING: Heartbeat stale: 1138259ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:42 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:12:42 [hookguard] WARNING: Heartbeat stale: 1142523ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:46 [hookguard] WARNING: Heartbeat stale: 1146385ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:50 [hookguard] WARNING: Heartbeat stale: 1150344ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:54 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:12:54 [hookguard] WARNING: Heartbeat stale: 1154560ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:12:59 [hookguard] WARNING: Heartbeat stale: 1158997ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:13:03 [hookguard] WARNING: Heartbeat stale: 1162953ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:13:07 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:13:07 [hookguard] WARNING: Heartbeat stale: 1167236ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:13:11 [hookguard] WARNING: Heartbeat stale: 1171192ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:13:15 [hookguard] WARNING: Heartbeat stale: 1175109ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:13:19 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:13:19 [hookguard] WARNING: Heartbeat stale: 1179304ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:13:23 [hookguard] WARNING: Heartbeat stale: 1183186ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:13:27 [hookguard] WARNING: Heartbeat stale: 1187129ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:13:31 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:13:32 [hookguard] WARNING: Heartbeat stale: 1191972ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:13:36 [hookguard] WARNING: Heartbeat stale: 1195938ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:13:40 [hookguard] WARNING: Heartbeat stale: 1199889ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:13:43 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:13:44 [hookguard] WARNING: Heartbeat stale: 1204099ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:13:48 [hookguard] WARNING: Heartbeat stale: 1208029ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:13:52 [hookguard] WARNING: Heartbeat stale: 1211989ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:13:56 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:13:56 [hookguard] WARNING: Heartbeat stale: 1216229ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:00 [hookguard] WARNING: Heartbeat stale: 1220127ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:04 [hookguard] WARNING: Heartbeat stale: 1224627ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:08 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:14:08 [hookguard] WARNING: Heartbeat stale: 1228832ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:12 [hookguard] WARNING: Heartbeat stale: 1232822ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:16 [hookguard] WARNING: Heartbeat stale: 1236731ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:20 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:14:21 [hookguard] WARNING: Heartbeat stale: 1240971ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:25 [hookguard] WARNING: Heartbeat stale: 1244936ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:28 [hookguard] WARNING: Heartbeat stale: 1248876ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:32 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:14:33 [hookguard] WARNING: Heartbeat stale: 1253143ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:37 [hookguard] WARNING: Heartbeat stale: 1257698ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:41 [hookguard] WARNING: Heartbeat stale: 1261655ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:45 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:14:46 [hookguard] WARNING: Heartbeat stale: 1265933ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:49 [hookguard] WARNING: Heartbeat stale: 1269877ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:53 [hookguard] WARNING: Heartbeat stale: 1273790ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:14:57 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:14:58 [hookguard] WARNING: Heartbeat stale: 1277927ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:01 [hookguard] WARNING: Heartbeat stale: 1281877ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:05 [hookguard] WARNING: Heartbeat stale: 1285820ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:10 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:15:10 [hookguard] WARNING: Heartbeat stale: 1290660ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:14 [hookguard] WARNING: Heartbeat stale: 1294587ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:18 [hookguard] WARNING: Heartbeat stale: 1298520ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:22 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:15:22 [hookguard] WARNING: Heartbeat stale: 1302770ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:26 [hookguard] WARNING: Heartbeat stale: 1306707ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:30 [hookguard] WARNING: Heartbeat stale: 1310661ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:34 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:15:34 [hookguard] WARNING: Heartbeat stale: 1314881ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:38 [hookguard] WARNING: Heartbeat stale: 1318789ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:43 [hookguard] WARNING: Heartbeat stale: 1323260ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:15:47 [hookguard] WARNING: Heartbeat stale: 1327500ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:51 [hookguard] WARNING: Heartbeat stale: 1331495ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:55 [hookguard] WARNING: Heartbeat stale: 1335451ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:15:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:15:59 [hookguard] WARNING: Heartbeat stale: 1339707ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:16:03 [hookguard] WARNING: Heartbeat stale: 1343600ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:16:07 [hookguard] WARNING: Heartbeat stale: 1347592ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:16:11 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:16:12 [hookguard] WARNING: Heartbeat stale: 1351893ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:16:16 [hookguard] WARNING: Heartbeat stale: 1356376ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:16:20 [hookguard] WARNING: Heartbeat stale: 1360227ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:16:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:16:24 [hookguard] WARNING: Heartbeat stale: 1364485ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:16:28 [hookguard] WARNING: Heartbeat stale: 1368430ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:16:32 [hookguard] WARNING: Heartbeat stale: 1372367ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:16:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:16:36 [hookguard] WARNING: Heartbeat stale: 1376638ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:16:40 [hookguard] WARNING: Heartbeat stale: 1380589ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:16:44 [hookguard] WARNING: Heartbeat stale: 1384525ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:16:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:16:49 [hookguard] WARNING: Heartbeat stale: 1389311ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:16:53 [hookguard] WARNING: Heartbeat stale: 1393355ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:16:57 [hookguard] WARNING: Heartbeat stale: 1397218ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:01 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:17:01 [hookguard] WARNING: Heartbeat stale: 1401461ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:05 [hookguard] WARNING: Heartbeat stale: 1405361ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:09 [hookguard] WARNING: Heartbeat stale: 1409292ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:17:13 [hookguard] WARNING: Heartbeat stale: 1413521ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:17 [hookguard] WARNING: Heartbeat stale: 1417472ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:22 [hookguard] WARNING: Heartbeat stale: 1421966ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:26 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:17:26 [hookguard] WARNING: Heartbeat stale: 1426214ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:30 [hookguard] WARNING: Heartbeat stale: 1430160ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:34 [hookguard] WARNING: Heartbeat stale: 1434059ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:17:38 [hookguard] WARNING: Heartbeat stale: 1438334ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:42 [hookguard] WARNING: Heartbeat stale: 1442246ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:46 [hookguard] WARNING: Heartbeat stale: 1446187ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:50 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:17:50 [hookguard] WARNING: Heartbeat stale: 1450421ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:55 [hookguard] WARNING: Heartbeat stale: 1454930ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:17:58 [hookguard] WARNING: Heartbeat stale: 1458852ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:18:02 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:18:03 [hookguard] WARNING: Heartbeat stale: 1463105ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:18:07 [hookguard] WARNING: Heartbeat stale: 1467051ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:18:11 [hookguard] WARNING: Heartbeat stale: 1471007ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:18:15 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:18:15 [hookguard] WARNING: Heartbeat stale: 1475310ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:18:19 [hookguard] WARNING: Heartbeat stale: 1479206ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:18:23 [hookguard] WARNING: Heartbeat stale: 1483121ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:18:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:18:28 [hookguard] WARNING: Heartbeat stale: 1487977ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:18:32 [hookguard] WARNING: Heartbeat stale: 1491906ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:18:35 [hookguard] WARNING: Heartbeat stale: 1495843ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:18:39 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:18:40 [hookguard] WARNING: Heartbeat stale: 1500118ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:18:44 [hookguard] WARNING: Heartbeat stale: 1504011ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:18:48 [hookguard] WARNING: Heartbeat stale: 1508001ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:18:52 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:18:52 [hookguard] WARNING: Heartbeat stale: 1512270ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:18:56 [hookguard] WARNING: Heartbeat stale: 1516183ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:00 [hookguard] WARNING: Heartbeat stale: 1520686ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:04 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:19:05 [hookguard] WARNING: Heartbeat stale: 1524960ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:08 [hookguard] WARNING: Heartbeat stale: 1528882ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:12 [hookguard] WARNING: Heartbeat stale: 1532833ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:16 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:19:17 [hookguard] WARNING: Heartbeat stale: 1537112ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:21 [hookguard] WARNING: Heartbeat stale: 1541037ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:25 [hookguard] WARNING: Heartbeat stale: 1544996ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:29 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:19:29 [hookguard] WARNING: Heartbeat stale: 1549176ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:33 [hookguard] WARNING: Heartbeat stale: 1553618ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:37 [hookguard] WARNING: Heartbeat stale: 1557575ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:41 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:19:41 [hookguard] WARNING: Heartbeat stale: 1561876ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:45 [hookguard] WARNING: Heartbeat stale: 1565816ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:49 [hookguard] WARNING: Heartbeat stale: 1569785ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:53 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:19:54 [hookguard] WARNING: Heartbeat stale: 1574012ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:19:57 [hookguard] WARNING: Heartbeat stale: 1577879ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:01 [hookguard] WARNING: Heartbeat stale: 1581841ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:06 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:20:06 [hookguard] WARNING: Heartbeat stale: 1586757ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:10 [hookguard] WARNING: Heartbeat stale: 1590728ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:14 [hookguard] WARNING: Heartbeat stale: 1594678ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:18 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:20:19 [hookguard] WARNING: Heartbeat stale: 1598940ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:22 [hookguard] WARNING: Heartbeat stale: 1602863ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:26 [hookguard] WARNING: Heartbeat stale: 1606803ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:30 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:20:31 [hookguard] WARNING: Heartbeat stale: 1611020ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:35 [hookguard] WARNING: Heartbeat stale: 1614991ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:39 [hookguard] WARNING: Heartbeat stale: 1619437ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:43 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:20:43 [hookguard] WARNING: Heartbeat stale: 1623596ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:47 [hookguard] WARNING: Heartbeat stale: 1627535ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:51 [hookguard] WARNING: Heartbeat stale: 1631446ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:55 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:20:55 [hookguard] WARNING: Heartbeat stale: 1635668ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:20:59 [hookguard] WARNING: Heartbeat stale: 1639567ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:21:03 [hookguard] WARNING: Heartbeat stale: 1643480ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:21:07 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:21:07 [hookguard] WARNING: Heartbeat stale: 1647758ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:21:12 [hookguard] WARNING: Heartbeat stale: 1652253ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:21:16 [hookguard] WARNING: Heartbeat stale: 1656193ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:21:20 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:21:20 [hookguard] WARNING: Heartbeat stale: 1660427ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:21:24 [hookguard] WARNING: Heartbeat stale: 1664324ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:21:28 [hookguard] WARNING: Heartbeat stale: 1668305ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:21:32 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:21:32 [hookguard] WARNING: Heartbeat stale: 1672581ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:21:36 [hookguard] WARNING: Heartbeat stale: 1676559ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:21:40 [hookguard] WARNING: Heartbeat stale: 1680544ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:21:45 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:21:45 [hookguard] WARNING: Heartbeat stale: 1685351ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:21:49 [hookguard] WARNING: Heartbeat stale: 1689311ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:21:53 [hookguard] WARNING: Heartbeat stale: 1693239ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:21:57 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:21:57 [hookguard] WARNING: Heartbeat stale: 1697449ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:01 [hookguard] WARNING: Heartbeat stale: 1701393ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:05 [hookguard] WARNING: Heartbeat stale: 1705300ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:09 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:22:09 [hookguard] WARNING: Heartbeat stale: 1709562ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:13 [hookguard] WARNING: Heartbeat stale: 1713490ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:18 [hookguard] WARNING: Heartbeat stale: 1717988ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:22 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:22:22 [hookguard] WARNING: Heartbeat stale: 1722234ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:26 [hookguard] WARNING: Heartbeat stale: 1726172ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:30 [hookguard] WARNING: Heartbeat stale: 1730107ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:34 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:22:34 [hookguard] WARNING: Heartbeat stale: 1734365ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:38 [hookguard] WARNING: Heartbeat stale: 1738305ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:42 [hookguard] WARNING: Heartbeat stale: 1742227ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:46 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:22:46 [hookguard] WARNING: Heartbeat stale: 1746516ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:51 [hookguard] WARNING: Heartbeat stale: 1751014ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:55 [hookguard] WARNING: Heartbeat stale: 1754943ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:22:58 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:22:59 [hookguard] WARNING: Heartbeat stale: 1759124ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:23:03 [hookguard] WARNING: Heartbeat stale: 1763058ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:23:07 [hookguard] WARNING: Heartbeat stale: 1767017ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:23:11 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:23:11 [hookguard] WARNING: Heartbeat stale: 1771293ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:23:15 [hookguard] WARNING: Heartbeat stale: 1775194ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:23:19 [hookguard] WARNING: Heartbeat stale: 1779092ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:23:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:23:23 [hookguard] WARNING: Heartbeat stale: 1783876ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:23:27 [hookguard] WARNING: Heartbeat stale: 1787848ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:23:31 [hookguard] WARNING: Heartbeat stale: 1791769ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:23:35 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:23:36 [hookguard] WARNING: Heartbeat stale: 1796016ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:23:40 [hookguard] WARNING: Heartbeat stale: 1799988ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:23:44 [hookguard] WARNING: Heartbeat stale: 1803934ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:23:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:23:48 [hookguard] WARNING: Heartbeat stale: 1808138ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:23:52 [hookguard] WARNING: Heartbeat stale: 1812066ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:23:56 [hookguard] WARNING: Heartbeat stale: 1816603ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:24:00 [hookguard] WARNING: Heartbeat stale: 1820865ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:04 [hookguard] WARNING: Heartbeat stale: 1824821ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:08 [hookguard] WARNING: Heartbeat stale: 1828722ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:24:13 [hookguard] WARNING: Heartbeat stale: 1832929ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:16 [hookguard] WARNING: Heartbeat stale: 1836821ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:20 [hookguard] WARNING: Heartbeat stale: 1840741ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:24:25 [hookguard] WARNING: Heartbeat stale: 1844959ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:29 [hookguard] WARNING: Heartbeat stale: 1849389ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:33 [hookguard] WARNING: Heartbeat stale: 1853352ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:24:37 [hookguard] WARNING: Heartbeat stale: 1857632ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:41 [hookguard] WARNING: Heartbeat stale: 1861547ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:45 [hookguard] WARNING: Heartbeat stale: 1865493ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:24:49 [hookguard] WARNING: Heartbeat stale: 1869735ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:53 [hookguard] WARNING: Heartbeat stale: 1873338ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:24:57 [hookguard] WARNING: Heartbeat stale: 1877212ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:01 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:25:02 [hookguard] WARNING: Heartbeat stale: 1882005ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:05 [hookguard] WARNING: Heartbeat stale: 1885863ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:09 [hookguard] WARNING: Heartbeat stale: 1889825ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:25:14 [hookguard] WARNING: Heartbeat stale: 1894105ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:18 [hookguard] WARNING: Heartbeat stale: 1897964ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:21 [hookguard] WARNING: Heartbeat stale: 1901858ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:25 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:25:26 [hookguard] WARNING: Heartbeat stale: 1906106ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:30 [hookguard] WARNING: Heartbeat stale: 1910006ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:34 [hookguard] WARNING: Heartbeat stale: 1914433ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:25:38 [hookguard] WARNING: Heartbeat stale: 1918651ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:42 [hookguard] WARNING: Heartbeat stale: 1922499ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:46 [hookguard] WARNING: Heartbeat stale: 1926385ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:50 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:25:50 [hookguard] WARNING: Heartbeat stale: 1930641ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:54 [hookguard] WARNING: Heartbeat stale: 1934542ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:25:58 [hookguard] WARNING: Heartbeat stale: 1938492ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:26:02 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:26:02 [hookguard] WARNING: Heartbeat stale: 1942722ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:26:07 [hookguard] WARNING: Heartbeat stale: 1947276ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:26:11 [hookguard] WARNING: Heartbeat stale: 1951189ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:26:15 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:26:15 [hookguard] WARNING: Heartbeat stale: 1955443ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:26:19 [hookguard] WARNING: Heartbeat stale: 1959315ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:26:23 [hookguard] WARNING: Heartbeat stale: 1963244ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:26:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:26:27 [hookguard] WARNING: Heartbeat stale: 1967527ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:26:31 [hookguard] WARNING: Heartbeat stale: 1971485ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:26:35 [hookguard] WARNING: Heartbeat stale: 1975369ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:26:40 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:26:40 [hookguard] WARNING: Heartbeat stale: 1980169ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:26:44 [hookguard] WARNING: Heartbeat stale: 1984055ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:26:48 [hookguard] WARNING: Heartbeat stale: 1988001ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:26:52 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:26:52 [hookguard] WARNING: Heartbeat stale: 1992229ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:26:56 [hookguard] WARNING: Heartbeat stale: 1996185ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:00 [hookguard] WARNING: Heartbeat stale: 2000101ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:04 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:27:04 [hookguard] WARNING: Heartbeat stale: 2004242ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:08 [hookguard] WARNING: Heartbeat stale: 2008162ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:12 [hookguard] WARNING: Heartbeat stale: 2012667ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:16 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:27:17 [hookguard] WARNING: Heartbeat stale: 2016930ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:21 [hookguard] WARNING: Heartbeat stale: 2020895ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:24 [hookguard] WARNING: Heartbeat stale: 2024841ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:28 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:27:29 [hookguard] WARNING: Heartbeat stale: 2029133ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:33 [hookguard] WARNING: Heartbeat stale: 2032948ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:36 [hookguard] WARNING: Heartbeat stale: 2036871ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:40 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:27:41 [hookguard] WARNING: Heartbeat stale: 2041020ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:45 [hookguard] WARNING: Heartbeat stale: 2045509ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:49 [hookguard] WARNING: Heartbeat stale: 2049299ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:53 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:27:53 [hookguard] WARNING: Heartbeat stale: 2053572ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:27:57 [hookguard] WARNING: Heartbeat stale: 2057427ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:01 [hookguard] WARNING: Heartbeat stale: 2061364ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:05 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:28:05 [hookguard] WARNING: Heartbeat stale: 2065651ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:09 [hookguard] WARNING: Heartbeat stale: 2069561ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:13 [hookguard] WARNING: Heartbeat stale: 2073499ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:18 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:28:18 [hookguard] WARNING: Heartbeat stale: 2078334ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:22 [hookguard] WARNING: Heartbeat stale: 2082256ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:26 [hookguard] WARNING: Heartbeat stale: 2086225ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:30 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:28:30 [hookguard] WARNING: Heartbeat stale: 2090484ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:34 [hookguard] WARNING: Heartbeat stale: 2094392ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:38 [hookguard] WARNING: Heartbeat stale: 2098324ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:42 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:28:42 [hookguard] WARNING: Heartbeat stale: 2102555ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:46 [hookguard] WARNING: Heartbeat stale: 2106450ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:51 [hookguard] WARNING: Heartbeat stale: 2110946ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:55 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:28:55 [hookguard] WARNING: Heartbeat stale: 2115226ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:28:59 [hookguard] WARNING: Heartbeat stale: 2119141ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:29:03 [hookguard] WARNING: Heartbeat stale: 2123105ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:29:07 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:29:07 [hookguard] WARNING: Heartbeat stale: 2127350ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:29:11 [hookguard] WARNING: Heartbeat stale: 2131269ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:29:15 [hookguard] WARNING: Heartbeat stale: 2135167ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:29:19 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:29:19 [hookguard] WARNING: Heartbeat stale: 2139352ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:29:23 [hookguard] WARNING: Heartbeat stale: 2143832ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:29:27 [hookguard] WARNING: Heartbeat stale: 2147765ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:29:31 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:29:32 [hookguard] WARNING: Heartbeat stale: 2152041ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:29:36 [hookguard] WARNING: Heartbeat stale: 2155978ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:29:40 [hookguard] WARNING: Heartbeat stale: 2159922ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:29:43 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:29:44 [hookguard] WARNING: Heartbeat stale: 2164230ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:29:48 [hookguard] WARNING: Heartbeat stale: 2168176ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:29:52 [hookguard] WARNING: Heartbeat stale: 2172099ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:29:56 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:29:57 [hookguard] WARNING: Heartbeat stale: 2176929ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:00 [hookguard] WARNING: Heartbeat stale: 2180869ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:04 [hookguard] WARNING: Heartbeat stale: 2184803ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:08 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:30:09 [hookguard] WARNING: Heartbeat stale: 2189069ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:13 [hookguard] WARNING: Heartbeat stale: 2192980ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:17 [hookguard] WARNING: Heartbeat stale: 2196950ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:21 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:30:21 [hookguard] WARNING: Heartbeat stale: 2201259ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:25 [hookguard] WARNING: Heartbeat stale: 2205191ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:29 [hookguard] WARNING: Heartbeat stale: 2209626ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:33 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:30:33 [hookguard] WARNING: Heartbeat stale: 2213492ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:37 [hookguard] WARNING: Heartbeat stale: 2217188ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:41 [hookguard] WARNING: Heartbeat stale: 2221161ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:44 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:30:45 [hookguard] WARNING: Heartbeat stale: 2224931ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:48 [hookguard] WARNING: Heartbeat stale: 2228679ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:52 [hookguard] WARNING: Heartbeat stale: 2232546ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:30:56 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:30:56 [hookguard] WARNING: Heartbeat stale: 2236693ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:01 [hookguard] WARNING: Heartbeat stale: 2241149ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:05 [hookguard] WARNING: Heartbeat stale: 2244951ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:08 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:31:09 [hookguard] WARNING: Heartbeat stale: 2249118ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:12 [hookguard] WARNING: Heartbeat stale: 2252863ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:16 [hookguard] WARNING: Heartbeat stale: 2256725ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:20 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:31:20 [hookguard] WARNING: Heartbeat stale: 2260875ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:24 [hookguard] WARNING: Heartbeat stale: 2264731ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:28 [hookguard] WARNING: Heartbeat stale: 2268688ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:33 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:31:33 [hookguard] WARNING: Heartbeat stale: 2273340ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:37 [hookguard] WARNING: Heartbeat stale: 2277230ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:41 [hookguard] WARNING: Heartbeat stale: 2281097ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:42 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=59902)
+2026-02-19 20:31:42 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=63826)
+2026-02-19 20:31:45 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:31:45 [hookguard] WARNING: Heartbeat stale: 2285439ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:49 [hookguard] WARNING: Heartbeat stale: 2289275ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:53 [hookguard] WARNING: Heartbeat stale: 2293211ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:31:57 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:31:57 [hookguard] WARNING: Heartbeat stale: 2297469ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:01 [hookguard] WARNING: Heartbeat stale: 2301310ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:05 [hookguard] WARNING: Heartbeat stale: 2305656ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:09 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:32:09 [hookguard] WARNING: Heartbeat stale: 2309796ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:13 [hookguard] WARNING: Heartbeat stale: 2313632ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:17 [hookguard] WARNING: Heartbeat stale: 2317435ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:21 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:32:21 [hookguard] WARNING: Heartbeat stale: 2321595ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:25 [hookguard] WARNING: Heartbeat stale: 2325462ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:29 [hookguard] WARNING: Heartbeat stale: 2329326ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:33 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:32:33 [hookguard] WARNING: Heartbeat stale: 2333402ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:37 [hookguard] WARNING: Heartbeat stale: 2337856ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:41 [hookguard] WARNING: Heartbeat stale: 2341801ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:45 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:32:46 [hookguard] WARNING: Heartbeat stale: 2346075ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:50 [hookguard] WARNING: Heartbeat stale: 2349966ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:53 [hookguard] WARNING: Heartbeat stale: 2353777ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:32:57 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:32:58 [hookguard] WARNING: Heartbeat stale: 2357951ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:01 [hookguard] WARNING: Heartbeat stale: 2361726ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:05 [hookguard] WARNING: Heartbeat stale: 2365625ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:10 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:33:10 [hookguard] WARNING: Heartbeat stale: 2370295ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:14 [hookguard] WARNING: Heartbeat stale: 2374161ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:18 [hookguard] WARNING: Heartbeat stale: 2377963ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:21 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:33:22 [hookguard] WARNING: Heartbeat stale: 2382180ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:26 [hookguard] WARNING: Heartbeat stale: 2386060ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:30 [hookguard] WARNING: Heartbeat stale: 2389951ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:33 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:33:34 [hookguard] WARNING: Heartbeat stale: 2394141ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:38 [hookguard] WARNING: Heartbeat stale: 2398074ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:42 [hookguard] WARNING: Heartbeat stale: 2402477ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:46 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:33:46 [hookguard] WARNING: Heartbeat stale: 2406661ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:50 [hookguard] WARNING: Heartbeat stale: 2410549ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:54 [hookguard] WARNING: Heartbeat stale: 2414410ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:33:58 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:33:58 [hookguard] WARNING: Heartbeat stale: 2418665ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:02 [hookguard] WARNING: Heartbeat stale: 2422617ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:06 [hookguard] WARNING: Heartbeat stale: 2426500ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:10 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:34:10 [hookguard] WARNING: Heartbeat stale: 2430607ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:15 [hookguard] WARNING: Heartbeat stale: 2434960ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:18 [hookguard] WARNING: Heartbeat stale: 2438811ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:22 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:34:23 [hookguard] WARNING: Heartbeat stale: 2443037ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:26 [hookguard] WARNING: Heartbeat stale: 2446832ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:30 [hookguard] WARNING: Heartbeat stale: 2450697ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:34 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:34:34 [hookguard] WARNING: Heartbeat stale: 2454850ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:38 [hookguard] WARNING: Heartbeat stale: 2458668ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:42 [hookguard] WARNING: Heartbeat stale: 2462518ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:34:47 [hookguard] WARNING: Heartbeat stale: 2467219ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:51 [hookguard] WARNING: Heartbeat stale: 2471098ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:54 [hookguard] WARNING: Heartbeat stale: 2474841ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:34:58 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:34:59 [hookguard] WARNING: Heartbeat stale: 2478984ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:03 [hookguard] WARNING: Heartbeat stale: 2482933ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:06 [hookguard] WARNING: Heartbeat stale: 2486763ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:10 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:35:11 [hookguard] WARNING: Heartbeat stale: 2490999ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:14 [hookguard] WARNING: Heartbeat stale: 2494834ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:19 [hookguard] WARNING: Heartbeat stale: 2499205ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:35:23 [hookguard] WARNING: Heartbeat stale: 2503445ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:27 [hookguard] WARNING: Heartbeat stale: 2507256ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:31 [hookguard] WARNING: Heartbeat stale: 2511215ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:35 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:35:35 [hookguard] WARNING: Heartbeat stale: 2515451ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:39 [hookguard] WARNING: Heartbeat stale: 2519313ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:43 [hookguard] WARNING: Heartbeat stale: 2523148ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:35:47 [hookguard] WARNING: Heartbeat stale: 2527336ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:51 [hookguard] WARNING: Heartbeat stale: 2531744ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:55 [hookguard] WARNING: Heartbeat stale: 2535646ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:35:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:35:59 [hookguard] WARNING: Heartbeat stale: 2539753ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:03 [hookguard] WARNING: Heartbeat stale: 2543661ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:07 [hookguard] WARNING: Heartbeat stale: 2547531ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:11 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:36:11 [hookguard] WARNING: Heartbeat stale: 2551758ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:15 [hookguard] WARNING: Heartbeat stale: 2555640ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:19 [hookguard] WARNING: Heartbeat stale: 2559428ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:36:24 [hookguard] WARNING: Heartbeat stale: 2564123ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:28 [hookguard] WARNING: Heartbeat stale: 2568028ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:32 [hookguard] WARNING: Heartbeat stale: 2571928ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:35 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:36:36 [hookguard] WARNING: Heartbeat stale: 2576044ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:39 [hookguard] WARNING: Heartbeat stale: 2579734ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:43 [hookguard] WARNING: Heartbeat stale: 2583631ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:36:47 [hookguard] WARNING: Heartbeat stale: 2587793ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:51 [hookguard] WARNING: Heartbeat stale: 2591730ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:56 [hookguard] WARNING: Heartbeat stale: 2596016ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:36:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:37:00 [hookguard] WARNING: Heartbeat stale: 2600138ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:37:04 [hookguard] WARNING: Heartbeat stale: 2604011ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:37:07 [hookguard] WARNING: Heartbeat stale: 2607826ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:37:11 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:37:12 [hookguard] WARNING: Heartbeat stale: 2611974ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:37:15 [hookguard] WARNING: Heartbeat stale: 2615782ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:37:19 [hookguard] WARNING: Heartbeat stale: 2619706ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:37:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:37:23 [hookguard] WARNING: Heartbeat stale: 2623877ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:37:28 [hookguard] WARNING: Heartbeat stale: 2628333ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:37:32 [hookguard] WARNING: Heartbeat stale: 2632117ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:37:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:37:36 [hookguard] WARNING: Heartbeat stale: 2636360ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:37:40 [hookguard] WARNING: Heartbeat stale: 2640231ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:37:44 [hookguard] WARNING: Heartbeat stale: 2644070ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:37:48 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:37:48 [hookguard] WARNING: Heartbeat stale: 2648169ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:37:52 [hookguard] WARNING: Heartbeat stale: 2652030ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:37:56 [hookguard] WARNING: Heartbeat stale: 2655944ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:38:00 [hookguard] WARNING: Heartbeat stale: 2660374ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:04 [hookguard] WARNING: Heartbeat stale: 2664239ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:08 [hookguard] WARNING: Heartbeat stale: 2668108ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:38:12 [hookguard] WARNING: Heartbeat stale: 2672276ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:16 [hookguard] WARNING: Heartbeat stale: 2676158ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:20 [hookguard] WARNING: Heartbeat stale: 2680008ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:38:24 [hookguard] WARNING: Heartbeat stale: 2684227ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:28 [hookguard] WARNING: Heartbeat stale: 2688162ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:32 [hookguard] WARNING: Heartbeat stale: 2692613ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:38:36 [hookguard] WARNING: Heartbeat stale: 2696856ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:40 [hookguard] WARNING: Heartbeat stale: 2700783ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:44 [hookguard] WARNING: Heartbeat stale: 2704634ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:48 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:38:48 [hookguard] WARNING: Heartbeat stale: 2708842ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:52 [hookguard] WARNING: Heartbeat stale: 2712779ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:38:56 [hookguard] WARNING: Heartbeat stale: 2716595ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:39:00 [hookguard] WARNING: Heartbeat stale: 2720846ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:05 [hookguard] WARNING: Heartbeat stale: 2725241ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:09 [hookguard] WARNING: Heartbeat stale: 2729078ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:39:13 [hookguard] WARNING: Heartbeat stale: 2733265ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:17 [hookguard] WARNING: Heartbeat stale: 2737036ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:21 [hookguard] WARNING: Heartbeat stale: 2740904ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:39:25 [hookguard] WARNING: Heartbeat stale: 2745136ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:29 [hookguard] WARNING: Heartbeat stale: 2748987ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:32 [hookguard] WARNING: Heartbeat stale: 2752874ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:39:37 [hookguard] WARNING: Heartbeat stale: 2757534ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:41 [hookguard] WARNING: Heartbeat stale: 2761394ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:45 [hookguard] WARNING: Heartbeat stale: 2765245ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:39:49 [hookguard] WARNING: Heartbeat stale: 2769344ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:53 [hookguard] WARNING: Heartbeat stale: 2773093ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:39:56 [hookguard] WARNING: Heartbeat stale: 2776871ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:40:01 [hookguard] WARNING: Heartbeat stale: 2781009ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:04 [hookguard] WARNING: Heartbeat stale: 2784830ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:09 [hookguard] WARNING: Heartbeat stale: 2789145ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:40:13 [hookguard] WARNING: Heartbeat stale: 2793309ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:17 [hookguard] WARNING: Heartbeat stale: 2797132ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:21 [hookguard] WARNING: Heartbeat stale: 2801080ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:25 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:40:25 [hookguard] WARNING: Heartbeat stale: 2805261ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:29 [hookguard] WARNING: Heartbeat stale: 2809162ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:33 [hookguard] WARNING: Heartbeat stale: 2813024ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:40:37 [hookguard] WARNING: Heartbeat stale: 2817231ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:41 [hookguard] WARNING: Heartbeat stale: 2821456ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:45 [hookguard] WARNING: Heartbeat stale: 2825289ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:40:49 [hookguard] WARNING: Heartbeat stale: 2829418ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:53 [hookguard] WARNING: Heartbeat stale: 2833364ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:40:57 [hookguard] WARNING: Heartbeat stale: 2837212ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:01 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:41:01 [hookguard] WARNING: Heartbeat stale: 2841343ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:05 [hookguard] WARNING: Heartbeat stale: 2845186ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:09 [hookguard] WARNING: Heartbeat stale: 2848956ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:41:13 [hookguard] WARNING: Heartbeat stale: 2853787ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:17 [hookguard] WARNING: Heartbeat stale: 2857675ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:21 [hookguard] WARNING: Heartbeat stale: 2861533ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:25 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:41:25 [hookguard] WARNING: Heartbeat stale: 2865654ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:29 [hookguard] WARNING: Heartbeat stale: 2869517ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:33 [hookguard] WARNING: Heartbeat stale: 2873421ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:41:37 [hookguard] WARNING: Heartbeat stale: 2877544ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:41 [hookguard] WARNING: Heartbeat stale: 2881416ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:45 [hookguard] WARNING: Heartbeat stale: 2885732ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:41:49 [hookguard] WARNING: Heartbeat stale: 2889851ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:53 [hookguard] WARNING: Heartbeat stale: 2893776ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:41:57 [hookguard] WARNING: Heartbeat stale: 2897560ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:01 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:42:01 [hookguard] WARNING: Heartbeat stale: 2901778ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:05 [hookguard] WARNING: Heartbeat stale: 2905664ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:09 [hookguard] WARNING: Heartbeat stale: 2909473ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:42:13 [hookguard] WARNING: Heartbeat stale: 2913762ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:18 [hookguard] WARNING: Heartbeat stale: 2918181ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:22 [hookguard] WARNING: Heartbeat stale: 2922074ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:26 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:42:26 [hookguard] WARNING: Heartbeat stale: 2926203ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:30 [hookguard] WARNING: Heartbeat stale: 2929978ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:33 [hookguard] WARNING: Heartbeat stale: 2933808ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:42:38 [hookguard] WARNING: Heartbeat stale: 2937945ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:41 [hookguard] WARNING: Heartbeat stale: 2941743ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:45 [hookguard] WARNING: Heartbeat stale: 2945596ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:50 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:42:50 [hookguard] WARNING: Heartbeat stale: 2950244ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:54 [hookguard] WARNING: Heartbeat stale: 2954138ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:42:58 [hookguard] WARNING: Heartbeat stale: 2957936ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:01 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:43:02 [hookguard] WARNING: Heartbeat stale: 2962061ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:06 [hookguard] WARNING: Heartbeat stale: 2965946ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:09 [hookguard] WARNING: Heartbeat stale: 2969731ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:43:14 [hookguard] WARNING: Heartbeat stale: 2973883ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:17 [hookguard] WARNING: Heartbeat stale: 2977796ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:22 [hookguard] WARNING: Heartbeat stale: 2982257ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:26 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:43:26 [hookguard] WARNING: Heartbeat stale: 2986407ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:30 [hookguard] WARNING: Heartbeat stale: 2990249ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:34 [hookguard] WARNING: Heartbeat stale: 2994136ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:43:38 [hookguard] WARNING: Heartbeat stale: 2998308ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:42 [hookguard] WARNING: Heartbeat stale: 3002204ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:46 [hookguard] WARNING: Heartbeat stale: 3006102ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:50 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:43:50 [hookguard] WARNING: Heartbeat stale: 3010226ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:54 [hookguard] WARNING: Heartbeat stale: 3014654ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:43:58 [hookguard] WARNING: Heartbeat stale: 3018575ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:02 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:44:02 [hookguard] WARNING: Heartbeat stale: 3022774ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:06 [hookguard] WARNING: Heartbeat stale: 3026671ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:10 [hookguard] WARNING: Heartbeat stale: 3030614ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:14 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:44:14 [hookguard] WARNING: Heartbeat stale: 3034663ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:18 [hookguard] WARNING: Heartbeat stale: 3038524ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:22 [hookguard] WARNING: Heartbeat stale: 3042337ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:26 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:44:27 [hookguard] WARNING: Heartbeat stale: 3046967ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:30 [hookguard] WARNING: Heartbeat stale: 3050793ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:34 [hookguard] WARNING: Heartbeat stale: 3054670ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:44:39 [hookguard] WARNING: Heartbeat stale: 3058966ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:42 [hookguard] WARNING: Heartbeat stale: 3062855ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:46 [hookguard] WARNING: Heartbeat stale: 3066686ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:50 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:44:51 [hookguard] WARNING: Heartbeat stale: 3070926ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:54 [hookguard] WARNING: Heartbeat stale: 3074741ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:44:59 [hookguard] WARNING: Heartbeat stale: 3079083ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:03 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:45:03 [hookguard] WARNING: Heartbeat stale: 3083338ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:07 [hookguard] WARNING: Heartbeat stale: 3087234ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:11 [hookguard] WARNING: Heartbeat stale: 3091141ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:15 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:45:15 [hookguard] WARNING: Heartbeat stale: 3095323ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:19 [hookguard] WARNING: Heartbeat stale: 3099204ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:23 [hookguard] WARNING: Heartbeat stale: 3103106ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:45:27 [hookguard] WARNING: Heartbeat stale: 3107372ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:31 [hookguard] WARNING: Heartbeat stale: 3111730ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:35 [hookguard] WARNING: Heartbeat stale: 3115589ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:39 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:45:39 [hookguard] WARNING: Heartbeat stale: 3119779ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:43 [hookguard] WARNING: Heartbeat stale: 3123663ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:47 [hookguard] WARNING: Heartbeat stale: 3127514ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:51 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:45:51 [hookguard] WARNING: Heartbeat stale: 3131711ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:55 [hookguard] WARNING: Heartbeat stale: 3135597ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:45:59 [hookguard] WARNING: Heartbeat stale: 3139421ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:46:04 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:46:04 [hookguard] WARNING: Heartbeat stale: 3144120ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:46:08 [hookguard] WARNING: Heartbeat stale: 3148034ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:46:12 [hookguard] WARNING: Heartbeat stale: 3151939ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:46:15 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:46:16 [hookguard] WARNING: Heartbeat stale: 3156072ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:46:20 [hookguard] WARNING: Heartbeat stale: 3159934ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:46:23 [hookguard] WARNING: Heartbeat stale: 3163878ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:46:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:46:28 [hookguard] WARNING: Heartbeat stale: 3168074ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:46:32 [hookguard] WARNING: Heartbeat stale: 3171969ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:46:36 [hookguard] WARNING: Heartbeat stale: 3176299ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:46:40 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:46:40 [hookguard] WARNING: Heartbeat stale: 3180466ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:46:44 [hookguard] WARNING: Heartbeat stale: 3184304ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:46:48 [hookguard] WARNING: Heartbeat stale: 3188185ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:46:52 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:46:52 [hookguard] WARNING: Heartbeat stale: 3192362ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:46:56 [hookguard] WARNING: Heartbeat stale: 3196185ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:00 [hookguard] WARNING: Heartbeat stale: 3200048ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:04 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:47:04 [hookguard] WARNING: Heartbeat stale: 3204180ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:08 [hookguard] WARNING: Heartbeat stale: 3208617ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:12 [hookguard] WARNING: Heartbeat stale: 3212522ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:16 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:47:16 [hookguard] WARNING: Heartbeat stale: 3216721ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:20 [hookguard] WARNING: Heartbeat stale: 3220557ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:24 [hookguard] WARNING: Heartbeat stale: 3224380ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:28 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:47:28 [hookguard] WARNING: Heartbeat stale: 3228588ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:32 [hookguard] WARNING: Heartbeat stale: 3232487ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:36 [hookguard] WARNING: Heartbeat stale: 3236363ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:40 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:47:41 [hookguard] WARNING: Heartbeat stale: 3241103ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:45 [hookguard] WARNING: Heartbeat stale: 3244973ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:48 [hookguard] WARNING: Heartbeat stale: 3248878ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:52 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:47:53 [hookguard] WARNING: Heartbeat stale: 3253044ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:47:57 [hookguard] WARNING: Heartbeat stale: 3256937ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:00 [hookguard] WARNING: Heartbeat stale: 3260822ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:04 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:48:05 [hookguard] WARNING: Heartbeat stale: 3264968ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:08 [hookguard] WARNING: Heartbeat stale: 3268841ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:13 [hookguard] WARNING: Heartbeat stale: 3273290ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:17 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:48:17 [hookguard] WARNING: Heartbeat stale: 3277602ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:21 [hookguard] WARNING: Heartbeat stale: 3281494ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:25 [hookguard] WARNING: Heartbeat stale: 3285161ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:29 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:48:29 [hookguard] WARNING: Heartbeat stale: 3289288ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:33 [hookguard] WARNING: Heartbeat stale: 3293239ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:37 [hookguard] WARNING: Heartbeat stale: 3296899ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:40 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:48:41 [hookguard] WARNING: Heartbeat stale: 3301067ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:45 [hookguard] WARNING: Heartbeat stale: 3305158ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:48 [hookguard] WARNING: Heartbeat stale: 3308757ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:52 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:48:52 [hookguard] WARNING: Heartbeat stale: 3312737ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:48:56 [hookguard] WARNING: Heartbeat stale: 3316446ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:49:00 [hookguard] WARNING: Heartbeat stale: 3320063ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:49:03 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:49:04 [hookguard] WARNING: Heartbeat stale: 3324038ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:49:08 [hookguard] WARNING: Heartbeat stale: 3327890ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:49:11 [hookguard] WARNING: Heartbeat stale: 3331524ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:49:15 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:49:16 [hookguard] WARNING: Heartbeat stale: 3336155ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:49:20 [hookguard] WARNING: Heartbeat stale: 3339933ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:49:23 [hookguard] WARNING: Heartbeat stale: 3343764ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:49:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:49:27 [hookguard] WARNING: Heartbeat stale: 3347642ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:49:31 [hookguard] WARNING: Heartbeat stale: 3351597ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:49:35 [hookguard] WARNING: Heartbeat stale: 3355449ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:49:39 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:49:39 [hookguard] WARNING: Heartbeat stale: 3359166ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:49:43 [hookguard] WARNING: Heartbeat stale: 3362978ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:49:47 [hookguard] WARNING: Heartbeat stale: 3367436ms since last beat (TikTok likely backgrounded)
+2026-02-19 20:49:54 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:49:54 [hookguard] WARNING: Bridge unverified: 56e675585a8bd27422c6cab5e47b345d
+2026-02-19 20:49:58 [hookguard] WARNING: Bridge unverified: 56e675585a8bd27422c6cab5e47b345d
+2026-02-19 20:50:02 [hookguard] WARNING: Bridge unverified: 56e675585a8bd27422c6cab5e47b345d
+2026-02-19 20:50:05 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:50:06 [hookguard] WARNING: Bridge unverified: 56e675585a8bd27422c6cab5e47b345d
+2026-02-19 20:50:09 [hookguard] WARNING: Bridge unverified: 56e675585a8bd27422c6cab5e47b345d
+2026-02-19 20:50:13 [hookguard] WARNING: Bridge unverified: 56e675585a8bd27422c6cab5e47b345d
+2026-02-19 20:50:17 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:50:28 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:50:39 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:50:51 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:51:03 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:51:14 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:51:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:51:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:51:50 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:52:01 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:52:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:52:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:52:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:52:48 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:52:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:53:10 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:53:22 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:53:33 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:53:45 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:53:57 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:54:09 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:54:21 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:54:29 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=63826)
+2026-02-19 20:54:29 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=55814)
+2026-02-19 20:54:34 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:54:39 [host.api.control] INFO: Genesis-Flow gestartet: zuvieleversuche5
+2026-02-19 20:54:39 [host.flows.genesis] INFO: ============================================================
+2026-02-19 20:54:39 [host.flows.genesis] INFO:   GENESIS FLOW: zuvieleversuche5
+2026-02-19 20:54:39 [host.flows.genesis] INFO: ============================================================
+2026-02-19 20:54:39 [host.flows.genesis] INFO: Genesis Frequency: 2/2h, 9/24h, 50 total (Limits: 9999/2h, 9999/24h, Cooldown 0min)
+2026-02-19 20:54:39 [host.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-19 20:54:39 [host.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-19 20:54:39 [host.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-19 20:54:39 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'zuvieleversuche4' hat keinen TikTok-Account — Checkbox nicht gesetzt
+2026-02-19 20:54:39 [host.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-19 20:54:39 [host.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-19 20:54:40 [host.shifter] INFO: [Clean] pm clear com.zhiliaoapp.musically: OK (firstInstallTime unverändert)
+2026-02-19 20:54:40 [host.shifter] INFO: [Clean] com.ss.android.ugc.trill nicht installiert — überspringe
+2026-02-19 20:54:40 [host.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-19 20:54:40 [host.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-19 20:54:41 [host.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-19 20:54:46 [host.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-19 20:54:46 [host.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-19 20:54:48 [host.shifter] INFO: AAID Reset: über Content-Provider (GMS-Dateien unberührt)
+2026-02-19 20:54:48 [host.shifter] WARNING: Deep Clean: 40/41 OK — FEHLGESCHLAGEN: compiler_reset_com.ss.android.ugc.trill
+2026-02-19 20:54:48 [host.flows.genesis] INFO: [3/11] Sterilize: OK (40/41 Operationen (GMS geschützt) | nicht-kritisch fehlgeschlagen: compiler_reset_com.ss.android.ugc.trill)
+2026-02-19 20:54:48 [host.shifter] INFO: Clearing system clipboard...
+2026-02-19 20:54:49 [host.shifter] INFO: Clipboard cleared
+2026-02-19 20:54:49 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-19 20:54:57 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-19 20:54:57 [host.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-19 20:54:57 [host.identity] INFO: Identität generiert: name=zuvieleversuche5 serial=EMJNF01C9HMR imei1=355543…2642 carrier=O2-DE
+2026-02-19 20:54:57 [host.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 9099...8210 (v5.0 — FINAL, kein Platzhalter)
+2026-02-19 20:54:57 [host.flows.genesis] INFO: [4/11] Generate: OK (serial=EMJNF01C9HMR)
+2026-02-19 20:54:57 [host.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-19 20:54:57 [host.db_ops] INFO: Auto-Profil erstellt: id=51, name=zuvieleversuche5
+2026-02-19 20:54:57 [host.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=51
+2026-02-19 20:54:57 [host.flows.genesis] INFO: [5/11] Persist: OK (identity_id=57, profile_id=51)
+2026-02-19 20:54:57 [host.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-19 20:54:57 [host.injector] INFO: Injecting identity: serial=EMJNF01C9HMR imei1=355543…2642
+2026-02-19 20:54:57 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/bridge_wg96riwv.bridge → /data/local/tmp/.bridge_staging
+2026-02-19 20:54:57 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-19 20:54:57 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-19 20:54:57 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #57 auf 'active' gesetzt
+2026-02-19 20:55:01 [host.injector] INFO: Bridge verteilt an 8/10 Apps
+2026-02-19 20:55:01 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → 7b7d7e89-69ed-40e3-801b-71037a844bfb
+2026-02-19 20:55:01 [host.injector] INFO: Injection komplett + verifiziert: EMJNF01C9HMR
+2026-02-19 20:55:01 [host.flows.genesis] INFO: [6/11] PIF v5.0: autopif4-First Strategie (BASIC_INTEGRITY)...
+2026-02-19 20:55:02 [host.injector] INFO: PIF v5.0: autopif4 Canary-Fingerprint gefunden — verwende diesen (NICHT unseren statischen Pool)
+2026-02-19 20:55:02 [host.injector] INFO: PIF autopif4: FP=google/oriole_beta/oriole:CANARY/ZP11.260123.011/1… | Patch=2026-02-05 | Estimated Expiry: 2026-03-26
+2026-02-19 20:55:02 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/pif_b_v330it.prop → /data/local/tmp/.pif_staging.prop
+2026-02-19 20:55:02 [host.injector] INFO: PIF v5.0 OK [autopif4-canary]: custom.pif.prop → /data/adb/modules/playintegrityfix/custom.pif.prop
+2026-02-19 20:55:02 [host.flows.genesis] INFO: [6/11] PIF: custom.pif.prop erfolgreich gepusht
+2026-02-19 20:55:02 [host.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-19 20:55:02 [host.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-19 20:55:02 [host.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Kill-Switch entfernt | PIF=OK)
+2026-02-19 20:55:02 [host.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-19 20:55:02 [host.adb] INFO: Reboot: mode=normal
+2026-02-19 20:55:09 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-19 20:55:09 [host.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-19 20:55:09 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 20:55:09 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 20:55:12 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 20:55:13 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 20:55:24 [host.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-19 20:55:24 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 20:55:24 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 20:55:24 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 20:55:28 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 20:55:28 [host.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-19 20:55:28 [host.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-19 20:55:28 [host.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-19 20:55:29 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 20:55:30 [host.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-19 20:55:43 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 20:55:45 [host.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-19 20:55:45 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.ss.android.ugc.trill"
+2026-02-19 20:55:45 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-19 20:55:45 [host.flows.genesis] INFO: [7/11] Warte auf Boot (unbegrenzt, pollt alle 3s)...
+2026-02-19 20:55:45 [host.adb] INFO: Warte auf Gerät (unbegrenzt, pollt alle 3s)...
+2026-02-19 20:55:51 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-19 20:55:51 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-19 20:55:51 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-19 20:55:54 [host.adb] INFO: ADB Daemon gestartet
+2026-02-19 20:55:54 [host.adb] INFO: Gerät gebootet nach 9.0s
+2026-02-19 20:55:54 [host.flows.genesis] INFO: [7/11] Boot erkannt — warte 5s post-boot...
+2026-02-19 20:55:55 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-19 20:55:55 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-19 20:55:57 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-19 20:55:57 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-19 20:56:02 [host.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-19 20:56:02 [host.flows.genesis] INFO: [7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...
+2026-02-19 20:56:02 [host.flows.genesis] INFO: [7/11] Bridge [primär]: OK (serial=EMJNF01C9HMR)
+2026-02-19 20:56:02 [host.flows.genesis] INFO: [7/11] Bridge [sdcard]: OK (serial=EMJNF01C9HMR)
+2026-02-19 20:56:02 [host.flows.genesis] INFO: [7/11] Bridge [app]: OK (serial=EMJNF01C9HMR)
+2026-02-19 20:56:02 [host.flows.genesis] INFO: [7/11] Bridge-Verifikation: Primärpfad OK
+2026-02-19 20:56:02 [host.flows.genesis] INFO: [7/11] Hard Reset: OK (Boot + Unlock in 60.1s)
+2026-02-19 20:56:02 [host.flows.genesis] INFO: [7b/11] DroidGuard Sanitize: Stale Attestierungs-Tokens löschen...
+2026-02-19 20:56:03 [host.shifter] INFO: [DroidGuard+Analytics] Sanitized: 11/11 Einträge gelöscht (Neu-Attestierung + Cross-App-Correlation entfernt)
+2026-02-19 20:56:03 [host.flows.genesis] INFO: [7b/11] DroidGuard-Cache gelöscht — erzwinge GMS-Neustart...
+2026-02-19 20:56:08 [host.flows.genesis] INFO: [7b/11] GMS neu gestartet — frische Attestierung eingeleitet
+2026-02-19 20:56:08 [host.flows.genesis] INFO: [7c/11] Bewohntes Haus: Prüfe Dummy-App-Präsenz...
+2026-02-19 20:56:09 [host.flows.genesis] WARNING: [7c/11] BEWOHNTES HAUS: 10/12 Apps vorhanden (83%). Fehlend: Google Keep, Google Translate — Gerät könnte als 'frisch' erkannt werden!
+2026-02-19 20:56:09 [host.flows.genesis] INFO: [7d/11] Post-Reboot Sterilisierung...
+2026-02-19 20:56:09 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-19 20:56:16 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-19 20:56:16 [host.flows.genesis] INFO: [7d/11] Post-Reboot: Sauber — keine Artefakte gefunden
+2026-02-19 20:56:16 [host.flows.genesis] INFO: [7e/11] HookGuard Pre-Network Start...
+2026-02-19 20:56:16 [host.flows.genesis] INFO: [8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS...
+2026-02-19 20:56:37 [host.flows.genesis] INFO: [8/11] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-19 20:56:37 [host.flows.genesis] INFO: [8/11] Warte 15s auf neue Mobilfunk-Verbindung...
+2026-02-19 20:56:52 [host.network] INFO: Öffentliche IP: 176.6.36.100 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-19 20:56:52 [host.flows.genesis] INFO: [8/11] Network Init: Neue IP = 176.6.36.100 (via api.ipify.org)
+2026-02-19 20:56:52 [host.flows.genesis] WARNING: [8/11] SUBNET SÄTTIGUNG: 10 verschiedene Identitäten von 176.6.x.x in 24h — TikTok rate-limitet auf Carrier/ASN-Ebene!
+2026-02-19 20:56:52 [host.flows.genesis] INFO: [9/11] GMS Ready: Dynamisches Readiness-Polling (v6.0)...
+2026-02-19 20:56:52 [host.shifter] INFO: [Readiness] Warte auf sys.boot_completed=1...
+2026-02-19 20:56:52 [host.shifter] INFO: [Readiness] Boot bestätigt nach 0s
+2026-02-19 20:56:52 [host.shifter] INFO: [Readiness] Warte auf GmsCore Service...
+2026-02-19 20:56:52 [host.shifter] INFO: [Readiness] GmsCore aktiv nach 0s
+2026-02-19 20:56:52 [host.shifter] INFO: [Readiness] System bereit — Boot: 0s | GMS: 0s (GMS Verbindung steht - Bereit zum Loslegen!)
+2026-02-19 20:56:52 [host.flows.genesis] INFO: [9/11] GSF-ID: Generierte ID beibehalten. Bridge-GSF: 9099...8210
+2026-02-19 20:56:52 [host.flows.genesis] INFO: [9/11] GMS Verbindung steht - Bereit zum Loslegen! (Boot: 0s | GMS: 0s)
+2026-02-19 20:56:52 [host.flows.genesis] INFO: [9/11] GMS Ready: GMS Verbindung steht (0s) | GSF-ID: generiert beibehalten
+2026-02-19 20:56:52 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...
+2026-02-19 20:56:52 [host.auditor] INFO: Audit starten: zuvieleversuche5 (serial=EMJNF01C9HMR)
+2026-02-19 20:56:53 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-19 20:56:53 [host.auditor] INFO:   [+] bridge_serial: pass — serial=EMJNF01C9HMR, boot_serial=EMJNF01C9HMR — korrekt
+2026-02-19 20:56:53 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-19 20:56:53 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: 00:1a:11:b9:20:55
+2026-02-19 20:56:53 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-19 20:56:53 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-19 20:56:53 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-19 20:56:53 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-19 20:56:53 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-19 20:56:53 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-19 20:56:53 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-19 20:56:53 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-19 20:56:53 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-19 20:56:53 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-19 20:56:53 [host.auditor] INFO: Audit [zuvieleversuche5]: 100% (14/14 passed)
+2026-02-19 20:56:53 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Integrität bestätigt (100%)
+2026-02-19 20:56:53 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline sichern...
+2026-02-19 20:56:53 [host.shifter] INFO: ============================================================
+2026-02-19 20:56:53 [host.shifter] INFO:   GOLDEN BASELINE CAPTURE: zuvieleversuche5
+2026-02-19 20:56:53 [host.shifter] INFO:   GSF-ID: 9099...8210
+2026-02-19 20:56:53 [host.shifter] INFO: ============================================================
+2026-02-19 20:56:53 [host.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-19 20:56:55 [host.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-19 20:56:55 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/zuvieleversuche5/gms/gms_20260219_205655.tar.tmp
+2026-02-19 20:57:03 [host.adb] INFO: Exec-Out fertig: 79732224 Bytes geschrieben
+2026-02-19 20:57:03 [host.shifter] INFO: GMS Backup (3 Pakete): OK (76.0 MB, Versuch 1/3)
+2026-02-19 20:57:03 [host.shifter] INFO: GMS tar: gms_20260219_205655.tar (76.0 MB) — 3 Pakete
+2026-02-19 20:57:03 [host.shifter] INFO: Golden Baseline GMS: OK (gms_20260219_205655.tar)
+2026-02-19 20:57:03 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/zuvieleversuche5/accounts/accounts_20260219_205703.tar.tmp
+2026-02-19 20:57:03 [host.adb] INFO: Exec-Out fertig: 210432 Bytes geschrieben
+2026-02-19 20:57:03 [host.shifter] INFO: Account-DBs (1 Dateien): OK (0.2 MB, Versuch 1/3)
+2026-02-19 20:57:03 [host.shifter] INFO: Account-DBs tar: accounts_20260219_205703.tar (210432 Bytes, 1 Dateien)
+2026-02-19 20:57:03 [host.shifter] INFO: Golden Baseline Accounts: OK (accounts_20260219_205703.tar)
+2026-02-19 20:57:03 [host.shifter] INFO: Golden Baseline: 2/2 Komponenten gesichert
+2026-02-19 20:57:03 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline komplett
+2026-02-19 20:57:03 [host.flows.genesis] INFO: [11/11] Audit + Account-Check + TikTok ID-Validation (v6.1)...
+2026-02-19 20:57:03 [host.auditor] INFO: Audit starten: zuvieleversuche5 (serial=EMJNF01C9HMR)
+2026-02-19 20:57:03 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-19 20:57:03 [host.auditor] INFO:   [+] bridge_serial: pass — serial=EMJNF01C9HMR, boot_serial=EMJNF01C9HMR — korrekt
+2026-02-19 20:57:03 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-19 20:57:03 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: 00:1a:11:b9:20:55
+2026-02-19 20:57:03 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-19 20:57:03 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-19 20:57:03 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-19 20:57:03 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-19 20:57:03 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-19 20:57:03 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-19 20:57:03 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-19 20:57:03 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-19 20:57:03 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-19 20:57:03 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-19 20:57:03 [host.auditor] INFO: Audit [zuvieleversuche5]: 100% (14/14 passed)
+2026-02-19 20:57:04 [host.shifter] INFO: [Account-Check] Google-Account gefunden: arvinvaha@gmail.com
+2026-02-19 20:57:04 [host.flows.genesis] INFO: [11/11] Google-Account: arvinvaha@gmail.com
+2026-02-19 20:57:04 [host.flows.genesis] INFO: [11/11] TikTok Silent Launch: ID-Generierung starten...
+2026-02-19 20:57:04 [host.shifter] INFO: [SilentLaunch] Starte com.zhiliaoapp.musically für ID-Generierung (15s)...
+2026-02-19 20:57:05 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 20:57:05 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:57:05 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:57:09 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:57:13 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:57:16 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:57:16 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:57:21 [host.flows.genesis] WARNING: [11/11] install_id nicht extrahierbar (TikTok nicht installiert?)
+2026-02-19 20:57:21 [host.flows.genesis] INFO: [11/11] Audit: PASS (100%) | Google-Account: arvinvaha@gmail.com
+2026-02-19 20:57:21 [host.flows.genesis] INFO: ============================================================
+2026-02-19 20:57:21 [host.flows.genesis] INFO:   GENESIS ERFOLG: zuvieleversuche5 (162156 ms)
+2026-02-19 20:57:21 [host.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
+2026-02-19 20:57:21 [host.flows.genesis] INFO: ============================================================
+2026-02-19 20:57:22 [host.db_ops] INFO: Profile log captured: profile=51 trigger=genesis_end apis=11 spoofed=100.0% hooks=28-28/28 leaks=0 kills=0
+2026-02-19 20:57:22 [host.flows.genesis] INFO: Profile snapshot captured: log_id=11 trigger=genesis_end
+2026-02-19 20:57:30 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:57:30 [hookguard] WARNING: Bridge unverified: 02b4563639e9457a433044832ec06574
+2026-02-19 20:57:34 [hookguard] WARNING: Bridge unverified: 02b4563639e9457a433044832ec06574
+2026-02-19 20:57:38 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 20:57:38 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:57:41 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:57:42 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:57:46 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:57:49 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:57:53 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:57:54 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:57:57 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:01 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:05 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-19 20:58:05 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:09 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=02b4563639e9457a433044832ec06574
+2026-02-19 20:58:10 [hookguard] WARNING: Bridge mismatch (warning): hash=02b4563639e9457a433044832ec06574

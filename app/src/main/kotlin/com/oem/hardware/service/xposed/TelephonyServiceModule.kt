@@ -1206,16 +1206,18 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
         try {
             XposedHelpers.findAndHookMethod(tm, "getSimCountryIso", object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
-                    param.result = "us"
+                    ensureBridgeLoaded()
+                    param.result = ServiceConfigReader.getSimCountryIso() ?: "de"
                 }
             })
         } catch (_: Throwable) {}
-        
+
         // getNetworkCountryIso
         try {
             XposedHelpers.findAndHookMethod(tm, "getNetworkCountryIso", object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
-                    param.result = "us"
+                    ensureBridgeLoaded()
+                    param.result = ServiceConfigReader.getSimCountryIso() ?: "de"
                 }
             })
         } catch (_: Throwable) {}

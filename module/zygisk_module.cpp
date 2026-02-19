@@ -565,8 +565,7 @@ static bool isMacPath(const char* path) {
     return (strstr(path, "/sys/class/net/") && strstr(path, "/address")) ||
            strcmp(path, "/sys/class/net/wlan0/address") == 0 ||
            strcmp(path, "/sys/class/net/eth0/address") == 0 ||
-           strstr(path, "/sys/class/bluetooth/") != nullptr ||  // BT MAC
-           strstr(path, "/proc/net/arp") != nullptr;
+           strstr(path, "/sys/class/bluetooth/") != nullptr;
 }
 
 // Phase 11.0: Pfade die sensitive Netzwerk-Informationen enthalten
@@ -958,12 +957,27 @@ static int _hooked_getifaddrs(struct ifaddrs** ifap) {
     for (struct ifaddrs* ifa = *ifap; ifa != nullptr; ifa = ifa->ifa_next) {
         if (!ifa->ifa_name || !ifa->ifa_addr) continue;
         if (strcmp(ifa->ifa_name, "wlan0") != 0 && strcmp(ifa->ifa_name, "eth0") != 0) continue;
-        if (ifa->ifa_addr->sa_family != AF_PACKET) continue;
         
-        struct sockaddr_ll* sll = reinterpret_cast<struct sockaddr_ll*>(ifa->ifa_addr);
-        if (sll->sll_halen == 6) {
-            memcpy(sll->sll_addr, g_spoofedMacBytes, 6);
-            LOGI("[HW] Spoofed getifaddrs MAC for %s", ifa->ifa_name);
+        if (ifa->ifa_addr->sa_family == AF_PACKET) {
+            struct sockaddr_ll* sll = reinterpret_cast<struct sockaddr_ll*>(ifa->ifa_addr);
+            if (sll->sll_halen == 6) {
+                memcpy(sll->sll_addr, g_spoofedMacBytes, 6);
+                LOGI("[HW] Spoofed AF_PACKET MAC for %s", ifa->ifa_name);
+            }
+        } 
+        else if (ifa->ifa_addr->sa_family == AF_INET6) {
+            struct sockaddr_in6* sin6 = reinterpret_cast<struct sockaddr_in6*>(ifa->ifa_addr);
+            if (sin6->sin6_addr.s6_addr[0] == 0xfe && (sin6->sin6_addr.s6_addr[1] & 0xc0) == 0x80) {
+                if (sin6->sin6_addr.s6_addr[11] == 0xff && sin6->sin6_addr.s6_addr[12] == 0xfe) {
+                    sin6->sin6_addr.s6_addr[8] = g_spoofedMacBytes[0] ^ 0x02;
+                    sin6->sin6_addr.s6_addr[9] = g_spoofedMacBytes[1];
+                    sin6->sin6_addr.s6_addr[10] = g_spoofedMacBytes[2];
+                    sin6->sin6_addr.s6_addr[13] = g_spoofedMacBytes[3];
+                    sin6->sin6_addr.s6_addr[14] = g_spoofedMacBytes[4];
+                    sin6->sin6_addr.s6_addr[15] = g_spoofedMacBytes[5];
+                    LOGI("[HW] Spoofed AF_INET6 EUI-64 MAC in getifaddrs for %s", ifa->ifa_name);
+                }
+            }
         }
     }
     return result;
@@ -1073,11 +1087,31 @@ static ssize_t _hooked_recvmsg(int sockfd, struct msghdr* msg, int flags) {
                 
                 while (RTA_OK(rta, rtalen)) {
                     if (rta->rta_type == IFLA_ADDRESS && RTA_PAYLOAD(rta) == 6) {
-                        // MAC-Adresse gefunden - ersetzen!
                         memcpy(RTA_DATA(rta), g_spoofedMacBytes, 6);
                         LOGI("[HW] Spoofed Netlink RTM_NEWLINK MAC");
                     }
                     rta = RTA_NEXT(rta, rtalen);
+                }
+            } else if (nlh->nlmsg_type == RTM_NEWADDR) {
+                struct ifaddrmsg* ifa = static_cast<struct ifaddrmsg*>(NLMSG_DATA(nlh));
+                if (ifa->ifa_family == AF_INET6) {
+                    struct rtattr* rta = IFA_RTA(ifa);
+                    int rtalen = IFA_PAYLOAD(nlh);
+                    while (RTA_OK(rta, rtalen)) {
+                        if (rta->rta_type == IFA_ADDRESS || rta->rta_type == IFA_LOCAL) {
+                            unsigned char* ip6 = static_cast<unsigned char*>(RTA_DATA(rta));
+                            if (ip6[0] == 0xfe && (ip6[1] & 0xc0) == 0x80 && ip6[11] == 0xff && ip6[12] == 0xfe) {
+                                ip6[8]  = g_spoofedMacBytes[0] ^ 0x02;
+                                ip6[9]  = g_spoofedMacBytes[1];
+                                ip6[10] = g_spoofedMacBytes[2];
+                                ip6[13] = g_spoofedMacBytes[3];
+                                ip6[14] = g_spoofedMacBytes[4];
+                                ip6[15] = g_spoofedMacBytes[5];
+                                LOGI("[HW] Spoofed Netlink RTM_NEWADDR (IPv6 EUI-64)");
+                            }
+                        }
+                        rta = RTA_NEXT(rta, rtalen);
+                    }
                 }
             }
             nlh = NLMSG_NEXT(nlh, len);
@@ -1156,6 +1190,16 @@ static int _hooked_open(const char* pathname, int flags, mode_t mode) {
                 NativeMonitor::record("SPOOF", "open", pathname, "redirected");
                 return fakeFd;
             }
+        }
+    }
+
+    // ARP-Tabelle -> Fake leere Tabelle (Struktur erhalten!)
+    if (pathname && strcmp(pathname, "/proc/net/arp") == 0) {
+        const char* fakeArp = "IP address       HW type     Flags       HW address            Mask     Device\n";
+        int fakeFd = createFakeOpenFd(pathname, flags, mode, fakeArp, strlen(fakeArp), "arp_open");
+        if (fakeFd >= 0) {
+            NativeMonitor::record("SPOOF", "open", pathname, "redirected_arp");
+            return fakeFd;
         }
     }
 
@@ -1345,6 +1389,16 @@ static FILE* _hooked_fopen(const char* pathname, const char* mode) {
                 NativeMonitor::record("SPOOF", "fopen", pathname, "redirected");
                 return fake;
             }
+        }
+    }
+
+    // ARP-Tabelle -> Fake leere Tabelle (Struktur erhalten!)
+    if (pathname && strcmp(pathname, "/proc/net/arp") == 0) {
+        const char* fakeArp = "IP address       HW type     Flags       HW address            Mask     Device\n";
+        FILE* fake = createFakeFopen(pathname, mode, fakeArp, "arp");
+        if (fake) {
+            NativeMonitor::record("SPOOF", "fopen", pathname, "redirected_arp");
+            return fake;
         }
     }
 

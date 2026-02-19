@@ -249,6 +249,17 @@ CARRIERS = {
         "imsi_prefix": "310260",
         "iccid_prefix": "890126",
     },
+    "o2_de": {
+        "mcc_mnc": "26207",
+        "operator_name": "o2 - de",
+        "sim_operator_name": "o2 - de",
+        "country_iso": "de",
+        "voicemail": "+4917633333333",
+        "phone_type": "GSM",
+        "network_type": "LTE",
+        "imsi_prefix": "26207",
+        "iccid_prefix": "894922",
+    },
 }
 
 # US Area Codes (Top 25 Metro Areas)
@@ -259,12 +270,17 @@ US_AREA_CODES = [
 ]
 
 
-def generate_phone_number() -> str:
-    """US-Telefonnummer im E.164 Format."""
-    area = random.choice(US_AREA_CODES)
-    exchange = str(random.randint(200, 999))
-    subscriber = str(random.randint(1000, 9999))
-    return f"+1{area}{exchange}{subscriber}"
+def generate_phone_number(country_iso: str = "us") -> str:
+    """Generates a random phone number based on the country code."""
+    if country_iso == "de":
+        prefix = random.choice(["176", "179", "1590", "152", "151", "171"])
+        subscriber = ''.join(str(random.randint(0, 9)) for _ in range(7))
+        return f"+49{prefix}{subscriber}"
+    else:
+        area = random.choice(US_AREA_CODES)
+        exchange = str(random.randint(200, 999))
+        subscriber = str(random.randint(1000, 9999))
+        return f"+1{area}{exchange}{subscriber}"
 
 
 def generate_imsi(prefix: str) -> str:
@@ -312,7 +328,7 @@ def generate_widevine_id() -> str:
 # 5. Identity Factory - Hauptlogik
 # ==============================================================================
 
-def create_identity(name: str, carrier_key: str = "tmobile",
+def create_identity(name: str, carrier_key: str = "o2_de",
                     build_idx: Optional[int] = None) -> Dict:
     """
     Erstellt eine vollständige, forensisch konsistente Pixel 6 Identität.
@@ -320,7 +336,7 @@ def create_identity(name: str, carrier_key: str = "tmobile",
     Jeder Wert ist mathematisch validiert und intern konsistent.
     """
     # Carrier wählen
-    carrier = CARRIERS.get(carrier_key, CARRIERS["tmobile"])
+    carrier = CARRIERS.get(carrier_key, CARRIERS["o2_de"])
     
     # Build wählen (konsistent!)
     build = PIXEL6_BUILDS[build_idx] if build_idx is not None else random.choice(PIXEL6_BUILDS)
@@ -345,7 +361,7 @@ def create_identity(name: str, carrier_key: str = "tmobile",
     # SIM
     imsi = generate_imsi(carrier["imsi_prefix"])
     iccid = generate_iccid(carrier["iccid_prefix"])
-    phone_number = generate_phone_number()
+    phone_number = generate_phone_number(carrier.get("country_iso", "us"))
     
     identity = {
         # Metadata
@@ -656,7 +672,7 @@ def apply_identity(identity: Dict, wipe_tiktok: bool = False) -> bool:
 def cmd_new(args):
     """Erstellt ein neues Identity-Profil."""
     name = args.name
-    carrier = args.carrier or "tmobile"
+    carrier = args.carrier or "o2_de"
     
     if carrier not in CARRIERS:
         print(f"[ERROR] Unknown carrier: {carrier}")
@@ -913,9 +929,9 @@ Carriers: tmobile, att, verizon, googlefi, mint
                        help="Export profile as bridge file")
     
     # Options
-    parser.add_argument("--carrier", default="tmobile",
+    parser.add_argument("--carrier", default="o2_de",
                         choices=list(CARRIERS.keys()),
-                        help="Carrier for new profile (default: tmobile)")
+                        help="Carrier for new profile (default: o2_de)")
     parser.add_argument("--wipe", action="store_true",
                         help="Clear TikTok data when applying")
     parser.add_argument("--force", action="store_true",

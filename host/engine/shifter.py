@@ -1447,11 +1447,105 @@ class AppShifter:
             return False
 
     # =========================================================================
-    # ENTFERNT (v7.0): _reinstall_app, _reinstall_simple_fallback,
-    # _pm_clear_fallback, _backup_lsposed_scope, _restore_lsposed_scope
-    # Grund: pm uninstall + pm install ändert firstInstallTime und ist ein
-    # massiver Fingerprinting-Vektor. Ersetzt durch pm clear in deep_clean().
+    # True Fresh Install (v8.0): Vollständige Deinstallation + Neuinstallation
+    # Behebt "Zu viele Versuche" durch Keystore-Wipe & kompletten State-Reset.
     # =========================================================================
+
+    async def reinstall_app(self, package_name: str) -> bool:
+        """
+        True Fresh Install: APK sichern → komplett deinstallieren → frisch installieren.
+
+        Behebt den "Zu viele Versuche"-Fehler bei TikTok, weil:
+          - pm uninstall (ohne --user) den Keystore der App löscht
+          - Usage Stats und alle forensischen Spuren entfernt werden
+          - Die Neuinstallation von APK einen sauberen Zustand erzeugt
+
+        Tradeoff: firstInstallTime wird zurückgesetzt. Das ist hier akzeptabel,
+        weil der Account ohnehin gesperrt ist und ein kompletter Reset nötig ist.
+        """
+        import asyncio
+
+        logger.info("[TrueFreshInstall] Starte für %s ...", package_name)
+
+        try:
+            # --- 1. APK-Pfad ermitteln ---
+            path_res = await self._adb.shell(
+                f"pm path {package_name}", root=True, timeout=10,
+            )
+            if not path_res.success or "package:" not in path_res.output:
+                logger.error(
+                    "[TrueFreshInstall] App %s nicht gefunden (pm path: %s)",
+                    package_name, path_res.output,
+                )
+                return False
+
+            apk_path = path_res.output.split("package:")[1].strip().split("\n")[0]
+            temp_apk = "/data/local/tmp/tiktok_installer.apk"
+            logger.info("[TrueFreshInstall] APK gefunden: %s", apk_path)
+
+            # --- 2. APK temporär sichern ---
+            cp_res = await self._adb.shell(
+                f"cp '{apk_path}' '{temp_apk}'", root=True, timeout=30,
+            )
+            if not cp_res.success:
+                logger.error(
+                    "[TrueFreshInstall] APK-Backup fehlgeschlagen: %s",
+                    cp_res.stderr or cp_res.output,
+                )
+                return False
+            logger.info("[TrueFreshInstall] APK gesichert nach %s", temp_apk)
+
+            # --- 3. Vollständige Deinstallation (KEIN --user 0!) ---
+            logger.info("[TrueFreshInstall] Vollständige Deinstallation ...")
+            uninstall_res = await self._adb.shell(
+                f"pm uninstall {package_name}", root=True, timeout=30,
+            )
+            logger.info(
+                "[TrueFreshInstall] pm uninstall → %s",
+                uninstall_res.output or uninstall_res.stderr,
+            )
+
+            # --- 4. Keystore-Bereinigung (aggressiv, falls Reste bleiben) ---
+            await self._adb.shell(
+                "rm -rf /data/misc/keystore/user_0/*musically*", root=True, timeout=10,
+            )
+            await self._adb.shell(
+                "rm -rf /data/misc/keystore/user_0/*ugc.trill*", root=True, timeout=10,
+            )
+            logger.info("[TrueFreshInstall] Keystore-Reste bereinigt")
+
+            # --- 5. Warten (System räumt auf: PackageManager, AMS, UsageStats) ---
+            await asyncio.sleep(2)
+
+            # --- 6. Frische Installation von gesicherter APK ---
+            logger.info("[TrueFreshInstall] Installiere frisch von %s ...", temp_apk)
+            install_res = await self._adb.shell(
+                f"pm install '{temp_apk}'", root=True, timeout=60,
+            )
+
+            # --- 7. Temporäre APK löschen ---
+            await self._adb.shell(f"rm -f '{temp_apk}'", root=True, timeout=10)
+
+            if install_res.success and "Success" in install_res.output:
+                logger.info(
+                    "[TrueFreshInstall] %s erfolgreich neu installiert!",
+                    package_name,
+                )
+                return True
+
+            logger.error(
+                "[TrueFreshInstall] Installation fehlgeschlagen: %s | %s",
+                install_res.output, install_res.stderr,
+            )
+            return False
+
+        except Exception as exc:
+            logger.error("[TrueFreshInstall] Fehler: %s", exc, exc_info=True)
+            await self._adb.shell(
+                f"rm -f '/data/local/tmp/tiktok_installer.apk'",
+                root=True, timeout=5,
+            )
+            return False
 
     # =========================================================================
     # Deep Clean: Vollständige Sterilisierung

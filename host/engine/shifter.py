@@ -976,12 +976,23 @@ class AppShifter:
     async def _disable_google_backup(self) -> None:
         """Disable Google auto-backup for TikTok packages ONLY.
 
-        WICHTIG: Wir deaktivieren NICHT den globalen Backup-Manager
-        (bmgr enable false) — das würde Google-Account-Sync stören
-        und kann zum Google-Logout führen!
+        WICHTIG: Der globale Backup-Manager MUSS aktiv bleiben!
+        Ein deaktivierter Backup-Manager ist eine Anomalie die Google
+        und TikTok als "manipuliertes Gerät" interpretieren können.
         Stattdessen: nur TikTok-spezifische Backups löschen + sperren.
         """
         logger.info("Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...")
+
+        try:
+            bmgr_state = await self._adb.shell("bmgr enabled", root=True, timeout=5)
+            if bmgr_state.success and "disabled" in bmgr_state.output.lower():
+                logger.warning(
+                    "Backup Manager war GLOBAL deaktiviert — re-enable "
+                    "(deaktivierter bmgr = Anomalie-Signal für Google)",
+                )
+                await self._adb.shell("bmgr enable true", root=True, timeout=5)
+        except Exception:
+            pass
 
         for pkg in TIKTOK_PACKAGES:
             try:
@@ -3002,12 +3013,13 @@ class AppShifter:
 
     async def _sanitize_droidguard(self) -> bool:
         """
-        Löscht DroidGuard-Attestierungs-Caches nach GMS-Restore.
+        Löscht DroidGuard-Attestierungs-Caches UND GMS-Analytics nach Identity-Switch.
 
-        DroidGuard (dg.db) enthält gecachte Tokens die kryptografisch
-        an die alte Hardware gebunden sind. Nach einem Identity-Switch
-        MUSS dieser Cache gelöscht werden, damit Google eine saubere
-        Neu-Attestierung (Play Integrity) durchführt.
+        Targets:
+          1. DroidGuard (dg.db): Kryptografisch an alte Hardware gebunden
+          2. google_app_measurement.db: Firebase Cross-App Device-Fingerprint
+             → TikTok nutzt Firebase, GMS korreliert verschiedene Installationen
+          3. datatransport: Pending Firebase-Events die alte Device-IDs enthalten
 
         Returns:
             True wenn mindestens eine Löschung erfolgreich war
@@ -3018,6 +3030,12 @@ class AppShifter:
             "/data/data/com.google.android.gms/databases/dg.db-shm",
             "/data/data/com.google.android.gms/databases/dg.db-journal",
             "/data/data/com.google.android.gms/app_dg_cache",
+            "/data/data/com.google.android.gms/databases/google_app_measurement.db",
+            "/data/data/com.google.android.gms/databases/google_app_measurement.db-journal",
+            "/data/data/com.google.android.gms/databases/google_app_measurement.db-wal",
+            "/data/data/com.google.android.gms/databases/google_app_measurement.db-shm",
+            "/data/data/com.google.android.gms/databases/com.google.android.datatransport.events",
+            "/data/data/com.google.android.gms/databases/com.google.android.datatransport.events-journal",
         ]
         deleted = 0
         for path in targets:
@@ -3030,11 +3048,12 @@ class AppShifter:
 
         if deleted > 0:
             logger.info(
-                "[DroidGuard] Sanitized: %d/%d Einträge gelöscht (Neu-Attestierung erzwungen)",
+                "[DroidGuard+Analytics] Sanitized: %d/%d Einträge gelöscht "
+                "(Neu-Attestierung + Cross-App-Correlation entfernt)",
                 deleted, len(targets),
             )
         else:
-            logger.debug("[DroidGuard] Keine Einträge zum Löschen gefunden")
+            logger.debug("[DroidGuard+Analytics] Keine Einträge zum Löschen gefunden")
         return deleted > 0
 
     # =========================================================================

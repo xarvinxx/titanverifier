@@ -158,6 +158,121 @@ async def record_ip(
 
 
 # =============================================================================
+# Genesis Frequency Guard
+# =============================================================================
+
+GENESIS_COOLDOWN_MINUTES = 0
+GENESIS_MAX_PER_2H = 9999
+GENESIS_MAX_PER_24H = 9999
+
+async def check_genesis_frequency() -> dict:
+    """
+    Prüft ob zu viele Genesis Flows in kurzer Zeit gelaufen sind.
+
+    TikTok rate-limitet auf Carrier/ASN-Ebene. Zu viele Account-Erstellungen
+    vom selben Carrier-Subnet lösen "Zu viele Versuche" aus.
+
+    Returns:
+        Dict mit:
+          - allowed: bool
+          - cooldown_remaining_s: Sekunden bis nächster Flow erlaubt
+          - reason: Menschenlesbare Begründung
+          - stats: Dict mit Frequenz-Statistiken
+    """
+    from datetime import timezone, timedelta
+
+    now_utc = datetime.now(timezone.utc)
+    result = {
+        "allowed": True,
+        "cooldown_remaining_s": 0,
+        "reason": "",
+        "stats": {},
+    }
+
+    async with db.connection() as conn:
+        cursor = await conn.execute(
+            """SELECT started_at FROM flow_history
+               WHERE flow_type = 'genesis'
+               ORDER BY started_at DESC LIMIT 1""",
+        )
+        last_row = await cursor.fetchone()
+
+        cutoff_2h = (now_utc - timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%S")
+        cursor = await conn.execute(
+            """SELECT COUNT(*) FROM flow_history
+               WHERE flow_type = 'genesis' AND started_at > ?""",
+            (cutoff_2h,),
+        )
+        count_2h = (await cursor.fetchone())[0]
+
+        cutoff_24h = (now_utc - timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%S")
+        cursor = await conn.execute(
+            """SELECT COUNT(*) FROM flow_history
+               WHERE flow_type = 'genesis' AND started_at > ?""",
+            (cutoff_24h,),
+        )
+        count_24h = (await cursor.fetchone())[0]
+
+        cursor = await conn.execute(
+            "SELECT COUNT(*) FROM flow_history WHERE flow_type = 'genesis'",
+        )
+        count_total = (await cursor.fetchone())[0]
+
+    result["stats"] = {
+        "last_2h": count_2h,
+        "last_24h": count_24h,
+        "total": count_total,
+        "limits": {
+            "cooldown_min": GENESIS_COOLDOWN_MINUTES,
+            "max_2h": GENESIS_MAX_PER_2H,
+            "max_24h": GENESIS_MAX_PER_24H,
+        },
+    }
+
+    if last_row and last_row[0]:
+        try:
+            last_ts = last_row[0].replace("Z", "+00:00")
+            if "+" not in last_ts and not last_ts.endswith("Z"):
+                from zoneinfo import ZoneInfo
+                last_dt = datetime.fromisoformat(last_ts).replace(
+                    tzinfo=ZoneInfo("Europe/Berlin"),
+                )
+            else:
+                last_dt = datetime.fromisoformat(last_ts)
+            elapsed = (now_utc - last_dt.astimezone(timezone.utc)).total_seconds()
+            cooldown_s = GENESIS_COOLDOWN_MINUTES * 60
+            if elapsed < cooldown_s:
+                remaining = int(cooldown_s - elapsed)
+                result["allowed"] = False
+                result["cooldown_remaining_s"] = remaining
+                result["reason"] = (
+                    f"Cooldown: {remaining // 60}min {remaining % 60}s verbleibend "
+                    f"(Minimum {GENESIS_COOLDOWN_MINUTES}min zwischen Genesis Flows)"
+                )
+                return result
+        except (ValueError, TypeError):
+            pass
+
+    if count_2h >= GENESIS_MAX_PER_2H:
+        result["allowed"] = False
+        result["reason"] = (
+            f"Rate-Limit: {count_2h}/{GENESIS_MAX_PER_2H} Genesis Flows "
+            f"in 2h (TikTok rate-limitet auf Carrier/ASN-Ebene)"
+        )
+        return result
+
+    if count_24h >= GENESIS_MAX_PER_24H:
+        result["allowed"] = False
+        result["reason"] = (
+            f"Tages-Limit: {count_24h}/{GENESIS_MAX_PER_24H} Genesis Flows "
+            f"in 24h (zu viele Accounts vom selben Carrier)"
+        )
+        return result
+
+    return result
+
+
+# =============================================================================
 # FIX-18: IP-Collision Detection
 # =============================================================================
 
@@ -253,6 +368,72 @@ async def check_ip_collision(
             logger.warning("IP-COLLISION WARNING: %s", result["message"])
 
     return result
+
+
+async def check_subnet_saturation(
+    public_ip: str,
+    hours: int = 24,
+) -> dict:
+    """
+    Prüft wie viele Genesis Flows vom selben /16 Subnet gelaufen sind.
+
+    TikTok rate-limitet nicht nur per IP, sondern auf Carrier/ASN-Ebene.
+    Alle O2 DE Mobilfunk-IPs fallen unter 176.6.0.0/16.
+    """
+    from datetime import timezone, timedelta
+
+    parts = public_ip.split(".")
+    if len(parts) != 4:
+        return {"warning": False, "message": "Ungültige IP"}
+
+    subnet_prefix = f"{parts[0]}.{parts[1]}."
+
+    cutoff = (
+        datetime.now(timezone.utc) - timedelta(hours=hours)
+    ).strftime("%Y-%m-%dT%H:%M:%S")
+
+    async with db.connection() as conn:
+        cursor = await conn.execute(
+            """SELECT COUNT(DISTINCT identity_id) as unique_ids,
+                      COUNT(*) as total
+               FROM ip_history
+               WHERE public_ip LIKE ? AND detected_at > ?""",
+            (subnet_prefix + "%", cutoff),
+        )
+        row = await cursor.fetchone()
+        unique_ids = row["unique_ids"] if row else 0
+        total = row["total"] if row else 0
+
+    if unique_ids >= 5:
+        return {
+            "warning": True,
+            "severity": "critical",
+            "message": (
+                f"SUBNET SÄTTIGUNG: {unique_ids} verschiedene Identitäten "
+                f"von {subnet_prefix}x.x in {hours}h — "
+                f"TikTok rate-limitet auf Carrier/ASN-Ebene!"
+            ),
+            "unique_identities": unique_ids,
+            "total_entries": total,
+        }
+    elif unique_ids >= 3:
+        return {
+            "warning": True,
+            "severity": "warning",
+            "message": (
+                f"Subnet-Warnung: {unique_ids} Identitäten von "
+                f"{subnet_prefix}x.x in {hours}h — Vorsicht empfohlen"
+            ),
+            "unique_identities": unique_ids,
+            "total_entries": total,
+        }
+    return {
+        "warning": False,
+        "severity": "none",
+        "message": f"Subnet OK: {unique_ids} Identitäten von {subnet_prefix}x.x in {hours}h",
+        "unique_identities": unique_ids,
+        "total_entries": total,
+    }
 
 
 # =============================================================================

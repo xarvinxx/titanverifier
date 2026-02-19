@@ -49,7 +49,9 @@ from host.database import db
 from host.engine.auditor import AuditResult, DeviceAuditor
 from host.engine.db_ops import (
     capture_profile_log,
+    check_genesis_frequency,
     check_ip_collision,
+    check_subnet_saturation,
     create_flow_history,
     create_profile_auto,
     record_audit,
@@ -269,6 +271,30 @@ class GenesisFlow:
         logger.info("=" * 60)
         logger.info("  GENESIS FLOW: %s", name)
         logger.info("=" * 60)
+
+        # ------------------------------------------------------------------
+        # PRE-CHECK: Genesis Frequency Guard
+        # TikTok rate-limitet auf Carrier/ASN-Ebene. Zu viele Flows in
+        # kurzer Zeit lösen "Zu viele Versuche" aus.
+        # ------------------------------------------------------------------
+        try:
+            freq = await check_genesis_frequency()
+            stats = freq["stats"]
+            logger.info(
+                "Genesis Frequency: %d/2h, %d/24h, %d total "
+                "(Limits: %d/2h, %d/24h, Cooldown %dmin)",
+                stats["last_2h"], stats["last_24h"], stats["total"],
+                stats["limits"]["max_2h"], stats["limits"]["max_24h"],
+                stats["limits"]["cooldown_min"],
+            )
+            if not freq["allowed"]:
+                logger.warning("GENESIS BLOCKED: %s", freq["reason"])
+                result.success = False
+                result.error = freq["reason"]
+                result.duration_ms = _now_ms() - flow_start
+                return result
+        except Exception as e:
+            logger.warning("Frequency-Check fehlgeschlagen (Flow wird fortgesetzt): %s", e)
 
         # ------------------------------------------------------------------
         # Flow-History: Eintrag erstellen
@@ -852,13 +878,65 @@ class GenesisFlow:
                 logger.warning("[7c/11] Bewohntes Haus Check fehlgeschlagen: %s", e)
 
             # =================================================================
+            # PRE-NETWORK: Post-Reboot Sterilisierung
+            # =================================================================
+            # Nach dem Reboot könnten Google Auto-Restore oder System-Services
+            # TikTok-Daten wiederhergestellt haben. Außerdem muss External
+            # Storage leer sein und die GMS Analytics bereinigt werden,
+            # BEVOR das Netz eingeschaltet wird.
+            # =================================================================
+            logger.info("[7d/11] Post-Reboot Sterilisierung...")
+            try:
+                _post_reboot_cleaned = 0
+
+                for _ext_path in [
+                    "/sdcard/Android/data/com.zhiliaoapp.musically",
+                    "/sdcard/Android/data/com.ss.android.ugc.trill",
+                ]:
+                    _check = await self._adb.shell(
+                        f"test -d {_ext_path}", root=True, timeout=5,
+                    )
+                    if _check.success:
+                        await self._adb.shell(
+                            f"rm -rf {_ext_path}", root=True, timeout=10,
+                        )
+                        _post_reboot_cleaned += 1
+                        logger.warning(
+                            "[7d/11] External Storage existierte nach Reboot! "
+                            "Gelöscht: %s (Auto-Restore?)", _ext_path,
+                        )
+
+                for _pkg in ["com.zhiliaoapp.musically", "com.ss.android.ugc.trill"]:
+                    _app_check = await self._adb.shell(
+                        f"test -d /data/data/{_pkg}/databases", root=True, timeout=5,
+                    )
+                    if _app_check.success:
+                        await self._adb.shell(
+                            f"pm clear {_pkg}", root=True, timeout=15,
+                        )
+                        _post_reboot_cleaned += 1
+                        logger.warning(
+                            "[7d/11] TikTok hatte Daten nach Reboot! "
+                            "Re-cleared: %s (Auto-Restore?)", _pkg,
+                        )
+
+                await self._shifter._disable_google_backup()
+
+                if _post_reboot_cleaned > 0:
+                    logger.info(
+                        "[7d/11] Post-Reboot Cleanup: %d Artefakte entfernt",
+                        _post_reboot_cleaned,
+                    )
+                else:
+                    logger.info("[7d/11] Post-Reboot: Sauber — keine Artefakte gefunden")
+
+            except Exception as e:
+                logger.warning("[7d/11] Post-Reboot Sterilisierung Fehler: %s", e)
+
+            # =================================================================
             # PRE-NETWORK: HookGuard starten BEVOR das Netz eingeschaltet wird
             # =================================================================
-            # HookGuard muss aktiv sein bevor TikTok Netzwerkzugriff bekommt.
-            # Sonst können bei einem Hook-Versagen 15+ Sekunden lang
-            # ungeschützte Daten an TikTok-Server fließen.
-            # =================================================================
-            logger.info("[7d/11] HookGuard Pre-Network Start...")
+            logger.info("[7e/11] HookGuard Pre-Network Start...")
             await _auto_start_hookguard()
 
             # =================================================================
@@ -930,6 +1008,12 @@ class GenesisFlow:
                     if collision["collision"]:
                         step.detail += f" | ⚠ IP-Collision: {collision['message']}"
                         logger.warning("[8/11] %s", collision["message"])
+
+                    # Subnet/ASN Saturation Check
+                    subnet = await check_subnet_saturation(ip_result.ip)
+                    if subnet["warning"]:
+                        step.detail += f" | ⚠ {subnet['message']}"
+                        logger.warning("[8/11] %s", subnet["message"])
 
                     # Flow-History: IP
                     if flow_history_id:

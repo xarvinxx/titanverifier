@@ -222,8 +222,9 @@ static AMediaDrmGetPropertyByteArrayFn g_origAMediaDrmGetPropertyByteArray = nul
 static AMediaDrmGetPropertyStringFn g_origAMediaDrmGetPropertyString = nullptr;
 static AMediaDrmIsCryptoSchemeSupportedFn g_origAMediaDrmIsCryptoSchemeSupported = nullptr;
 
-// Track unsere Fake-DRM-Objekte
+// Track unsere Fake-DRM-Objekte + Real-DRM-Mapping
 static std::unordered_set<AMediaDrm*> g_fakeDrmObjects;
+static std::unordered_map<AMediaDrm*, AMediaDrm*> g_fakeToRealDrm;
 
 // Widevine UUID (ed282e16-fdd2-47c7-8d6d-09946462f367)
 static const uint8_t WIDEVINE_UUID[16] = {
@@ -1456,34 +1457,34 @@ static bool isFakeDrm(AMediaDrm* drm) {
     return g_fakeDrmObjects.find(drm) != g_fakeDrmObjects.end();
 }
 
-// Hook: AMediaDrm_createByUUID - Das Herzstück des HAL-Mockings
+// Hook: AMediaDrm_createByUUID - IMMER Fake-Objekt zurückgeben!
+// Das echte DRM-Objekt wird intern gespeichert für nicht-sensitive Properties.
+// deviceUniqueId wird IMMER aus der Bridge geliefert, NIE vom echten HAL.
 static AMediaDrm* _hooked_AMediaDrm_createByUUID(const uint8_t uuid[16]) {
-    // Versuche erst Original
-    AMediaDrm* drm = nullptr;
+    AMediaDrm* realDrm = nullptr;
     if (g_origAMediaDrmCreateByUUID) {
-        drm = g_origAMediaDrmCreateByUUID(uuid);
+        realDrm = g_origAMediaDrmCreateByUUID(uuid);
     }
     
-    // Wenn Original erfolgreich, nutze es
-    if (drm != nullptr) {
-        LOGI("[HW] AMediaDrm_createByUUID -> Real DRM object");
-        return drm;
-    }
-    
-    // HAL defekt? Erstelle Fake-Objekt für Widevine
     if (memcmp(uuid, WIDEVINE_UUID, 16) == 0) {
-        // Allokiere echten Speicher (calloc = Nullen) statt 0xDEAD Pointer
-        // So crasht die echte getPropertyByteArray nicht, sondern gibt INVALID_OBJECT zurück
         AMediaDrm* fakeDrm = reinterpret_cast<AMediaDrm*>(calloc(1, 256));
         
         {
             std::lock_guard<std::mutex> lock(g_fdMapMutex);
             g_fakeDrmObjects.insert(fakeDrm);
+            if (realDrm) {
+                g_fakeToRealDrm[fakeDrm] = realDrm;
+            }
         }
         
-        LOGI("[HW] AMediaDrm_createByUUID(Widevine) -> Fake DRM object %p (HAL mocked)", fakeDrm);
+        LOGI("[HW] AMediaDrm_createByUUID(Widevine) -> Fake proxy %p (real=%p)",
+             fakeDrm, realDrm);
+        NativeMonitor::record("SPOOF", "AMediaDrm_createByUUID", "Widevine",
+                              "fake_proxy_returned");
         return fakeDrm;
     }
+    
+    if (realDrm) return realDrm;
     
     LOGW("[HW] AMediaDrm_createByUUID -> Failed (non-Widevine UUID)");
     return nullptr;
@@ -1492,12 +1493,21 @@ static AMediaDrm* _hooked_AMediaDrm_createByUUID(const uint8_t uuid[16]) {
 // Hook: AMediaDrm_release
 static void _hooked_AMediaDrm_release(AMediaDrm* drm) {
     if (isFakeDrm(drm)) {
+        AMediaDrm* realDrm = nullptr;
         {
             std::lock_guard<std::mutex> lock(g_fdMapMutex);
+            auto it = g_fakeToRealDrm.find(drm);
+            if (it != g_fakeToRealDrm.end()) {
+                realDrm = it->second;
+                g_fakeToRealDrm.erase(it);
+            }
             g_fakeDrmObjects.erase(drm);
         }
-        free(drm); // calloc'd Speicher freigeben
-        LOGI("[HW] AMediaDrm_release(Fake) -> freed");
+        if (realDrm && g_origAMediaDrmRelease) {
+            g_origAMediaDrmRelease(realDrm);
+        }
+        free(drm);
+        LOGI("[HW] AMediaDrm_release(Fake) -> freed (real=%p)", realDrm);
         return;
     }
     
@@ -1506,8 +1516,9 @@ static void _hooked_AMediaDrm_release(AMediaDrm* drm) {
     }
 }
 
-// Hook: AMediaDrm_getPropertyByteArray (Phase 9.5 - KORREKTE Signatur!)
-// Die NDK-API nutzt AMediaDrmByteArray* (struct mit ptr + length), NICHT uint8_t** + size_t*!
+// Hook: AMediaDrm_getPropertyByteArray
+// deviceUniqueId wird IMMER aus der Bridge geliefert.
+// Andere Properties werden an das echte DRM-Objekt delegiert.
 static media_status_t _hooked_AMediaDrm_getPropertyByteArray(
     AMediaDrm* drm, const char* propertyName, DrmByteArray* propertyValue) {
     
@@ -1515,27 +1526,38 @@ static media_status_t _hooked_AMediaDrm_getPropertyByteArray(
         return AMEDIA_DRM_NOT_PROVISIONED;
     }
     
-    bool isFake = isFakeDrm(drm);
     bool isDeviceId = (strcmp(propertyName, "deviceUniqueId") == 0);
     
-    if (isFake || isDeviceId) {
+    // deviceUniqueId → IMMER Spoofed, egal ob Fake oder Real DRM
+    if (isDeviceId) {
         parseWidevineHex();
         
-        // Statischer Buffer - kein malloc nötig, NDK managed den Speicher
         static uint8_t s_widevineResult[16];
         memcpy(s_widevineResult, g_widevineBytes, 16);
         
         propertyValue->ptr = s_widevineResult;
         propertyValue->length = 16;
         
-        LOGI("[HW] AMediaDrm_getPropertyByteArray(%s) -> Spoofed 16 bytes [%s DRM]", 
-             propertyName, isFake ? "Fake" : "Real");
+        NativeMonitor::record("SPOOF", "AMediaDrm_getPropertyByteArray",
+                              "deviceUniqueId", MASTER_WIDEVINE_HEX);
+        LOGI("[HW] AMediaDrm_getPropertyByteArray(deviceUniqueId) -> Spoofed");
         return AMEDIA_OK;
     }
     
-    // Echtes DRM-Objekt mit nicht-device Property -> Original aufrufen
-    if (!isFake && g_origAMediaDrmGetPropertyByteArray) {
-        return g_origAMediaDrmGetPropertyByteArray(drm, propertyName, propertyValue);
+    // Nicht-sensitive Properties → an echtes DRM-Objekt delegieren
+    AMediaDrm* realDrm = nullptr;
+    if (isFakeDrm(drm)) {
+        std::lock_guard<std::mutex> lock(g_fdMapMutex);
+        auto it = g_fakeToRealDrm.find(drm);
+        if (it != g_fakeToRealDrm.end()) {
+            realDrm = it->second;
+        }
+    } else {
+        realDrm = drm;
+    }
+    
+    if (realDrm && g_origAMediaDrmGetPropertyByteArray) {
+        return g_origAMediaDrmGetPropertyByteArray(realDrm, propertyName, propertyValue);
     }
     
     return AMEDIA_DRM_NOT_PROVISIONED;
@@ -1549,34 +1571,38 @@ static media_status_t _hooked_AMediaDrm_getPropertyString(
         return AMEDIA_DRM_NOT_PROVISIONED;
     }
     
-    bool isFake = isFakeDrm(drm);
-    
-    // Standard-Properties für Fake-DRM
-    if (isFake) {
-        if (strcmp(propertyName, "vendor") == 0) {
-            *propertyValue = strdup("Google");
-            return AMEDIA_OK;
-        }
-        if (strcmp(propertyName, "version") == 0) {
-            *propertyValue = strdup("16.0.0");
-            return AMEDIA_OK;
-        }
-        if (strcmp(propertyName, "algorithms") == 0) {
-            *propertyValue = strdup("AES/CBC/NoPadding");
-            return AMEDIA_OK;
-        }
-        
-        LOGI("[HW] AMediaDrm_getPropertyString(%s) -> Fake default", propertyName);
-        *propertyValue = strdup("");
+    // Standard-Properties: immer statische Pixel 6 Werte
+    if (strcmp(propertyName, "vendor") == 0) {
+        *propertyValue = strdup("Google");
+        return AMEDIA_OK;
+    }
+    if (strcmp(propertyName, "version") == 0) {
+        *propertyValue = strdup("16.0.0");
+        return AMEDIA_OK;
+    }
+    if (strcmp(propertyName, "algorithms") == 0) {
+        *propertyValue = strdup("AES/CBC/NoPadding");
         return AMEDIA_OK;
     }
     
-    // Echtes DRM
-    if (g_origAMediaDrmGetPropertyString) {
-        return g_origAMediaDrmGetPropertyString(drm, propertyName, propertyValue);
+    // Nicht-Standard: an echtes DRM delegieren
+    AMediaDrm* realDrm = nullptr;
+    if (isFakeDrm(drm)) {
+        std::lock_guard<std::mutex> lock(g_fdMapMutex);
+        auto it = g_fakeToRealDrm.find(drm);
+        if (it != g_fakeToRealDrm.end()) {
+            realDrm = it->second;
+        }
+    } else {
+        realDrm = drm;
     }
     
-    return AMEDIA_DRM_NOT_PROVISIONED;
+    if (realDrm && g_origAMediaDrmGetPropertyString) {
+        return g_origAMediaDrmGetPropertyString(realDrm, propertyName, propertyValue);
+    }
+    
+    *propertyValue = strdup("");
+    return AMEDIA_OK;
 }
 
 // Hook: AMediaDrm_isCryptoSchemeSupported
@@ -2041,6 +2067,124 @@ static bool verifyIdentityAtomicity() {
 }
 
 // ==============================================================================
+// GOT Patching — Dobby-Alternative für Funktionen mit problematischem Prolog
+// ==============================================================================
+// Dobby's Inline-Hooking schreibt ein Trampoline in die ersten Bytes einer
+// Funktion. Bei AMediaDrm_getPropertyByteArray/String führt das zu SIGILL
+// weil der Funktionsprolog zu kurz oder unaligned ist.
+//
+// GOT-Patching modifiziert stattdessen die Global Offset Table (GOT) in
+// geladenen ELF-Modulen. Wenn TikTok's .so-Dateien AMediaDrm_* aufrufen,
+// geht der Call zuerst durch die PLT → GOT → Zieladresse.
+// Wir ersetzen die Zieladresse in der GOT.
+//
+// Vorteil: Kein Schreibzugriff auf Code-Pages nötig (kein SIGILL Risiko).
+// Nachteil: Muss für jedes geladene Modul separat gepatcht werden.
+// ==============================================================================
+
+#include <elf.h>
+#include <link.h>
+
+struct GotPatchEntry {
+    const char* symbol_name;
+    void* replacement;
+    void** original_save;
+};
+
+static int _got_patch_callback(struct dl_phdr_info* info, size_t size, void* data) {
+    (void)size;
+    GotPatchEntry* entry = static_cast<GotPatchEntry*>(data);
+    
+    if (!info->dlpi_name || !info->dlpi_name[0]) return 0;
+    
+    // Nur TikTok/App-Libraries patchen, keine System-Libs
+    const char* name = info->dlpi_name;
+    bool isAppLib = (strstr(name, "musically") != nullptr ||
+                     strstr(name, "ss.android") != nullptr ||
+                     strstr(name, "bytedance") != nullptr ||
+                     strstr(name, "sscronet") != nullptr ||
+                     strstr(name, "ttboringssl") != nullptr ||
+                     strstr(name, "pangle") != nullptr ||
+                     strstr(name, "applog") != nullptr ||
+                     strstr(name, "metasec") != nullptr ||
+                     strstr(name, "msaoaidsec") != nullptr ||
+                     strstr(name, "sec_sdk") != nullptr);
+    if (!isAppLib) return 0;
+    
+    ElfW(Addr) base = info->dlpi_addr;
+    const ElfW(Phdr)* dynPhdr = nullptr;
+    
+    for (int i = 0; i < info->dlpi_phnum; i++) {
+        if (info->dlpi_phdr[i].p_type == PT_DYNAMIC) {
+            dynPhdr = &info->dlpi_phdr[i];
+            break;
+        }
+    }
+    if (!dynPhdr) return 0;
+    
+    ElfW(Dyn)* dyn = reinterpret_cast<ElfW(Dyn)*>(base + dynPhdr->p_vaddr);
+    
+    ElfW(Sym)* symtab = nullptr;
+    const char* strtab = nullptr;
+    ElfW(Rela)* rela = nullptr;
+    size_t rela_count = 0;
+    ElfW(Rela)* plt_rela = nullptr;
+    size_t plt_rela_count = 0;
+    
+    for (int i = 0; dyn[i].d_tag != DT_NULL; i++) {
+        switch (dyn[i].d_tag) {
+            case DT_SYMTAB: symtab = reinterpret_cast<ElfW(Sym)*>(dyn[i].d_un.d_ptr); break;
+            case DT_STRTAB: strtab = reinterpret_cast<const char*>(dyn[i].d_un.d_ptr); break;
+            case DT_RELA: rela = reinterpret_cast<ElfW(Rela)*>(dyn[i].d_un.d_ptr); break;
+            case DT_RELASZ: rela_count = dyn[i].d_un.d_val / sizeof(ElfW(Rela)); break;
+            case DT_JMPREL: plt_rela = reinterpret_cast<ElfW(Rela)*>(dyn[i].d_un.d_ptr); break;
+            case DT_PLTRELSZ: plt_rela_count = dyn[i].d_un.d_val / sizeof(ElfW(Rela)); break;
+        }
+    }
+    
+    if (!symtab || !strtab) return 0;
+    
+    auto patchRelaTable = [&](ElfW(Rela)* table, size_t count) {
+        if (!table) return;
+        for (size_t i = 0; i < count; i++) {
+            uint32_t sym_idx = ELF64_R_SYM(table[i].r_info);
+            if (sym_idx == 0) continue;
+            
+            const char* sym_name = strtab + symtab[sym_idx].st_name;
+            if (strcmp(sym_name, entry->symbol_name) != 0) continue;
+            
+            void** got_entry = reinterpret_cast<void**>(base + table[i].r_offset);
+            
+            size_t pageSize = sysconf(_SC_PAGESIZE);
+            uintptr_t pageStart = reinterpret_cast<uintptr_t>(got_entry) & ~(pageSize - 1);
+            
+            if (mprotect(reinterpret_cast<void*>(pageStart), pageSize * 2,
+                         PROT_READ | PROT_WRITE) != 0) continue;
+            
+            if (*entry->original_save == nullptr) {
+                *entry->original_save = *got_entry;
+            }
+            *got_entry = entry->replacement;
+            
+            mprotect(reinterpret_cast<void*>(pageStart), pageSize * 2, PROT_READ);
+            
+            LOGI("[GOT] Patched %s in %s (GOT@%p)", entry->symbol_name, name, got_entry);
+        }
+    };
+    
+    patchRelaTable(rela, rela_count);
+    patchRelaTable(plt_rela, plt_rela_count);
+    
+    return 0;
+}
+
+static bool installGotHook(const char* symbol, void* replacement, void** originalSave) {
+    GotPatchEntry entry = { symbol, replacement, originalSave };
+    dl_iterate_phdr(_got_patch_callback, &entry);
+    return (*originalSave != nullptr);
+}
+
+// ==============================================================================
 // Hook Installation
 // ==============================================================================
 
@@ -2166,12 +2310,13 @@ static void installAllHooks() {
         LOGI("[HW] closedir hook OK");
     }
     
-    // Widevine NDK Hooks - Phase 9.5 SAFE
-    // WICHTIG: getPropertyByteArray und getPropertyString NICHT hooken!
-    // Dobby's Trampolin korrumpiert diese Funktionen (SIGILL).
-    // Stattdessen: createByUUID gibt calloc-Fake zurück → echte getPropertyByteArray
-    // sieht mDrm==NULL → gibt INVALID_OBJECT zurück (kein Crash).
-    // Widevine Spoofing erfolgt über LSPosed (Java-Layer).
+    // Widevine NDK Hooks - Phase 10.0: Full Native Coverage
+    // createByUUID: Dobby inline-hook → gibt IMMER Fake-Proxy zurück
+    // release: Dobby inline-hook → gibt internes Real-DRM frei
+    // getPropertyByteArray: GOT-Patch (Dobby SIGILL workaround)
+    //   → deviceUniqueId IMMER aus Bridge, andere Props an Real-DRM delegiert
+    // getPropertyString: GOT-Patch
+    // isCryptoSchemeSupported: Dobby inline-hook
     void* mediandk = dlopen("libmediandk.so", RTLD_NOW | RTLD_NOLOAD);
     if (!mediandk) {
         mediandk = dlopen("libmediandk.so", RTLD_NOW);
@@ -2202,8 +2347,36 @@ static void installAllHooks() {
             LOGI("[HW] AMediaDrm_isCryptoSchemeSupported hook OK");
         }
         
-        // NICHT GEHOOKED (Dobby SIGILL): getPropertyByteArray, getPropertyString
-        LOGI("[HW] Widevine: 3/3 safe hooks installed (getProperty via LSPosed)");
+        // getPropertyByteArray: GOT-Patching statt Dobby (SIGILL workaround)
+        if (installGotHook("AMediaDrm_getPropertyByteArray",
+                           (void*)_hooked_AMediaDrm_getPropertyByteArray,
+                           (void**)&g_origAMediaDrmGetPropertyByteArray)) {
+            installed++;
+            LOGI("[HW] AMediaDrm_getPropertyByteArray hook OK (GOT-Patch)");
+        } else {
+            // Fallback: Dobby-Versuch (kann SIGILL geben, aber wir haben createByUUID-Schutz)
+            void* getPropAddr = dlsym(mediandk, "AMediaDrm_getPropertyByteArray");
+            if (getPropAddr) {
+                if (DobbyHook(getPropAddr, (dobby_dummy_func_t)_hooked_AMediaDrm_getPropertyByteArray,
+                              (dobby_dummy_func_t*)&g_origAMediaDrmGetPropertyByteArray) == 0) {
+                    installed++;
+                    LOGI("[HW] AMediaDrm_getPropertyByteArray hook OK (Dobby fallback)");
+                } else {
+                    LOGW("[HW] AMediaDrm_getPropertyByteArray: Dobby+GOT both failed! "
+                         "createByUUID proxy schützt trotzdem (Fake-DRM-Objekt)");
+                }
+            }
+        }
+        
+        // getPropertyString: GOT-Patching
+        if (installGotHook("AMediaDrm_getPropertyString",
+                           (void*)_hooked_AMediaDrm_getPropertyString,
+                           (void**)&g_origAMediaDrmGetPropertyString)) {
+            installed++;
+            LOGI("[HW] AMediaDrm_getPropertyString hook OK (GOT-Patch)");
+        }
+        
+        LOGI("[HW] Widevine: hooks installed (createByUUID=proxy, getProperty=GOT-Patch)");
     } else {
         LOGW("[HW] libmediandk.so not available");
     }

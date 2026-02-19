@@ -520,14 +520,17 @@ class HookGuard:
             apis = ", ".join(self._state.real_critical_apis[:5])
             return f"CRITICAL_REAL: {apis}"
 
-        # Dead-man-switch: TikTok running but no heartbeat
+        # Dead-man-switch: Heartbeat stale → WARNING, not kill.
+        # TikTok backgrounded by Android stops writing summaries, which is
+        # normal behaviour — not a leak. Only an actual CRITICAL_REAL (above)
+        # or a missing bridge justifies a kill.
         if self._state.tiktok_running and self._state.last_heartbeat_ms > 0:
             now_ms = int(time.time() * 1000)
             delta = now_ms - self._state.last_heartbeat_ms
             if delta > self.HEARTBEAT_TIMEOUT_MS:
-                return f"HEARTBEAT_TIMEOUT: {delta}ms since last beat"
+                has_warning = True
+                log.warning("Heartbeat stale: %dms since last beat (TikTok likely backgrounded)", delta)
 
-        # Dead-man-switch: TikTok running but heartbeat NEVER received
         if (
             self._state.tiktok_running
             and self._state.last_heartbeat_ms == 0
@@ -535,9 +538,11 @@ class HookGuard:
         ):
             running_for = time.time() - self._tiktok_running_since
             if running_for > (self.HEARTBEAT_TIMEOUT_MS / 1000):
-                return (
-                    f"HEARTBEAT_NEVER_SEEN: TikTok running for "
-                    f"{running_for:.0f}s but no heartbeat received"
+                has_warning = True
+                log.warning(
+                    "Heartbeat never seen: TikTok running for %.0fs — "
+                    "module may not be injecting",
+                    running_for,
                 )
 
         # Bridge tampered — only kill if bridge is MISSING (not just hash mismatch)
@@ -558,9 +563,11 @@ class HookGuard:
             has_warning = True
             log.warning("Maps leak (warning): %s", self._state.maps_leaks[:3])
 
+        # maps_verified=False when run-as fails is expected for non-debuggable
+        # apps — this is a structural limitation, not a threat indicator.
+        # Only warn if maps were verified AND found dirty.
         if not self._state.maps_verified and self._state.tiktok_running:
-            has_warning = True
-            log.debug("Maps unverified (run-as may have failed)")
+            log.debug("Maps unverified (run-as not available for non-debuggable apps — skipping)")
 
         # Hook count mismatch (warning level, not kill)
         if (
@@ -584,12 +591,15 @@ class HookGuard:
         log.critical("KILL-SWITCH ACTIVATED: %s", reason)
         self._state.status = GuardStatus.KILLED
 
+        is_data_leak = reason.startswith("CRITICAL_REAL") or reason.startswith("BRIDGE_TAMPERED")
+
         kill_entry = {
             "timestamp": time.time(),
             "reason": reason,
+            "severity": "critical" if is_data_leak else "warning",
         }
 
-        # 1. Force-stop TikTok
+        # 1. Force-stop TikTok (always)
         for pkg in TIKTOK_PACKAGES:
             try:
                 await self._adb.shell(
@@ -600,18 +610,22 @@ class HookGuard:
             except ADBError:
                 pass
 
-        # 2. Airplane mode ON
-        try:
-            await self._adb.shell(
-                "cmd connectivity airplane-mode enable",
-                root=True,
-                timeout=5,
-            )
-        except ADBError:
-            pass
+        # 2. Airplane mode ON — ONLY for actual data leaks
+        if is_data_leak:
+            log.critical("DATA LEAK confirmed — activating airplane mode")
+            try:
+                await self._adb.shell(
+                    "cmd connectivity airplane-mode enable",
+                    root=True,
+                    timeout=5,
+                )
+            except ADBError:
+                pass
 
-        # 3. Disable autostart components
-        await self._disable_autostart()
+            # 3. Disable autostart — ONLY for data leaks
+            await self._disable_autostart()
+        else:
+            log.warning("Non-leak kill (%s) — skipping airplane mode", reason)
 
         # 4. Record in history
         self._state.kill_history.append(kill_entry)

@@ -821,6 +821,9 @@
             if (res.ok) {
                 showResult(data.message, 'success');
                 startFlowPolling();
+            } else if (res.status === 429) {
+                showResult('⏳ COOLDOWN: ' + (data.detail || 'Zu viele Genesis Flows — bitte warten.'), 'warn');
+                btn.disabled = false;
             } else {
                 showResult(data.detail || 'Fehler', 'error');
                 btn.disabled = false;

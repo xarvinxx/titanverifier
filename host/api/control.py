@@ -32,6 +32,7 @@ from pydantic import BaseModel, Field
 
 from host.adb.client import ADBClient
 from host.engine.db_ops import (
+    check_genesis_frequency,
     create_flow_history,
     find_profile_by_name,
     update_flow_history,
@@ -131,6 +132,19 @@ async def start_genesis(
             status_code=409,
             detail=f"Flow '{_state.flow_type}' läuft bereits seit {_state.started_at}",
         )
+
+    # Pre-Check: Genesis Frequency Guard
+    try:
+        freq = await check_genesis_frequency()
+        if not freq["allowed"]:
+            raise HTTPException(
+                status_code=429,
+                detail=freq["reason"],
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.warning("Frequency pre-check fehlgeschlagen: %s", e)
 
     # Lock setzen BEVOR der Background-Task startet
     _state = FlowState(

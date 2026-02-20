@@ -1444,7 +1444,12 @@ class GenesisFlow:
             result.finished_at = datetime.now(LOCAL_TZ).isoformat()
             result.duration_ms = _now_ms() - flow_start
 
-            # ─── ERROR RECOVERY: Flugmodus + Backup-Manager reparieren ───
+            # ─── CLEANUP: Auto-Restore re-enable + Error Recovery ─────────
+            try:
+                await self._shifter._reenable_auto_restore()
+            except Exception:
+                pass
+
             if not result.success:
                 logger.warning("ERROR RECOVERY: Flow fehlgeschlagen — räume auf...")
                 try:

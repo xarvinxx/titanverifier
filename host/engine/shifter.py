@@ -974,15 +974,21 @@ class AppShifter:
         logger.info("Clipboard cleared")
 
     async def _disable_google_backup(self) -> None:
-        """Disable Google auto-backup for TikTok packages ONLY.
+        """Disable Google auto-restore + backup for TikTok packages.
 
-        WICHTIG: Der globale Backup-Manager MUSS aktiv bleiben!
-        Ein deaktivierter Backup-Manager ist eine Anomalie die Google
-        und TikTok als "manipuliertes Gerät" interpretieren können.
-        Stattdessen: nur TikTok-spezifische Backups löschen + sperren.
+        Drei-Stufen-Strategie:
+          1. Auto-Restore TEMPORÄR deaktivieren (verhindert dass Android
+             nach pm clear automatisch Cloud-Daten wiederherstellt).
+          2. Cloud-Backups für TikTok-Pakete löschen + sperren.
+          3. Auto-Restore wird NICHT re-enabled — das macht _reenable_auto_restore()
+             NACHDEM TikTok erstmalig gelauncht wurde.
+
+        WICHTIG: Der globale Backup-Manager bleibt aktiv (Anomalie-Signal).
+        Nur auto-restore wird temporär deaktiviert.
         """
-        logger.info("Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...")
+        logger.info("Backup-Sterilisierung: Auto-Restore + TikTok-Backups...")
 
+        # Backup-Manager re-enable falls global deaktiviert
         try:
             bmgr_state = await self._adb.shell("bmgr enabled", root=True, timeout=5)
             if bmgr_state.success and "disabled" in bmgr_state.output.lower():
@@ -994,6 +1000,17 @@ class AppShifter:
         except Exception:
             pass
 
+        # Stufe 1: Auto-Restore OFF — verhindert Cloud-Restore nach pm clear
+        try:
+            await self._adb.shell(
+                "settings put secure backup_auto_restore 0",
+                root=True, timeout=5,
+            )
+            logger.info("  Auto-Restore: DEAKTIVIERT (temporaer)")
+        except Exception as e:
+            logger.warning("  Auto-Restore deaktivieren fehlgeschlagen: %s", e)
+
+        # Stufe 2: TikTok-spezifische Backups löschen + sperren
         for pkg in TIKTOK_PACKAGES:
             try:
                 await self._adb.shell(
@@ -1014,7 +1031,37 @@ class AppShifter:
                 )
             except Exception:
                 pass
-        logger.info("Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)")
+
+        # Stufe 3: TikTok SharedPreferences-Backup auf D2D-Transport ebenfalls löschen
+        for pkg in TIKTOK_PACKAGES:
+            for transport in (
+                "com.google.android.gms/.backup.component.D2dTransportService",
+                "com.google.android.apps.restore/.transport.D2dTransportService",
+            ):
+                try:
+                    await self._adb.shell(
+                        f"bmgr wipe {transport} {pkg} 2>/dev/null",
+                        root=True, timeout=10,
+                    )
+                except Exception:
+                    pass
+
+        logger.info("Backup-Sterilisierung abgeschlossen (Auto-Restore OFF)")
+
+    async def _reenable_auto_restore(self) -> None:
+        """Re-enable auto-restore nach TikTok-Erststart.
+
+        Wird aufgerufen NACHDEM TikTok das erste Mal gestartet und
+        die Onboarding-Phase abgeschlossen wurde.
+        """
+        try:
+            await self._adb.shell(
+                "settings put secure backup_auto_restore 1",
+                root=True, timeout=5,
+            )
+            logger.info("Auto-Restore re-enabled (TikTok-Erststart vorbei)")
+        except Exception as e:
+            logger.warning("Auto-Restore re-enable fehlgeschlagen: %s", e)
 
     async def _randomize_timestamps(self, package: str) -> None:
         """Randomize file modification times to prevent restore-detection via uniform timestamps."""

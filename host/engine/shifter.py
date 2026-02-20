@@ -1088,32 +1088,31 @@ class AppShifter:
             logger.warning("Timestamp randomization failed for %s: %s", package, e)
 
     def _find_latest_tar(
-        self, directory: Path, prefix: str = "", min_size: int = 10240,
+        self, directory: Path, prefix: str = "", min_size: int = 50 * 1024,
     ) -> Optional[Path]:
-        """Findet die neueste tar-Datei mit optionalem Prefix in einem Verzeichnis.
+        """Findet das BESTE tar-Backup in einem Verzeichnis.
+
+        Strategie: Größtes gültiges Backup (nicht neuestes!), weil nach
+        Bootloops/Crashes kleine ungültige Backups neuer sein können als
+        das echte Login-Backup.
 
         Args:
             directory: Verzeichnis mit tar-Dateien
             prefix: Optionaler Dateiname-Prefix
-            min_size: Minimale Dateigröße in Bytes (Standard 10 KB).
-                      Tars unter dieser Größe werden übersprungen (leere
-                      Backups nach pm clear / Bootloop).
+            min_size: Minimale Dateigröße in Bytes (Standard 50 KB).
+                      Tars unter dieser Größe werden übersprungen.
         """
         if not directory.exists():
             return None
         pattern = f"{prefix}*.tar" if prefix else "*.tar"
-        tars = sorted(
-            (p for p in directory.glob(pattern) if p.stat().st_size >= min_size),
-            key=lambda p: p.stat().st_mtime,
-            reverse=True,
-        )
-        if not tars:
+        valid = [p for p in directory.glob(pattern) if p.stat().st_size >= min_size]
+        if not valid:
             return None
-        chosen = tars[0]
-        if len(tars) > 1:
-            logger.debug(
-                "Backup gewählt: %s (%.1f MB, %d Kandidaten)",
-                chosen.name, chosen.stat().st_size / 1048576, len(tars),
+        chosen = max(valid, key=lambda p: p.stat().st_size)
+        if len(valid) > 1:
+            logger.info(
+                "Backup gewählt: %s (%.1f MB, %d Kandidaten — größtes gewählt)",
+                chosen.name, chosen.stat().st_size / 1048576, len(valid),
             )
         return chosen
 

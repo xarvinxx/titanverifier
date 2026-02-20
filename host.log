@@ -23568,3 +23568,47 @@ drwxrwx--x 335 system  system  53248 2026-02-20 19:19 ..
 2026-02-20 20:49:12 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
 2026-02-20 20:49:12 [host.main] INFO: HookGuard automatisch gestartet
 2026-02-20 20:49:12 [host.main] INFO: Command Center bereit.
+2026-02-20 20:50:01 [hookguard] INFO: HookGuard stopped
+2026-02-20 20:50:01 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 20:50:01 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 20:50:01 [host.main] INFO: Command Center gestoppt.
+2026-02-20 20:50:02 [host.main] INFO: ============================================================
+2026-02-20 20:50:02 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 20:50:02 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 20:50:02 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 20:50:02 [host.main] INFO: ============================================================
+2026-02-20 20:50:02 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 20:50:02 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 20:50:02 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-20 20:50:02 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-20 20:50:02 [host.main] INFO: Command Center bereit.
+2026-02-20 20:50:26 [hookguard] INFO: HookGuard stopped
+2026-02-20 20:50:26 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 20:50:26 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 20:50:26 [host.main] INFO: Command Center gestoppt.
+2026-02-20 20:50:27 [host.main] INFO: ============================================================
+2026-02-20 20:50:27 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 20:50:27 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 20:50:27 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 20:50:27 [host.main] INFO: ============================================================
+2026-02-20 20:50:27 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 20:50:27 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 20:50:27 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-20 20:50:27 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-20 20:50:27 [host.main] INFO: Command Center bereit.
+2026-02-20 20:51:15 [hookguard] INFO: HookGuard stopped
+2026-02-20 20:51:15 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 20:51:15 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 20:51:15 [host.main] INFO: Command Center gestoppt.
+2026-02-20 20:51:16 [host.main] INFO: ============================================================
+2026-02-20 20:51:16 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 20:51:16 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 20:51:16 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 20:51:16 [host.main] INFO: ============================================================
+2026-02-20 20:51:16 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 20:51:16 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 20:51:16 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-20 20:51:16 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-20 20:51:16 [host.db_ops] INFO: Backup-Sync: 54 Profil(e) aus Dateisystem aktualisiert
+2026-02-20 20:51:16 [host.main] INFO: Backup-Sync: 54 Profile aktualisiert
+2026-02-20 20:51:16 [host.main] INFO: Command Center bereit.

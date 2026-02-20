@@ -651,71 +651,56 @@ async def sync_backup_status_from_disk() -> int:
 
     MIN_VALID_SIZE = 50 * 1024  # 50 KB — gleicher Schwellenwert wie beim Backup
 
+    def _best_tar(directory: "Path", min_sz: int = MIN_VALID_SIZE) -> "Optional[Path]":
+        """Wählt den GRÖSSTEN gültigen Backup aus einem Verzeichnis.
+
+        Sortierung nach Dateigröße (absteigend) statt Zeitstempel, weil
+        nach Bootloops/Crashes kleine (ungültige) Backups neuer sein können.
+        """
+        if not directory.exists():
+            return None
+        valid = [p for p in directory.glob("*.tar") if p.stat().st_size >= min_sz]
+        if not valid:
+            return None
+        return max(valid, key=lambda p: p.stat().st_size)
+
     updated = 0
     async with db.connection() as conn:
         cursor = await conn.execute(
-            "SELECT id, name, backup_status FROM profiles",
+            "SELECT id, name, backup_status, gms_backup_status, "
+            "accounts_backup_status FROM profiles",
         )
         profiles = await cursor.fetchall()
 
     for row in profiles:
-        pid, name, current_status = row["id"], row["name"], row["backup_status"]
+        pid, name = row["id"], row["name"]
         profile_dir = BACKUP_DIR / name
 
-        # TikTok Backup
-        tt_dir = profile_dir / BACKUP_TIKTOK_SUBDIR
-        if tt_dir.exists():
-            tars = sorted(
-                (p for p in tt_dir.glob("*.tar") if p.stat().st_size >= MIN_VALID_SIZE),
-                key=lambda p: p.stat().st_mtime,
-                reverse=True,
-            )
-            if tars and current_status != "valid":
-                best = tars[0]
-                await update_profile_tiktok_backup(
-                    pid, str(best), best.stat().st_size,
+        # TikTok Backup — immer das GRÖSSTE gültige setzen
+        best = _best_tar(profile_dir / BACKUP_TIKTOK_SUBDIR)
+        if best:
+            await update_profile_tiktok_backup(pid, str(best), best.stat().st_size)
+            updated += 1
+        elif row["backup_status"] == "valid":
+            async with db.transaction() as conn:
+                await conn.execute(
+                    "UPDATE profiles SET backup_status='none', backup_path=NULL, "
+                    "backup_size_bytes=NULL, backup_created_at=NULL WHERE id=?",
+                    (pid,),
                 )
-                updated += 1
+            updated += 1
 
         # GMS Backup
-        gms_dir = profile_dir / BACKUP_GMS_SUBDIR
-        if gms_dir.exists():
-            gms_tars = sorted(
-                (p for p in gms_dir.glob("*.tar") if p.stat().st_size >= MIN_VALID_SIZE),
-                key=lambda p: p.stat().st_mtime,
-                reverse=True,
-            )
-            if gms_tars:
-                async with db.connection() as conn:
-                    c = await conn.execute(
-                        "SELECT gms_backup_status FROM profiles WHERE id = ?", (pid,),
-                    )
-                    r = await c.fetchone()
-                if r and r["gms_backup_status"] != "valid":
-                    best = gms_tars[0]
-                    await update_profile_gms_backup(
-                        pid, str(best), best.stat().st_size,
-                    )
-                    updated += 1
+        best = _best_tar(profile_dir / BACKUP_GMS_SUBDIR)
+        if best:
+            await update_profile_gms_backup(pid, str(best), best.stat().st_size)
+            updated += 1
 
         # Accounts Backup
-        acc_dir = profile_dir / BACKUP_ACCOUNTS_SUBDIR
-        if acc_dir.exists():
-            acc_tars = sorted(
-                (p for p in acc_dir.glob("*.tar") if p.stat().st_size >= 1024),
-                key=lambda p: p.stat().st_mtime,
-                reverse=True,
-            )
-            if acc_tars:
-                async with db.connection() as conn:
-                    c = await conn.execute(
-                        "SELECT accounts_backup_status FROM profiles WHERE id = ?", (pid,),
-                    )
-                    r = await c.fetchone()
-                if r and r["accounts_backup_status"] != "valid":
-                    best = acc_tars[0]
-                    await update_profile_accounts_backup(pid, str(best))
-                    updated += 1
+        best = _best_tar(profile_dir / BACKUP_ACCOUNTS_SUBDIR, min_sz=1024)
+        if best:
+            await update_profile_accounts_backup(pid, str(best))
+            updated += 1
 
     if updated > 0:
         logger.info(

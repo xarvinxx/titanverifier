@@ -752,12 +752,32 @@ class AppShifter:
                 # v6.6 FIX: Push-then-Extract statt Pipe.
                 # Stdin-Pipe kann Binärdaten korrumpieren. Toybox tar kennt
                 # kein --keep-old-files. lib-Schutz via Smart Clean oben.
+                #
+                # v6.7: Tar-Pfad-Erkennung — Backups können zwei Formate haben:
+                #   A) Relativ: shared_prefs/, databases/, files/  → -C {data_path}
+                #   B) Absolut: data/data/<pkg>/...                → -C /
+                # Wir prüfen den ersten Eintrag um das Format zu erkennen.
                 device_tar = "/data/local/tmp/_titan_dual_restore.tar"
                 await self._adb.push(
                     str(app_tar), device_tar, timeout=timeout,
                 )
+
+                # Tar-Format erkennen: erster Eintrag prüfen
+                first_entry_result = await self._adb.shell(
+                    f"tar -tf {device_tar} 2>/dev/null | head -1",
+                    root=True, timeout=15,
+                )
+                first_entry = (first_entry_result.output or "").strip()
+
+                if first_entry.startswith("data/data/") or first_entry.startswith("/data/data/"):
+                    extract_dir = "/"
+                    logger.debug("Tar-Format: absolute Pfade → -C /")
+                else:
+                    extract_dir = self._data_path
+                    logger.debug("Tar-Format: relative Pfade → -C %s", extract_dir)
+
                 restore_result = await self._adb.shell(
-                    f"tar -xf {device_tar} -C /",
+                    f"tar -xf {device_tar} -C {extract_dir}",
                     root=True, timeout=timeout,
                 )
                 # Cleanup temp tar

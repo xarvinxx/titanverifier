@@ -1,39 +1,62 @@
 """
-HookGuard – Live monitoring of all Xposed & Zygisk hooks with Kill-Switch.
+HookGuard v2 – Live Zygisk module monitoring with Kill-Switch.
+
+Reads XOR-encrypted guard status files written by the native Zygisk module
+after postAppSpecialize. Each target app writes its status to:
+  /data/data/<pkg>/files/.gms_cache
 
 Monitors:
-  - Xposed JSON summaries (per-process) from /data/data/<pkg>/files/
-  - Zygisk native access log from /data/local/tmp/.titan_native_access.log
+  - Guard status: bridge loaded, LSPlant ok, hook counts, heartbeat
   - Bridge file integrity via MD5 comparison
-  - TikTok process liveness for dead-man-switch
+  - /proc/maps for suspicious libraries (via run-as)
+  - TikTok process liveness
 
 Kill-Switch triggers:
-  - has_critical_real == true (a critical hook returned real value)
-  - Heartbeat timeout (TikTok running but no monitor update for >10s)
-  - Bridge file tampered (MD5 mismatch)
+  - LSPlant failed (ART hooks missing → Java APIs return real values)
+  - Bridge not loaded by module (no identity data)
+  - Bridge file missing on device
+  - Hook count critically low
 """
 
 from __future__ import annotations
 
 import asyncio
+import base64
 import dataclasses
 import json
 import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from pathlib import Path
 from typing import Optional
 
 from host.adb.client import ADBClient, ADBError
-from host.config import BRIDGE_FILE_PATH, TIKTOK_PACKAGES
+from host.config import BRIDGE_FILE_PATH, KILL_SWITCH_PATH, TIKTOK_PACKAGES
 
 log = logging.getLogger("hookguard")
 
+_GUARD_XOR_KEY = bytes([
+    0x54, 0x69, 0x74, 0x61, 0x6E, 0x47, 0x75, 0x61,
+    0x72, 0x64, 0x32, 0x30, 0x32, 0x36
+])
 
-# =============================================================================
-# Guard status & state
-# =============================================================================
+GUARD_FILENAME = ".gms_cache"
+
+
+def _guard_decrypt(data: bytes) -> str:
+    key = _GUARD_XOR_KEY
+    klen = len(key)
+    return bytes(b ^ key[i % klen] for i, b in enumerate(data)).decode("utf-8", errors="replace")
+
+
+def _parse_guard_kv(text: str) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for line in text.strip().split("\n"):
+        if "=" in line:
+            k, _, v = line.partition("=")
+            result[k.strip()] = v.strip()
+    return result
+
 
 class GuardStatus(str, Enum):
     IDLE = "idle"
@@ -44,44 +67,49 @@ class GuardStatus(str, Enum):
 
 @dataclass
 class HookState:
-    """Snapshot of hook monitoring state."""
     status: GuardStatus = GuardStatus.IDLE
-    applied_hooks: int = 0
-    min_hooks: int = 0
-    expected_hooks: int = 28
-    spoof_count: int = 0
-    real_count: int = 0
-    has_critical_real: bool = False
-    real_critical_apis: list = field(default_factory=list)
-    last_heartbeat_ms: int = 0
-    last_check_ts: float = 0.0
-    active_processes: list = field(default_factory=list)
+
+    guard_loaded: bool = False
+    bridge_loaded: bool = False
+    lsplant_ok: bool = False
+    native_hooks: int = 0
+    art_hooks: int = 0
+    expected_native: int = 11
+    expected_art: int = 8
+    privatized_regions: int = 0
+    guard_pid: int = 0
+    guard_timestamp_ms: int = 0
+    init_timestamp_ms: int = 0
+    heartbeat_counter: int = 0
+    identity_serial: str = ""
+    identity_mac: str = ""
+    identity_imei1: str = ""
+    identity_imei2: str = ""
+    identity_imsi: str = ""
+    identity_sim_serial: str = ""
+    identity_android_id: str = ""
+    identity_gsf_id: str = ""
+
+    tiktok_running: bool = False
     bridge_intact: bool = False
     bridge_verified: bool = False
     bridge_hash: str = ""
-    tiktok_running: bool = False
-    kill_history: list = field(default_factory=list)
-    native_heartbeat_ts: int = 0
+
     maps_clean: bool = False
     maps_verified: bool = False
     maps_leaks: list = field(default_factory=list)
-    # Live Monitor: per-API breakdown and device-side kill events
-    api_details: list = field(default_factory=list)
+
+    kill_history: list = field(default_factory=list)
     device_kill_events: list = field(default_factory=list)
 
+    last_check_ts: float = 0.0
 
-# =============================================================================
-# HookGuard
-# =============================================================================
 
 class HookGuard:
-    """Live hook monitor with kill-switch capability."""
-
-    POLL_INTERVAL = 3.0  # seconds
-    HEARTBEAT_TIMEOUT_MS = 45_000
-    NATIVE_HEARTBEAT_TIMEOUT_S = 60
-    BRIDGE_CHECK_INTERVAL = 30.0  # seconds
-    MAPS_CHECK_INTERVAL = 10.0  # seconds
+    POLL_INTERVAL = 3.0
+    HEARTBEAT_TIMEOUT_S = 90
+    BRIDGE_CHECK_INTERVAL = 30.0
+    MAPS_CHECK_INTERVAL = 10.0
     MAX_KILL_HISTORY = 50
 
     SUSPICIOUS_MAPS_PATTERNS = [
@@ -90,7 +118,6 @@ class HookGuard:
         "frida", "substrate", "gadget",
     ]
 
-    # TikTok components to disable after kill-switch
     AUTOSTART_COMPONENTS = [
         ".common.boot.BootReceiver",
         ".push.PushReceiver",
@@ -128,7 +155,7 @@ class HookGuard:
         )
         self._task = asyncio.create_task(self._monitor_loop())
         log.info(
-            "HookGuard started (expected bridge hash: %s)",
+            "HookGuard v2 started (expected bridge hash: %s)",
             self._expected_bridge_hash or "none",
         )
 
@@ -164,139 +191,111 @@ class HookGuard:
         now = time.time()
         self._state.last_check_ts = now
 
-        # 1. Check if TikTok is running
         self._state.tiktok_running = await self._is_tiktok_running()
 
         if not self._state.tiktok_running:
             self._tiktok_running_since = 0.0
             if self._state.status != GuardStatus.KILLED:
                 self._state.status = GuardStatus.MONITORING
-                self._state.has_critical_real = False
-                self._state.real_critical_apis = []
+                self._state.guard_loaded = False
+                self._state.bridge_loaded = False
+                self._state.lsplant_ok = False
+                self._state.native_hooks = 0
+                self._state.art_hooks = 0
+                self._state.guard_pid = 0
+                self._state.guard_timestamp_ms = 0
+                self._state.heartbeat_counter = 0
                 self._state.maps_clean = False
                 self._state.maps_verified = False
                 self._state.maps_leaks = []
                 self._state.bridge_verified = False
-                self._state.last_heartbeat_ms = 0
-                self._state.native_heartbeat_ts = 0
-                self._state.active_processes = []
             await self._broadcast_state()
             return
 
         if self._tiktok_running_since == 0.0:
             self._tiktok_running_since = now
 
-        # 2. Pull Xposed JSON summaries (all processes)
-        await self._read_xposed_summaries()
+        # 1. Read guard status files from all target packages
+        await self._read_guard_status()
 
-        # 3. Pull native access log heartbeat
-        await self._read_native_heartbeat()
-
-        # 4. Bridge integrity check (every 30s)
+        # 2. Bridge integrity check (every 30s)
         if now - self._last_bridge_check >= self.BRIDGE_CHECK_INTERVAL:
             await self._check_bridge_integrity()
             self._last_bridge_check = now
 
-        # 5. /proc/maps check (every 10s)
+        # 3. /proc/maps check (every 10s)
         if now - self._last_maps_check >= self.MAPS_CHECK_INTERVAL:
             await self._check_proc_maps()
             self._last_maps_check = now
 
-        # 6. Read device-side kill-switch events from logcat
+        # 4. Read device-side kill-switch events from logcat
         await self._read_device_kill_events()
 
-        # 7. Evaluate state → trigger kill-switch if needed
+        # 5. Evaluate → kill-switch if needed
         kill_reason = self._evaluate_threats()
         if kill_reason:
             await self._execute_kill_switch(kill_reason)
 
-        # 8. Broadcast state to WebSocket clients
+        # 6. Broadcast
         await self._broadcast_state()
 
-    # ── Xposed Monitor ────────────────────────────────────────────
+    # ── Guard Status Reader ────────────────────────────────────────
 
-    async def _read_xposed_summaries(self) -> None:
-        processes: list[str] = []
-        total_spoof = 0
-        total_real = 0
-        has_critical = False
-        critical_apis: list[str] = []
-        max_hooks = 0
-        min_hooks = 999
-        last_hb = 0
-        all_api_details: list[dict] = []
+    async def _read_guard_status(self) -> None:
+        best: Optional[dict[str, str]] = None
 
         for pkg in TIKTOK_PACKAGES:
             try:
                 result = await self._adb.shell(
-                    f"ls /data/data/{pkg}/files/.titan_access_summary*.json 2>/dev/null",
+                    f"base64 /data/data/{pkg}/files/{GUARD_FILENAME} 2>/dev/null",
                     root=True,
                     timeout=5,
                 )
-                if not result.success or not result.output or "No such file" in result.output:
+                if not result.success or not result.output or not result.output.strip():
                     continue
 
-                for json_path in result.output.strip().split("\n"):
-                    json_path = json_path.strip()
-                    if not json_path:
-                        continue
-                    try:
-                        cat_result = await self._adb.shell(
-                            f"cat '{json_path}'",
-                            root=True,
-                            timeout=5,
-                        )
-                        if not cat_result.success or not cat_result.output:
-                            continue
-                        data = json.loads(cat_result.output)
-                        proc_name = data.get("process_name", "unknown")
-                        processes.append(proc_name)
-                        total_spoof += data.get("spoof_count", 0)
-                        total_real += data.get("real_count", 0)
-                        hooks = data.get("applied_hooks", 0)
-                        if hooks > max_hooks:
-                            max_hooks = hooks
-                        if hooks < min_hooks:
-                            min_hooks = hooks
-                        hb = data.get("last_heartbeat_ms", 0)
-                        if hb > last_hb:
-                            last_hb = hb
-                        if data.get("has_critical_real", False):
-                            has_critical = True
-                            critical_apis.extend(data.get("real_critical_apis", []))
+                raw = base64.b64decode(result.output.strip())
+                text = _guard_decrypt(raw)
+                kv = _parse_guard_kv(text)
 
-                        apis_dict = data.get("apis", {})
-                        for api_name, api_info in apis_dict.items():
-                            all_api_details.append({
-                                "api": api_name,
-                                "category": api_info.get("category", "?"),
-                                "count": api_info.get("count", 0),
-                                "spoofed": api_info.get("spoofed", False),
-                                "last_ms": api_info.get("last_ms", 0),
-                                "last_value": api_info.get("last_value", ""),
-                                "process": proc_name,
-                            })
-                    except (json.JSONDecodeError, Exception) as e:
-                        log.warning("Failed to parse %s: %s", json_path, e)
-            except ADBError:
-                pass
+                if kv.get("v") not in ("1", "2", "3"):
+                    log.warning("Unknown guard version from %s: %s", pkg, kv.get("v"))
+                    continue
 
-        all_api_details.sort(key=lambda x: x.get("last_ms", 0), reverse=True)
+                if best is None:
+                    best = kv
+                else:
+                    if int(kv.get("ts", "0")) > int(best.get("ts", "0")):
+                        best = kv
+            except (ADBError, Exception) as e:
+                log.debug("Guard read failed for %s: %s", pkg, e)
 
-        self._state.active_processes = processes
-        self._state.spoof_count = total_spoof
-        self._state.real_count = total_real
-        self._state.applied_hooks = max_hooks
-        self._state.min_hooks = min_hooks if processes else 0
-        self._state.last_heartbeat_ms = last_hb
-        self._state.has_critical_real = has_critical
-        self._state.real_critical_apis = critical_apis
-        self._state.api_details = all_api_details
+        if best is None:
+            self._state.guard_loaded = False
+            return
+
+        self._state.guard_loaded = True
+        self._state.bridge_loaded = best.get("bl") == "1"
+        self._state.lsplant_ok = best.get("lp") == "1"
+        self._state.native_hooks = int(best.get("nh", "0"))
+        self._state.art_hooks = int(best.get("ah", "0"))
+        self._state.privatized_regions = int(best.get("rg", "0"))
+        self._state.guard_pid = int(best.get("pid", "0"))
+        self._state.guard_timestamp_ms = int(best.get("ts", "0"))
+        self._state.init_timestamp_ms = int(best.get("it", "0"))
+        self._state.heartbeat_counter = int(best.get("hb", "0"))
+        self._state.identity_serial = best.get("sr", "")
+        self._state.identity_mac = best.get("mc", "")
+        self._state.identity_imei1 = best.get("i1", best.get("im", ""))
+        self._state.identity_imei2 = best.get("i2", "")
+        self._state.identity_imsi = best.get("is", "")
+        self._state.identity_sim_serial = best.get("ss", "")
+        self._state.identity_android_id = best.get("ai", "")
+        self._state.identity_gsf_id = best.get("gs", "")
 
     # ── Device Kill-Event Monitor ────────────────────────────────
 
     async def _read_device_kill_events(self) -> None:
-        """Read TitanKillSwitch events from device logcat."""
         try:
             result = await self._adb.shell(
                 "logcat -d -s TitanKillSwitch:* -v time 2>/dev/null | tail -20",
@@ -331,38 +330,9 @@ class HookGuard:
         except ADBError:
             pass
 
-    # ── Native Monitor ────────────────────────────────────────────
-
-    async def _read_native_heartbeat(self) -> None:
-        try:
-            result = await self._adb.shell(
-                "tail -20 /data/local/tmp/.titan_native_access.log 2>/dev/null",
-                root=True,
-                timeout=5,
-            )
-            if not result.success or not result.output:
-                self._state.native_heartbeat_ts = 0
-                return
-            found = False
-            for line in reversed(result.output.strip().split("\n")):
-                if "HEARTBEAT" in line:
-                    parts = line.split("|")
-                    if len(parts) >= 4:
-                        try:
-                            self._state.native_heartbeat_ts = int(parts[3])
-                            found = True
-                        except ValueError:
-                            pass
-                    break
-            if not found:
-                self._state.native_heartbeat_ts = 0
-        except ADBError:
-            self._state.native_heartbeat_ts = 0
-
     # ── Bridge Integrity ──────────────────────────────────────────
 
     async def _compute_bridge_content_hash(self, path: str) -> Optional[str]:
-        """Compute MD5 of bridge identity values only (ignore comment lines)."""
         try:
             result = await self._adb.shell(
                 f"grep -v '^#' {path} | grep -v '^$' | md5sum 2>/dev/null",
@@ -384,7 +354,7 @@ class HookGuard:
             self._state.bridge_intact = False
             self._state.bridge_verified = False
             self._state.bridge_hash = "UNVERIFIED"
-            log.warning("Bridge reference hash could not be computed — cannot verify!")
+            log.warning("Bridge reference hash could not be computed")
             return
 
         checked_any = False
@@ -422,9 +392,7 @@ class HookGuard:
                     self._state.bridge_verified = True
                     log.warning(
                         "Bridge TAMPERED for %s! expected=%s got=%s",
-                        pkg,
-                        self._expected_bridge_hash,
-                        current_hash,
+                        pkg, self._expected_bridge_hash, current_hash,
                     )
                     return
             except ADBError:
@@ -437,21 +405,16 @@ class HookGuard:
             self._state.bridge_intact = False
             self._state.bridge_verified = False
             self._state.bridge_hash = "NO_PKG"
-            log.warning("Bridge integrity: no installed TikTok package found to check")
 
-    # ── /proc/maps Detection Monitor ─────────────────────────────
+    # ── /proc/maps Detection ──────────────────────────────────────
 
     async def _check_proc_maps(self) -> None:
-        """Read maps from the app's own perspective (non-root) to see what
-        SUSFS actually hides.  Never reports 'clean' if no read succeeded."""
         leaks: list[str] = []
         checked_any = False
         for pkg in TIKTOK_PACKAGES:
             try:
                 pid_result = await self._adb.shell(
-                    f"pidof {pkg}",
-                    root=True,
-                    timeout=5,
+                    f"pidof {pkg}", root=True, timeout=5,
                 )
                 if not pid_result.success or not pid_result.output or not pid_result.output.strip():
                     continue
@@ -462,22 +425,13 @@ class HookGuard:
                     timeout=10,
                 )
                 if not maps_result.success or not maps_result.output:
-                    log.debug(
-                        "run-as maps read failed for %s (not debuggable) — "
-                        "root would bypass SUSFS filtering, skipping",
-                        pkg,
-                    )
                     continue
                 checked_any = True
                 maps_lower = maps_result.output.lower()
                 for pattern in self.SUSPICIOUS_MAPS_PATTERNS:
                     if pattern.lower() in maps_lower:
                         leaks.append(f"{pkg}:{pattern}")
-                        log.warning(
-                            "MAPS LEAK: '%s' found in /proc/%s/maps",
-                            pattern,
-                            pid,
-                        )
+                        log.warning("MAPS LEAK: '%s' in /proc/%s/maps", pattern, pid)
             except ADBError:
                 pass
 
@@ -488,11 +442,6 @@ class HookGuard:
         else:
             self._state.maps_clean = False
             self._state.maps_verified = False
-            if self._state.tiktok_running:
-                log.warning(
-                    "Maps check: run-as failed for ALL packages — "
-                    "cannot verify maps are clean, reporting UNVERIFIED"
-                )
 
     # ── TikTok Process Check ──────────────────────────────────────
 
@@ -500,9 +449,7 @@ class HookGuard:
         for pkg in TIKTOK_PACKAGES:
             try:
                 result = await self._adb.shell(
-                    f"pidof {pkg}",
-                    root=True,
-                    timeout=5,
+                    f"pidof {pkg}", root=True, timeout=5,
                 )
                 if result.success and result.output and result.output.strip():
                     return True
@@ -515,72 +462,58 @@ class HookGuard:
     def _evaluate_threats(self) -> Optional[str]:
         has_warning = False
 
-        # Critical: Hook returned real value for identity API
-        if self._state.has_critical_real:
-            apis = ", ".join(self._state.real_critical_apis[:5])
-            return f"CRITICAL_REAL: {apis}"
-
-        # Dead-man-switch: Heartbeat stale → WARNING, not kill.
-        # TikTok backgrounded by Android stops writing summaries, which is
-        # normal behaviour — not a leak. Only an actual CRITICAL_REAL (above)
-        # or a missing bridge justifies a kill.
-        if self._state.tiktok_running and self._state.last_heartbeat_ms > 0:
-            now_ms = int(time.time() * 1000)
-            delta = now_ms - self._state.last_heartbeat_ms
-            if delta > self.HEARTBEAT_TIMEOUT_MS:
-                has_warning = True
-                log.warning("Heartbeat stale: %dms since last beat (TikTok likely backgrounded)", delta)
-
-        if (
-            self._state.tiktok_running
-            and self._state.last_heartbeat_ms == 0
-            and self._tiktok_running_since > 0
-        ):
+        # CRITICAL: Module not injecting — TikTok running but no guard file
+        if not self._state.guard_loaded:
             running_for = time.time() - self._tiktok_running_since
-            if running_for > (self.HEARTBEAT_TIMEOUT_MS / 1000):
-                has_warning = True
-                log.warning(
-                    "Heartbeat never seen: TikTok running for %.0fs — "
-                    "module may not be injecting",
-                    running_for,
-                )
+            if running_for > self.HEARTBEAT_TIMEOUT_S:
+                return "MODULE_NOT_INJECTING: no guard status after %.0fs" % running_for
+            has_warning = True
 
-        # Bridge tampered — only kill if bridge is MISSING (not just hash mismatch)
+        # CRITICAL: Bridge not loaded by native module
+        if self._state.guard_loaded and not self._state.bridge_loaded:
+            return "BRIDGE_NOT_LOADED: native module reports bl=0"
+
+        # CRITICAL: LSPlant failed → ART hooks not working → Java APIs leak
+        if self._state.guard_loaded and not self._state.lsplant_ok:
+            return "LSPLANT_FAILED: ART hooks inactive, Java APIs may leak real values"
+
+        # CRITICAL: Bridge file missing on device
         if not self._state.bridge_intact and self._state.bridge_hash == "MISSING":
-            return f"BRIDGE_TAMPERED: hash={self._state.bridge_hash}"
+            return "BRIDGE_MISSING: bridge file not found on device"
 
-        # Bridge hash mismatch or unverified → WARNING, not kill
+        # WARNING: Heartbeat stale (guard file timestamp too old)
+        if self._state.guard_loaded and self._state.guard_timestamp_ms > 0:
+            now_ms = int(time.time() * 1000)
+            delta_s = (now_ms - self._state.guard_timestamp_ms) / 1000.0
+            if delta_s > self.HEARTBEAT_TIMEOUT_S:
+                has_warning = True
+                log.warning("Guard heartbeat stale: %.0fs since last update", delta_s)
+
+        # WARNING: Native hook count too low
+        if self._state.guard_loaded and self._state.native_hooks < self._state.expected_native:
+            has_warning = True
+            log.warning(
+                "Native hook deficit: %d/%d",
+                self._state.native_hooks, self._state.expected_native,
+            )
+
+        # WARNING: ART hook count mismatch
+        if self._state.guard_loaded and self._state.art_hooks < self._state.expected_art:
+            has_warning = True
+            log.warning(
+                "ART hook deficit: %d/%d",
+                self._state.art_hooks, self._state.expected_art,
+            )
+
+        # WARNING: Bridge hash mismatch
         if not self._state.bridge_intact and self._state.bridge_verified:
             has_warning = True
             log.warning("Bridge mismatch (warning): hash=%s", self._state.bridge_hash)
 
-        if not self._state.bridge_verified and self._state.tiktok_running:
-            has_warning = True
-            log.warning("Bridge unverified: %s", self._state.bridge_hash or "no hash")
-
-        # Maps leak or unverified → WARNING
+        # WARNING: Maps leak
         if not self._state.maps_clean and self._state.maps_verified:
             has_warning = True
             log.warning("Maps leak (warning): %s", self._state.maps_leaks[:3])
-
-        # maps_verified=False when run-as fails is expected for non-debuggable
-        # apps — this is a structural limitation, not a threat indicator.
-        # Only warn if maps were verified AND found dirty.
-        if not self._state.maps_verified and self._state.tiktok_running:
-            log.debug("Maps unverified (run-as not available for non-debuggable apps — skipping)")
-
-        # Hook count mismatch (warning level, not kill)
-        if (
-            self._state.applied_hooks > 0
-            and self._state.applied_hooks < self._state.expected_hooks
-        ):
-            has_warning = True
-            log.warning(
-                "Hook count mismatch: %d/%d (min across processes: %d)",
-                self._state.applied_hooks,
-                self._state.expected_hooks,
-                self._state.min_hooks,
-            )
 
         self._state.status = GuardStatus.WARNING if has_warning else GuardStatus.MONITORING
         return None
@@ -591,7 +524,9 @@ class HookGuard:
         log.critical("KILL-SWITCH ACTIVATED: %s", reason)
         self._state.status = GuardStatus.KILLED
 
-        is_data_leak = reason.startswith("CRITICAL_REAL") or reason.startswith("BRIDGE_TAMPERED")
+        is_data_leak = any(reason.startswith(p) for p in (
+            "BRIDGE_NOT_LOADED", "LSPLANT_FAILED", "BRIDGE_MISSING",
+        ))
 
         kill_entry = {
             "timestamp": time.time(),
@@ -599,18 +534,25 @@ class HookGuard:
             "severity": "critical" if is_data_leak else "warning",
         }
 
-        # 1. Force-stop TikTok (always)
+        # 1. Set device-side kill-switch file (prevents module hooks on next launch)
+        try:
+            await self._adb.shell(
+                f"touch {KILL_SWITCH_PATH}",
+                root=True,
+                timeout=5,
+            )
+            log.info("Device kill-switch file set: %s", KILL_SWITCH_PATH)
+        except ADBError:
+            log.error("Failed to set device kill-switch file!")
+
+        # 2. Force-stop TikTok
         for pkg in TIKTOK_PACKAGES:
             try:
-                await self._adb.shell(
-                    f"am force-stop {pkg}",
-                    root=True,
-                    timeout=5,
-                )
+                await self._adb.shell(f"am force-stop {pkg}", root=True, timeout=5)
             except ADBError:
                 pass
 
-        # 2. Airplane mode ON — ONLY for actual data leaks
+        # 3. Airplane mode ON for confirmed data leaks
         if is_data_leak:
             log.critical("DATA LEAK confirmed — activating airplane mode")
             try:
@@ -621,20 +563,15 @@ class HookGuard:
                 )
             except ADBError:
                 pass
-
-            # 3. Disable autostart — ONLY for data leaks
             await self._disable_autostart()
         else:
             log.warning("Non-leak kill (%s) — skipping airplane mode", reason)
 
-        # 4. Record in history
+        # 4. Record
         self._state.kill_history.append(kill_entry)
         if len(self._state.kill_history) > self.MAX_KILL_HISTORY:
-            self._state.kill_history = self._state.kill_history[
-                -self.MAX_KILL_HISTORY :
-            ]
+            self._state.kill_history = self._state.kill_history[-self.MAX_KILL_HISTORY:]
 
-        # 5. Broadcast kill event
         await self._broadcast_state()
 
     async def _disable_autostart(self) -> None:
@@ -651,7 +588,18 @@ class HookGuard:
         log.info("TikTok autostart components disabled")
 
     async def reactivate(self) -> None:
-        """Re-enable TikTok and disable airplane mode after kill-switch."""
+        """Re-enable after kill-switch: remove device flag, re-enable components."""
+        # Remove device-side kill-switch file
+        try:
+            await self._adb.shell(
+                f"rm -f {KILL_SWITCH_PATH}",
+                root=True,
+                timeout=5,
+            )
+            log.info("Device kill-switch file removed: %s", KILL_SWITCH_PATH)
+        except ADBError:
+            log.error("Failed to remove device kill-switch file!")
+
         for pkg in TIKTOK_PACKAGES:
             for comp in self.AUTOSTART_COMPONENTS:
                 try:
@@ -673,16 +621,15 @@ class HookGuard:
             pass
 
         self._state.status = GuardStatus.MONITORING
-        self._state.has_critical_real = False
-        self._state.real_critical_apis = []
+        self._state.guard_loaded = False
+        self._state.bridge_loaded = False
+        self._state.lsplant_ok = False
         self._state.maps_leaks = []
         self._state.maps_clean = False
         self._state.maps_verified = False
         self._state.bridge_verified = False
         self._tiktok_running_since = 0.0
-        log.info(
-            "HookGuard reactivated — TikTok components re-enabled, airplane OFF"
-        )
+        log.info("HookGuard reactivated — kill-switch file removed, TikTok re-enabled")
 
     # ── WebSocket Broadcast ───────────────────────────────────────
 

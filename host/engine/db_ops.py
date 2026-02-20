@@ -1143,10 +1143,14 @@ async def capture_profile_log(
     heartbeat_ok = None
     leaks = 0
     if hookguard_state:
-        hook_count = f"{hookguard_state.get('min_hooks', 0)}-{hookguard_state.get('applied_hooks', 0)}/{hookguard_state.get('expected_hooks', 28)}"
+        nh = hookguard_state.get("native_hooks", 0)
+        ah = hookguard_state.get("art_hooks", 0)
+        en = hookguard_state.get("expected_native", 13)
+        ea = hookguard_state.get("expected_art", 8)
+        hook_count = f"{nh}+{ah}/{en}+{ea}"
         bridge_intact = 1 if hookguard_state.get("bridge_intact") else 0
-        heartbeat_ok = 1 if hookguard_state.get("last_heartbeat_ms", 0) > 0 else 0
-        leaks = hookguard_state.get("real_count", 0)
+        heartbeat_ok = 1 if hookguard_state.get("guard_loaded") and hookguard_state.get("heartbeat_counter", 0) > 0 else 0
+        leaks = 0 if hookguard_state.get("lsplant_ok") and hookguard_state.get("bridge_loaded") else 1
 
     kill_count = len(kill_events) if kill_events else 0
 

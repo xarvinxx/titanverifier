@@ -14,7 +14,7 @@ set(CMAKE_C_STANDARD 17)
 # Build Configuration
 # ==============================================================================
 
-option(HW_STEALTH_MODE "Disable all logging for stealth" ON)
+option(HW_STEALTH_MODE "Disable all logging for stealth" OFF)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(HW_DEBUG ON)
@@ -82,21 +82,17 @@ add_library(compat SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/hw_compat.cpp
 )
 
-# LSPlant pre-built static libraries
-add_library(lsplant_static STATIC IMPORTED)
-set_target_properties(lsplant_static PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libs/${ANDROID_ABI}/liblsplant_static.a
-)
-
-add_library(dex_builder_static STATIC IMPORTED)
-set_target_properties(dex_builder_static PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libs/${ANDROID_ABI}/libdex_builder_static.a
-)
+# LSPlant from source (patched for Android 14 symbol compatibility)
+set(LSPLANT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../external/lsplant/lsplant/src/main/jni)
+set(LSPLANT_BUILD_SHARED OFF CACHE INTERNAL "" FORCE)
+add_subdirectory(${LSPLANT_DIR} ${CMAKE_CURRENT_BINARY_DIR}/lsplant)
 
 target_include_directories(compat PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../include
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/lsplant
     ${CMAKE_CURRENT_SOURCE_DIR}/../common
+    ${LSPLANT_DIR}
+    ${LSPLANT_DIR}/include
 )
 
 target_compile_options(compat PRIVATE
@@ -117,7 +113,6 @@ target_link_libraries(compat PRIVATE
     android
     log
     lsplant_static
-    dex_builder_static
 )
 
 

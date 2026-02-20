@@ -172,6 +172,19 @@ static void _decodePaths() {
 #define BRIDGE_FALLBACK_SYS  (std::call_once(g_pathsDecoded, _decodePaths), g_fallbackSys)
 #define BRIDGE_FALLBACK_TMP  (std::call_once(g_pathsDecoded, _decodePaths), g_fallbackTmp)
 
+// ==============================================================================
+// Guard Status Reporting — forward declarations (impl below privatizePropertyMappings)
+// ==============================================================================
+static std::atomic<int> g_nativeHookCount{0};
+static std::atomic<int> g_artHookCount{0};
+static std::atomic<bool> g_lsplantOk{false};
+static std::atomic<long> g_initTimestamp{0};
+static std::atomic<long> g_lastGuardWrite{0};
+static std::atomic<uint32_t> g_heartbeatCounter{0};
+static char g_guardFilePath[512] = {};
+static void _writeGuardStatus();
+static void _maybeHeartbeat();
+
 // Target Apps
 struct EncPackage { const unsigned char* data; size_t len; };
 
@@ -255,6 +268,7 @@ using IoctlFn = int (*)(int fd, unsigned long request, ...);
 using RecvmsgFn = ssize_t (*)(int sockfd, struct msghdr* msg, int flags);
 using SystemPropertyReadOldFn = int (*)(const void* pi, char* name, char* value);
 using SendmsgFn = ssize_t (*)(int sockfd, const struct msghdr* msg, int flags);
+using OpenatFn = int (*)(int dirfd, const char* pathname, int flags, ...);
 
 // Widevine NDK API Types (Phase 9.5 - Korrekte Signaturen!)
 struct AMediaDrm;
@@ -281,6 +295,7 @@ static IoctlFn g_origIoctl = nullptr;
 static RecvmsgFn g_origRecvmsg = nullptr;
 static SystemPropertyReadOldFn g_origSysPropRead = nullptr;
 static SendmsgFn g_origSendmsg = nullptr;
+static OpenatFn g_origOpenat = nullptr;
 static AMediaDrmCreateByUUIDFn g_origAMediaDrmCreateByUUID = nullptr;
 static AMediaDrmReleaseFn g_origAMediaDrmRelease = nullptr;
 static AMediaDrmGetPropertyByteArrayFn g_origAMediaDrmGetPropertyByteArray = nullptr;
@@ -329,115 +344,283 @@ static bool g_macParsed = false;
 // Uses /proc/self/mem for W^X bypass (no mprotect traces)
 // ==============================================================================
 
-static bool _is_pc_relative(uint32_t insn) {
-    if ((insn & 0x9F000000) == 0x90000000) return true;  // ADRP
-    if ((insn & 0x9F000000) == 0x10000000) return true;  // ADR
-    if ((insn & 0xFC000000) == 0x14000000) return true;  // B
-    if ((insn & 0xFC000000) == 0x94000000) return true;  // BL
-    if ((insn & 0xFE000000) == 0x54000000) return true;  // B.cond
-    if ((insn & 0x7E000000) == 0x34000000) return true;  // CBZ/CBNZ
-    if ((insn & 0x7E000000) == 0x36000000) return true;  // TBZ/TBNZ
-    if ((insn & 0x3B000000) == 0x18000000) return true;  // LDR (literal)
-    return false;
-}
-
-// Ghost Protocol v9.1: Single-Page Trampoline Pool (Library-Backed)
-// Alle Trampolines in einer einzigen Page die als liblog.so mapping erscheint.
-// Kein memfd, keine anonymen RX-Regionen.
+// Ghost Protocol v9.2: Trampoline Pool (Library-Backed, Multi-Page)
 static void* g_trampolineBase = nullptr;
 static size_t g_trampolineUsed = 0;
-static constexpr size_t kTrampolinePageSize = 4096;
-[[maybe_unused]] static constexpr size_t kTrampolineSlotSize = 32;
+static constexpr size_t kTrampolinePoolSize = 16384;
+
+static bool g_trampolineFinalized = false;
 
 static bool _initTrampolinePage() {
     if (g_trampolineBase) return true;
-
-    static const char* backingLibs[] = {
-        "/system/lib64/liblog.so",
-        "/system/lib64/libm.so",
-        "/system/lib64/libdl.so",
-    };
-    int fd = -1;
-    for (auto& lib : backingLibs) {
-        fd = _raw_openat(lib, O_RDONLY);
-        if (fd >= 0) break;
+    // Allocate as RW initially; finalize to RX after all hooks installed
+    g_trampolineBase = mmap(nullptr, kTrampolinePoolSize, PROT_READ | PROT_WRITE,
+                            MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (g_trampolineBase == MAP_FAILED) {
+        g_trampolineBase = nullptr;
+        return false;
     }
-    if (fd < 0) return false;
+    return true;
+}
 
-    g_trampolineBase = mmap(nullptr, kTrampolinePageSize, PROT_READ | PROT_EXEC,
-                            MAP_PRIVATE, fd, 0);
-    _raw_close(fd);
-    return g_trampolineBase != MAP_FAILED;
+static void _finalizeTrampolinePage() {
+    if (!g_trampolineBase || g_trampolineFinalized) return;
+    __builtin___clear_cache(static_cast<char*>(g_trampolineBase),
+                            static_cast<char*>(g_trampolineBase) + g_trampolineUsed);
+    mprotect(g_trampolineBase, kTrampolinePoolSize, PROT_READ | PROT_EXEC);
+    g_trampolineFinalized = true;
+    LOGI("[HW] Trampoline page finalized: RW→RX (%zu bytes used)", g_trampolineUsed);
 }
 
 static void* _allocTrampoline(const uint8_t* code, size_t len) {
-    if (!g_trampolineBase || g_trampolineUsed + len > kTrampolinePageSize)
+    if (!g_trampolineBase || g_trampolineUsed + len > kTrampolinePoolSize)
         return nullptr;
-
     void* slot = reinterpret_cast<uint8_t*>(g_trampolineBase) + g_trampolineUsed;
 
-    int memFd = _raw_openat(PATH_PROC_SELF_MEM, O_RDWR);
-    if (memFd < 0) return nullptr;
-
-    lseek(memFd, static_cast<off_t>(reinterpret_cast<uintptr_t>(slot)), SEEK_SET);
-    write(memFd, code, len);
-    _raw_close(memFd);
-
-    __builtin___clear_cache(static_cast<char*>(slot),
-                            static_cast<char*>(slot) + len);
+    if (g_trampolineFinalized) {
+        int memFd = _raw_openat(PATH_PROC_SELF_MEM, O_RDWR);
+        if (memFd >= 0) {
+            lseek(memFd, static_cast<off_t>(reinterpret_cast<uintptr_t>(slot)), SEEK_SET);
+            write(memFd, code, len);
+            _raw_close(memFd);
+        } else {
+            mprotect(g_trampolineBase, kTrampolinePoolSize, PROT_READ | PROT_WRITE);
+            memcpy(slot, code, len);
+            mprotect(g_trampolineBase, kTrampolinePoolSize, PROT_READ | PROT_EXEC);
+        }
+        __builtin___clear_cache(static_cast<char*>(slot),
+                                static_cast<char*>(slot) + len);
+    } else {
+        memcpy(slot, code, len);
+    }
 
     g_trampolineUsed = (g_trampolineUsed + len + 7) & ~(size_t)7;
     return slot;
 }
 
-// Register-Rotation: Wechselt zwischen X9-X12, X16, X17 um Pattern-Matching zu erschweren.
 static uint32_t _nextHookReg() {
     static const uint32_t regs[] = {9, 10, 11, 12, 16, 17};
     static std::atomic<int> idx{0};
     return regs[idx.fetch_add(1) % 6];
 }
 
-static bool install_inline_hook(void* target, void* hook, void** orig) {
-    if (!target || !hook || !orig)
-        return false;
+// ---- ARM64 PC-Relative Instruction Relocation Engine ----
 
-    if (!_initTrampolinePage()) return false;
+static int64_t _signExtend(uint64_t val, int bits) {
+    int64_t sign = 1LL << (bits - 1);
+    return (int64_t)((val ^ sign) - sign);
+}
+
+// Relocate a single instruction from origPC to newPC.
+// Writes relocated instruction(s) into `out` buffer (max 20 bytes per insn).
+// Returns number of bytes written, or 0 if relocation impossible.
+static size_t _relocateInsn(uint32_t insn, uint64_t origPC, uint64_t newPC,
+                            uint8_t* out) {
+    // ADRP Xd, #imm  (op=1, 10000)
+    if ((insn & 0x9F000000) == 0x90000000) {
+        uint32_t rd = insn & 0x1F;
+        uint64_t immlo = (insn >> 29) & 0x3;
+        uint64_t immhi = (insn >> 5) & 0x7FFFF;
+        int64_t imm = _signExtend((immhi << 2) | immlo, 21) << 12;
+        uint64_t targetPage = (origPC & ~0xFFFULL) + imm;
+        // Emit: MOV Xd, #targetPage using up to 4 MOVZ/MOVK
+        uint32_t movz = 0xD2800000 | rd | (((targetPage >>  0) & 0xFFFF) << 5);
+        uint32_t movk1 = 0xF2A00000 | rd | (((targetPage >> 16) & 0xFFFF) << 5);
+        uint32_t movk2 = 0xF2C00000 | rd | (((targetPage >> 32) & 0xFFFF) << 5);
+        uint32_t movk3 = 0xF2E00000 | rd | (((targetPage >> 48) & 0xFFFF) << 5);
+        memcpy(out + 0,  &movz,  4);
+        memcpy(out + 4,  &movk1, 4);
+        memcpy(out + 8,  &movk2, 4);
+        memcpy(out + 12, &movk3, 4);
+        return 16;
+    }
+    // ADR Xd, #imm  (op=0, 10000)
+    if ((insn & 0x9F000000) == 0x10000000) {
+        uint32_t rd = insn & 0x1F;
+        uint64_t immlo = (insn >> 29) & 0x3;
+        uint64_t immhi = (insn >> 5) & 0x7FFFF;
+        int64_t imm = _signExtend((immhi << 2) | immlo, 21);
+        uint64_t target = origPC + imm;
+        uint32_t movz = 0xD2800000 | rd | (((target >>  0) & 0xFFFF) << 5);
+        uint32_t movk1 = 0xF2A00000 | rd | (((target >> 16) & 0xFFFF) << 5);
+        uint32_t movk2 = 0xF2C00000 | rd | (((target >> 32) & 0xFFFF) << 5);
+        uint32_t movk3 = 0xF2E00000 | rd | (((target >> 48) & 0xFFFF) << 5);
+        memcpy(out + 0,  &movz,  4);
+        memcpy(out + 4,  &movk1, 4);
+        memcpy(out + 8,  &movk2, 4);
+        memcpy(out + 12, &movk3, 4);
+        return 16;
+    }
+    // B #imm26 (unconditional branch)
+    if ((insn & 0xFC000000) == 0x14000000) {
+        int64_t imm = _signExtend(insn & 0x03FFFFFF, 26) * 4;
+        uint64_t target = origPC + imm;
+        uint32_t ldr = 0x58000040 | 16; // LDR X16, [PC, #8]
+        uint32_t br  = 0xD61F0000 | (16 << 5); // BR X16
+        memcpy(out + 0, &ldr, 4);
+        memcpy(out + 4, &br, 4);
+        memcpy(out + 8, &target, 8);
+        return 16;
+    }
+    // BL #imm26 (branch with link)
+    if ((insn & 0xFC000000) == 0x94000000) {
+        int64_t imm = _signExtend(insn & 0x03FFFFFF, 26) * 4;
+        uint64_t target = origPC + imm;
+        uint32_t ldr = 0x58000040 | 16; // LDR X16, [PC, #8]
+        uint32_t blr = 0xD63F0000 | (16 << 5); // BLR X16
+        memcpy(out + 0, &ldr, 4);
+        memcpy(out + 4, &blr, 4);
+        memcpy(out + 8, &target, 8);
+        return 16;
+    }
+    // B.cond #imm19
+    if ((insn & 0xFF000010) == 0x54000000) {
+        uint32_t cond = insn & 0xF;
+        int64_t imm = _signExtend((insn >> 5) & 0x7FFFF, 19) * 4;
+        uint64_t target = origPC + imm;
+        // Emit: B.cond +8; B +20; LDR X16,[PC,#8]; BR X16; .quad target
+        uint32_t bcond_skip = 0x54000040 | cond; // B.cond PC+8 (skip next B)
+        uint32_t b_over = 0x14000005; // B PC+20 (skip the abs jump block)
+        uint32_t ldr = 0x58000040 | 16;
+        uint32_t br  = 0xD61F0000 | (16 << 5);
+        memcpy(out + 0,  &bcond_skip, 4);
+        memcpy(out + 4,  &b_over, 4);
+        memcpy(out + 8,  &ldr, 4);
+        memcpy(out + 12, &br, 4);
+        memcpy(out + 16, &target, 8);
+        return 24;
+    }
+    // CBZ/CBNZ Rt, #imm19
+    if ((insn & 0x7E000000) == 0x34000000) {
+        uint32_t sf = (insn >> 31) & 1;
+        uint32_t op = (insn >> 24) & 1;
+        uint32_t rt = insn & 0x1F;
+        int64_t imm = _signExtend((insn >> 5) & 0x7FFFF, 19) * 4;
+        uint64_t target = origPC + imm;
+        // Rebuild CBZ/CBNZ with offset +8, then B over, then abs jump
+        uint32_t cbx = (sf << 31) | (0x34 << 24) | (op << 24) | (1 << 5) | rt; // offset=+8 → imm19=1
+        cbx = (sf << 31) | ((0x34 | op) << 24) | (0x1 << 5) | rt;
+        uint32_t b_over = 0x14000005;
+        uint32_t ldr = 0x58000040 | 16;
+        uint32_t br  = 0xD61F0000 | (16 << 5);
+        memcpy(out + 0,  &cbx, 4);
+        memcpy(out + 4,  &b_over, 4);
+        memcpy(out + 8,  &ldr, 4);
+        memcpy(out + 12, &br, 4);
+        memcpy(out + 16, &target, 8);
+        return 24;
+    }
+    // TBZ/TBNZ Rt, #bit, #imm14
+    if ((insn & 0x7E000000) == 0x36000000) {
+        uint32_t b5 = (insn >> 31) & 1;
+        uint32_t op = (insn >> 24) & 1;
+        uint32_t b40 = (insn >> 19) & 0x1F;
+        uint32_t rt = insn & 0x1F;
+        int64_t imm = _signExtend((insn >> 5) & 0x3FFF, 14) * 4;
+        uint64_t target = origPC + imm;
+        uint32_t tbx = (b5 << 31) | ((0x36 | op) << 24) | (b40 << 19) | (0x1 << 5) | rt;
+        uint32_t b_over = 0x14000005;
+        uint32_t ldr = 0x58000040 | 16;
+        uint32_t br  = 0xD61F0000 | (16 << 5);
+        memcpy(out + 0,  &tbx, 4);
+        memcpy(out + 4,  &b_over, 4);
+        memcpy(out + 8,  &ldr, 4);
+        memcpy(out + 12, &br, 4);
+        memcpy(out + 16, &target, 8);
+        return 24;
+    }
+    // LDR Xt/Wt, #imm19 (literal)
+    if ((insn & 0x3B000000) == 0x18000000) {
+        uint32_t opc = (insn >> 30) & 0x3;
+        uint32_t rt = insn & 0x1F;
+        int64_t imm = _signExtend((insn >> 5) & 0x7FFFF, 19) * 4;
+        uint64_t target = origPC + imm;
+        // Emit: LDR Xd, [PC, #8]; LDR Xd, [Xd] (or LDR Wd, [Xd] for 32-bit); B +12; .quad target
+        if (opc == 0) { // LDR Wt
+            uint32_t ldr_abs = 0x58000040 | rt; // LDR Xt, [PC, #8]
+            uint32_t ldr_deref = 0xB9400000 | (rt << 5) | rt; // LDR Wt, [Xt]
+            uint32_t b_skip = 0x14000003; // B +12
+            memcpy(out + 0, &ldr_abs, 4);
+            memcpy(out + 4, &ldr_deref, 4);
+            memcpy(out + 8, &b_skip, 4);
+            memcpy(out + 12, &target, 8);
+            return 20;
+        } else { // LDR Xt (64-bit) or LDRSW
+            uint32_t ldr_abs = 0x58000040 | rt;
+            uint32_t ldr_deref = 0xF9400000 | (rt << 5) | rt; // LDR Xt, [Xt]
+            uint32_t b_skip = 0x14000003;
+            memcpy(out + 0, &ldr_abs, 4);
+            memcpy(out + 4, &ldr_deref, 4);
+            memcpy(out + 8, &b_skip, 4);
+            memcpy(out + 12, &target, 8);
+            return 20;
+        }
+    }
+    // Not PC-relative: copy as-is
+    memcpy(out, &insn, 4);
+    return 4;
+}
+
+static bool install_inline_hook(void* target, void* hook, void** orig) {
+    if (!target || !hook || !orig) return false;
+    if (!_initTrampolinePage()) {
+        LOGE("[HW] Trampoline page init FAILED");
+        return false;
+    }
 
     uint32_t origInsns[4];
     memcpy(origInsns, target, 16);
 
+    uint8_t tramp[128];
+    size_t tramLen = 0;
+
+    LOGI("[HW] Hooking %p: insns=[%08x %08x %08x %08x]",
+         target, origInsns[0], origInsns[1], origInsns[2], origInsns[3]);
+
     for (int i = 0; i < 4; i++) {
-        if (_is_pc_relative(origInsns[i])) {
-            LOGW("[HW] PC-relative insn at %p+%d (0x%08x), skipping inline hook",
-                 target, i * 4, origInsns[i]);
+        uint64_t insnPC = reinterpret_cast<uint64_t>(target) + i * 4;
+        uint64_t newPC = reinterpret_cast<uint64_t>(g_trampolineBase) + g_trampolineUsed + tramLen;
+        LOGI("[HW]   relocate[%d]: insn=0x%08x origPC=%llx newPC=%llx", i, origInsns[i],
+             (unsigned long long)insnPC, (unsigned long long)newPC);
+        size_t n = _relocateInsn(origInsns[i], insnPC, newPC, tramp + tramLen);
+        LOGI("[HW]   relocate[%d]: result=%zu", i, n);
+        if (n == 0) {
+            LOGW("[HW] Cannot relocate insn at %p+%d (0x%08x)", target, i * 4, origInsns[i]);
             return false;
         }
+        tramLen += n;
     }
 
+    // Append tail jump: LDR Xn, [PC, #8]; BR Xn; .quad retAddr
     uint32_t reg = _nextHookReg();
-    uint32_t ldrPc8  = 0x58000040 | reg;           // LDR Xn, [PC, #8]
-    uint32_t brReg   = 0xD61F0000 | (reg << 5);    // BR Xn
+    uint32_t ldrPc8 = 0x58000040 | reg;
+    uint32_t brReg  = 0xD61F0000 | (reg << 5);
     uint64_t retAddr = reinterpret_cast<uint64_t>(target) + 16;
 
-    uint8_t tramp[32];
-    memcpy(tramp + 0,  origInsns, 16);
-    memcpy(tramp + 16, &ldrPc8,  4);
-    memcpy(tramp + 20, &brReg,   4);
-    memcpy(tramp + 24, &retAddr, 8);
+    memcpy(tramp + tramLen, &ldrPc8, 4);  tramLen += 4;
+    memcpy(tramp + tramLen, &brReg, 4);   tramLen += 4;
+    memcpy(tramp + tramLen, &retAddr, 8); tramLen += 8;
 
-    void* tramAddr = _allocTrampoline(tramp, sizeof(tramp));
-    if (!tramAddr) return false;
+    LOGI("[HW] Trampoline: len=%zu, pool used=%zu/%zu", tramLen, g_trampolineUsed, kTrampolinePoolSize);
+    void* tramAddr = _allocTrampoline(tramp, tramLen);
+    if (!tramAddr) {
+        LOGE("[HW] _allocTrampoline FAILED (len=%zu, used=%zu, base=%p)", tramLen, g_trampolineUsed, g_trampolineBase);
+        return false;
+    }
     *orig = tramAddr;
 
+    // Patch target with jump to hook
     uint64_t hookAddr = reinterpret_cast<uint64_t>(hook);
     uint8_t patch[16];
-    memcpy(patch + 0, &ldrPc8,   4);
-    memcpy(patch + 4, &brReg,    4);
+    uint32_t patchLdr = 0x58000040 | reg;
+    uint32_t patchBr  = 0xD61F0000 | (reg << 5);
+    memcpy(patch + 0, &patchLdr, 4);
+    memcpy(patch + 4, &patchBr, 4);
     memcpy(patch + 8, &hookAddr, 8);
 
     int memFd = _raw_openat(PATH_PROC_SELF_MEM, O_RDWR);
     if (memFd >= 0) {
-        lseek(memFd, reinterpret_cast<off_t>(target), SEEK_SET);
+        lseek(memFd, static_cast<off_t>(reinterpret_cast<uintptr_t>(target)), SEEK_SET);
         write(memFd, patch, 16);
         _raw_close(memFd);
     } else {
@@ -448,10 +631,9 @@ static bool install_inline_hook(void* target, void* hook, void** orig) {
         memcpy(target, patch, 16);
         mprotect(reinterpret_cast<void*>(pageStart), len, PROT_READ | PROT_EXEC);
     }
-
     __builtin___clear_cache(static_cast<char*>(target),
                             static_cast<char*>(target) + 16);
-
+    LOGI("[HW] Hook installed at %p → %p (tramp %zu bytes at %p)", target, hook, tramLen, tramAddr);
     return true;
 }
 
@@ -718,7 +900,9 @@ static int _hooked_system_property_get(const char* name, char* value) {
     if (!name || !value) {
         return g_origSystemPropertyGet ? g_origSystemPropertyGet(name, value) : 0;
     }
-    
+
+    _maybeHeartbeat();
+
     HwCompat& hw = HwCompat::getInstance();
     char spoofed[128] = {};
     
@@ -828,6 +1012,67 @@ static int _hooked_getifaddrs(struct ifaddrs** ifap) {
         }
     }
     return result;
+}
+
+// ==============================================================================
+// Hook: openat — /proc/net/arp + /proc/net/if_inet6 (per-PID, SUSFS can't redirect)
+// ==============================================================================
+
+static int _createFakeFd(const char* content, size_t len) {
+    int pipeFds[2];
+    if (pipe(pipeFds) != 0) return -1;
+    write(pipeFds[1], content, len);
+    _raw_close(pipeFds[1]);
+    return pipeFds[0];
+}
+
+static bool _endsWith(const char* str, const char* suffix) {
+    size_t sLen = strlen(str);
+    size_t sfxLen = strlen(suffix);
+    if (sfxLen > sLen) return false;
+    return memcmp(str + sLen - sfxLen, suffix, sfxLen) == 0;
+}
+
+static int _hooked_openat(int dirfd, const char* pathname, int flags, ...) {
+    if (pathname && g_bridgeLoaded.load()) {
+        if (_endsWith(pathname, "/net/arp")) {
+            static const char FAKE_ARP[] =
+                "IP address       HW type     Flags       HW address            Mask     Device\n";
+            if (g_debugHooks.load()) LOGI("[HOOK] openat %s → fake empty ARP", pathname);
+            return _createFakeFd(FAKE_ARP, sizeof(FAKE_ARP) - 1);
+        }
+        if (_endsWith(pathname, "/net/if_inet6")) {
+            static const char FAKE_IF6[] =
+                "00000000000000000000000000000001 01 80 10 80       lo\n";
+            if (g_debugHooks.load()) LOGI("[HOOK] openat %s → fake loopback-only if_inet6", pathname);
+            return _createFakeFd(FAKE_IF6, sizeof(FAKE_IF6) - 1);
+        }
+        if (_endsWith(pathname, "proc/version")) {
+            static const char FAKE_VER[] =
+                "Linux version 5.10.209-android13-4-00553-g39ffc30b7e63 "
+                "(build-user@build-host) "
+                "(Android (8508608, based on r450784e) clang version 14.0.7 "
+                "(https://android.googlesource.com/toolchain/llvm-project "
+                "4c603efb0cca074e9238af8b4106c30add4418f6), LLD 14.0.7) "
+                "#1 SMP PREEMPT Thu Mar 21 19:14:36 UTC 2024\n";
+            if (g_debugHooks.load()) LOGI("[HOOK] openat %s → fake /proc/version", pathname);
+            return _createFakeFd(FAKE_VER, sizeof(FAKE_VER) - 1);
+        }
+        if (_endsWith(pathname, "proc/cpuinfo")) {
+            int fd = (int)syscall(__NR_openat, AT_FDCWD,
+                                  "/data/adb/ksu/bin/.fake_cpuinfo", O_RDONLY, 0);
+            if (fd >= 0) {
+                if (g_debugHooks.load()) LOGI("[HOOK] openat %s → fake cpuinfo", pathname);
+                return fd;
+            }
+        }
+    }
+
+    va_list ap;
+    va_start(ap, flags);
+    int mode = va_arg(ap, int);
+    va_end(ap);
+    return g_origOpenat ? g_origOpenat(dirfd, pathname, flags, mode) : -1;
 }
 
 // ==============================================================================
@@ -1243,12 +1488,100 @@ static bool patchPropertyDirect(const char* name, const char* newValue) {
     return true;
 }
 
-/**
- * Phase 3: Alle Identity-Properties im RAM patchen
- * 
- * Wird VOR installAllHooks() aufgerufen, damit die Werte bereits
- * im Speicher liegen bevor irgendein Hook aktiv ist.
- */
+// ==============================================================================
+// Guard Status Reporting — implementation
+// ==============================================================================
+
+static constexpr uint8_t _GUARD_XOR_KEY[] = {
+    0x54,0x69,0x74,0x61,0x6E,0x47,0x75,0x61,0x72,0x64,0x32,0x30,0x32,0x36
+};
+static constexpr size_t _GUARD_XOR_KEY_LEN = sizeof(_GUARD_XOR_KEY);
+
+static void _guardXor(uint8_t* data, size_t len) {
+    for (size_t i = 0; i < len; i++)
+        data[i] ^= _GUARD_XOR_KEY[i % _GUARD_XOR_KEY_LEN];
+}
+
+static void _writeGuardStatus() {
+    if (g_guardFilePath[0] == '\0') return;
+
+    auto& hw = HwCompat::getInstance();
+    char serial[64]={}, mac[32]={}, imei1[32]={}, imei2[32]={};
+    char imsi[32]={}, simserial[32]={}, androidid[64]={}, gsfid[64]={};
+    hw.getSerial(serial, sizeof(serial));
+    hw.getWifiMac(mac, sizeof(mac));
+    hw.getImei1(imei1, sizeof(imei1));
+    hw.getImei2(imei2, sizeof(imei2));
+    hw.getImsi(imsi, sizeof(imsi));
+    hw.getSimSerial(simserial, sizeof(simserial));
+    hw.getAndroidId(androidid, sizeof(androidid));
+    hw.getGsfId(gsfid, sizeof(gsfid));
+
+    long now_ms = 0;
+    struct timespec ts;
+    if (clock_gettime(CLOCK_REALTIME, &ts) == 0)
+        now_ms = (long)ts.tv_sec * 1000L + ts.tv_nsec / 1000000L;
+
+    uint32_t hb = g_heartbeatCounter.fetch_add(1, std::memory_order_relaxed);
+
+    char buf[1024];
+    int len = snprintf(buf, sizeof(buf),
+        "v=3\n"
+        "ts=%ld\n"
+        "bl=%d\n"
+        "lp=%d\n"
+        "nh=%d\n"
+        "ah=%d\n"
+        "rg=%d\n"
+        "pid=%d\n"
+        "it=%ld\n"
+        "hb=%u\n"
+        "sr=%s\n"
+        "mc=%s\n"
+        "i1=%s\n"
+        "i2=%s\n"
+        "is=%s\n"
+        "ss=%s\n"
+        "ai=%s\n"
+        "gs=%s\n",
+        now_ms,
+        g_bridgeLoaded.load() ? 1 : 0,
+        g_lsplantOk.load() ? 1 : 0,
+        g_nativeHookCount.load(),
+        g_artHookCount.load(),
+        g_privatizedRegions,
+        getpid(),
+        g_initTimestamp.load(),
+        hb,
+        serial, mac, imei1, imei2, imsi, simserial, androidid, gsfid);
+
+    if (len <= 0 || len >= (int)sizeof(buf)) return;
+
+    _guardXor(reinterpret_cast<uint8_t*>(buf), (size_t)len);
+
+    int fd = (int)syscall(__NR_openat, AT_FDCWD, g_guardFilePath,
+                          O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600);
+    if (fd >= 0) {
+        syscall(__NR_write, fd, buf, (size_t)len);
+        _raw_close(fd);
+    }
+    g_lastGuardWrite.store(ts.tv_sec, std::memory_order_relaxed);
+}
+
+static void _maybeHeartbeat() {
+    struct timespec ts;
+    if (clock_gettime(CLOCK_REALTIME, &ts) != 0) return;
+    long now = ts.tv_sec;
+    long last = g_lastGuardWrite.load(std::memory_order_relaxed);
+    if (now - last >= 30) {
+        _writeGuardStatus();
+    }
+}
+
+// ==============================================================================
+// Phase 3: Property Memory Patching
+// ==============================================================================
+
 static void patchAllPropertiesInMemory() {
     if (g_privatizedRegions == 0) {
         LOGW("[MEM] No privatized regions - skipping memory patching");
@@ -1319,7 +1652,9 @@ static void _hooked_prop_read_callback(
     const void* pi,
     void (*callback)(void* cookie, const char* name, const char* value, uint32_t serial),
     void* cookie) {
-    
+
+    _maybeHeartbeat();
+
     if (!pi || !callback || !g_origPropReadCallback) {
         if (g_origPropReadCallback) g_origPropReadCallback(pi, callback, cookie);
         return;
@@ -1614,14 +1949,138 @@ static bool _lsplant_inline_unhook(void* func) {
     return false;
 }
 
+// ---- Hidden ART Symbol Resolver (.gnu_debugdata pre-extracted) ----
+// Build ID: 61c7a211c01ef3c0068b4fbe31051050
+// Source: /apex/com.android.art/lib64/libart.so
+// Device: Pixel 6 (oriole), Android 14 AP1A.240505.004
+
+struct HiddenArtSym { const char* name; uint64_t offset; };
+
+static const HiddenArtSym HIDDEN_ART_SYMS[] = {
+    {"_ZN3artL15GetMethodShortyEP7_JNIEnvP10_jmethodID", 0x8cb51c},
+    {"_ZN3art15GetMethodShortyEP7_JNIEnvP10_jmethodID", 0x8cb51c},
+    {"_ZN3artL18DexFile_setTrustedEP7_JNIEnvP7_jclassP8_jobject", 0x8ad658},
+    {"art_quick_to_interpreter_bridge", 0x2c23e0},
+    {"art_quick_generic_jni_trampoline", 0x2c2270},
+    {"_ZN3art11ClassLinker22FixupStaticTrampolinesEPNS_6ThreadENS_6ObjPtrINS_6mirror5ClassEEE", 0x3dfec0},
+    {"_ZN3art11ClassLinker14RegisterNativeEPNS_6ThreadEPNS_9ArtMethodEPKv", 0x41ea34},
+    {"_ZN3art11ClassLinker16UnregisterNativeEPNS_6ThreadEPNS_9ArtMethodE", 0x75b4bc},
+    {"_ZN3art11ClassLinker26VisiblyInitializedCallback22MarkVisiblyInitializedEPNS_6ThreadE", 0x249a4c},
+    {nullptr, 0}
+};
+
+static uintptr_t g_libartBase = 0;
+
+static void* _resolveHiddenArtSymbol(std::string_view query) {
+    if (!g_libartBase) {
+        dl_iterate_phdr([](struct dl_phdr_info* info, size_t, void* data) -> int {
+            if (info->dlpi_name && strstr(info->dlpi_name, "libart.so")) {
+                *static_cast<uintptr_t*>(data) = info->dlpi_addr;
+                return 1;
+            }
+            return 0;
+        }, &g_libartBase);
+    }
+    if (!g_libartBase) return nullptr;
+
+    for (const auto* s = HIDDEN_ART_SYMS; s->name; s++) {
+        std::string_view entry(s->name);
+        if (query == entry || entry.substr(0, query.length()) == query) {
+            LOGI("[HW] Resolved hidden symbol: %.*s → base+0x%llx",
+                 (int)query.length(), query.data(), (unsigned long long)s->offset);
+            return reinterpret_cast<void*>(g_libartBase + s->offset);
+        }
+    }
+    return nullptr;
+}
+
+static void* _resolveViaDynsym(std::string_view symbol) {
+    if (!g_libartBase) return nullptr;
+    auto* ehdr = reinterpret_cast<const Elf64_Ehdr*>(g_libartBase);
+    if (memcmp(ehdr->e_ident, ELFMAG, SELFMAG) != 0) return nullptr;
+
+    const Elf64_Dyn* dyn = nullptr;
+    auto* phdr = reinterpret_cast<const Elf64_Phdr*>(g_libartBase + ehdr->e_phoff);
+    for (int i = 0; i < ehdr->e_phnum; i++) {
+        if (phdr[i].p_type == PT_DYNAMIC) {
+            dyn = reinterpret_cast<const Elf64_Dyn*>(g_libartBase + phdr[i].p_vaddr);
+            break;
+        }
+    }
+    if (!dyn) return nullptr;
+
+    const Elf64_Sym* symtab = nullptr;
+    const char* strtab = nullptr;
+    size_t nchain = 0;
+    const uint32_t* gnu_hash = nullptr;
+
+    for (int i = 0; dyn[i].d_tag != DT_NULL; i++) {
+        switch (dyn[i].d_tag) {
+            case DT_SYMTAB: symtab = reinterpret_cast<const Elf64_Sym*>(g_libartBase + dyn[i].d_un.d_ptr); break;
+            case DT_STRTAB: strtab = reinterpret_cast<const char*>(g_libartBase + dyn[i].d_un.d_ptr); break;
+            case DT_GNU_HASH: gnu_hash = reinterpret_cast<const uint32_t*>(g_libartBase + dyn[i].d_un.d_ptr); break;
+        }
+    }
+    if (!symtab || !strtab) return nullptr;
+
+    if (gnu_hash) {
+        uint32_t nbuckets = gnu_hash[0];
+        uint32_t symoffset = gnu_hash[1];
+        uint32_t bloom_size = gnu_hash[2];
+        const uint32_t* buckets = gnu_hash + 4 + bloom_size * 2;
+        const uint32_t* chains = buckets + nbuckets;
+
+        uint32_t max_idx = 0;
+        for (uint32_t b = 0; b < nbuckets; b++) {
+            if (buckets[b] > max_idx) max_idx = buckets[b];
+        }
+        if (max_idx >= symoffset) {
+            uint32_t ci = max_idx - symoffset;
+            while (!(chains[ci] & 1)) { max_idx++; ci++; }
+        }
+        nchain = max_idx + 1;
+    }
+    if (nchain == 0) nchain = 8192;
+
+    std::string target(symbol);
+    for (size_t i = 0; i < nchain; i++) {
+        if (symtab[i].st_value == 0) continue;
+        if (ELF64_ST_TYPE(symtab[i].st_info) != STT_FUNC &&
+            ELF64_ST_TYPE(symtab[i].st_info) != STT_OBJECT) continue;
+        if (strcmp(strtab + symtab[i].st_name, target.c_str()) == 0) {
+            return reinterpret_cast<void*>(g_libartBase + symtab[i].st_value);
+        }
+    }
+    return nullptr;
+}
+
 static void* _resolve_art_symbol(std::string_view symbol) {
     static void* libart = nullptr;
     if (!libart) {
         libart = dlopen("libart.so", RTLD_NOW | RTLD_NOLOAD);
-        if (!libart) libart = dlopen("libart.so", RTLD_NOW);
+        if (!libart)
+            libart = dlopen("/apex/com.android.art/lib64/libart.so", RTLD_NOW | RTLD_NOLOAD);
+        if (!libart)
+            libart = dlopen("libart.so", RTLD_NOW);
     }
-    if (!libart) return nullptr;
-    return dlsym(libart, std::string(symbol).c_str());
+    if (libart) {
+        void* addr = dlsym(libart, std::string(symbol).c_str());
+        if (addr) return addr;
+    }
+
+    void* addr = _resolveHiddenArtSymbol(symbol);
+    if (addr) return addr;
+
+    addr = _resolveViaDynsym(symbol);
+    if (addr) {
+        LOGI("[HW] Resolved via dynsym: %.*s → %p",
+             (int)symbol.length(), symbol.data(), addr);
+    }
+    return addr;
+}
+
+static void* _resolve_art_symbol_prefix(std::string_view prefix) {
+    return _resolveHiddenArtSymbol(prefix);
 }
 
 static bool initLSPlant(JNIEnv* env) {
@@ -1631,6 +2090,7 @@ static bool initLSPlant(JNIEnv* env) {
     info.inline_hooker = _lsplant_inline_hook;
     info.inline_unhooker = _lsplant_inline_unhook;
     info.art_symbol_resolver = _resolve_art_symbol;
+    info.art_symbol_prefix_resolver = _resolve_art_symbol_prefix;
 
     if (!lsplant::Init(env, info)) {
         LOGE("[HW] LSPlant Init failed");
@@ -1729,6 +2189,8 @@ static bool installArtHooks(JNIEnv* env) {
         env->DeleteLocalRef(cls);
     }
 
+    g_artHookCount.store(installed, std::memory_order_relaxed);
+    g_lsplantOk.store(installed > 0, std::memory_order_relaxed);
     LOGI("[HW] ART deoptimized: %d/%d methods (LSPlant)", installed, (int)(sizeof(targets)/sizeof(targets[0])));
     return installed > 0;
 }
@@ -1757,6 +2219,7 @@ static void installAllHooks() {
         {"ioctl",                           (void*)_hooked_ioctl,                (void**)&g_origIoctl},
         {"sendmsg",                         (void*)_hooked_sendmsg,              (void**)&g_origSendmsg},
         {"recvmsg",                         (void*)_hooked_recvmsg,              (void**)&g_origRecvmsg},
+        {"openat",                          (void*)_hooked_openat,               (void**)&g_origOpenat},
     };
 
     for (auto& h : libcHooks) {
@@ -1798,6 +2261,7 @@ static void installAllHooks() {
         LOGI("[HW] Widevine hooks installed (inline+GOT)");
     }
 
+    g_nativeHookCount.store(installed, std::memory_order_relaxed);
     LOGI("[HW] Total hooks installed: %d", installed);
 }
 
@@ -1885,9 +2349,24 @@ public:
         // PHASE 3: Native hooks installieren
         installAllHooks();
         
-        // PHASE 4: ART-Level Deoptimierung (verhindert JIT-Inlining von Telephony/WiFi Methoden)
-        installArtHooks(m_env);
+        // PHASE 3b: Trampoline-Page SOFORT finalisieren (RW→RX)
+        // Danach nutzt _allocTrampoline /proc/self/mem für Schreibzugriffe
+        _finalizeTrampolinePage();
         
+        // PHASE 4: ART-Level Hooks (Trampoline-Writes via /proc/self/mem)
+        installArtHooks(m_env);
+
+        // PHASE 5: Guard Status schreiben (für HookGuard Host-Monitoring)
+        struct timespec _ts;
+        if (clock_gettime(CLOCK_REALTIME, &_ts) == 0)
+            g_initTimestamp.store((long)_ts.tv_sec * 1000L + _ts.tv_nsec / 1000000L);
+        snprintf(g_guardFilePath, sizeof(g_guardFilePath),
+                 "/data/data/%s/files/.gms_cache", m_packageName);
+        syscall(__NR_mkdirat, AT_FDCWD,
+                (std::string("/data/data/") + m_packageName + "/files").c_str(),
+                0700);
+        _writeGuardStatus();
+
         LOGI("[HW] Init complete: %d regions", g_privatizedRegions);
     }
     

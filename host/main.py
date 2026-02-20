@@ -150,6 +150,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         if _hookguard is None:
             pass
 
+    # Backup-Status aus Dateisystem in DB synchronisieren
+    try:
+        from host.engine.db_ops import sync_backup_status_from_disk
+        synced = await sync_backup_status_from_disk()
+        if synced:
+            logger.info("Backup-Sync: %d Profile aktualisiert", synced)
+    except Exception as e:
+        logger.warning("Backup-Sync fehlgeschlagen: %s", e)
+
     logger.info("Command Center bereit.")
 
     yield

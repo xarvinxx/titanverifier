@@ -58,6 +58,7 @@ from host.engine.db_ops import (
     record_ip,
     update_flow_history,
     update_identity_audit,
+    update_profile_tiktok_backup,
     update_identity_network,
 )
 from host.engine.identity_engine import IdentityGenerator
@@ -391,6 +392,22 @@ class GenesisFlow:
                         active_name, timeout=300,
                     )
                     saved = sum(1 for v in backup_result.values() if v is not None)
+
+                    # DB-Update: Backup-Status in Profil tracken
+                    active_pid = active_profile["id"]
+                    tt_path = backup_result.get("app_data")
+                    if tt_path and tt_path.exists():
+                        try:
+                            await update_profile_tiktok_backup(
+                                active_pid,
+                                str(tt_path),
+                                tt_path.stat().st_size,
+                            )
+                        except Exception as db_err:
+                            logger.warning(
+                                "[2/11] Backup DB-Update fehlgeschlagen: %s", db_err,
+                            )
+
                     step.status = FlowStepStatus.SUCCESS
                     step.detail = f"Profil '{active_name}': {saved}/2 Komponenten ({backup_reason})"
                     logger.info("[2/11] Auto-Backup: %s", step.detail)

@@ -372,9 +372,17 @@ class HookGuard:
         return None
 
     async def _check_bridge_integrity(self) -> None:
+        """Prüft Bridge-Integrität am PRIMÄRPFAD (Zygisk liest dort).
+
+        Der App-Datenverzeichnis-Pfad (/data/data/<pkg>/files/.hw_config)
+        existiert nach pm clear nicht mehr und ist NICHT relevant — das
+        Zygisk-Modul liest ausschließlich vom Modul-Pfad.
+        """
+        primary = str(BRIDGE_FILE_PATH)
+
         if not self._expected_bridge_hash:
             self._expected_bridge_hash = await self._compute_bridge_content_hash(
-                str(BRIDGE_FILE_PATH)
+                primary
             )
         if not self._expected_bridge_hash:
             self._state.bridge_intact = False
@@ -383,54 +391,40 @@ class HookGuard:
             log.warning("Bridge reference hash could not be computed")
             return
 
-        checked_any = False
-        for pkg in TIKTOK_PACKAGES:
-            try:
-                pkg_check = await self._adb.shell(
-                    f"pm path {pkg} 2>/dev/null", root=True, timeout=5,
+        try:
+            check = await self._adb.shell(
+                f"test -f {primary}", root=True, timeout=5,
+            )
+            if not check.success:
+                self._state.bridge_intact = False
+                self._state.bridge_verified = True
+                self._state.bridge_hash = "MISSING"
+                log.warning("Bridge file missing at primary path: %s", primary)
+                return
+
+            current_hash = await self._compute_bridge_content_hash(primary)
+            self._state.bridge_hash = current_hash or "ERROR"
+            if not current_hash:
+                self._state.bridge_intact = False
+                self._state.bridge_verified = False
+                log.warning("Bridge hash computation failed: %s", primary)
+                return
+            if current_hash != self._expected_bridge_hash:
+                self._state.bridge_intact = False
+                self._state.bridge_verified = True
+                log.warning(
+                    "Bridge TAMPERED! expected=%s got=%s",
+                    self._expected_bridge_hash, current_hash,
                 )
-                if not pkg_check.success or not pkg_check.output or "package:" not in pkg_check.output:
-                    continue
+                return
 
-                checked_any = True
-                bridge_path = f"/data/data/{pkg}/files/.hw_config"
-                result = await self._adb.shell(
-                    f"ls {bridge_path} 2>/dev/null",
-                    root=True,
-                    timeout=5,
-                )
-                if not result.success or not result.output or "No such file" in result.output:
-                    self._state.bridge_intact = False
-                    self._state.bridge_verified = True
-                    self._state.bridge_hash = "MISSING"
-                    log.warning("Bridge file missing for %s!", pkg)
-                    return
-
-                current_hash = await self._compute_bridge_content_hash(bridge_path)
-                self._state.bridge_hash = current_hash or "ERROR"
-                if not current_hash:
-                    self._state.bridge_intact = False
-                    self._state.bridge_verified = False
-                    log.warning("Bridge hash computation failed for %s!", pkg)
-                    return
-                if current_hash != self._expected_bridge_hash:
-                    self._state.bridge_intact = False
-                    self._state.bridge_verified = True
-                    log.warning(
-                        "Bridge TAMPERED for %s! expected=%s got=%s",
-                        pkg, self._expected_bridge_hash, current_hash,
-                    )
-                    return
-            except ADBError:
-                pass
-
-        if checked_any:
             self._state.bridge_intact = True
             self._state.bridge_verified = True
-        else:
+        except ADBError as e:
             self._state.bridge_intact = False
             self._state.bridge_verified = False
-            self._state.bridge_hash = "NO_PKG"
+            self._state.bridge_hash = "ADB_ERROR"
+            log.warning("Bridge integrity check failed: %s", e)
 
     # ── /proc/maps Detection ──────────────────────────────────────
 

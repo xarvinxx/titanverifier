@@ -633,6 +633,97 @@ async def update_profile_accounts_backup(
         )
 
 
+async def sync_backup_status_from_disk() -> int:
+    """Scannt das Backup-Verzeichnis und aktualisiert die DB für alle Profile.
+
+    Wird beim Server-Start aufgerufen, damit bestehende Backups, die
+    vor dem DB-Tracking erstellt wurden, korrekt in der Vault angezeigt werden.
+
+    Returns:
+        Anzahl aktualisierter Profile.
+    """
+    from host.config import (
+        BACKUP_DIR,
+        BACKUP_TIKTOK_SUBDIR,
+        BACKUP_GMS_SUBDIR,
+        BACKUP_ACCOUNTS_SUBDIR,
+    )
+
+    MIN_VALID_SIZE = 50 * 1024  # 50 KB — gleicher Schwellenwert wie beim Backup
+
+    updated = 0
+    async with db.connection() as conn:
+        cursor = await conn.execute(
+            "SELECT id, name, backup_status FROM profiles",
+        )
+        profiles = await cursor.fetchall()
+
+    for row in profiles:
+        pid, name, current_status = row["id"], row["name"], row["backup_status"]
+        profile_dir = BACKUP_DIR / name
+
+        # TikTok Backup
+        tt_dir = profile_dir / BACKUP_TIKTOK_SUBDIR
+        if tt_dir.exists():
+            tars = sorted(
+                (p for p in tt_dir.glob("*.tar") if p.stat().st_size >= MIN_VALID_SIZE),
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
+            )
+            if tars and current_status != "valid":
+                best = tars[0]
+                await update_profile_tiktok_backup(
+                    pid, str(best), best.stat().st_size,
+                )
+                updated += 1
+
+        # GMS Backup
+        gms_dir = profile_dir / BACKUP_GMS_SUBDIR
+        if gms_dir.exists():
+            gms_tars = sorted(
+                (p for p in gms_dir.glob("*.tar") if p.stat().st_size >= MIN_VALID_SIZE),
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
+            )
+            if gms_tars:
+                async with db.connection() as conn:
+                    c = await conn.execute(
+                        "SELECT gms_backup_status FROM profiles WHERE id = ?", (pid,),
+                    )
+                    r = await c.fetchone()
+                if r and r["gms_backup_status"] != "valid":
+                    best = gms_tars[0]
+                    await update_profile_gms_backup(
+                        pid, str(best), best.stat().st_size,
+                    )
+                    updated += 1
+
+        # Accounts Backup
+        acc_dir = profile_dir / BACKUP_ACCOUNTS_SUBDIR
+        if acc_dir.exists():
+            acc_tars = sorted(
+                (p for p in acc_dir.glob("*.tar") if p.stat().st_size >= 1024),
+                key=lambda p: p.stat().st_mtime,
+                reverse=True,
+            )
+            if acc_tars:
+                async with db.connection() as conn:
+                    c = await conn.execute(
+                        "SELECT accounts_backup_status FROM profiles WHERE id = ?", (pid,),
+                    )
+                    r = await c.fetchone()
+                if r and r["accounts_backup_status"] != "valid":
+                    best = acc_tars[0]
+                    await update_profile_accounts_backup(pid, str(best))
+                    updated += 1
+
+    if updated > 0:
+        logger.info(
+            "Backup-Sync: %d Profil(e) aus Dateisystem aktualisiert", updated,
+        )
+    return updated
+
+
 async def mark_profile_backup_corrupted(
     profile_id: int,
     component: str = "tiktok",

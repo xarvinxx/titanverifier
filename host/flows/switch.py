@@ -64,6 +64,7 @@ from host.engine.db_ops import (
     update_identity_audit,
     update_identity_network,
     update_profile_activity,
+    update_profile_tiktok_backup,
 )
 from host.engine.injector import BridgeInjector
 from host.engine.shifter import AppShifter
@@ -280,6 +281,22 @@ class SwitchFlow:
                             active_name, timeout=300,
                         )
                         saved = sum(1 for v in backup_result.values() if v is not None)
+
+                        # DB-Update: Backup-Status in Profil tracken
+                        active_pid = active_profile["id"]
+                        tt_path = backup_result.get("app_data")
+                        if tt_path and tt_path.exists():
+                            try:
+                                await update_profile_tiktok_backup(
+                                    active_pid,
+                                    str(tt_path),
+                                    tt_path.stat().st_size,
+                                )
+                            except Exception as db_err:
+                                logger.warning(
+                                    "[2/10] Backup DB-Update fehlgeschlagen: %s", db_err,
+                                )
+
                         step.status = FlowStepStatus.SUCCESS
                         step.detail = f"Profil '{active_name}' (@{tiktok_user}): {saved}/2 Komponenten"
                         logger.info("[2/10] Auto-Backup: %s", step.detail)
@@ -407,21 +424,27 @@ class SwitchFlow:
             logger.info("[4/10] Inject: OK (%s)", step.detail)
 
             # =================================================================
-            # Schritt 5: SOFT RESET (killall zygote — ZYGOTE-FIRST!)
+            # Schritt 5: SAFE ZYGOTE RESTART (Anti-Bootloop v2.0)
             # =================================================================
             # KRITISCH: Zygote-Kill MUSS vor dem Restore kommen!
             # Das Framework muss unter der NEUEN Identität booten,
             # BEVOR App-Daten geschrieben werden. Sonst sehen
             # File-Watcher im system_server die neuen Daten mit
             # der alten Hardware-ID → sofortiges Flagging.
+            #
+            # BOOTLOOP-PRÄVENTION (6 Schutzschichten):
+            #   1. LSPosed DB Backup
+            #   2. SQLite WAL Checkpoint auf system_server DBs
+            #   3. Accounts-DB löschen (wird in Step 7 restored)
+            #   4. Filesystem sync + Verifikation
+            #   5. Graceful Kill: SIGTERM → wait → SIGKILL
+            #   6. Post-Kill: LSPosed DB Integritäts-Check
             # =================================================================
             step = result.steps[4]
             step.status = FlowStepStatus.RUNNING
             step_start = _now_ms()
 
-            # LSPosed DB sichern VOR dem Zygote-Kill.
-            # killall zygote kann die DB mid-write korrumpieren
-            # (SQLite WAL wird nicht geflusht bei SIGKILL).
+            # --- Schicht 1: LSPosed DB sichern ---
             try:
                 await self._adb.shell(
                     "cp /data/adb/lspd/config/modules_config.db "
@@ -432,13 +455,86 @@ class SwitchFlow:
             except (ADBError, ADBTimeoutError):
                 logger.debug("[5/10] LSPosed DB Backup übersprungen")
 
-            logger.info("[5/10] Soft Reset: killall zygote (Zygote-First!)...")
+            # --- Schicht 2: SQLite WAL Checkpoint ---
+            # Zwingt alle pending WAL-Writes in die Haupt-DB.
+            # Ohne Checkpoint korruptiert SIGKILL die WAL → Bootloop.
+            _wal_dbs = [
+                "/data/system_ce/0/accounts_ce.db",
+                "/data/system_de/0/accounts_de.db",
+                "/data/system/sync/stats.bin",
+            ]
+            for db_path in _wal_dbs:
+                try:
+                    await self._adb.shell(
+                        f'sqlite3 {db_path} "PRAGMA wal_checkpoint(TRUNCATE);" 2>/dev/null',
+                        root=True, timeout=5,
+                    )
+                except (ADBError, ADBTimeoutError):
+                    pass
+            logger.info("[5/10] SQLite WAL Checkpoint: erledigt")
+
+            # --- Schicht 3: Accounts-DB löschen (IMMER, nicht nur full_state) ---
+            # Auch im Legacy-Modus kann der Zygote-Kill die accounts_ce.db
+            # korruptieren. Android erstellt beim Boot eine leere DB wenn
+            # die Datei fehlt — sicher. In Step 7 wird sie ohnehin restored.
             try:
-                await self._adb.shell("killall zygote", root=True)
+                await self._adb.shell(
+                    "rm -f "
+                    "/data/system_ce/0/accounts_ce.db "
+                    "/data/system_ce/0/accounts_ce.db-journal "
+                    "/data/system_ce/0/accounts_ce.db-wal "
+                    "/data/system_ce/0/accounts_ce.db-shm "
+                    "/data/system_de/0/accounts_de.db "
+                    "/data/system_de/0/accounts_de.db-journal "
+                    "/data/system_de/0/accounts_de.db-wal "
+                    "/data/system_de/0/accounts_de.db-shm",
+                    root=True, timeout=5,
+                )
+                logger.info("[5/10] Accounts-DB entfernt (CE + DE)")
+            except (ADBError, ADBTimeoutError):
+                logger.warning("[5/10] Accounts-DB entfernen fehlgeschlagen")
+
+            # --- Schicht 4: Filesystem sync + Verifikation ---
+            try:
+                await self._adb.shell("sync", root=True, timeout=15)
+                verify = await self._adb.shell(
+                    "test -f /data/system_ce/0/accounts_ce.db "
+                    "&& echo EXISTS || echo GONE",
+                    root=True, timeout=5,
+                )
+                if verify.success and "GONE" in (verify.output or ""):
+                    logger.info("[5/10] Sync + Verify: accounts_ce.db GELÖSCHT bestätigt")
+                else:
+                    logger.warning(
+                        "[5/10] WARNUNG: accounts_ce.db noch vorhanden nach rm+sync! "
+                        "Versuche erneut..."
+                    )
+                    await self._adb.shell(
+                        "rm -f /data/system_ce/0/accounts_ce.db* && sync",
+                        root=True, timeout=10,
+                    )
+            except (ADBError, ADBTimeoutError):
+                logger.warning("[5/10] Sync/Verify fehlgeschlagen")
+
+            # --- Schicht 5: Graceful Zygote Kill ---
+            # SIGTERM (15) zuerst → gibt system_server 2s um offene
+            # SQLite-Transaktionen zu committen und File-Handles zu
+            # schließen. Dann SIGKILL als Fallback.
+            logger.info("[5/10] Soft Reset: Graceful Zygote Kill...")
+            try:
+                await self._adb.shell(
+                    "kill -SIGTERM $(pidof zygote64) $(pidof zygote) 2>/dev/null",
+                    root=True, timeout=5,
+                )
+                logger.debug("[5/10] SIGTERM gesendet — warte 2s auf Cleanup...")
+            except (ADBError, ADBTimeoutError):
+                pass
+            await asyncio.sleep(2)
+            try:
+                await self._adb.shell("killall -9 zygote 2>/dev/null", root=True)
             except ADBError:
                 pass
 
-            # v6.1: Konfigurierbare Wartezeit statt hardcoded 3s
             logger.info(
                 "[5/10] Warte %ds auf Zygote-Restart...",
                 TIMING.ZYGOTE_RESTART_WAIT,
@@ -448,8 +544,7 @@ class SwitchFlow:
                 logger.info("[5/10] ADB nach Zygote-Kill weg — Reconnect...")
                 await self._adb.ensure_connection(timeout=60)
 
-            # LSPosed DB Integritätsprüfung nach Zygote-Restart.
-            # Wenn die DB korrumpiert wurde, sofort aus dem Backup wiederherstellen.
+            # --- Schicht 6: LSPosed DB Integritäts-Check ---
             try:
                 db_check = await self._adb.shell(
                     "su -c '"
@@ -479,7 +574,7 @@ class SwitchFlow:
                 logger.debug("[5/10] LSPosed DB-Check übersprungen")
 
             step.status = FlowStepStatus.SUCCESS
-            step.detail = f"Zygote-Kill + {TIMING.ZYGOTE_RESTART_WAIT}s Wait"
+            step.detail = f"Graceful Zygote-Kill (SIGTERM→SIGKILL) + {TIMING.ZYGOTE_RESTART_WAIT}s Wait"
             step.duration_ms = _now_ms() - step_start
 
             # =================================================================
@@ -522,16 +617,37 @@ class SwitchFlow:
                     uptime_secs = 999
 
                 if uptime_secs < 60:
-                    # Gerät hat sich während des Wartens neugestartet → ABORT
-                    step.status = FlowStepStatus.FAILED
-                    step.detail = f"ABORT: Gerät instabil (uptime={uptime_secs:.0f}s, GMS-Timeout)"
+                    # Gerät hat sich während des Wartens neugestartet → Bootloop!
+                    # AUTO-RECOVERY: Accounts-DB löschen + sync + Reboot via Fastboot
                     logger.error(
-                        "[6/10] ABORT — Gerät instabil: uptime=%.0fs nach 180s Warten. "
-                        "Wahrscheinlich Bootloop. Restore wird NICHT fortgesetzt.",
+                        "[6/10] BOOTLOOP ERKANNT (uptime=%.0fs) — "
+                        "starte Auto-Recovery...",
                         uptime_secs,
                     )
+                    try:
+                        await self._adb.shell(
+                            "rm -f "
+                            "/data/system_ce/0/accounts_ce.db* "
+                            "/data/system_de/0/accounts_de.db* "
+                            "&& sync",
+                            root=True, timeout=10,
+                        )
+                        logger.info("[6/10] Auto-Recovery: Accounts-DB gelöscht + sync")
+                        await self._adb.shell("reboot bootloader", root=True)
+                        logger.info("[6/10] Auto-Recovery: Gerät in Fastboot gesendet")
+                        await asyncio.sleep(10)
+                    except (ADBError, ADBTimeoutError) as recovery_err:
+                        logger.error("[6/10] Auto-Recovery fehlgeschlagen: %s", recovery_err)
+
+                    step.status = FlowStepStatus.FAILED
+                    step.detail = (
+                        f"ABORT: Bootloop erkannt (uptime={uptime_secs:.0f}s). "
+                        f"Auto-Recovery: Accounts-DB gelöscht → Gerät in Fastboot. "
+                        f"Bitte manuell 'fastboot reboot' ausführen."
+                    )
                     raise ADBError(
-                        f"Gerät instabil (uptime={uptime_secs:.0f}s) — Switch abgebrochen"
+                        f"Bootloop erkannt (uptime={uptime_secs:.0f}s) — "
+                        f"Auto-Recovery ausgeführt, Gerät in Fastboot"
                     )
                 else:
                     step.status = FlowStepStatus.SUCCESS
@@ -703,7 +819,7 @@ class SwitchFlow:
             # PRE-NETWORK: HookGuard starten BEVOR das Netz eingeschaltet wird
             # =================================================================
             logger.info("[8b/10] HookGuard Pre-Network Start...")
-            await _auto_start_hookguard()
+            await _auto_start_hookguard(restart=True)
 
             # =================================================================
             # Schritt 9: NETWORK INIT (Flugmodus AUS + neue IP)
@@ -857,6 +973,12 @@ class SwitchFlow:
             result.finished_at = datetime.now(LOCAL_TZ).isoformat()
             result.duration_ms = _now_ms() - flow_start
 
+            # ─── CLEANUP: Auto-Restore re-enable ───
+            try:
+                await self._shifter._reenable_auto_restore()
+            except Exception:
+                pass
+
             # ─── ERROR RECOVERY: Flugmodus + Backup-Manager reparieren ───
             if not result.success:
                 logger.warning("ERROR RECOVERY: Switch fehlgeschlagen — räume auf...")
@@ -904,7 +1026,7 @@ class SwitchFlow:
             logger.info("=" * 60)
 
             if result.success:
-                await _auto_start_hookguard()
+                await _auto_start_hookguard(restart=True)
 
                 # switch_in: Snapshot des neuen Profils (nach dem Wechsel)
                 if profile_id:

@@ -616,12 +616,21 @@ class AppShifter:
                 timeout=timeout,
             )
 
-            if bytes_written > 0:
+            MIN_VALID_APP_BACKUP = 50 * 1024  # 50 KB
+            if bytes_written >= MIN_VALID_APP_BACKUP:
                 # FIX-4: Integrity Guard — Größe auf Gerät vs. lokal vergleichen
                 await self._integrity_check(
                     self._data_path, app_tar, bytes_written, "Pfad A",
                 )
                 results["app_data"] = app_tar
+            elif bytes_written > 0:
+                logger.warning(
+                    "Pfad A (App-Daten): Nur %d Bytes — zu klein für gültiges "
+                    "Backup (min %d). TikTok war vermutlich nicht eingeloggt. "
+                    "Backup wird NICHT gespeichert.",
+                    bytes_written, MIN_VALID_APP_BACKUP,
+                )
+                app_tar.unlink(missing_ok=True)
             else:
                 logger.warning("Pfad A (App-Daten): Leer (0 Bytes) — übersprungen")
 
@@ -1078,17 +1087,35 @@ class AppShifter:
         except Exception as e:
             logger.warning("Timestamp randomization failed for %s: %s", package, e)
 
-    def _find_latest_tar(self, directory: Path, prefix: str = "") -> Optional[Path]:
-        """Findet die neueste tar-Datei mit optionalem Prefix in einem Verzeichnis."""
+    def _find_latest_tar(
+        self, directory: Path, prefix: str = "", min_size: int = 10240,
+    ) -> Optional[Path]:
+        """Findet die neueste tar-Datei mit optionalem Prefix in einem Verzeichnis.
+
+        Args:
+            directory: Verzeichnis mit tar-Dateien
+            prefix: Optionaler Dateiname-Prefix
+            min_size: Minimale Dateigröße in Bytes (Standard 10 KB).
+                      Tars unter dieser Größe werden übersprungen (leere
+                      Backups nach pm clear / Bootloop).
+        """
         if not directory.exists():
             return None
         pattern = f"{prefix}*.tar" if prefix else "*.tar"
         tars = sorted(
-            directory.glob(pattern),
+            (p for p in directory.glob(pattern) if p.stat().st_size >= min_size),
             key=lambda p: p.stat().st_mtime,
             reverse=True,
         )
-        return tars[0] if tars else None
+        if not tars:
+            return None
+        chosen = tars[0]
+        if len(tars) > 1:
+            logger.debug(
+                "Backup gewählt: %s (%.1f MB, %d Kandidaten)",
+                chosen.name, chosen.stat().st_size / 1048576, len(tars),
+            )
+        return chosen
 
     # =========================================================================
     # Restore: Host → tar → Gerät + Magic Permission Fix
@@ -2902,8 +2929,28 @@ class AppShifter:
                 else:
                     logger.info("SELinux OK: accounts_data_file korrekt gesetzt")
 
-            # Filesystem sync
+            # Filesystem sync + Writable-Verify
             await self._adb.shell("sync", root=True)
+            try:
+                rw_check = await self._adb.shell(
+                    f'sqlite3 {final_db} "PRAGMA integrity_check;" 2>/dev/null',
+                    root=True, timeout=10,
+                )
+                if rw_check.success and "ok" in (rw_check.output or "").lower():
+                    logger.info("Account-DB Integrity-Check: OK")
+                else:
+                    logger.warning(
+                        "Account-DB Integrity-Check FEHLGESCHLAGEN: %s — "
+                        "lösche DB als Bootloop-Schutz",
+                        (rw_check.output or "").strip()[:100],
+                    )
+                    await self._adb.shell(f"rm -f {final_db} && sync", root=True)
+                    raise ADBError("Account-DB integrity check failed after restore")
+            except (ADBError, ADBTimeoutError) as e:
+                if "integrity check failed" in str(e):
+                    raise
+                logger.debug("sqlite3 nicht verfügbar — Integrity-Check übersprungen")
+
             logger.info(
                 "Account-DBs Restore v4.0 komplett (FBE-Safe cat-Copy + Verify)"
             )

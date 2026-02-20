@@ -476,6 +476,67 @@ GSF_GSERVICES_DB = "/data/data/com.google.android.gsf/databases/gservices.db"
 
 
 # =============================================================================
+# 7d. Ghost Protocol — Kernel-Level Spoofing Pfade
+#     SUSFS + resetprop Infrastruktur (v9.0)
+# =============================================================================
+
+SUSFS_BIN = "/data/adb/ksu/bin/ksu_susfs"
+SUSFS_FAKE_DIR = "/data/adb/ksu/bin"
+
+POST_FS_DATA_PATH = f"{BRIDGE_MODULE_PATH}/post-fs-data.sh"
+SERVICE_SH_PATH = f"{BRIDGE_MODULE_PATH}/service.sh"
+
+SSAID_XML_PATH = "/data/system/users/0/settings_ssaid.xml"
+BT_DATA_DIR = "/data/misc/bluetooth"
+GMS_AAID_XML = "/data/data/com.google.android.gms/shared_prefs/adid_settings.xml"
+
+# Pixel 6: Factory MAC in OTP (nicht auf Persist-Partition).
+# Sysfs-Pfad den Apps lesen koennen:
+SYSFS_WLAN_MAC = "/sys/class/net/wlan0/address"
+
+# Pfade fuer SUSFS open_redirect Fake-Dateien
+FAKE_ARP_PATH = f"{SUSFS_FAKE_DIR}/.fake_arp"
+FAKE_MAC_SYSFS_PATH = f"{SUSFS_FAKE_DIR}/.fake_mac"
+FAKE_INPUT_PATH = f"{SUSFS_FAKE_DIR}/.fake_input"
+FAKE_CPUINFO_PATH = f"{SUSFS_FAKE_DIR}/.fake_cpuinfo"
+FAKE_VERSION_PATH = f"{SUSFS_FAKE_DIR}/.fake_version"
+FAKE_IF_INET6_PATH = f"{SUSFS_FAKE_DIR}/.fake_if_inet6"
+
+# SELinux Property-Typen auf Pixel 6 (verifiziert am Geraet)
+SELINUX_RILD_CONTEXT = "u:r:rild:s0"
+SELINUX_RADIO_PROP = "radio_prop"
+SELINUX_TELEPHONY_PROP = "telephony_status_prop"
+
+# Carrier-Properties die resetprop setzen und SELinux schuetzen muss
+GSM_PROPS_TO_LOCK: dict[str, str] = {
+    "gsm.sim.operator.numeric": O2_DE.MCC_MNC,
+    "gsm.sim.operator.alpha": O2_DE.SIM_OPERATOR_NAME,
+    "gsm.operator.numeric": O2_DE.MCC_MNC,
+    "gsm.operator.alpha": O2_DE.OPERATOR_NAME,
+    "gsm.sim.operator.iso-country": O2_DE.COUNTRY_ISO,
+    "gsm.operator.iso-country": O2_DE.COUNTRY_ISO,
+}
+
+# Boot-Security Properties die resetprop im fruehesten Stage setzen muss
+BOOT_SECURITY_PROPS: dict[str, str] = {
+    "ro.boot.verifiedbootstate": "green",
+    "ro.boot.flash.locked": "1",
+    "ro.boot.vbmeta.device_state": "locked",
+    "ro.debuggable": "0",
+    "ro.secure": "1",
+    "ro.adb.secure": "1",
+}
+
+# SUSFS Pfade die vor Apps versteckt werden muessen
+SUSFS_HIDDEN_PATHS: list[str] = [
+    "/data/adb/modules",
+    "/data/adb/ksu",
+    "/data/adb/lspd",
+    SUSFS_FAKE_DIR,
+]
+
+
+# =============================================================================
 # 8. Google OUIs für WiFi MAC-Adressen
 #    Quelle: IEEE OUI Database (MA-L assignments to Google Inc.)
 # =============================================================================

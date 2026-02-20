@@ -555,11 +555,33 @@ class GenesisFlow:
             # 6c. Namespace-Nuke: DEAKTIVIERT (v4.0 — GMS-Schutz)
             logger.info("[6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)")
 
-            # 6d. Kill-Switch entfernen (aktiviert Hooks)
+            # =============================================================
+            # 6d. GHOST PROTOCOL: Kernel-Level Identity Deployment
+            # =============================================================
+            logger.info("[6/11] Ghost Protocol: Kernel-Level Deployment...")
+
+            # 6d-i. SUSFS Fake-Dateien (ARP, MAC, Input Devices)
+            await self._injector.write_susfs_fakes(identity)
+
+            # 6d-ii. Boot-Scripts (post-fs-data.sh + service.sh)
+            await self._injector.deploy_boot_scripts()
+
+            # 6d-iii. SSAID per-App patchen
+            await self._injector.patch_ssaid(identity.android_id)
+
+            # 6d-iv. GAID zuruecksetzen (neue Werbe-ID bei naechstem GMS-Start)
+            await self._injector.reset_gaid()
+
+            # 6d-v. Bluetooth Pairing-Daten loeschen (IRK-Reset)
+            await self._injector.cleanup_bluetooth()
+
+            logger.info("[6/11] Ghost Protocol: Deployment abgeschlossen")
+
+            # 6e. Kill-Switch entfernen (aktiviert Hooks)
             await self._injector.remove_kill_switch()
 
             step.status = FlowStepStatus.SUCCESS
-            step.detail = f"Bridge + Kill-Switch entfernt | PIF={'OK' if pif_ok else 'FAIL'}"
+            step.detail = f"Bridge + Ghost Protocol + Kill-Switch entfernt | PIF={'OK' if pif_ok else 'FAIL'}"
             step.duration_ms = _now_ms() - step_start
             logger.info("[6/11] Inject: OK (%s)", step.detail)
 

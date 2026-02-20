@@ -35,7 +35,15 @@ from host.config import (
     BRIDGE_MODULE_PATH,
     BRIDGE_SDCARD_PATH,
     BRIDGE_TARGET_APPS,
+    BT_DATA_DIR,
     DEVICE_CODENAME,
+    FAKE_ARP_PATH,
+    FAKE_CPUINFO_PATH,
+    FAKE_IF_INET6_PATH,
+    FAKE_INPUT_PATH,
+    FAKE_MAC_SYSFS_PATH,
+    FAKE_VERSION_PATH,
+    GMS_AAID_XML,
     GMS_AUTH_DB,
     GMS_BACKUP_PACKAGES,
     GMS_DG_CACHE,
@@ -43,7 +51,12 @@ from host.config import (
     KILL_SWITCH_PATH,
     PIF_JSON_PATH,
     PIF_SPOOF_POOL,
+    POST_FS_DATA_PATH,
     SELINUX_CONTEXT,
+    SERVICE_SH_PATH,
+    SOCIAL_MEDIA_PACKAGES,
+    SSAID_XML_PATH,
+    SUSFS_FAKE_DIR,
     validate_pif_pool_integrity,
 )
 from host.models.identity import IdentityBridge
@@ -1071,6 +1084,184 @@ class BridgeInjector:
             success, len(results),
         )
         return results
+
+    # =========================================================================
+    # Ghost Protocol v9.0 — Kernel-Level Identity Deployment
+    # =========================================================================
+
+    async def write_susfs_fakes(self, bridge: IdentityBridge) -> None:
+        """
+        Schreibt die SUSFS Fake-Dateien auf das Geraet.
+        
+        Diese Dateien werden von post-fs-data.sh via SUSFS open_redirect
+        als Ersatz fuer die echten System-Dateien bereitgestellt.
+        """
+        logger.info("Ghost Protocol: SUSFS Fake-Dateien schreiben...")
+
+        fake_files: list[tuple[str, str, str]] = [
+            (
+                FAKE_ARP_PATH,
+                "IP address       HW type     Flags       HW address            Mask     Device\n",
+                "ARP (leere Tabelle)",
+            ),
+            (
+                FAKE_MAC_SYSFS_PATH,
+                f"{bridge.wifi_mac}\n",
+                f"WiFi MAC ({bridge.wifi_mac})",
+            ),
+        ]
+
+        for remote_path, content, desc in fake_files:
+            try:
+                escaped = content.replace("'", "'\\''")
+                await self._adb.shell(
+                    f"mkdir -p {SUSFS_FAKE_DIR} && "
+                    f"echo -n '{escaped}' > {remote_path} && "
+                    f"chmod 644 {remote_path} && "
+                    f"chown root:root {remote_path}",
+                    root=True, check=True,
+                )
+                logger.info("  SUSFS Fake: %s → %s", desc, remote_path)
+            except ADBError as e:
+                logger.error("  SUSFS Fake FEHLER (%s): %s", desc, e)
+
+        assets_dir = Path(__file__).resolve().parent.parent.parent / "module" / "assets"
+        asset_files: list[tuple[str, str, str]] = [
+            ("clean_input_devices.txt", FAKE_INPUT_PATH, "/proc/bus/input/devices"),
+            ("fake_cpuinfo.txt", FAKE_CPUINFO_PATH, "/proc/cpuinfo"),
+            ("fake_version.txt", FAKE_VERSION_PATH, "/proc/version"),
+            ("fake_if_inet6.txt", FAKE_IF_INET6_PATH, "/proc/net/if_inet6"),
+        ]
+        for asset_name, remote_path, desc in asset_files:
+            asset_path = assets_dir / asset_name
+            if not asset_path.is_file():
+                logger.warning("  Asset nicht gefunden: %s — %s nicht gespooft", asset_path, desc)
+                continue
+            try:
+                staging = f"/data/local/tmp/.{asset_name}_staging"
+                await self._adb.push(str(asset_path), staging)
+                await self._adb.shell(
+                    f"cp {staging} {remote_path} && "
+                    f"chmod 644 {remote_path} && "
+                    f"chown root:root {remote_path} && "
+                    f"rm -f {staging}",
+                    root=True, check=True,
+                )
+                logger.info("  SUSFS Fake: %s → %s", desc, remote_path)
+            except ADBError as e:
+                logger.error("  SUSFS Fake %s FEHLER: %s", desc, e)
+
+    async def deploy_boot_scripts(self) -> None:
+        """
+        Deployt post-fs-data.sh und service.sh aus dem Projekt auf das Geraet.
+        
+        Diese Scripts enthalten die resetprop + SUSFS Logik die bei jedem
+        Boot ausgefuehrt wird.
+        """
+        logger.info("Ghost Protocol: Boot-Scripts deployen...")
+        scripts_dir = Path(__file__).resolve().parent.parent.parent / "module"
+
+        for script_name, remote_path in [
+            ("post-fs-data.sh", POST_FS_DATA_PATH),
+            ("service.sh", SERVICE_SH_PATH),
+        ]:
+            local_path = scripts_dir / script_name
+            if not local_path.is_file():
+                logger.error("Boot-Script nicht gefunden: %s", local_path)
+                continue
+
+            try:
+                staging = f"/data/local/tmp/.{script_name}_staging"
+                await self._adb.push(str(local_path), staging)
+                await self._adb.shell(
+                    f"cp {staging} {remote_path} && "
+                    f"chmod 755 {remote_path} && "
+                    f"chcon u:object_r:system_file:s0 {remote_path} && "
+                    f"rm -f {staging}",
+                    root=True, check=True,
+                )
+                logger.info("  Boot-Script → %s", remote_path)
+            except ADBError as e:
+                logger.error("  Boot-Script Deploy FEHLER (%s): %s", script_name, e)
+
+    async def patch_ssaid(
+        self, android_id: str, packages: list[str] | None = None,
+    ) -> None:
+        """
+        Setzt die Android ID (SSAID) pro App in settings_ssaid.xml.
+        
+        Seit Android 8 ist SSAID per App skoped. `settings put secure android_id`
+        aendert nur den globalen Default — nicht den per-App Wert.
+        """
+        if packages is None:
+            packages = SOCIAL_MEDIA_PACKAGES
+
+        logger.info("Ghost Protocol: SSAID patchen fuer %d Apps...", len(packages))
+
+        for package in packages:
+            try:
+                check = await self._adb.shell(
+                    f"test -d /data/data/{package}", root=True,
+                )
+                if not check.success:
+                    continue
+
+                sed_cmd = (
+                    f"sed -i '/<setting id=.*package=\"{package}\"/s/"
+                    f'value="[^"]*"/value="{android_id}"/'
+                    f"' {SSAID_XML_PATH}"
+                )
+                await self._adb.shell(sed_cmd, root=True)
+                logger.debug("  SSAID: %s → %s…", package, android_id[:8])
+            except ADBError as e:
+                logger.warning("  SSAID Patch fuer %s fehlgeschlagen: %s", package, e)
+
+        await self._adb.shell(
+            "settings put secure android_id " + android_id, root=True,
+        )
+        logger.info("  SSAID global + per-App gesetzt: %s…", android_id[:8])
+
+    async def reset_gaid(self) -> None:
+        """Erzwingt eine neue Google Advertising ID durch Loeschen der XML + GMS Kill."""
+        logger.info("Ghost Protocol: GAID Reset...")
+        try:
+            await self._adb.shell(f"rm -f {GMS_AAID_XML}", root=True)
+            await self._adb.shell("am force-stop com.google.android.gms", root=True)
+            logger.info("  GAID XML geloescht, GMS gestoppt → neue GAID bei naechstem Start")
+        except ADBError as e:
+            logger.warning("  GAID Reset fehlgeschlagen: %s", e)
+
+    async def reset_gsf_id(self, new_gsf_id: str) -> None:
+        """
+        Setzt die GSF ID direkt in der GServices SQLite-DB.
+        
+        Alternative: GSF-Daten komplett loeschen (pm clear com.google.android.gsf)
+        erzwingt Neugenerierung, aber wir wollen eine kontrollierte ID.
+        """
+        logger.info("Ghost Protocol: GSF ID setzen → %s…%s", new_gsf_id[:4], new_gsf_id[-4:])
+        try:
+            sqlite3_bin = "sqlite3"
+            which = await self._adb.shell("which sqlite3 2>/dev/null")
+            if not (which.success and which.output.strip()):
+                sqlite3_bin = self._SQLITE3_REMOTE_PATH
+
+            sql = f"UPDATE main SET value='{new_gsf_id}' WHERE name='android_id';"
+            await self._adb.shell(
+                f'{sqlite3_bin} {GSF_GSERVICES_DB} "{sql}"',
+                root=True, check=True,
+            )
+            logger.info("  GSF ID in gservices.db aktualisiert")
+        except ADBError as e:
+            logger.warning("  GSF ID Update fehlgeschlagen: %s — GSF-Daten muessen manuell geloescht werden", e)
+
+    async def cleanup_bluetooth(self) -> None:
+        """Loescht BT Pairing-Daten fuer IRK-Reset bei Identitaetswechsel."""
+        logger.info("Ghost Protocol: Bluetooth Pairing-Daten loeschen...")
+        try:
+            await self._adb.shell(f"rm -rf {BT_DATA_DIR}/*", root=True)
+            logger.info("  BT Daten geloescht: %s", BT_DATA_DIR)
+        except ADBError as e:
+            logger.warning("  BT Cleanup fehlgeschlagen: %s", e)
 
     # =========================================================================
     # Kill-Switch Management

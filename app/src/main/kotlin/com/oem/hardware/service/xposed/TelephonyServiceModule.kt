@@ -224,6 +224,11 @@ class TelephonyServiceModule : IXposedHookLoadPackage {
     }
     
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
+        // Ghost Protocol: Alle Java-Hooks sind in das native Zygisk-Modul (LSPlant + SUSFS) migriert.
+        // Xposed/LSPosed wird nicht mehr benoetigt. Diese Methode ist absichtlich ein No-Op.
+        return
+
+        @Suppress("UNREACHABLE_CODE")
         if (lpparam.packageName !in TARGET_PACKAGES) return
 
         val bridgeValues = ServiceConfigReader.loadBridgeValues()

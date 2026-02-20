@@ -1,0 +1,14 @@
+# ninja log v7
+2	201	1771594261341731177	external/dex_builder/CMakeFiles/dex_builder_static.dir/slicer/sha1.cpp.o	be824f11080f4855
+2	690	1771594261341359801	external/dex_builder/CMakeFiles/dex_builder_static.dir/slicer/dex_utf8.cc.o	45cee3761018cdf7
+2	743	1771594261341222092	external/dex_builder/CMakeFiles/dex_builder_static.dir/slicer/dex_format.cc.o	725ba446c05581c3
+2	745	1771594261341572635	external/dex_builder/CMakeFiles/dex_builder_static.dir/slicer/dex_bytecode.cc.o	a59dcd05a54f4140
+2	1133	1771594261340818800	external/dex_builder/CMakeFiles/dex_builder_static.dir/slicer/common.cc.o	4f93e3f2436ff461
+1	2580	1771594261340386091	external/dex_builder/CMakeFiles/dex_builder_static.dir/slicer/dex_ir.cc.o	926a380e7711022b
+1	3265	1771594261340277174	external/dex_builder/CMakeFiles/dex_builder_static.dir/slicer/writer.cc.o	5cd1ab753ebe1649
+1	4346	1771594261340023007	external/dex_builder/CMakeFiles/dex_builder_static.dir/dex_helper.cc.o	f30e842b7db30ff7
+1	4589	1771594261340164715	external/dex_builder/CMakeFiles/dex_builder_static.dir/slicer/reader.cc.o	8e0e66a763b1ba4b
+201	4878	1771594261540464060	CMakeFiles/lsplant_static.dir/lsplant.cc.o	610569bafb8019d5
+0	5116	1771594261339680214	external/dex_builder/CMakeFiles/dex_builder_static.dir/dex_builder.cc.o	b08f9dbec4f4a1ca
+5116	5751	1771594266455141051	external/dex_builder/libdex_builder_static.a	70874f3a17b0b21
+5751	5789	1771594267089954319	liblsplant_static.a	302f6d227d0bf8b5

@@ -17422,3 +17422,1568 @@ AttributeError: type object 'FlowStepStatus' has no attribute 'ERROR'
 2026-02-20 00:23:30 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
 2026-02-20 00:23:34 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
 2026-02-20 00:23:37 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:28:54 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 00:28:55 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 00:28:55 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 00:28:59 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 00:29:00 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 00:29:28 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 00:29:30 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-20 00:29:30 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-20 00:31:07 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 00:31:07 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 00:31:08 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:31:11 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:31:15 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:31:19 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 00:31:19 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:31:22 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:31:26 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:31:30 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 00:31:30 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:31:34 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:31:37 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 00:31:38 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:31:41 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 00:31:41 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:31:45 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:31:48 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:31:57 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 00:31:57 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 00:31:57 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 00:31:57 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 00:31:57 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 00:31:57 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 00:31:59 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 00:32:00 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 00:32:01 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 00:32:02 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 00:32:31 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 00:32:31 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 00:32:33 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-20 00:32:33 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell getprop ro.serialno
+2026-02-20 00:32:33 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-20 00:32:33 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-20 00:32:33 [host.adb] INFO: ADB Erfolg nach 2 Versuchen: adb shell getprop ro.serialno
+2026-02-20 00:32:39 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 00:32:39 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 00:32:39 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 00:32:43 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 00:32:44 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 00:32:44 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 00:32:46 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-20 00:32:46 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-20 00:33:41 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 00:33:42 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 00:33:42 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:33:45 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:33:49 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:33:52 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 00:33:53 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:33:56 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:34:00 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:34:04 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 00:34:04 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:34:08 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:34:12 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 00:34:12 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:34:16 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 00:34:16 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:34:20 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:34:23 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:34:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 00:34:27 [hookguard] WARNING: Heartbeat never seen: TikTok running for 46s — module may not be injecting
+2026-02-20 00:34:27 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 00:34:59 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 00:34:59 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 00:34:59 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 00:34:59 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 00:34:59 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 00:34:59 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 00:35:00 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 00:35:01 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 00:35:03 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 00:35:04 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 00:35:32 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 00:35:32 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 00:35:34 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-20 00:35:34 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell getprop ro.serialno
+2026-02-20 00:35:34 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-20 00:35:34 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-20 00:35:34 [host.adb] INFO: ADB Erfolg nach 2 Versuchen: adb shell getprop ro.serialno
+2026-02-20 02:02:46 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=55814)
+2026-02-20 02:02:50 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=58898)
+2026-02-20 07:40:36 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 07:40:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 07:40:37 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:40:40 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:40:44 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:40:48 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 07:40:48 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:40:52 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:40:56 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:41:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 07:41:00 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:41:04 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:41:08 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 07:41:08 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:41:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 07:41:13 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:41:16 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:41:20 [hookguard] WARNING: Heartbeat never seen: TikTok running for 45s — module may not be injecting
+2026-02-20 07:41:20 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:56:23 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 07:56:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 07:56:24 [hookguard] WARNING: Heartbeat never seen: TikTok running for 949s — module may not be injecting
+2026-02-20 07:56:24 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:56:28 [hookguard] WARNING: Heartbeat never seen: TikTok running for 953s — module may not be injecting
+2026-02-20 07:56:28 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:56:31 [hookguard] WARNING: Heartbeat never seen: TikTok running for 957s — module may not be injecting
+2026-02-20 07:56:31 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:56:35 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 07:56:36 [hookguard] WARNING: Heartbeat never seen: TikTok running for 961s — module may not be injecting
+2026-02-20 07:56:36 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:56:39 [hookguard] WARNING: Heartbeat never seen: TikTok running for 965s — module may not be injecting
+2026-02-20 07:56:39 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:56:43 [hookguard] WARNING: Heartbeat never seen: TikTok running for 968s — module may not be injecting
+2026-02-20 07:56:43 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:56:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 07:56:47 [hookguard] WARNING: Heartbeat never seen: TikTok running for 973s — module may not be injecting
+2026-02-20 07:56:47 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:56:51 [hookguard] WARNING: Heartbeat never seen: TikTok running for 977s — module may not be injecting
+2026-02-20 07:56:51 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:56:55 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 07:56:56 [hookguard] WARNING: Heartbeat never seen: TikTok running for 981s — module may not be injecting
+2026-02-20 07:56:56 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:56:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 07:57:00 [hookguard] WARNING: Heartbeat never seen: TikTok running for 985s — module may not be injecting
+2026-02-20 07:57:00 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:57:04 [hookguard] WARNING: Heartbeat never seen: TikTok running for 989s — module may not be injecting
+2026-02-20 07:57:04 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:57:08 [hookguard] WARNING: Heartbeat never seen: TikTok running for 993s — module may not be injecting
+2026-02-20 07:57:08 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:57:11 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 07:57:12 [hookguard] WARNING: Heartbeat never seen: TikTok running for 997s — module may not be injecting
+2026-02-20 07:57:12 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:57:16 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1001s — module may not be injecting
+2026-02-20 07:57:16 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:57:19 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1005s — module may not be injecting
+2026-02-20 07:57:19 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 07:57:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 07:57:24 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1009s — module may not be injecting
+2026-02-20 07:57:24 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 08:07:47 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 08:07:48 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 08:07:48 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1633s — module may not be injecting
+2026-02-20 08:07:48 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 08:07:52 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1637s — module may not be injecting
+2026-02-20 08:07:52 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 08:07:56 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1641s — module may not be injecting
+2026-02-20 08:07:56 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 08:07:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 08:08:00 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1645s — module may not be injecting
+2026-02-20 08:08:00 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 08:08:04 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1649s — module may not be injecting
+2026-02-20 08:08:04 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 08:08:08 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1653s — module may not be injecting
+2026-02-20 08:08:08 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 08:08:11 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 08:08:12 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1657s — module may not be injecting
+2026-02-20 08:08:12 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 08:08:16 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1661s — module may not be injecting
+2026-02-20 08:08:16 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 08:08:19 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 08:08:20 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1665s — module may not be injecting
+2026-02-20 08:08:20 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 08:08:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 08:08:24 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1669s — module may not be injecting
+2026-02-20 08:08:24 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 08:08:28 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1673s — module may not be injecting
+2026-02-20 08:08:28 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 08:08:32 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1677s — module may not be injecting
+2026-02-20 08:08:32 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:00 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:44:00 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:04 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:07 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:10 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:44:11 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:14 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:17 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:21 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:44:21 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:24 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:28 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:31 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:31 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:44:31 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:35 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:38 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:42 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:44:42 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:44:45 [hookguard] WARNING: Heartbeat never seen: TikTok running for 45s — module may not be injecting
+2026-02-20 13:44:45 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:56:20 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 13:56:20 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:56:21 [hookguard] WARNING: Heartbeat never seen: TikTok running for 741s — module may not be injecting
+2026-02-20 13:56:21 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:56:24 [hookguard] WARNING: Heartbeat never seen: TikTok running for 744s — module may not be injecting
+2026-02-20 13:56:24 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:56:27 [hookguard] WARNING: Heartbeat never seen: TikTok running for 748s — module may not be injecting
+2026-02-20 13:56:27 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:56:31 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:56:31 [hookguard] WARNING: Heartbeat never seen: TikTok running for 751s — module may not be injecting
+2026-02-20 13:56:31 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:56:34 [hookguard] WARNING: Heartbeat never seen: TikTok running for 754s — module may not be injecting
+2026-02-20 13:56:34 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:56:38 [hookguard] WARNING: Heartbeat never seen: TikTok running for 758s — module may not be injecting
+2026-02-20 13:56:38 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:56:41 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:56:41 [hookguard] WARNING: Heartbeat never seen: TikTok running for 761s — module may not be injecting
+2026-02-20 13:56:41 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:56:44 [hookguard] WARNING: Heartbeat never seen: TikTok running for 765s — module may not be injecting
+2026-02-20 13:56:44 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:56:48 [hookguard] WARNING: Heartbeat never seen: TikTok running for 768s — module may not be injecting
+2026-02-20 13:56:48 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:56:51 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 13:56:51 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:56:52 [hookguard] WARNING: Heartbeat never seen: TikTok running for 772s — module may not be injecting
+2026-02-20 13:56:52 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:56:55 [hookguard] WARNING: Heartbeat never seen: TikTok running for 775s — module may not be injecting
+2026-02-20 13:56:55 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:56:58 [hookguard] WARNING: Heartbeat never seen: TikTok running for 779s — module may not be injecting
+2026-02-20 13:56:58 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:02 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:57:02 [hookguard] WARNING: Heartbeat never seen: TikTok running for 782s — module may not be injecting
+2026-02-20 13:57:02 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:05 [hookguard] WARNING: Heartbeat never seen: TikTok running for 785s — module may not be injecting
+2026-02-20 13:57:05 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:08 [hookguard] WARNING: Heartbeat never seen: TikTok running for 789s — module may not be injecting
+2026-02-20 13:57:08 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:57:12 [hookguard] WARNING: Heartbeat never seen: TikTok running for 792s — module may not be injecting
+2026-02-20 13:57:12 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:15 [hookguard] WARNING: Heartbeat never seen: TikTok running for 796s — module may not be injecting
+2026-02-20 13:57:15 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:19 [hookguard] WARNING: Heartbeat never seen: TikTok running for 799s — module may not be injecting
+2026-02-20 13:57:19 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:22 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:22 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:57:22 [hookguard] WARNING: Heartbeat never seen: TikTok running for 802s — module may not be injecting
+2026-02-20 13:57:22 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:26 [hookguard] WARNING: Heartbeat never seen: TikTok running for 806s — module may not be injecting
+2026-02-20 13:57:26 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:29 [hookguard] WARNING: Heartbeat never seen: TikTok running for 809s — module may not be injecting
+2026-02-20 13:57:29 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:32 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:57:32 [hookguard] WARNING: Heartbeat never seen: TikTok running for 813s — module may not be injecting
+2026-02-20 13:57:32 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:36 [hookguard] WARNING: Heartbeat never seen: TikTok running for 816s — module may not be injecting
+2026-02-20 13:57:36 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:39 [hookguard] WARNING: Heartbeat never seen: TikTok running for 819s — module may not be injecting
+2026-02-20 13:57:39 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:42 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:57:43 [hookguard] WARNING: Heartbeat never seen: TikTok running for 823s — module may not be injecting
+2026-02-20 13:57:43 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:46 [hookguard] WARNING: Heartbeat never seen: TikTok running for 826s — module may not be injecting
+2026-02-20 13:57:46 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:49 [hookguard] WARNING: Heartbeat never seen: TikTok running for 830s — module may not be injecting
+2026-02-20 13:57:49 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:53 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:53 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:57:53 [hookguard] WARNING: Heartbeat never seen: TikTok running for 833s — module may not be injecting
+2026-02-20 13:57:53 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:57:56 [hookguard] WARNING: Heartbeat never seen: TikTok running for 837s — module may not be injecting
+2026-02-20 13:57:56 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:00 [hookguard] WARNING: Heartbeat never seen: TikTok running for 840s — module may not be injecting
+2026-02-20 13:58:00 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:03 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:58:03 [hookguard] WARNING: Heartbeat never seen: TikTok running for 844s — module may not be injecting
+2026-02-20 13:58:03 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:07 [hookguard] WARNING: Heartbeat never seen: TikTok running for 847s — module may not be injecting
+2026-02-20 13:58:07 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:10 [hookguard] WARNING: Heartbeat never seen: TikTok running for 850s — module may not be injecting
+2026-02-20 13:58:10 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:58:13 [hookguard] WARNING: Heartbeat never seen: TikTok running for 854s — module may not be injecting
+2026-02-20 13:58:13 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:17 [hookguard] WARNING: Heartbeat never seen: TikTok running for 857s — module may not be injecting
+2026-02-20 13:58:17 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:20 [hookguard] WARNING: Heartbeat never seen: TikTok running for 860s — module may not be injecting
+2026-02-20 13:58:20 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:23 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:58:24 [hookguard] WARNING: Heartbeat never seen: TikTok running for 864s — module may not be injecting
+2026-02-20 13:58:24 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:27 [hookguard] WARNING: Heartbeat never seen: TikTok running for 867s — module may not be injecting
+2026-02-20 13:58:27 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:30 [hookguard] WARNING: Heartbeat never seen: TikTok running for 871s — module may not be injecting
+2026-02-20 13:58:30 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:34 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:58:34 [hookguard] WARNING: Heartbeat never seen: TikTok running for 874s — module may not be injecting
+2026-02-20 13:58:34 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:37 [hookguard] WARNING: Heartbeat never seen: TikTok running for 878s — module may not be injecting
+2026-02-20 13:58:37 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:41 [hookguard] WARNING: Heartbeat never seen: TikTok running for 881s — module may not be injecting
+2026-02-20 13:58:41 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:44 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:58:44 [hookguard] WARNING: Heartbeat never seen: TikTok running for 885s — module may not be injecting
+2026-02-20 13:58:44 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:48 [hookguard] WARNING: Heartbeat never seen: TikTok running for 888s — module may not be injecting
+2026-02-20 13:58:48 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:51 [hookguard] WARNING: Heartbeat never seen: TikTok running for 891s — module may not be injecting
+2026-02-20 13:58:51 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:54 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:55 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:58:55 [hookguard] WARNING: Heartbeat never seen: TikTok running for 895s — module may not be injecting
+2026-02-20 13:58:55 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:58:58 [hookguard] WARNING: Heartbeat never seen: TikTok running for 898s — module may not be injecting
+2026-02-20 13:58:58 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:02 [hookguard] WARNING: Heartbeat never seen: TikTok running for 902s — module may not be injecting
+2026-02-20 13:59:02 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:05 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:59:05 [hookguard] WARNING: Heartbeat never seen: TikTok running for 905s — module may not be injecting
+2026-02-20 13:59:05 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:08 [hookguard] WARNING: Heartbeat never seen: TikTok running for 909s — module may not be injecting
+2026-02-20 13:59:08 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:12 [hookguard] WARNING: Heartbeat never seen: TikTok running for 912s — module may not be injecting
+2026-02-20 13:59:12 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:15 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:59:15 [hookguard] WARNING: Heartbeat never seen: TikTok running for 916s — module may not be injecting
+2026-02-20 13:59:15 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:19 [hookguard] WARNING: Heartbeat never seen: TikTok running for 919s — module may not be injecting
+2026-02-20 13:59:19 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:22 [hookguard] WARNING: Heartbeat never seen: TikTok running for 922s — module may not be injecting
+2026-02-20 13:59:22 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:25 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:25 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:59:26 [hookguard] WARNING: Heartbeat never seen: TikTok running for 926s — module may not be injecting
+2026-02-20 13:59:26 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:29 [hookguard] WARNING: Heartbeat never seen: TikTok running for 929s — module may not be injecting
+2026-02-20 13:59:29 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:32 [hookguard] WARNING: Heartbeat never seen: TikTok running for 933s — module may not be injecting
+2026-02-20 13:59:32 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:59:36 [hookguard] WARNING: Heartbeat never seen: TikTok running for 936s — module may not be injecting
+2026-02-20 13:59:36 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:39 [hookguard] WARNING: Heartbeat never seen: TikTok running for 940s — module may not be injecting
+2026-02-20 13:59:39 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:43 [hookguard] WARNING: Heartbeat never seen: TikTok running for 943s — module may not be injecting
+2026-02-20 13:59:43 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:46 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:59:46 [hookguard] WARNING: Heartbeat never seen: TikTok running for 946s — module may not be injecting
+2026-02-20 13:59:46 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:49 [hookguard] WARNING: Heartbeat never seen: TikTok running for 950s — module may not be injecting
+2026-02-20 13:59:49 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:53 [hookguard] WARNING: Heartbeat never seen: TikTok running for 953s — module may not be injecting
+2026-02-20 13:59:53 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:56 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 13:59:56 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 13:59:56 [hookguard] WARNING: Heartbeat never seen: TikTok running for 957s — module may not be injecting
+2026-02-20 13:59:56 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:00 [hookguard] WARNING: Heartbeat never seen: TikTok running for 960s — module may not be injecting
+2026-02-20 14:00:00 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:03 [hookguard] WARNING: Heartbeat never seen: TikTok running for 963s — module may not be injecting
+2026-02-20 14:00:03 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:06 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:00:07 [hookguard] WARNING: Heartbeat never seen: TikTok running for 967s — module may not be injecting
+2026-02-20 14:00:07 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:10 [hookguard] WARNING: Heartbeat never seen: TikTok running for 970s — module may not be injecting
+2026-02-20 14:00:10 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:13 [hookguard] WARNING: Heartbeat never seen: TikTok running for 974s — module may not be injecting
+2026-02-20 14:00:13 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:17 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:00:17 [hookguard] WARNING: Heartbeat never seen: TikTok running for 977s — module may not be injecting
+2026-02-20 14:00:17 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:20 [hookguard] WARNING: Heartbeat never seen: TikTok running for 981s — module may not be injecting
+2026-02-20 14:00:20 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:24 [hookguard] WARNING: Heartbeat never seen: TikTok running for 984s — module may not be injecting
+2026-02-20 14:00:24 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:27 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:00:27 [hookguard] WARNING: Heartbeat never seen: TikTok running for 987s — module may not be injecting
+2026-02-20 14:00:27 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:30 [hookguard] WARNING: Heartbeat never seen: TikTok running for 991s — module may not be injecting
+2026-02-20 14:00:30 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:34 [hookguard] WARNING: Heartbeat never seen: TikTok running for 994s — module may not be injecting
+2026-02-20 14:00:34 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:00:37 [hookguard] WARNING: Heartbeat never seen: TikTok running for 998s — module may not be injecting
+2026-02-20 14:00:37 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:41 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1001s — module may not be injecting
+2026-02-20 14:00:41 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:44 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1004s — module may not be injecting
+2026-02-20 14:00:44 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:00:47 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1008s — module may not be injecting
+2026-02-20 14:00:47 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:51 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1011s — module may not be injecting
+2026-02-20 14:00:51 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:54 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1014s — module may not be injecting
+2026-02-20 14:00:54 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:57 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:00:57 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:00:58 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1018s — module may not be injecting
+2026-02-20 14:00:58 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:01 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1021s — module may not be injecting
+2026-02-20 14:01:01 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:04 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1025s — module may not be injecting
+2026-02-20 14:01:04 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:08 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:01:08 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1028s — module may not be injecting
+2026-02-20 14:01:08 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:11 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1031s — module may not be injecting
+2026-02-20 14:01:11 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:14 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1035s — module may not be injecting
+2026-02-20 14:01:14 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:18 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:01:18 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1038s — module may not be injecting
+2026-02-20 14:01:18 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:21 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1041s — module may not be injecting
+2026-02-20 14:01:21 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:25 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1045s — module may not be injecting
+2026-02-20 14:01:25 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:28 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:28 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:01:28 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1049s — module may not be injecting
+2026-02-20 14:01:28 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:32 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1052s — module may not be injecting
+2026-02-20 14:01:32 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:35 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1055s — module may not be injecting
+2026-02-20 14:01:35 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:01:38 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1059s — module may not be injecting
+2026-02-20 14:01:38 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:42 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1062s — module may not be injecting
+2026-02-20 14:01:42 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:45 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1065s — module may not be injecting
+2026-02-20 14:01:45 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:48 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:01:49 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1069s — module may not be injecting
+2026-02-20 14:01:49 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:52 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1072s — module may not be injecting
+2026-02-20 14:01:52 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:55 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1076s — module may not be injecting
+2026-02-20 14:01:55 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:59 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:01:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:01:59 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1079s — module may not be injecting
+2026-02-20 14:01:59 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:02 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1083s — module may not be injecting
+2026-02-20 14:02:02 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:06 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1086s — module may not be injecting
+2026-02-20 14:02:06 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:09 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:02:09 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1089s — module may not be injecting
+2026-02-20 14:02:09 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:12 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1093s — module may not be injecting
+2026-02-20 14:02:12 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:16 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1096s — module may not be injecting
+2026-02-20 14:02:16 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:19 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:02:19 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1100s — module may not be injecting
+2026-02-20 14:02:19 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:23 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1103s — module may not be injecting
+2026-02-20 14:02:23 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:26 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1106s — module may not be injecting
+2026-02-20 14:02:26 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:29 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:29 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:02:30 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1110s — module may not be injecting
+2026-02-20 14:02:30 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:33 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1113s — module may not be injecting
+2026-02-20 14:02:33 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:36 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1117s — module may not be injecting
+2026-02-20 14:02:36 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:40 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:02:40 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1120s — module may not be injecting
+2026-02-20 14:02:40 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:43 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1124s — module may not be injecting
+2026-02-20 14:02:43 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:47 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1127s — module may not be injecting
+2026-02-20 14:02:47 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:50 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:02:50 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1130s — module may not be injecting
+2026-02-20 14:02:50 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:53 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1134s — module may not be injecting
+2026-02-20 14:02:53 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:02:57 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1137s — module may not be injecting
+2026-02-20 14:02:57 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:00 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:00 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:03:00 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1141s — module may not be injecting
+2026-02-20 14:03:00 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:04 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1144s — module may not be injecting
+2026-02-20 14:03:04 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:07 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1147s — module may not be injecting
+2026-02-20 14:03:07 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:10 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:03:11 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1151s — module may not be injecting
+2026-02-20 14:03:11 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:14 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1154s — module may not be injecting
+2026-02-20 14:03:14 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:17 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1158s — module may not be injecting
+2026-02-20 14:03:17 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:21 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:03:21 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1161s — module may not be injecting
+2026-02-20 14:03:21 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:24 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1164s — module may not be injecting
+2026-02-20 14:03:24 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:27 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1168s — module may not be injecting
+2026-02-20 14:03:27 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:31 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:31 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:03:31 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1171s — module may not be injecting
+2026-02-20 14:03:31 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:34 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1175s — module may not be injecting
+2026-02-20 14:03:34 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:38 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1178s — module may not be injecting
+2026-02-20 14:03:38 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:41 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:03:41 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1182s — module may not be injecting
+2026-02-20 14:03:41 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:45 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1185s — module may not be injecting
+2026-02-20 14:03:45 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:48 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1188s — module may not be injecting
+2026-02-20 14:03:48 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:51 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:03:51 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1192s — module may not be injecting
+2026-02-20 14:03:51 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:55 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1195s — module may not be injecting
+2026-02-20 14:03:55 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:03:58 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1198s — module may not be injecting
+2026-02-20 14:03:58 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:01 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:02 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:04:02 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1202s — module may not be injecting
+2026-02-20 14:04:02 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:05 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1205s — module may not be injecting
+2026-02-20 14:04:05 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:08 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1209s — module may not be injecting
+2026-02-20 14:04:08 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:04:12 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1212s — module may not be injecting
+2026-02-20 14:04:12 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:15 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1216s — module may not be injecting
+2026-02-20 14:04:15 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:19 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1219s — module may not be injecting
+2026-02-20 14:04:19 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:22 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:04:22 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1222s — module may not be injecting
+2026-02-20 14:04:22 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:25 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1226s — module may not be injecting
+2026-02-20 14:04:25 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:29 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1229s — module may not be injecting
+2026-02-20 14:04:29 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:32 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:32 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:04:32 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1233s — module may not be injecting
+2026-02-20 14:04:32 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:36 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1236s — module may not be injecting
+2026-02-20 14:04:36 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:39 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1239s — module may not be injecting
+2026-02-20 14:04:39 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:42 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:04:43 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1243s — module may not be injecting
+2026-02-20 14:04:43 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:46 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1246s — module may not be injecting
+2026-02-20 14:04:46 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:49 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1250s — module may not be injecting
+2026-02-20 14:04:49 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:53 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:04:53 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1253s — module may not be injecting
+2026-02-20 14:04:53 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:04:56 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1256s — module may not be injecting
+2026-02-20 14:04:56 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:00 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1260s — module may not be injecting
+2026-02-20 14:05:00 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:03 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:03 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:05:03 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1264s — module may not be injecting
+2026-02-20 14:05:03 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:07 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1267s — module may not be injecting
+2026-02-20 14:05:07 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:10 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1270s — module may not be injecting
+2026-02-20 14:05:10 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:05:13 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1274s — module may not be injecting
+2026-02-20 14:05:13 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:17 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1277s — module may not be injecting
+2026-02-20 14:05:17 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:20 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1281s — module may not be injecting
+2026-02-20 14:05:20 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:05:24 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1284s — module may not be injecting
+2026-02-20 14:05:24 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:27 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1287s — module may not be injecting
+2026-02-20 14:05:27 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:30 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1291s — module may not be injecting
+2026-02-20 14:05:30 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:34 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:34 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:05:34 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1294s — module may not be injecting
+2026-02-20 14:05:34 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:37 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1298s — module may not be injecting
+2026-02-20 14:05:37 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:41 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1301s — module may not be injecting
+2026-02-20 14:05:41 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:44 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:05:44 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1305s — module may not be injecting
+2026-02-20 14:05:44 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:48 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1308s — module may not be injecting
+2026-02-20 14:05:48 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:51 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1311s — module may not be injecting
+2026-02-20 14:05:51 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:54 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:05:54 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1315s — module may not be injecting
+2026-02-20 14:05:54 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:05:58 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1318s — module may not be injecting
+2026-02-20 14:05:58 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:01 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1322s — module may not be injecting
+2026-02-20 14:06:01 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:05 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:05 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:06:05 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1325s — module may not be injecting
+2026-02-20 14:06:05 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:08 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1329s — module may not be injecting
+2026-02-20 14:06:08 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:12 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1332s — module may not be injecting
+2026-02-20 14:06:12 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:15 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:06:15 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1335s — module may not be injecting
+2026-02-20 14:06:15 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:18 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1339s — module may not be injecting
+2026-02-20 14:06:18 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:22 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1342s — module may not be injecting
+2026-02-20 14:06:22 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:25 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:06:25 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1346s — module may not be injecting
+2026-02-20 14:06:25 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:29 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1349s — module may not be injecting
+2026-02-20 14:06:29 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:32 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1352s — module may not be injecting
+2026-02-20 14:06:32 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:35 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:35 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:06:36 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1356s — module may not be injecting
+2026-02-20 14:06:36 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:39 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1359s — module may not be injecting
+2026-02-20 14:06:39 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:42 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1363s — module may not be injecting
+2026-02-20 14:06:42 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:46 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:06:46 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1366s — module may not be injecting
+2026-02-20 14:06:46 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:49 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1370s — module may not be injecting
+2026-02-20 14:06:49 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:53 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1373s — module may not be injecting
+2026-02-20 14:06:53 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:56 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:06:56 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1376s — module may not be injecting
+2026-02-20 14:06:56 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:06:59 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1380s — module may not be injecting
+2026-02-20 14:06:59 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:03 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1383s — module may not be injecting
+2026-02-20 14:07:03 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:06 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:06 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:07:07 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1387s — module may not be injecting
+2026-02-20 14:07:07 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:10 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1390s — module may not be injecting
+2026-02-20 14:07:10 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:13 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1394s — module may not be injecting
+2026-02-20 14:07:13 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:17 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:07:17 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1397s — module may not be injecting
+2026-02-20 14:07:17 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:20 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1400s — module may not be injecting
+2026-02-20 14:07:20 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:23 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1404s — module may not be injecting
+2026-02-20 14:07:23 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:07:27 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1407s — module may not be injecting
+2026-02-20 14:07:27 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:30 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1411s — module may not be injecting
+2026-02-20 14:07:30 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:34 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1414s — module may not be injecting
+2026-02-20 14:07:34 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:37 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:07:37 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1418s — module may not be injecting
+2026-02-20 14:07:37 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:41 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1421s — module may not be injecting
+2026-02-20 14:07:41 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:44 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1424s — module may not be injecting
+2026-02-20 14:07:44 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:07:48 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1428s — module may not be injecting
+2026-02-20 14:07:48 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:51 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1431s — module may not be injecting
+2026-02-20 14:07:51 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:54 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1435s — module may not be injecting
+2026-02-20 14:07:54 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:07:58 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:07:58 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1438s — module may not be injecting
+2026-02-20 14:07:58 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:01 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1441s — module may not be injecting
+2026-02-20 14:08:01 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:04 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1445s — module may not be injecting
+2026-02-20 14:08:04 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:08 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:08 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:08:08 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1448s — module may not be injecting
+2026-02-20 14:08:08 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:12 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1452s — module may not be injecting
+2026-02-20 14:08:12 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:15 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1455s — module may not be injecting
+2026-02-20 14:08:15 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:18 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:08:18 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1459s — module may not be injecting
+2026-02-20 14:08:18 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:22 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1462s — module may not be injecting
+2026-02-20 14:08:22 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:25 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1465s — module may not be injecting
+2026-02-20 14:08:25 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:28 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:08:29 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1469s — module may not be injecting
+2026-02-20 14:08:29 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:32 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1472s — module may not be injecting
+2026-02-20 14:08:32 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:35 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1476s — module may not be injecting
+2026-02-20 14:08:35 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:39 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:39 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:08:39 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1479s — module may not be injecting
+2026-02-20 14:08:39 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:42 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1483s — module may not be injecting
+2026-02-20 14:08:42 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:46 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1486s — module may not be injecting
+2026-02-20 14:08:46 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:08:49 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1490s — module may not be injecting
+2026-02-20 14:08:49 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:53 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1493s — module may not be injecting
+2026-02-20 14:08:53 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:56 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1496s — module may not be injecting
+2026-02-20 14:08:56 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:08:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:09:00 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1500s — module may not be injecting
+2026-02-20 14:09:00 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:04 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1504s — module may not be injecting
+2026-02-20 14:09:04 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:07 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1507s — module may not be injecting
+2026-02-20 14:09:07 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:10 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:11 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:09:11 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1511s — module may not be injecting
+2026-02-20 14:09:11 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:14 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1514s — module may not be injecting
+2026-02-20 14:09:14 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:17 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1518s — module may not be injecting
+2026-02-20 14:09:17 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:21 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:09:21 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1521s — module may not be injecting
+2026-02-20 14:09:21 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:24 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1525s — module may not be injecting
+2026-02-20 14:09:24 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:28 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1528s — module may not be injecting
+2026-02-20 14:09:28 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:31 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:09:31 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1532s — module may not be injecting
+2026-02-20 14:09:31 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:35 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1535s — module may not be injecting
+2026-02-20 14:09:35 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:38 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1538s — module may not be injecting
+2026-02-20 14:09:38 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:41 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:41 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:09:42 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1542s — module may not be injecting
+2026-02-20 14:09:42 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:45 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1545s — module may not be injecting
+2026-02-20 14:09:45 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:48 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1549s — module may not be injecting
+2026-02-20 14:09:48 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:52 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:09:52 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1552s — module may not be injecting
+2026-02-20 14:09:52 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:55 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1556s — module may not be injecting
+2026-02-20 14:09:55 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:09:59 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1559s — module may not be injecting
+2026-02-20 14:09:59 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:02 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:10:02 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1562s — module may not be injecting
+2026-02-20 14:10:02 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:05 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1566s — module may not be injecting
+2026-02-20 14:10:05 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:09 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1569s — module may not be injecting
+2026-02-20 14:10:09 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:12 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:10:12 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1573s — module may not be injecting
+2026-02-20 14:10:12 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:16 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1576s — module may not be injecting
+2026-02-20 14:10:16 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:19 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1579s — module may not be injecting
+2026-02-20 14:10:19 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:22 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:10:23 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1583s — module may not be injecting
+2026-02-20 14:10:23 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:26 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1586s — module may not be injecting
+2026-02-20 14:10:26 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:29 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1590s — module may not be injecting
+2026-02-20 14:10:29 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:33 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:10:33 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1593s — module may not be injecting
+2026-02-20 14:10:33 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:36 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1597s — module may not be injecting
+2026-02-20 14:10:36 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:40 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1600s — module may not be injecting
+2026-02-20 14:10:40 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:43 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:43 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:10:43 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1604s — module may not be injecting
+2026-02-20 14:10:43 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:47 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1607s — module may not be injecting
+2026-02-20 14:10:47 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:50 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1610s — module may not be injecting
+2026-02-20 14:10:50 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:53 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:10:53 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1614s — module may not be injecting
+2026-02-20 14:10:53 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:10:57 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1617s — module may not be injecting
+2026-02-20 14:10:57 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:00 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1621s — module may not be injecting
+2026-02-20 14:11:00 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:04 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:11:04 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1624s — module may not be injecting
+2026-02-20 14:11:04 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:07 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1627s — module may not be injecting
+2026-02-20 14:11:07 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:10 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1631s — module may not be injecting
+2026-02-20 14:11:10 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:14 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:14 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:11:14 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1634s — module may not be injecting
+2026-02-20 14:11:14 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:17 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1638s — module may not be injecting
+2026-02-20 14:11:17 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:21 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1641s — module may not be injecting
+2026-02-20 14:11:21 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:11:24 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1645s — module may not be injecting
+2026-02-20 14:11:24 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:28 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1648s — module may not be injecting
+2026-02-20 14:11:28 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:31 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1651s — module may not be injecting
+2026-02-20 14:11:31 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:34 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:11:34 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1655s — module may not be injecting
+2026-02-20 14:11:34 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:38 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1658s — module may not be injecting
+2026-02-20 14:11:38 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:41 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1661s — module may not be injecting
+2026-02-20 14:11:41 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:44 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:44 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:11:45 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1665s — module may not be injecting
+2026-02-20 14:11:45 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:48 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1668s — module may not be injecting
+2026-02-20 14:11:48 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:51 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1672s — module may not be injecting
+2026-02-20 14:11:51 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:55 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:11:55 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1675s — module may not be injecting
+2026-02-20 14:11:55 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:11:58 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1678s — module may not be injecting
+2026-02-20 14:11:58 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:01 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1682s — module may not be injecting
+2026-02-20 14:12:01 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:05 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:12:05 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1685s — module may not be injecting
+2026-02-20 14:12:05 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:08 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1688s — module may not be injecting
+2026-02-20 14:12:08 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:11 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1692s — module may not be injecting
+2026-02-20 14:12:11 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:15 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:15 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:12:15 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1695s — module may not be injecting
+2026-02-20 14:12:15 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:18 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1699s — module may not be injecting
+2026-02-20 14:12:18 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:22 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1702s — module may not be injecting
+2026-02-20 14:12:22 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:25 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:12:25 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1705s — module may not be injecting
+2026-02-20 14:12:25 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:28 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1709s — module may not be injecting
+2026-02-20 14:12:28 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:32 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1712s — module may not be injecting
+2026-02-20 14:12:32 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:35 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:12:35 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1716s — module may not be injecting
+2026-02-20 14:12:35 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:39 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1719s — module may not be injecting
+2026-02-20 14:12:39 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:42 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1722s — module may not be injecting
+2026-02-20 14:12:42 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:45 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:45 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:12:45 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1726s — module may not be injecting
+2026-02-20 14:12:45 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:49 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1729s — module may not be injecting
+2026-02-20 14:12:49 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:52 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1732s — module may not be injecting
+2026-02-20 14:12:52 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:55 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:12:56 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1736s — module may not be injecting
+2026-02-20 14:12:56 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:12:59 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1739s — module may not be injecting
+2026-02-20 14:12:59 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:02 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1743s — module may not be injecting
+2026-02-20 14:13:02 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:05 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:13:06 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1746s — module may not be injecting
+2026-02-20 14:13:06 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:09 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1749s — module may not be injecting
+2026-02-20 14:13:09 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:12 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1753s — module may not be injecting
+2026-02-20 14:13:12 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:16 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:16 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:13:16 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1756s — module may not be injecting
+2026-02-20 14:13:16 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:19 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1759s — module may not be injecting
+2026-02-20 14:13:19 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:22 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1763s — module may not be injecting
+2026-02-20 14:13:22 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:26 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:13:26 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1766s — module may not be injecting
+2026-02-20 14:13:26 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:29 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1770s — module may not be injecting
+2026-02-20 14:13:29 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:33 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1773s — module may not be injecting
+2026-02-20 14:13:33 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:13:36 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1777s — module may not be injecting
+2026-02-20 14:13:36 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:40 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1780s — module may not be injecting
+2026-02-20 14:13:40 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:43 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1783s — module may not be injecting
+2026-02-20 14:13:43 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:46 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:46 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:13:47 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1787s — module may not be injecting
+2026-02-20 14:13:47 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:50 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1790s — module may not be injecting
+2026-02-20 14:13:50 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:53 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1794s — module may not be injecting
+2026-02-20 14:13:53 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:13:56 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:13:57 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1797s — module may not be injecting
+2026-02-20 14:13:57 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:00 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1800s — module may not be injecting
+2026-02-20 14:14:00 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:03 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1804s — module may not be injecting
+2026-02-20 14:14:03 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:07 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:14:07 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1807s — module may not be injecting
+2026-02-20 14:14:07 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:10 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1810s — module may not be injecting
+2026-02-20 14:14:10 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:13 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1814s — module may not be injecting
+2026-02-20 14:14:13 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:17 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:17 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:14:17 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1817s — module may not be injecting
+2026-02-20 14:14:17 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:20 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1821s — module may not be injecting
+2026-02-20 14:14:20 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:24 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1824s — module may not be injecting
+2026-02-20 14:14:24 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:27 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:14:27 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1827s — module may not be injecting
+2026-02-20 14:14:27 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:30 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1831s — module may not be injecting
+2026-02-20 14:14:30 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:34 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1834s — module may not be injecting
+2026-02-20 14:14:34 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:37 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:14:37 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1837s — module may not be injecting
+2026-02-20 14:14:37 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:40 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1841s — module may not be injecting
+2026-02-20 14:14:40 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:44 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1844s — module may not be injecting
+2026-02-20 14:14:44 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:47 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:14:47 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1848s — module may not be injecting
+2026-02-20 14:14:47 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:51 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1851s — module may not be injecting
+2026-02-20 14:14:51 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:54 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1854s — module may not be injecting
+2026-02-20 14:14:54 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:14:57 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:14:58 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1858s — module may not be injecting
+2026-02-20 14:14:58 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:01 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1861s — module may not be injecting
+2026-02-20 14:15:01 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:04 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1865s — module may not be injecting
+2026-02-20 14:15:04 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:08 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:15:08 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1868s — module may not be injecting
+2026-02-20 14:15:08 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:11 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1871s — module may not be injecting
+2026-02-20 14:15:11 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:14 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1875s — module may not be injecting
+2026-02-20 14:15:14 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:18 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:18 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:15:18 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1878s — module may not be injecting
+2026-02-20 14:15:18 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:21 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1882s — module may not be injecting
+2026-02-20 14:15:21 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:25 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1885s — module may not be injecting
+2026-02-20 14:15:25 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:28 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:15:28 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1888s — module may not be injecting
+2026-02-20 14:15:28 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:31 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1892s — module may not be injecting
+2026-02-20 14:15:31 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:35 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1895s — module may not be injecting
+2026-02-20 14:15:35 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:38 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:15:38 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1899s — module may not be injecting
+2026-02-20 14:15:38 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:42 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1902s — module may not be injecting
+2026-02-20 14:15:42 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:45 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1905s — module may not be injecting
+2026-02-20 14:15:45 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:48 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:48 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:15:49 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1909s — module may not be injecting
+2026-02-20 14:15:49 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:52 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1912s — module may not be injecting
+2026-02-20 14:15:52 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:55 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1916s — module may not be injecting
+2026-02-20 14:15:55 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:15:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:15:59 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1919s — module may not be injecting
+2026-02-20 14:15:59 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:02 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1922s — module may not be injecting
+2026-02-20 14:16:02 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:05 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1926s — module may not be injecting
+2026-02-20 14:16:05 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:09 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:16:09 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1929s — module may not be injecting
+2026-02-20 14:16:09 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:12 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1932s — module may not be injecting
+2026-02-20 14:16:12 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:15 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1936s — module may not be injecting
+2026-02-20 14:16:15 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:19 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:19 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:16:19 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1939s — module may not be injecting
+2026-02-20 14:16:19 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:22 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1943s — module may not be injecting
+2026-02-20 14:16:22 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:26 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1946s — module may not be injecting
+2026-02-20 14:16:26 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:29 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:16:29 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1949s — module may not be injecting
+2026-02-20 14:16:29 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:32 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1953s — module may not be injecting
+2026-02-20 14:16:32 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:36 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1956s — module may not be injecting
+2026-02-20 14:16:36 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:39 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:16:39 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1960s — module may not be injecting
+2026-02-20 14:16:39 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:43 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1963s — module may not be injecting
+2026-02-20 14:16:43 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:46 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1966s — module may not be injecting
+2026-02-20 14:16:46 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:49 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:49 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:16:50 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1970s — module may not be injecting
+2026-02-20 14:16:50 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:53 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1973s — module may not be injecting
+2026-02-20 14:16:53 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:56 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1976s — module may not be injecting
+2026-02-20 14:16:56 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:16:59 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:17:00 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1980s — module may not be injecting
+2026-02-20 14:17:00 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:17:03 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1983s — module may not be injecting
+2026-02-20 14:17:03 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:17:06 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1987s — module may not be injecting
+2026-02-20 14:17:06 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:17:10 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:17:10 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1990s — module may not be injecting
+2026-02-20 14:17:10 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:17:13 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1994s — module may not be injecting
+2026-02-20 14:17:13 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:17:17 [hookguard] WARNING: Heartbeat never seen: TikTok running for 1997s — module may not be injecting
+2026-02-20 14:17:17 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:17:20 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=56e675585a8bd27422c6cab5e47b345d got=18ba451f88705a5eba19073421a77501
+2026-02-20 14:17:20 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 14:17:20 [hookguard] WARNING: Heartbeat never seen: TikTok running for 2001s — module may not be injecting
+2026-02-20 14:17:20 [hookguard] WARNING: Bridge mismatch (warning): hash=18ba451f88705a5eba19073421a77501
+2026-02-20 14:20:06 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=58898)
+2026-02-20 14:20:07 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 14:20:07 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 14:20:07 [host.main] INFO: Command Center gestoppt.
+2026-02-20 14:20:07 [host.main] INFO: ============================================================
+2026-02-20 14:20:07 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 14:20:07 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:20:07 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 14:20:07 [host.main] INFO: ============================================================
+2026-02-20 14:20:07 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:20:07 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 14:20:07 [host.main] INFO: Command Center bereit.
+2026-02-20 14:20:10 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=60747)
+2026-02-20 14:21:27 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=60747)
+2026-02-20 14:21:28 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 14:21:28 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 14:21:28 [host.main] INFO: Command Center gestoppt.
+2026-02-20 14:21:28 [host.main] INFO: ============================================================
+2026-02-20 14:21:28 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 14:21:28 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:21:28 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 14:21:28 [host.main] INFO: ============================================================
+2026-02-20 14:21:28 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:21:28 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 14:21:28 [host.main] INFO: Command Center bereit.
+2026-02-20 14:21:31 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=60804)
+2026-02-20 14:22:05 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=60804)
+2026-02-20 14:22:05 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 14:22:05 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 14:22:05 [host.main] INFO: Command Center gestoppt.
+2026-02-20 14:22:06 [host.main] INFO: ============================================================
+2026-02-20 14:22:06 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 14:22:06 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:22:06 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 14:22:06 [host.main] INFO: ============================================================
+2026-02-20 14:22:06 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:22:06 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 14:22:06 [host.main] INFO: Command Center bereit.
+2026-02-20 14:22:09 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=60811)
+2026-02-20 14:22:38 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=60811)
+2026-02-20 14:22:38 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 14:22:38 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 14:22:38 [host.main] INFO: Command Center gestoppt.
+2026-02-20 14:22:39 [host.main] INFO: ============================================================
+2026-02-20 14:22:39 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 14:22:39 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:22:39 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 14:22:39 [host.main] INFO: ============================================================
+2026-02-20 14:22:39 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:22:39 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 14:22:39 [host.main] INFO: Command Center bereit.
+2026-02-20 14:22:42 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=60841)
+2026-02-20 14:22:44 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=60841)
+2026-02-20 14:22:44 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 14:22:44 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 14:22:44 [host.main] INFO: Command Center gestoppt.
+2026-02-20 14:22:44 [host.main] INFO: ============================================================
+2026-02-20 14:22:44 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 14:22:44 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:22:44 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 14:22:44 [host.main] INFO: ============================================================
+2026-02-20 14:22:44 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:22:44 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 14:22:44 [host.main] INFO: Command Center bereit.
+2026-02-20 14:22:47 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=60859)
+2026-02-20 14:25:35 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=60859)
+2026-02-20 14:25:35 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 14:25:35 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 14:25:35 [host.main] INFO: Command Center gestoppt.
+2026-02-20 14:25:35 [host.main] INFO: ============================================================
+2026-02-20 14:25:35 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 14:25:35 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:25:35 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 14:25:35 [host.main] INFO: ============================================================
+2026-02-20 14:25:35 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:25:35 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 14:25:35 [host.main] INFO: Command Center bereit.
+2026-02-20 14:25:39 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=60988)
+2026-02-20 14:25:58 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=60988)
+2026-02-20 14:25:58 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 14:25:58 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 14:25:58 [host.main] INFO: Command Center gestoppt.
+2026-02-20 14:25:59 [host.main] INFO: ============================================================
+2026-02-20 14:25:59 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 14:25:59 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:25:59 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 14:25:59 [host.main] INFO: ============================================================
+2026-02-20 14:25:59 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:25:59 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 14:25:59 [host.main] INFO: Command Center bereit.
+2026-02-20 14:26:02 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=60992)
+2026-02-20 14:26:24 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=60992)
+2026-02-20 14:26:24 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 14:26:24 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 14:26:24 [host.main] INFO: Command Center gestoppt.
+2026-02-20 14:26:24 [host.main] INFO: ============================================================
+2026-02-20 14:26:24 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 14:26:24 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:26:24 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 14:26:24 [host.main] INFO: ============================================================
+2026-02-20 14:26:24 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:26:24 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 14:26:24 [host.main] INFO: Command Center bereit.
+2026-02-20 14:26:27 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=61021)
+2026-02-20 14:42:40 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=61021)
+2026-02-20 14:42:40 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 14:42:40 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 14:42:40 [host.main] INFO: Command Center gestoppt.
+2026-02-20 14:42:40 [host.main] INFO: ============================================================
+2026-02-20 14:42:40 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 14:42:40 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:42:40 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 14:42:40 [host.main] INFO: ============================================================
+2026-02-20 14:42:40 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:42:40 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 14:42:40 [host.main] INFO: Command Center bereit.
+2026-02-20 14:42:44 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=61601)
+2026-02-20 14:43:24 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=61601)
+2026-02-20 14:43:24 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 14:43:24 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 14:43:24 [host.main] INFO: Command Center gestoppt.
+2026-02-20 14:43:24 [host.main] INFO: ============================================================
+2026-02-20 14:43:24 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 14:43:24 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:43:24 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 14:43:24 [host.main] INFO: ============================================================
+2026-02-20 14:43:24 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:43:24 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 14:43:24 [host.main] INFO: Command Center bereit.
+2026-02-20 14:43:27 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=61629)
+2026-02-20 14:43:37 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=61629)
+2026-02-20 14:43:37 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 14:43:37 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 14:43:37 [host.main] INFO: Command Center gestoppt.
+2026-02-20 14:43:38 [host.main] INFO: ============================================================
+2026-02-20 14:43:38 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 14:43:38 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:43:38 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 14:43:38 [host.main] INFO: ============================================================
+2026-02-20 14:43:38 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 14:43:38 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 14:43:38 [host.main] INFO: Command Center bereit.
+2026-02-20 14:43:41 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=61638)
+2026-02-20 15:04:26 [host.api.control] INFO: Genesis-Flow gestartet: Ghost_Protocol_v91_Test
+2026-02-20 15:04:26 [host.flows.genesis] INFO: ============================================================
+2026-02-20 15:04:26 [host.flows.genesis] INFO:   GENESIS FLOW: Ghost_Protocol_v91_Test
+2026-02-20 15:04:26 [host.flows.genesis] INFO: ============================================================
+2026-02-20 15:04:26 [host.flows.genesis] INFO: Genesis Frequency: 0/2h, 5/24h, 53 total (Limits: 9999/2h, 9999/24h, Cooldown 0min)
+2026-02-20 15:04:26 [host.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-20 15:04:27 [host.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-20 15:04:27 [host.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-20 15:04:27 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'genesisWlanVersuch' hat keinen TikTok-Account — Checkbox nicht gesetzt
+2026-02-20 15:04:27 [host.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-20 15:04:27 [host.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-20 15:04:27 [host.shifter] INFO: [Clean] pm clear com.zhiliaoapp.musically: OK (firstInstallTime unverändert)
+2026-02-20 15:04:27 [host.shifter] INFO: [Clean] com.ss.android.ugc.trill nicht installiert — überspringe
+2026-02-20 15:04:27 [host.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-20 15:04:27 [host.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-20 15:04:28 [host.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-20 15:04:33 [host.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-20 15:04:34 [host.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-20 15:04:36 [host.shifter] INFO: AAID Reset: über Content-Provider (GMS-Dateien unberührt)
+2026-02-20 15:04:36 [host.shifter] WARNING: Deep Clean: 40/41 OK — FEHLGESCHLAGEN: compiler_reset_com.ss.android.ugc.trill
+2026-02-20 15:04:36 [host.flows.genesis] INFO: [3/11] Sterilize: OK (40/41 Operationen (GMS geschützt) | nicht-kritisch fehlgeschlagen: compiler_reset_com.ss.android.ugc.trill)
+2026-02-20 15:04:36 [host.shifter] INFO: Clearing system clipboard...
+2026-02-20 15:04:36 [host.shifter] INFO: Clipboard cleared
+2026-02-20 15:04:36 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-20 15:04:44 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-20 15:04:44 [host.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-20 15:04:44 [host.identity] INFO: Identität generiert: name=Ghost_Protocol_v91_Test serial=KB2PXK513WNU imei1=355543…0562 carrier=O2-DE
+2026-02-20 15:04:44 [host.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 5303...3279 (v5.0 — FINAL, kein Platzhalter)
+2026-02-20 15:04:44 [host.flows.genesis] INFO: [4/11] Generate: OK (serial=KB2PXK513WNU)
+2026-02-20 15:04:44 [host.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-20 15:04:44 [host.db_ops] INFO: Auto-Profil erstellt: id=54, name=Ghost_Protocol_v91_Test
+2026-02-20 15:04:44 [host.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=54
+2026-02-20 15:04:44 [host.flows.genesis] INFO: [5/11] Persist: OK (identity_id=60, profile_id=54)
+2026-02-20 15:04:44 [host.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-20 15:04:44 [host.injector] INFO: Injecting identity: serial=KB2PXK513WNU imei1=355543…0562
+2026-02-20 15:04:44 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/bridge_8inh4hhx.bridge → /data/local/tmp/.bridge_staging
+2026-02-20 15:04:44 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-20 15:04:45 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-20 15:04:48 [host.injector] INFO: Bridge verteilt an 8/10 Apps
+2026-02-20 15:04:49 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → 25a7e192-049a-4f78-8668-acaa3a97829d
+2026-02-20 15:04:49 [host.injector] INFO: Injection komplett + verifiziert: KB2PXK513WNU
+2026-02-20 15:04:49 [host.flows.genesis] INFO: [6/11] PIF v5.0: autopif4-First Strategie (BASIC_INTEGRITY)...
+2026-02-20 15:04:49 [host.injector] INFO: PIF v5.0: autopif4 Canary-Fingerprint gefunden — verwende diesen (NICHT unseren statischen Pool)
+2026-02-20 15:04:49 [host.injector] INFO: PIF autopif4: FP=google/oriole_beta/oriole:CANARY/ZP11.260123.011/1… | Patch=2026-02-05 | Estimated Expiry: 2026-03-26
+2026-02-20 15:04:49 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/pif_phcnm3m8.prop → /data/local/tmp/.pif_staging.prop
+2026-02-20 15:04:49 [host.injector] INFO: PIF v5.0 OK [autopif4-canary]: custom.pif.prop → /data/adb/modules/playintegrityfix/custom.pif.prop
+2026-02-20 15:04:49 [host.flows.genesis] INFO: [6/11] PIF: custom.pif.prop erfolgreich gepusht
+2026-02-20 15:04:49 [host.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-20 15:04:49 [host.flows.genesis] INFO: [6/11] Ghost Protocol: Kernel-Level Deployment...
+2026-02-20 15:04:49 [host.injector] INFO: Ghost Protocol: SUSFS Fake-Dateien schreiben...
+2026-02-20 15:04:49 [host.injector] INFO:   SUSFS Fake: ARP (leere Tabelle) → /data/adb/ksu/bin/.fake_arp
+2026-02-20 15:04:50 [host.injector] INFO:   SUSFS Fake: WiFi MAC (00:1a:11:67:32:22) → /data/adb/ksu/bin/.fake_mac
+2026-02-20 15:04:50 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/assets/clean_input_devices.txt → /data/local/tmp/.clean_input_devices.txt_staging
+2026-02-20 15:04:50 [host.injector] INFO:   SUSFS Fake: /proc/bus/input/devices → /data/adb/ksu/bin/.fake_input
+2026-02-20 15:04:50 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/assets/fake_cpuinfo.txt → /data/local/tmp/.fake_cpuinfo.txt_staging
+2026-02-20 15:04:50 [host.injector] INFO:   SUSFS Fake: /proc/cpuinfo → /data/adb/ksu/bin/.fake_cpuinfo
+2026-02-20 15:04:50 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/assets/fake_version.txt → /data/local/tmp/.fake_version.txt_staging
+2026-02-20 15:04:50 [host.injector] INFO:   SUSFS Fake: /proc/version → /data/adb/ksu/bin/.fake_version
+2026-02-20 15:04:50 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/assets/fake_if_inet6.txt → /data/local/tmp/.fake_if_inet6.txt_staging
+2026-02-20 15:04:51 [host.injector] INFO:   SUSFS Fake: /proc/net/if_inet6 → /data/adb/ksu/bin/.fake_if_inet6
+2026-02-20 15:04:51 [host.injector] INFO: Ghost Protocol: Boot-Scripts deployen...
+2026-02-20 15:04:51 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/post-fs-data.sh → /data/local/tmp/.post-fs-data.sh_staging
+2026-02-20 15:04:51 [host.injector] INFO:   Boot-Script → /data/adb/modules/hw_overlay/post-fs-data.sh
+2026-02-20 15:04:51 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/service.sh → /data/local/tmp/.service.sh_staging
+2026-02-20 15:04:51 [host.injector] INFO:   Boot-Script → /data/adb/modules/hw_overlay/service.sh
+2026-02-20 15:04:51 [host.injector] INFO: Ghost Protocol: SSAID patchen fuer 4 Apps...
+2026-02-20 15:04:52 [host.injector] INFO:   SSAID global + per-App gesetzt: 1de823c2…
+2026-02-20 15:04:52 [host.injector] INFO: Ghost Protocol: GAID Reset...
+2026-02-20 15:04:52 [host.injector] INFO:   GAID XML geloescht, GMS gestoppt → neue GAID bei naechstem Start
+2026-02-20 15:04:52 [host.injector] INFO: Ghost Protocol: Bluetooth Pairing-Daten loeschen...
+2026-02-20 15:04:52 [host.injector] INFO:   BT Daten geloescht: /data/misc/bluetooth
+2026-02-20 15:04:52 [host.flows.genesis] INFO: [6/11] Ghost Protocol: Deployment abgeschlossen
+2026-02-20 15:04:52 [host.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-20 15:04:52 [host.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Ghost Protocol + Kill-Switch entfernt | PIF=OK)
+2026-02-20 15:04:52 [host.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-20 15:04:52 [host.adb] INFO: Reboot: mode=normal
+2026-02-20 15:04:59 [host.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-20 15:05:14 [host.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-20 15:05:14 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 15:05:14 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 15:05:18 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 15:05:19 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 15:05:42 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 15:05:44 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-20 15:05:44 [host.flows.genesis] INFO: [7/11] Warte auf Boot (unbegrenzt, pollt alle 3s)...
+2026-02-20 15:05:44 [host.adb] INFO: Warte auf Gerät (unbegrenzt, pollt alle 3s)...
+2026-02-20 15:05:44 [host.adb] INFO: Gerät gebootet nach 0.0s
+2026-02-20 15:05:44 [host.flows.genesis] INFO: [7/11] Boot erkannt — warte 5s post-boot...
+2026-02-20 15:05:52 [host.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-20 15:05:52 [host.flows.genesis] INFO: [7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...
+2026-02-20 15:05:52 [host.flows.genesis] INFO: [7/11] Bridge [primär]: OK (serial=KB2PXK513WNU)
+2026-02-20 15:05:52 [host.flows.genesis] INFO: [7/11] Bridge [sdcard]: OK (serial=KB2PXK513WNU)
+2026-02-20 15:05:53 [host.flows.genesis] INFO: [7/11] Bridge [app]: OK (serial=KB2PXK513WNU)
+2026-02-20 15:05:53 [host.flows.genesis] INFO: [7/11] Bridge-Verifikation: Primärpfad OK
+2026-02-20 15:05:53 [host.flows.genesis] INFO: [7/11] Hard Reset: OK (Boot + Unlock in 60.4s)
+2026-02-20 15:05:53 [host.flows.genesis] INFO: [7b/11] DroidGuard Sanitize: Stale Attestierungs-Tokens löschen...
+2026-02-20 15:05:53 [host.shifter] INFO: [DroidGuard+Analytics] Sanitized: 11/11 Einträge gelöscht (Neu-Attestierung + Cross-App-Correlation entfernt)
+2026-02-20 15:05:53 [host.flows.genesis] INFO: [7b/11] DroidGuard-Cache gelöscht — erzwinge GMS-Neustart...
+2026-02-20 15:05:58 [host.flows.genesis] INFO: [7b/11] GMS neu gestartet — frische Attestierung eingeleitet
+2026-02-20 15:05:58 [host.flows.genesis] INFO: [7c/11] Bewohntes Haus: Prüfe Dummy-App-Präsenz...
+2026-02-20 15:05:58 [host.flows.genesis] WARNING: [7c/11] BEWOHNTES HAUS: 10/12 Apps vorhanden (83%). Fehlend: Google Keep, Google Translate — Gerät könnte als 'frisch' erkannt werden!
+2026-02-20 15:05:58 [host.flows.genesis] INFO: [7d/11] Post-Reboot Sterilisierung...
+2026-02-20 15:05:58 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-20 15:06:06 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-20 15:06:06 [host.flows.genesis] INFO: [7d/11] Post-Reboot: Sauber — keine Artefakte gefunden
+2026-02-20 15:06:06 [host.flows.genesis] INFO: [7e/11] HookGuard Pre-Network Start...
+2026-02-20 15:06:06 [hookguard] INFO: HookGuard started (expected bridge hash: 16db9633868387cd051b359cd99ba2e2)
+2026-02-20 15:06:06 [host.flows.genesis] INFO: HookGuard automatisch gestartet
+2026-02-20 15:06:06 [host.flows.genesis] INFO: [8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS...
+2026-02-20 15:06:23 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #60 auf 'active' gesetzt
+2026-02-20 15:06:26 [host.flows.genesis] INFO: [8/11] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-20 15:06:26 [host.flows.genesis] INFO: [8/11] Warte 15s auf neue Mobilfunk-Verbindung...
+2026-02-20 15:06:41 [host.network] INFO: HTTP-Tool erkannt: busybox wget (/data/adb/ksu/bin/busybox)
+2026-02-20 15:06:41 [host.network] INFO: Öffentliche IP: 2.205.137.61 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-20 15:06:41 [host.flows.genesis] INFO: [8/11] Network Init: Neue IP = 2.205.137.61 (via api.ipify.org)
+2026-02-20 15:06:41 [host.flows.genesis] INFO: [9/11] GMS Ready: Dynamisches Readiness-Polling (v6.0)...
+2026-02-20 15:06:41 [host.shifter] INFO: [Readiness] Warte auf sys.boot_completed=1...
+2026-02-20 15:06:42 [host.shifter] INFO: [Readiness] Boot bestätigt nach 0s
+2026-02-20 15:06:42 [host.shifter] INFO: [Readiness] Warte auf GmsCore Service...
+2026-02-20 15:06:42 [host.shifter] INFO: [Readiness] GmsCore aktiv nach 0s
+2026-02-20 15:06:42 [host.shifter] INFO: [Readiness] System bereit — Boot: 0s | GMS: 0s (GMS Verbindung steht - Bereit zum Loslegen!)
+2026-02-20 15:06:42 [host.flows.genesis] INFO: [9/11] GSF-ID: Generierte ID beibehalten. Bridge-GSF: 5303...3279
+2026-02-20 15:06:42 [host.flows.genesis] INFO: [9/11] GMS Verbindung steht - Bereit zum Loslegen! (Boot: 0s | GMS: 0s)
+2026-02-20 15:06:42 [host.flows.genesis] INFO: [9/11] GMS Ready: GMS Verbindung steht (0s) | GSF-ID: generiert beibehalten
+2026-02-20 15:06:42 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...
+2026-02-20 15:06:42 [host.auditor] INFO: Audit starten: Ghost_Protocol_v91_Test (serial=KB2PXK513WNU)
+2026-02-20 15:06:42 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-20 15:06:42 [host.auditor] INFO:   [+] bridge_serial: pass — serial=KB2PXK513WNU, boot_serial=KB2PXK513WNU — korrekt
+2026-02-20 15:06:42 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-20 15:06:42 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: 00:1a:11:67:32:22
+2026-02-20 15:06:42 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-20 15:06:42 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-20 15:06:42 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-20 15:06:42 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-20 15:06:42 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-20 15:06:42 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-20 15:06:42 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-20 15:06:42 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-20 15:06:42 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-20 15:06:42 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-20 15:06:42 [host.auditor] INFO: Audit [Ghost_Protocol_v91_Test]: 100% (14/14 passed)
+2026-02-20 15:06:42 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Integrität bestätigt (100%)
+2026-02-20 15:06:42 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline sichern...
+2026-02-20 15:06:42 [host.shifter] INFO: ============================================================
+2026-02-20 15:06:42 [host.shifter] INFO:   GOLDEN BASELINE CAPTURE: Ghost_Protocol_v91_Test
+2026-02-20 15:06:42 [host.shifter] INFO:   GSF-ID: 5303...3279
+2026-02-20 15:06:42 [host.shifter] INFO: ============================================================
+2026-02-20 15:06:42 [host.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-20 15:06:44 [host.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-20 15:06:45 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/Ghost_Protocol_v91_Test/gms/gms_20260220_150645.tar.tmp
+2026-02-20 15:06:51 [host.adb] INFO: Exec-Out fertig: 80100352 Bytes geschrieben
+2026-02-20 15:06:51 [host.shifter] INFO: GMS Backup (3 Pakete): OK (76.4 MB, Versuch 1/3)
+2026-02-20 15:06:51 [host.shifter] INFO: GMS tar: gms_20260220_150645.tar (76.4 MB) — 3 Pakete
+2026-02-20 15:06:51 [host.shifter] INFO: Golden Baseline GMS: OK (gms_20260220_150645.tar)
+2026-02-20 15:06:52 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/Ghost_Protocol_v91_Test/accounts/accounts_20260220_150652.tar.tmp
+2026-02-20 15:06:52 [host.adb] INFO: Exec-Out fertig: 218624 Bytes geschrieben
+2026-02-20 15:06:52 [host.shifter] INFO: Account-DBs (1 Dateien): OK (0.2 MB, Versuch 1/3)
+2026-02-20 15:06:52 [host.shifter] INFO: Account-DBs tar: accounts_20260220_150652.tar (218624 Bytes, 1 Dateien)
+2026-02-20 15:06:52 [host.shifter] INFO: Golden Baseline Accounts: OK (accounts_20260220_150652.tar)
+2026-02-20 15:06:52 [host.shifter] INFO: Golden Baseline: 2/2 Komponenten gesichert
+2026-02-20 15:06:52 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline komplett
+2026-02-20 15:06:52 [host.flows.genesis] INFO: [11/11] Audit + Account-Check + TikTok ID-Validation (v6.1)...
+2026-02-20 15:06:52 [host.auditor] INFO: Audit starten: Ghost_Protocol_v91_Test (serial=KB2PXK513WNU)
+2026-02-20 15:06:52 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-20 15:06:52 [host.auditor] INFO:   [+] bridge_serial: pass — serial=KB2PXK513WNU, boot_serial=KB2PXK513WNU — korrekt
+2026-02-20 15:06:52 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-20 15:06:52 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: 00:1a:11:67:32:22
+2026-02-20 15:06:52 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-20 15:06:52 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-20 15:06:52 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-20 15:06:52 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-20 15:06:52 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-20 15:06:52 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-20 15:06:52 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-20 15:06:52 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-20 15:06:52 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-20 15:06:52 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-20 15:06:52 [host.auditor] INFO: Audit [Ghost_Protocol_v91_Test]: 100% (14/14 passed)
+2026-02-20 15:06:52 [host.shifter] INFO: [Account-Check] Google-Account gefunden: arvinvaha@gmail.com
+2026-02-20 15:06:52 [host.flows.genesis] INFO: [11/11] Google-Account: arvinvaha@gmail.com
+2026-02-20 15:06:52 [host.flows.genesis] INFO: [11/11] TikTok Silent Launch: ID-Generierung starten...
+2026-02-20 15:06:52 [host.shifter] INFO: [SilentLaunch] Starte com.zhiliaoapp.musically für ID-Generierung (15s)...
+2026-02-20 15:06:55 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:07:06 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:07:10 [host.flows.genesis] WARNING: [11/11] install_id nicht extrahierbar (TikTok nicht installiert?)
+2026-02-20 15:07:10 [host.flows.genesis] INFO: [11/11] Audit: PASS (100%) | Google-Account: arvinvaha@gmail.com
+2026-02-20 15:07:10 [host.flows.genesis] INFO: ============================================================
+2026-02-20 15:07:10 [host.flows.genesis] INFO:   GENESIS ERFOLG: Ghost_Protocol_v91_Test (163711 ms)
+2026-02-20 15:07:10 [host.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
+2026-02-20 15:07:10 [host.flows.genesis] INFO: ============================================================
+2026-02-20 15:07:10 [host.db_ops] INFO: Profile log captured: profile=54 trigger=genesis_end apis=0 spoofed=0.0% hooks=0-0/28 leaks=0 kills=0
+2026-02-20 15:07:10 [host.flows.genesis] INFO: Profile snapshot captured: log_id=14 trigger=genesis_end
+2026-02-20 15:07:52 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:08:03 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:08:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:08:24 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:08:35 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:08:39 [hookguard] WARNING: Heartbeat never seen: TikTok running for 48s — module may not be injecting
+2026-02-20 15:08:43 [hookguard] WARNING: Heartbeat never seen: TikTok running for 52s — module may not be injecting
+2026-02-20 15:08:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:08:47 [hookguard] WARNING: Heartbeat never seen: TikTok running for 56s — module may not be injecting
+2026-02-20 15:08:51 [hookguard] WARNING: Heartbeat never seen: TikTok running for 60s — module may not be injecting
+2026-02-20 15:08:55 [hookguard] WARNING: Heartbeat never seen: TikTok running for 64s — module may not be injecting
+2026-02-20 15:08:58 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:08:58 [hookguard] WARNING: Heartbeat never seen: TikTok running for 68s — module may not be injecting
+2026-02-20 15:09:02 [hookguard] WARNING: Heartbeat never seen: TikTok running for 71s — module may not be injecting
+2026-02-20 15:09:06 [hookguard] WARNING: Heartbeat never seen: TikTok running for 75s — module may not be injecting
+2026-02-20 15:09:09 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:09:10 [hookguard] WARNING: Heartbeat never seen: TikTok running for 79s — module may not be injecting
+2026-02-20 15:09:13 [hookguard] WARNING: Heartbeat never seen: TikTok running for 82s — module may not be injecting
+2026-02-20 15:09:17 [hookguard] WARNING: Heartbeat never seen: TikTok running for 86s — module may not be injecting
+2026-02-20 15:09:20 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:09:21 [hookguard] WARNING: Heartbeat never seen: TikTok running for 90s — module may not be injecting
+2026-02-20 15:09:24 [hookguard] WARNING: Heartbeat never seen: TikTok running for 93s — module may not be injecting
+2026-02-20 15:09:28 [hookguard] WARNING: Heartbeat never seen: TikTok running for 97s — module may not be injecting
+2026-02-20 15:09:32 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:09:32 [hookguard] WARNING: Heartbeat never seen: TikTok running for 101s — module may not be injecting
+2026-02-20 15:09:35 [hookguard] WARNING: Heartbeat never seen: TikTok running for 105s — module may not be injecting
+2026-02-20 15:09:39 [hookguard] WARNING: Heartbeat never seen: TikTok running for 108s — module may not be injecting
+2026-02-20 15:09:43 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:09:43 [hookguard] WARNING: Heartbeat never seen: TikTok running for 112s — module may not be injecting
+2026-02-20 15:09:47 [hookguard] WARNING: Heartbeat never seen: TikTok running for 116s — module may not be injecting
+2026-02-20 15:09:51 [hookguard] WARNING: Heartbeat never seen: TikTok running for 120s — module may not be injecting
+2026-02-20 15:09:54 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:09:54 [hookguard] WARNING: Heartbeat never seen: TikTok running for 123s — module may not be injecting
+2026-02-20 15:09:58 [hookguard] WARNING: Heartbeat never seen: TikTok running for 127s — module may not be injecting
+2026-02-20 15:10:02 [hookguard] WARNING: Heartbeat never seen: TikTok running for 131s — module may not be injecting
+2026-02-20 15:10:06 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:10:06 [hookguard] WARNING: Heartbeat never seen: TikTok running for 135s — module may not be injecting
+2026-02-20 15:10:10 [hookguard] WARNING: Heartbeat never seen: TikTok running for 139s — module may not be injecting
+2026-02-20 15:10:13 [hookguard] WARNING: Heartbeat never seen: TikTok running for 142s — module may not be injecting
+2026-02-20 15:10:17 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:10:17 [hookguard] WARNING: Heartbeat never seen: TikTok running for 146s — module may not be injecting
+2026-02-20 15:10:21 [hookguard] WARNING: Heartbeat never seen: TikTok running for 150s — module may not be injecting
+2026-02-20 15:10:24 [hookguard] WARNING: Heartbeat never seen: TikTok running for 153s — module may not be injecting
+2026-02-20 15:10:28 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:10:28 [hookguard] WARNING: Heartbeat never seen: TikTok running for 157s — module may not be injecting
+2026-02-20 15:10:32 [hookguard] WARNING: Heartbeat never seen: TikTok running for 161s — module may not be injecting
+2026-02-20 15:10:35 [hookguard] WARNING: Heartbeat never seen: TikTok running for 164s — module may not be injecting
+2026-02-20 15:10:39 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:10:39 [hookguard] WARNING: Heartbeat never seen: TikTok running for 168s — module may not be injecting
+2026-02-20 15:10:43 [hookguard] WARNING: Heartbeat never seen: TikTok running for 172s — module may not be injecting
+2026-02-20 15:10:46 [hookguard] WARNING: Heartbeat never seen: TikTok running for 175s — module may not be injecting
+2026-02-20 15:10:50 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:10:50 [hookguard] WARNING: Heartbeat never seen: TikTok running for 179s — module may not be injecting
+2026-02-20 15:10:53 [hookguard] WARNING: Heartbeat never seen: TikTok running for 183s — module may not be injecting
+2026-02-20 15:10:57 [hookguard] WARNING: Heartbeat never seen: TikTok running for 186s — module may not be injecting
+2026-02-20 15:11:01 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:11:01 [hookguard] WARNING: Heartbeat never seen: TikTok running for 190s — module may not be injecting
+2026-02-20 15:11:05 [hookguard] WARNING: Heartbeat never seen: TikTok running for 194s — module may not be injecting
+2026-02-20 15:11:08 [hookguard] WARNING: Heartbeat never seen: TikTok running for 197s — module may not be injecting
+2026-02-20 15:11:12 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:11:12 [hookguard] WARNING: Heartbeat never seen: TikTok running for 201s — module may not be injecting
+2026-02-20 15:11:16 [hookguard] WARNING: Heartbeat never seen: TikTok running for 205s — module may not be injecting
+2026-02-20 15:11:19 [hookguard] WARNING: Heartbeat never seen: TikTok running for 208s — module may not be injecting
+2026-02-20 15:11:23 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:11:23 [hookguard] WARNING: Heartbeat never seen: TikTok running for 212s — module may not be injecting
+2026-02-20 15:11:27 [hookguard] WARNING: Heartbeat never seen: TikTok running for 216s — module may not be injecting
+2026-02-20 15:11:30 [hookguard] WARNING: Heartbeat never seen: TikTok running for 219s — module may not be injecting
+2026-02-20 15:11:34 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:11:34 [hookguard] WARNING: Heartbeat never seen: TikTok running for 223s — module may not be injecting
+2026-02-20 15:11:38 [hookguard] WARNING: Heartbeat never seen: TikTok running for 227s — module may not be injecting
+2026-02-20 15:11:41 [hookguard] WARNING: Heartbeat never seen: TikTok running for 230s — module may not be injecting
+2026-02-20 15:11:45 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:11:45 [hookguard] WARNING: Heartbeat never seen: TikTok running for 234s — module may not be injecting
+2026-02-20 15:11:49 [hookguard] WARNING: Heartbeat never seen: TikTok running for 238s — module may not be injecting
+2026-02-20 15:11:52 [hookguard] WARNING: Heartbeat never seen: TikTok running for 241s — module may not be injecting
+2026-02-20 15:11:56 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:11:56 [hookguard] WARNING: Heartbeat never seen: TikTok running for 245s — module may not be injecting
+2026-02-20 15:12:00 [hookguard] WARNING: Heartbeat never seen: TikTok running for 249s — module may not be injecting
+2026-02-20 15:12:03 [hookguard] WARNING: Heartbeat never seen: TikTok running for 252s — module may not be injecting
+2026-02-20 15:12:07 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:12:07 [hookguard] WARNING: Heartbeat never seen: TikTok running for 256s — module may not be injecting
+2026-02-20 15:12:11 [hookguard] WARNING: Heartbeat never seen: TikTok running for 260s — module may not be injecting
+2026-02-20 15:12:14 [hookguard] WARNING: Heartbeat never seen: TikTok running for 263s — module may not be injecting
+2026-02-20 15:12:18 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:12:18 [hookguard] WARNING: Heartbeat never seen: TikTok running for 267s — module may not be injecting
+2026-02-20 15:12:22 [hookguard] WARNING: Heartbeat never seen: TikTok running for 271s — module may not be injecting
+2026-02-20 15:12:25 [hookguard] WARNING: Heartbeat never seen: TikTok running for 274s — module may not be injecting
+2026-02-20 15:12:29 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:12:29 [hookguard] WARNING: Heartbeat never seen: TikTok running for 278s — module may not be injecting
+2026-02-20 15:12:33 [hookguard] WARNING: Heartbeat never seen: TikTok running for 282s — module may not be injecting
+2026-02-20 15:12:36 [hookguard] WARNING: Heartbeat never seen: TikTok running for 285s — module may not be injecting
+2026-02-20 15:12:40 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:12:40 [hookguard] WARNING: Heartbeat never seen: TikTok running for 289s — module may not be injecting
+2026-02-20 15:12:44 [hookguard] WARNING: Heartbeat never seen: TikTok running for 293s — module may not be injecting
+2026-02-20 15:12:47 [hookguard] WARNING: Heartbeat never seen: TikTok running for 296s — module may not be injecting
+2026-02-20 15:12:51 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:12:51 [hookguard] WARNING: Heartbeat never seen: TikTok running for 300s — module may not be injecting
+2026-02-20 15:12:55 [hookguard] WARNING: Heartbeat never seen: TikTok running for 304s — module may not be injecting
+2026-02-20 15:12:58 [hookguard] WARNING: Heartbeat never seen: TikTok running for 307s — module may not be injecting
+2026-02-20 15:13:02 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:13:02 [hookguard] WARNING: Heartbeat never seen: TikTok running for 311s — module may not be injecting
+2026-02-20 15:13:06 [hookguard] WARNING: Heartbeat never seen: TikTok running for 315s — module may not be injecting
+2026-02-20 15:13:09 [hookguard] WARNING: Heartbeat never seen: TikTok running for 318s — module may not be injecting
+2026-02-20 15:13:13 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:13:13 [hookguard] WARNING: Heartbeat never seen: TikTok running for 322s — module may not be injecting
+2026-02-20 15:13:17 [hookguard] WARNING: Heartbeat never seen: TikTok running for 326s — module may not be injecting
+2026-02-20 15:13:21 [hookguard] WARNING: Heartbeat never seen: TikTok running for 330s — module may not be injecting
+2026-02-20 15:13:25 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:13:25 [hookguard] WARNING: Heartbeat never seen: TikTok running for 334s — module may not be injecting
+2026-02-20 15:13:28 [hookguard] WARNING: Heartbeat never seen: TikTok running for 337s — module may not be injecting
+2026-02-20 15:13:32 [hookguard] WARNING: Heartbeat never seen: TikTok running for 341s — module may not be injecting
+2026-02-20 15:13:36 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:13:36 [hookguard] WARNING: Heartbeat never seen: TikTok running for 345s — module may not be injecting
+2026-02-20 15:13:40 [hookguard] WARNING: Heartbeat never seen: TikTok running for 349s — module may not be injecting
+2026-02-20 15:13:43 [hookguard] WARNING: Heartbeat never seen: TikTok running for 352s — module may not be injecting
+2026-02-20 15:13:47 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:13:48 [hookguard] WARNING: Heartbeat never seen: TikTok running for 357s — module may not be injecting
+2026-02-20 15:13:51 [hookguard] WARNING: Heartbeat never seen: TikTok running for 360s — module may not be injecting
+2026-02-20 15:13:55 [hookguard] WARNING: Heartbeat never seen: TikTok running for 364s — module may not be injecting
+2026-02-20 15:13:58 [hookguard] WARNING: Maps check: run-as failed for ALL packages — cannot verify maps are clean, reporting UNVERIFIED
+2026-02-20 15:13:59 [hookguard] WARNING: Heartbeat never seen: TikTok running for 368s — module may not be injecting
+2026-02-20 15:14:02 [hookguard] WARNING: Heartbeat never seen: TikTok running for 371s — module may not be injecting

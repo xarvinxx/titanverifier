@@ -38,6 +38,7 @@
 #include "../include/zygisk.hpp"
 // Dobby removed (v8.0 — signal-based hooks)
 #include "../common/hw_compat.h"
+#include "lsplant.hpp"
 
 // =============================================================================
 // String Obfuscation
@@ -68,8 +69,8 @@ static inline int _raw_close(int fd) {
     return (int)syscall(__NR_close, fd);
 }
 
-// Anonymous RAM-FD
-static inline int _memfd_create(unsigned int flags) {
+// Anonymous RAM-FD (only used by LSPlant inline hook backend internally)
+[[maybe_unused]] static inline int _memfd_create(unsigned int flags) {
     return (int)syscall(__NR_memfd_create, "", flags);
 }
 
@@ -121,6 +122,11 @@ static const unsigned char _ENC_PATH_DATA_TMP_PREFIX[] = {0x75,0x3e,0x3b,0x2e,0x
 static const unsigned char _ENC_PATH_PROC_SELF_MEM[] = {0x75,0x2a,0x28,0x35,0x39,0x75,0x29,0x3f,0x36,0x3c,0x75,0x37,0x3f,0x37};
 #define _ENC_PATH_PROC_SELF_MEM_LEN 14
 
+static const unsigned char _ENC_FALLBACK_SYS[] = {0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x29,0x23,0x29,0x2e,0x3f,0x37,0x75,0x74,0x32,0x2d,0x5,0x39,0x35,0x34,0x3c,0x33,0x3d};
+#define _ENC_FALLBACK_SYS_LEN 23
+static const unsigned char _ENC_FALLBACK_TMP[] = {0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x36,0x35,0x39,0x3b,0x36,0x75,0x2e,0x37,0x2a,0x75,0x74,0x32,0x2d,0x5,0x39,0x35,0x34,0x3c,0x33,0x3d};
+#define _ENC_FALLBACK_TMP_LEN 26
+
 static char g_killSwitchPath[KILL_SWITCH_LEN + 1] = {};
 static char g_bridgePath[BRIDGE_PATH_LEN + 1] = {};
 static char g_pathProcSelfMaps[_ENC_PATH_PROC_SELF_MAPS_LEN + 1] = {};
@@ -132,6 +138,8 @@ static char g_pathSysWlan0Addr[_ENC_PATH_SYS_WLAN0_ADDR_LEN + 1] = {};
 static char g_pathSysEth0Addr[_ENC_PATH_SYS_ETH0_ADDR_LEN + 1] = {};
 static char g_pathDataTmpPrefix[_ENC_PATH_DATA_TMP_PREFIX_LEN + 1] = {};
 static char g_pathProcSelfMem[_ENC_PATH_PROC_SELF_MEM_LEN + 1] = {};
+static char g_fallbackSys[_ENC_FALLBACK_SYS_LEN + 1] = {};
+static char g_fallbackTmp[_ENC_FALLBACK_TMP_LEN + 1] = {};
 static std::once_flag g_pathsDecoded;
 
 static void _decodePaths() {
@@ -146,6 +154,8 @@ static void _decodePaths() {
     _xdec(g_pathSysEth0Addr, _ENC_PATH_SYS_ETH0_ADDR, _ENC_PATH_SYS_ETH0_ADDR_LEN);
     _xdec(g_pathDataTmpPrefix, _ENC_PATH_DATA_TMP_PREFIX, _ENC_PATH_DATA_TMP_PREFIX_LEN);
     _xdec(g_pathProcSelfMem, _ENC_PATH_PROC_SELF_MEM, _ENC_PATH_PROC_SELF_MEM_LEN);
+    _xdec(g_fallbackSys, _ENC_FALLBACK_SYS, _ENC_FALLBACK_SYS_LEN);
+    _xdec(g_fallbackTmp, _ENC_FALLBACK_TMP, _ENC_FALLBACK_TMP_LEN);
 }
 
 #define KILL_SWITCH_PATH    (std::call_once(g_pathsDecoded, _decodePaths), g_killSwitchPath)
@@ -159,6 +169,8 @@ static void _decodePaths() {
 #define PATH_SYS_ETH0_ADDR  (std::call_once(g_pathsDecoded, _decodePaths), g_pathSysEth0Addr)
 #define PATH_DATA_TMP_PREFIX (std::call_once(g_pathsDecoded, _decodePaths), g_pathDataTmpPrefix)
 #define PATH_PROC_SELF_MEM   (std::call_once(g_pathsDecoded, _decodePaths), g_pathProcSelfMem)
+#define BRIDGE_FALLBACK_SYS  (std::call_once(g_pathsDecoded, _decodePaths), g_fallbackSys)
+#define BRIDGE_FALLBACK_TMP  (std::call_once(g_pathsDecoded, _decodePaths), g_fallbackTmp)
 
 // Target Apps
 struct EncPackage { const unsigned char* data; size_t len; };
@@ -241,14 +253,6 @@ using SystemPropertyGetFn = int (*)(const char* name, char* value);
 using GetifaddrsFn = int (*)(struct ifaddrs** ifap);
 using IoctlFn = int (*)(int fd, unsigned long request, ...);
 using RecvmsgFn = ssize_t (*)(int sockfd, struct msghdr* msg, int flags);
-using OpenFn = int (*)(const char* pathname, int flags, ...);
-using ReadFn = ssize_t (*)(int fd, void* buf, size_t count);
-using FopenFn = FILE* (*)(const char* pathname, const char* mode);
-using FreadFn = size_t (*)(void* ptr, size_t size, size_t nmemb, FILE* stream);
-using FgetsFn = char* (*)(char* s, int size, FILE* stream);
-using OpendirFn = DIR* (*)(const char* name);
-using ReaddirFn = struct dirent* (*)(DIR* dirp);
-using ClosedirFn = int (*)(DIR* dirp);
 using SystemPropertyReadOldFn = int (*)(const void* pi, char* name, char* value);
 using SendmsgFn = ssize_t (*)(int sockfd, const struct msghdr* msg, int flags);
 
@@ -275,14 +279,6 @@ static SystemPropertyGetFn g_origSystemPropertyGet = nullptr;
 static GetifaddrsFn g_origGetifaddrs = nullptr;
 static IoctlFn g_origIoctl = nullptr;
 static RecvmsgFn g_origRecvmsg = nullptr;
-static OpenFn g_origOpen = nullptr;
-static ReadFn g_origRead = nullptr;
-static FopenFn g_origFopen = nullptr;
-static FreadFn g_origFread = nullptr;
-static FgetsFn g_origFgets = nullptr;
-static OpendirFn g_origOpendir = nullptr;
-static ReaddirFn g_origReaddir = nullptr;
-static ClosedirFn g_origClosedir = nullptr;
 static SystemPropertyReadOldFn g_origSysPropRead = nullptr;
 static SendmsgFn g_origSendmsg = nullptr;
 static AMediaDrmCreateByUUIDFn g_origAMediaDrmCreateByUUID = nullptr;
@@ -306,36 +302,9 @@ static const char* MASTER_WIDEVINE_HEX = "10179c6bcba352dbd5ce5c88fec8e098";
 static uint8_t g_widevineBytes[16] = {0};
 static bool g_widevineParsed = false;
 
-// Track fopen'd MAC files
-static std::unordered_set<FILE*> g_macFileStreams;
-
-// Track open'd input device FDs
-static std::unordered_set<int> g_inputDeviceFds;
-
-// Track /dev/input/ event FDs → event number (für EVIOCGNAME)
-static std::unordered_map<int, int> g_inputEventFdMap;
-
-// Track opendir handles für /dev/input/ Virtualisierung
-static std::unordered_set<DIR*> g_inputDirHandles;
-static std::unordered_map<DIR*, int> g_inputDirFakeIdx; // Wie viele Fake-Entries schon geliefert
-
 // Track Netlink Sockets für RTM_GETLINK (sendmsg → recvmsg Korrelation)
 static std::unordered_set<int> g_netlinkSockets;
 static std::mutex g_netlinkMutex;
-
-// Pixel 6 Input-Event-Devices (was in /dev/input/ erscheinen soll)
-struct FakeInputEvent {
-    const char* filename;  // z.B. "event0"
-    const char* devname;   // z.B. "fts_ts" (für EVIOCGNAME)
-};
-static const FakeInputEvent PIXEL6_INPUT_EVENTS[] = {
-    {"event0", "fts_ts"},           // STM Touchscreen
-    {"event1", "gpio-keys"},        // Volume Keys
-    {"event2", "Power Button"},     // Power Button
-    {"event3", "goodix_fp"},        // Fingerprint
-    {"event4", "uinput-fpc"},       // Fingerprint HAL
-    {nullptr, nullptr}              // Sentinel
-};
 
 // ==============================================================================
 // State
@@ -343,11 +312,8 @@ static const FakeInputEvent PIXEL6_INPUT_EVENTS[] = {
 
 static std::atomic<bool> g_bridgeLoaded{false};
 static std::atomic<bool> g_killSwitchActive{false};
-static std::atomic<bool> g_usingDefaults{false};
-// FIX-12: Debug-Log-Mode — wenn true, wird jeder Hook-Call geloggt
 static std::atomic<bool> g_debugHooks{false};
 static std::mutex g_fdMapMutex;
-static std::unordered_set<int> g_macFileFds;
 
 // Cached MAC bytes
 static unsigned char g_spoofedMacBytes[6] = {0};
@@ -375,9 +341,67 @@ static bool _is_pc_relative(uint32_t insn) {
     return false;
 }
 
+// Ghost Protocol v9.1: Single-Page Trampoline Pool (Library-Backed)
+// Alle Trampolines in einer einzigen Page die als liblog.so mapping erscheint.
+// Kein memfd, keine anonymen RX-Regionen.
+static void* g_trampolineBase = nullptr;
+static size_t g_trampolineUsed = 0;
+static constexpr size_t kTrampolinePageSize = 4096;
+[[maybe_unused]] static constexpr size_t kTrampolineSlotSize = 32;
+
+static bool _initTrampolinePage() {
+    if (g_trampolineBase) return true;
+
+    static const char* backingLibs[] = {
+        "/system/lib64/liblog.so",
+        "/system/lib64/libm.so",
+        "/system/lib64/libdl.so",
+    };
+    int fd = -1;
+    for (auto& lib : backingLibs) {
+        fd = _raw_openat(lib, O_RDONLY);
+        if (fd >= 0) break;
+    }
+    if (fd < 0) return false;
+
+    g_trampolineBase = mmap(nullptr, kTrampolinePageSize, PROT_READ | PROT_EXEC,
+                            MAP_PRIVATE, fd, 0);
+    _raw_close(fd);
+    return g_trampolineBase != MAP_FAILED;
+}
+
+static void* _allocTrampoline(const uint8_t* code, size_t len) {
+    if (!g_trampolineBase || g_trampolineUsed + len > kTrampolinePageSize)
+        return nullptr;
+
+    void* slot = reinterpret_cast<uint8_t*>(g_trampolineBase) + g_trampolineUsed;
+
+    int memFd = _raw_openat(PATH_PROC_SELF_MEM, O_RDWR);
+    if (memFd < 0) return nullptr;
+
+    lseek(memFd, static_cast<off_t>(reinterpret_cast<uintptr_t>(slot)), SEEK_SET);
+    write(memFd, code, len);
+    _raw_close(memFd);
+
+    __builtin___clear_cache(static_cast<char*>(slot),
+                            static_cast<char*>(slot) + len);
+
+    g_trampolineUsed = (g_trampolineUsed + len + 7) & ~(size_t)7;
+    return slot;
+}
+
+// Register-Rotation: Wechselt zwischen X9-X12, X16, X17 um Pattern-Matching zu erschweren.
+static uint32_t _nextHookReg() {
+    static const uint32_t regs[] = {9, 10, 11, 12, 16, 17};
+    static std::atomic<int> idx{0};
+    return regs[idx.fetch_add(1) % 6];
+}
+
 static bool install_inline_hook(void* target, void* hook, void** orig) {
     if (!target || !hook || !orig)
         return false;
+
+    if (!_initTrampolinePage()) return false;
 
     uint32_t origInsns[4];
     memcpy(origInsns, target, 16);
@@ -390,38 +414,26 @@ static bool install_inline_hook(void* target, void* hook, void** orig) {
         }
     }
 
-    int mfd = _memfd_create(MFD_CLOEXEC);
-    if (mfd < 0) return false;
-
-    static constexpr uint32_t kLdrX16_8 = 0x58000050;  // LDR X16, [PC, #8]
-    static constexpr uint32_t kBrX16    = 0xD61F0200;   // BR X16
+    uint32_t reg = _nextHookReg();
+    uint32_t ldrPc8  = 0x58000040 | reg;           // LDR Xn, [PC, #8]
+    uint32_t brReg   = 0xD61F0000 | (reg << 5);    // BR Xn
     uint64_t retAddr = reinterpret_cast<uint64_t>(target) + 16;
 
     uint8_t tramp[32];
-    memcpy(tramp + 0,  origInsns, 16);       // original 4 instructions
-    memcpy(tramp + 16, &kLdrX16_8, 4);       // LDR X16, [PC, #8]
-    memcpy(tramp + 20, &kBrX16,    4);       // BR X16
-    memcpy(tramp + 24, &retAddr,   8);       // .quad target+16
+    memcpy(tramp + 0,  origInsns, 16);
+    memcpy(tramp + 16, &ldrPc8,  4);
+    memcpy(tramp + 20, &brReg,   4);
+    memcpy(tramp + 24, &retAddr, 8);
 
-    if (write(mfd, tramp, sizeof(tramp)) != static_cast<ssize_t>(sizeof(tramp))) {
-        close(mfd);
-        return false;
-    }
-
-    void* tramAddr = mmap(nullptr, 4096, PROT_READ | PROT_EXEC,
-                          MAP_PRIVATE, mfd, 0);
-    if (tramAddr == MAP_FAILED) {
-        close(mfd);
-        return false;
-    }
-    close(mfd);
+    void* tramAddr = _allocTrampoline(tramp, sizeof(tramp));
+    if (!tramAddr) return false;
     *orig = tramAddr;
 
-    uint8_t patch[16];
     uint64_t hookAddr = reinterpret_cast<uint64_t>(hook);
-    memcpy(patch + 0, &kLdrX16_8, 4);        // LDR X16, [PC, #8]
-    memcpy(patch + 4, &kBrX16,    4);         // BR X16
-    memcpy(patch + 8, &hookAddr,  8);         // .quad hook
+    uint8_t patch[16];
+    memcpy(patch + 0, &ldrPc8,   4);
+    memcpy(patch + 4, &brReg,    4);
+    memcpy(patch + 8, &hookAddr, 8);
 
     int memFd = _raw_openat(PATH_PROC_SELF_MEM, O_RDWR);
     if (memFd >= 0) {
@@ -620,10 +632,10 @@ static void loadBridge() {
     if (loadBridgeFromFile(BRIDGE_FILE_PATH)) {
         LOGI("Config loaded from primary path");
         g_bridgeLoaded = true;
-    } else if (loadBridgeFromFile("/data/system/.hw_config")) {
+    } else if (loadBridgeFromFile(BRIDGE_FALLBACK_SYS)) {
         LOGI("Config loaded from fallback (system)");
         g_bridgeLoaded = true;
-    } else if (loadBridgeFromFile("/data/local/tmp/.hw_config")) {
+    } else if (loadBridgeFromFile(BRIDGE_FALLBACK_TMP)) {
         LOGI("Config loaded from fallback (local/tmp)");
         g_bridgeLoaded = true;
     } else {
@@ -641,251 +653,14 @@ static void loadBridge() {
     }
 }
 
-static bool isMacPath(const char* path) {
-    if (!path) return false;
-    return (strstr(path, "/sys/class/net/") && strstr(path, "/address")) ||
-           strcmp(path, PATH_SYS_WLAN0_ADDR) == 0 ||
-           strcmp(path, PATH_SYS_ETH0_ADDR) == 0 ||
-           strstr(path, "/sys/class/bluetooth/") != nullptr;
-}
+// Ghost Protocol v9.1: Pfad-Checker und statische Fake-Daten entfernt.
+// Alle Datei-Redirects laufen jetzt über SUSFS add_open_redirect auf Kernel-Ebene.
+// Root-Detection-Pfade werden durch SUSFS add_sus_path unsichtbar gemacht.
 
-// Phase 11.0: Pfade die sensitive Netzwerk-Informationen enthalten
-static bool isNetworkInfoPath(const char* path) {
-    if (!path) return false;
-    return strcmp(path, "/proc/net/if_inet6") == 0 ||
-           strcmp(path, "/proc/net/ipv6_route") == 0 ||
-           strcmp(path, "/proc/net/tcp6") == 0 ||
-           strcmp(path, "/proc/net/udp6") == 0;
-}
+// Entfernt: isMacPath, isNetworkInfoPath, isRootDetectionPath, isInputDevicesPath,
+//           isCpuInfoPath, isKernelVersionPath, getFakeIfInet6, FAKE_INPUT_DEVICES,
+//           FAKE_CPUINFO, FAKE_KERNEL_VERSION, ENC_ROOT_PATHS
 
-// FIX-24A: Root-Detection Pfade als XOR-verschlüsselte Byte-Arrays
-// Root-Pfade und Framework-Namen werden nicht im Klartext gespeichert
-struct EncRootStr { const unsigned char* data; size_t len; };
-static const unsigned char _ENC_ROOT_01[] = {0x75,0x29,0x38,0x33,0x34,0x75,0x29,0x2f};
-static const unsigned char _ENC_ROOT_02[] = {0x75,0x29,0x23,0x29,0x2e,0x3f,0x37,0x75,0x22,0x38,0x33,0x34,0x75,0x29,0x2f};
-static const unsigned char _ENC_ROOT_03[] = {0x75,0x29,0x23,0x29,0x2e,0x3f,0x37,0x75,0x38,0x33,0x34,0x75,0x29,0x2f};
-static const unsigned char _ENC_ROOT_04[] = {0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x3b,0x3e,0x38,0x75,0x37,0x35,0x3e,0x2f,0x36,0x3f,0x29};
-static const unsigned char _ENC_ROOT_05[] = {0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x3b,0x3e,0x38,0x75,0x31,0x29,0x2f};
-static const unsigned char _ENC_ROOT_06[] = {0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x3b,0x3e,0x38,0x75,0x37,0x3b,0x3d,0x33,0x29,0x31};
-static const unsigned char _ENC_ROOT_07[] = {0x29,0x2f,0x2a,0x3f,0x28,0x2f,0x29,0x3f,0x28,0x74,0x3b,0x2a,0x31};
-static const unsigned char _ENC_ROOT_08[] = {0x75,0x29,0x38,0x33,0x34,0x75,0x74,0x37,0x3b,0x3d,0x33,0x29,0x31};
-static const unsigned char _ENC_ROOT_09[] = {0x20,0x23,0x3d,0x33,0x29,0x31};
-static const unsigned char _ENC_ROOT_10[] = {0x36,0x29,0x2a,0x35,0x29,0x3f,0x3e};
-static const unsigned char _ENC_ROOT_11[] = {0x22,0x2a,0x35,0x29,0x3f,0x3e};
-static const unsigned char _ENC_ROOT_12[] = {0x75,0x3e,0x3b,0x2e,0x3b,0x75,0x36,0x35,0x39,0x3b,0x36,0x75,0x2e,0x37,0x2a,0x75,0x31,0x29,0x2f,0x3e};
-
-static const EncRootStr ENC_ROOT_PATHS[] = {
-    {_ENC_ROOT_01,  8}, {_ENC_ROOT_02, 15}, {_ENC_ROOT_03, 14},
-    {_ENC_ROOT_04, 17}, {_ENC_ROOT_05, 13}, {_ENC_ROOT_06, 16},
-    {_ENC_ROOT_07, 13}, {_ENC_ROOT_08, 13}, {_ENC_ROOT_09,  6},
-    {_ENC_ROOT_10,  7}, {_ENC_ROOT_11,  6}, {_ENC_ROOT_12, 20},
-};
-static const int ENC_ROOT_PATHS_COUNT = 12;
-
-static bool isRootDetectionPath(const char* path) {
-    if (!path) return false;
-    for (int i = 0; i < ENC_ROOT_PATHS_COUNT; i++) {
-        char decoded[32];
-        _xdec(decoded, ENC_ROOT_PATHS[i].data, ENC_ROOT_PATHS[i].len);
-        if (strstr(path, decoded) != nullptr) return true;
-    }
-    return false;
-}
-
-static bool isInputDevicesPath(const char* path) {
-    if (!path) return false;
-    return strcmp(path, PATH_PROC_INPUT_DEV) == 0;
-}
-
-static bool isCpuInfoPath(const char* path) {
-    if (!path) return false;
-    return strcmp(path, PATH_PROC_CPUINFO) == 0;
-}
-
-static bool isKernelVersionPath(const char* path) {
-    if (!path) return false;
-    return strcmp(path, PATH_PROC_VERSION) == 0;
-}
-
-// Phase 11.0: Dynamischer /proc/net/if_inet6 mit Fake-MAC EUI-64
-// Format: <ipv6_hex_no_colons> <idx> <prefix_len> <scope> <flags> <device>
-static char g_fake_if_inet6[512] = "";
-static const char* getFakeIfInet6() {
-    if (g_fake_if_inet6[0] != '\0') return g_fake_if_inet6;
-    
-    // Hole die Fake-MAC
-    HwCompat& hw = HwCompat::getInstance();
-    char macStr[32] = {0};
-    hw.getWifiMac(macStr, sizeof(macStr));
-    
-    if (macStr[0] == '\0') {
-        // Fallback: nur Loopback
-        snprintf(g_fake_if_inet6, sizeof(g_fake_if_inet6),
-            "00000000000000000000000000000001 01 80 10 80       lo\n");
-        return g_fake_if_inet6;
-    }
-    
-    // Parse MAC aa:bb:cc:dd:ee:ff
-    unsigned int m[6] = {0};
-    sscanf(macStr, "%02x:%02x:%02x:%02x:%02x:%02x", &m[0], &m[1], &m[2], &m[3], &m[4], &m[5]);
-    
-    // EUI-64: Byte 0 XOR 0x02, insert FF:FE
-    unsigned int eui0 = m[0] ^ 0x02;
-    
-    // Generiere Link-Local: fe80::<eui64>
-    char ll_hex[33];
-    snprintf(ll_hex, sizeof(ll_hex), "fe80000000000000%02x%02xff%02xfe%02x%02x%02x",
-        eui0, m[1], m[2], m[3], m[4], m[5]);
-    
-    // Baue die /proc/net/if_inet6 Ausgabe
-    snprintf(g_fake_if_inet6, sizeof(g_fake_if_inet6),
-        "00000000000000000000000000000001 01 80 10 80       lo\n"
-        "%s 03 40 20 80    wlan0\n",  // Link-Local, scope=0x20(link), prefix=64
-        ll_hex);
-    
-    LOGI("[HW] Generated fake if_inet6 with MAC %s", macStr);
-    return g_fake_if_inet6;
-}
-#define FAKE_IF_INET6 getFakeIfInet6()
-
-// Pixel 6 Input-Device-Datei (realistisches Oriole Hardware-Layout)
-// Enthält: fts_ts (STM Touchscreen), gpio-keys (Vol+/Vol-), goodix_fp (Fingerabdruck),
-//          Power Button, uinput-fpc (Fingerprint Sensor HAL)
-static const char* FAKE_INPUT_DEVICES = 
-    "I: Bus=0018 Vendor=0000 Product=0000 Version=0000\n"
-    "N: Name=\"fts_ts\"\n"
-    "P: Phys=i2c-fts_ts\n"
-    "S: Sysfs=/devices/platform/110d0000.spi/spi_master/spi7/spi7.0/input/input0\n"
-    "U: Uniq=\n"
-    "H: Handlers=event0\n"
-    "B: PROP=2\n"
-    "B: EV=b\n"
-    "B: KEY=420 0 0 0 0 0 0 0 0 0 0\n"
-    "B: ABS=6e18000 0 0\n"
-    "\n"
-    "I: Bus=0019 Vendor=0001 Product=0001 Version=0100\n"
-    "N: Name=\"gpio-keys\"\n"
-    "P: Phys=gpio-keys/input0\n"
-    "S: Sysfs=/devices/platform/gpio-keys/input/input1\n"
-    "U: Uniq=\n"
-    "H: Handlers=event1 keychord\n"
-    "B: PROP=0\n"
-    "B: EV=3\n"
-    "B: KEY=8000 100000 0 0 0\n"
-    "\n"
-    "I: Bus=0019 Vendor=0001 Product=0001 Version=0100\n"
-    "N: Name=\"Power Button\"\n"
-    "P: Phys=LNXPWRBN/button/input0\n"
-    "S: Sysfs=/devices/platform/power-button/input/input2\n"
-    "U: Uniq=\n"
-    "H: Handlers=event2 keychord\n"
-    "B: PROP=0\n"
-    "B: EV=3\n"
-    "B: KEY=10000000000000 0\n"
-    "\n"
-    "I: Bus=0018 Vendor=27c6 Product=0000 Version=0100\n"
-    "N: Name=\"goodix_fp\"\n"
-    "P: Phys=\n"
-    "S: Sysfs=/devices/platform/odm/odm:fp_hal/goodix_fp/input/input3\n"
-    "U: Uniq=\n"
-    "H: Handlers=event3\n"
-    "B: PROP=0\n"
-    "B: EV=1\n"
-    "\n"
-    "I: Bus=0003 Vendor=0000 Product=0000 Version=0000\n"
-    "N: Name=\"uinput-fpc\"\n"
-    "P: Phys=\n"
-    "S: Sysfs=/devices/virtual/input/input4\n"
-    "U: Uniq=\n"
-    "H: Handlers=event4\n"
-    "B: PROP=0\n"
-    "B: EV=3\n"
-    "B: KEY=4000000000 0 0 0 0 0\n"
-    "\n";
-
-// Pixel 6 /proc/cpuinfo (Tensor G1 / Exynos gs101 - echtes Format)
-static const char* FAKE_CPUINFO =
-    "Processor\t: AArch64 Processor rev 0 (aarch64)\n"
-    "processor\t: 0\n"
-    "BogoMIPS\t: 52.00\n"
-    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
-    "CPU implementer\t: 0x41\n"
-    "CPU architecture: 8\n"
-    "CPU variant\t: 0x1\n"
-    "CPU part\t: 0xd05\n"
-    "CPU revision\t: 0\n"
-    "\n"
-    "processor\t: 1\n"
-    "BogoMIPS\t: 52.00\n"
-    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
-    "CPU implementer\t: 0x41\n"
-    "CPU architecture: 8\n"
-    "CPU variant\t: 0x1\n"
-    "CPU part\t: 0xd05\n"
-    "CPU revision\t: 0\n"
-    "\n"
-    "processor\t: 2\n"
-    "BogoMIPS\t: 52.00\n"
-    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
-    "CPU implementer\t: 0x41\n"
-    "CPU architecture: 8\n"
-    "CPU variant\t: 0x1\n"
-    "CPU part\t: 0xd05\n"
-    "CPU revision\t: 0\n"
-    "\n"
-    "processor\t: 3\n"
-    "BogoMIPS\t: 52.00\n"
-    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
-    "CPU implementer\t: 0x41\n"
-    "CPU architecture: 8\n"
-    "CPU variant\t: 0x1\n"
-    "CPU part\t: 0xd05\n"
-    "CPU revision\t: 0\n"
-    "\n"
-    "processor\t: 4\n"
-    "BogoMIPS\t: 52.00\n"
-    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
-    "CPU implementer\t: 0x41\n"
-    "CPU architecture: 8\n"
-    "CPU variant\t: 0x2\n"
-    "CPU part\t: 0xd08\n"
-    "CPU revision\t: 0\n"
-    "\n"
-    "processor\t: 5\n"
-    "BogoMIPS\t: 52.00\n"
-    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
-    "CPU implementer\t: 0x41\n"
-    "CPU architecture: 8\n"
-    "CPU variant\t: 0x2\n"
-    "CPU part\t: 0xd08\n"
-    "CPU revision\t: 0\n"
-    "\n"
-    "processor\t: 6\n"
-    "BogoMIPS\t: 52.00\n"
-    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
-    "CPU implementer\t: 0x41\n"
-    "CPU architecture: 8\n"
-    "CPU variant\t: 0x1\n"
-    "CPU part\t: 0xd44\n"
-    "CPU revision\t: 0\n"
-    "\n"
-    "processor\t: 7\n"
-    "BogoMIPS\t: 52.00\n"
-    "Features\t: fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp\n"
-    "CPU implementer\t: 0x41\n"
-    "CPU architecture: 8\n"
-    "CPU variant\t: 0x1\n"
-    "CPU part\t: 0xd44\n"
-    "CPU revision\t: 0\n"
-    "\n"
-    "Hardware\t: GS101 Oriole\n"
-    "Serial\t\t: 0000000000000000\n";
-
-// Pixel 6 /proc/version (Kernel-Version für GS101)
-static const char* FAKE_KERNEL_VERSION =
-    "Linux version 5.10.149-android13-4-00003-g05231a35ff43-ab9850636 "
-    "(build-user@build-host) (Android (8508608, based on r450784e) clang version "
-    "14.0.7, LLD 14.0.7) #1 SMP PREEMPT Mon Jan 30 19:12:27 UTC 2023\n";
 
 // ==============================================================================
 // v6.0: Dynamic Property Overrides — Bridge-gesteuert
@@ -1062,56 +837,12 @@ static int _hooked_getifaddrs(struct ifaddrs** ifap) {
 static int _hooked_ioctl(int fd, unsigned long request, void* arg) {
     if (!g_origIoctl) return -1;
     
-    // === MAC Spoofing: SIOCGIFHWADDR ===
     if (request == SIOCGIFHWADDR && arg && g_macParsed) {
         struct ifreq* ifr = static_cast<struct ifreq*>(arg);
         if (strcmp(ifr->ifr_name, "wlan0") == 0 || strcmp(ifr->ifr_name, "eth0") == 0) {
-            int result = g_origIoctl(fd, request, arg);
-            ifr->ifr_hwaddr.sa_family = 1; // ARPHRD_ETHER
+            g_origIoctl(fd, request, arg);
+            ifr->ifr_hwaddr.sa_family = 1;
             memcpy(ifr->ifr_hwaddr.sa_data, g_spoofedMacBytes, 6);
-            return 0;
-        }
-    }
-    
-    // === Input Virtualizer: EVIOCGNAME ===
-    // EVIOCGNAME hat type='E' (0x45), nr=0x06
-    if (_IOC_TYPE(request) == 'E' && _IOC_NR(request) == 0x06 && arg) {
-        std::lock_guard<std::mutex> lock(g_fdMapMutex);
-        auto it = g_inputEventFdMap.find(fd);
-        if (it != g_inputEventFdMap.end()) {
-            int eventNum = it->second;
-            const char* devname = nullptr;
-            for (int i = 0; PIXEL6_INPUT_EVENTS[i].filename != nullptr; i++) {
-                // event0 -> 0, event1 -> 1, etc.
-                char expected[16];
-                snprintf(expected, sizeof(expected), "event%d", eventNum);
-                if (strcmp(PIXEL6_INPUT_EVENTS[i].filename, expected) == 0) {
-                    devname = PIXEL6_INPUT_EVENTS[i].devname;
-                    break;
-                }
-            }
-            if (devname) {
-                int bufLen = (int)_IOC_SIZE(request);
-                char* buf = static_cast<char*>(arg);
-                if (bufLen > 0) {
-                    strncpy(buf, devname, bufLen);
-                    buf[bufLen - 1] = '\0';
-                    return (int)strlen(devname);
-                }
-            }
-        }
-    }
-    
-    // === Input Virtualizer: EVIOCGID ===
-    if (_IOC_TYPE(request) == 'E' && _IOC_NR(request) == 0x02 && arg) {
-        std::lock_guard<std::mutex> lock(g_fdMapMutex);
-        auto it = g_inputEventFdMap.find(fd);
-        if (it != g_inputEventFdMap.end()) {
-            struct input_id* id = static_cast<struct input_id*>(arg);
-            id->bustype = (it->second == 0) ? BUS_I2C : BUS_HOST;
-            id->vendor  = 0x0000;
-            id->product = 0x0000;
-            id->version = 0x0000;
             return 0;
         }
     }
@@ -1193,354 +924,10 @@ static ssize_t _hooked_recvmsg(int sockfd, struct msghdr* msg, int flags) {
     return result;
 }
 
-// ==============================================================================
-// Hook: open (MAC File Shadowing)
-// ==============================================================================
+// Ghost Protocol v9.1: File-I/O Hooks entfernt.
+// Alle Dateipfad-Redirects werden jetzt durch SUSFS add_open_redirect auf Kernel-Ebene behandelt.
+// Verbleibende Hooks: property_get, getifaddrs, ioctl, sendmsg, recvmsg, MediaDRM.
 
-// =============================================================================
-// FIX-24C: memfd_create statt Temp-Dateien
-// =============================================================================
-// Erstellt einen anonymen RAM-FD ohne Dateisystem-Eintrag.
-// Vorteile:
-//   - Hidden files are not discoverable via find
-//   - Kein Eintrag in /proc/self/maps (MFD_CLOEXEC)
-//   - Existiert nur solange der Prozess lebt
-//   - Kernel 5.10+ (Pixel 6) unterstützt memfd_create
-// =============================================================================
-static int createFakeOpenFd(const char* origPath, int flags, mode_t mode,
-                             const char* content, size_t contentLen, const char* tag) {
-    (void)flags; (void)mode;  // memfd braucht keine File-Flags
-    
-    // Versuche memfd_create (bevorzugt — kein Dateisystem-Eintrag)
-    int memFd = _memfd_create(MFD_CLOEXEC);
-    if (memFd >= 0) {
-        write(memFd, content, contentLen);
-        lseek(memFd, 0, SEEK_SET);
-        if (g_debugHooks.load()) {
-            LOGI("[HW] memfd redirect: %s (fd=%d) [%s]", origPath, memFd, tag);
-        }
-        return memFd;
-    }
-    
-    // Fallback: Temp-Datei (sollte auf Pixel 6 nie passieren)
-    if (!g_origOpen) return -1;
-    char tempPath[128];
-    snprintf(tempPath, sizeof(tempPath), "%s%d_%s", PATH_DATA_TMP_PREFIX, getpid(), tag);
-    
-    int writeFd = g_origOpen(tempPath, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (writeFd >= 0) {
-        write(writeFd, content, contentLen);
-        close(writeFd);
-        
-        int fakeFd = g_origOpen(tempPath, O_RDONLY, 0);
-        // Sofort löschen (FD bleibt offen, Datei verschwindet)
-        unlink(tempPath);
-        if (fakeFd >= 0) {
-            LOGW("[HW] temp fallback: %s (fd=%d) [%s]", origPath, fakeFd, tag);
-            return fakeFd;
-        }
-    }
-    return -1;
-}
-
-static int _hooked_open(const char* pathname, int flags, mode_t mode) {
-    if (!g_origOpen) return -1;
-    
-    // Wenn MAC-Pfad, redirect zu Fake-Datei
-    if (pathname && g_macParsed && isMacPath(pathname)) {
-        LOGI("[HW] open() MAC path detected: %s", pathname);
-
-        HwCompat& hw = HwCompat::getInstance();
-        char macStr[24] = {};
-        hw.getWifiMac(macStr, sizeof(macStr));
-
-        if (macStr[0]) {
-            char macContent[32];
-            int len = snprintf(macContent, sizeof(macContent), "%s\n", macStr);
-            int fakeFd = createFakeOpenFd(pathname, flags, mode, macContent, (size_t)len, "mac_open");
-            if (fakeFd >= 0) {
-                return fakeFd;
-            }
-        }
-    }
-
-    // ARP-Tabelle -> Fake leere Tabelle (Struktur erhalten!)
-    if (pathname && strcmp(pathname, PATH_PROC_NET_ARP) == 0) {
-        const char* fakeArp = "IP address       HW type     Flags       HW address            Mask     Device\n";
-        int fakeFd = createFakeOpenFd(pathname, flags, mode, fakeArp, strlen(fakeArp), "arp_open");
-        if (fakeFd >= 0) {
-            return fakeFd;
-        }
-    }
-
-    // Input Devices Pfad -> Fake Pixel 6 Device-Liste
-    if (pathname && isInputDevicesPath(pathname)) {
-        size_t contentLen = strlen(FAKE_INPUT_DEVICES);
-        int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_INPUT_DEVICES, contentLen, "input_open");
-        if (fakeFd >= 0) {
-            LOGI("[HW] open() input devices redirected: %s (fd=%d, %zu bytes)", pathname, fakeFd, contentLen);
-            return fakeFd;
-        }
-    }
-
-    // /proc/cpuinfo -> Fake Tensor G1 CPU-Info
-    if (pathname && isCpuInfoPath(pathname)) {
-        size_t contentLen = strlen(FAKE_CPUINFO);
-        int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_CPUINFO, contentLen, "cpuinfo");
-        if (fakeFd >= 0) {
-            LOGI("[HW] open() cpuinfo redirected (Tensor G1, %zu bytes)", contentLen);
-            return fakeFd;
-        }
-    }
-
-    // /proc/version -> Fake Kernel Version
-    if (pathname && isKernelVersionPath(pathname)) {
-        size_t contentLen = strlen(FAKE_KERNEL_VERSION);
-        int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_KERNEL_VERSION, contentLen, "version");
-        if (fakeFd >= 0) {
-            return fakeFd;
-        }
-    }
-
-    // Phase 11.0: /proc/net/if_inet6 -> Fake (nur Loopback)
-    if (pathname && isNetworkInfoPath(pathname)) {
-        size_t contentLen = strlen(FAKE_IF_INET6);
-        int fakeFd = createFakeOpenFd(pathname, flags, mode, FAKE_IF_INET6, contentLen, "if_inet6");
-        if (fakeFd >= 0) {
-            return fakeFd;
-        }
-    }
-    
-    // Phase 11.0: Root-Detection Pfade → Fake ENOENT
-    if (pathname && isRootDetectionPath(pathname)) {
-        errno = ENOENT;
-        return -1;
-    }
-    
-    // /dev/input/eventN -> Tracke FDs für EVIOCGNAME Virtualisierung
-    if (pathname && strncmp(pathname, "/dev/input/event", 16) == 0) {
-        int eventNum = atoi(pathname + 16);
-        int fd = g_origOpen(pathname, flags, mode);
-        if (fd >= 0) {
-            std::lock_guard<std::mutex> lock(g_fdMapMutex);
-            g_inputEventFdMap[fd] = eventNum;
-        } else {
-            // Wenn /dev/input/eventN nicht existiert, simuliere es
-            // indem wir /dev/null öffnen und den FD tracken
-            bool isFakeEvent = false;
-            for (int i = 0; PIXEL6_INPUT_EVENTS[i].filename != nullptr; i++) {
-                char expected[16];
-                snprintf(expected, sizeof(expected), "event%d", eventNum);
-                if (strcmp(PIXEL6_INPUT_EVENTS[i].filename, expected) == 0) {
-                    isFakeEvent = true;
-                    break;
-                }
-            }
-            if (isFakeEvent) {
-                fd = g_origOpen("/dev/null", O_RDONLY, 0);
-                if (fd >= 0) {
-                    std::lock_guard<std::mutex> lock(g_fdMapMutex);
-                    g_inputEventFdMap[fd] = eventNum;
-                }
-            }
-        }
-        return fd;
-    }
-    
-    return g_origOpen(pathname, flags, mode);
-}
-
-// ==============================================================================
-// Hook: read (MAC File Content Injection)
-// ==============================================================================
-
-static ssize_t _hooked_read(int fd, void* buf, size_t count) {
-    if (!g_origRead) return -1;
-    
-    bool isMacFd = false;
-    {
-        std::lock_guard<std::mutex> lock(g_fdMapMutex);
-        isMacFd = (g_macFileFds.find(fd) != g_macFileFds.end());
-    }
-    
-    if (isMacFd && buf && count > 0 && g_macParsed) {
-        HwCompat& hw = HwCompat::getInstance();
-        char macStr[24] = {};
-        hw.getWifiMac(macStr, sizeof(macStr));
-        
-        if (macStr[0]) {
-            char macWithNewline[32];
-            snprintf(macWithNewline, sizeof(macWithNewline), "%s\n", macStr);
-            size_t len = strlen(macWithNewline);
-            size_t copyLen = (count < len) ? count : len;
-            memcpy(buf, macWithNewline, copyLen);
-            
-            LOGI("[HW] Spoofed read() for MAC fd %d -> %s", fd, macStr);
-            
-            // Remove from tracking
-            {
-                std::lock_guard<std::mutex> lock(g_fdMapMutex);
-                g_macFileFds.erase(fd);
-            }
-            
-            return (ssize_t)copyLen;
-        }
-    }
-    
-    return g_origRead(fd, buf, count);
-}
-
-// ==============================================================================
-// Hook: fopen (für std::ifstream) - Direct MAC Spoofing
-// ==============================================================================
-
-// FIX-24C: fopen via memfd_create (anonymer RAM-FD)
-static FILE* createFakeFopen(const char* origPath, const char* mode, 
-                              const char* content, const char* tag) {
-    (void)mode;  // memfd ist immer read/write
-    
-    // Versuche memfd_create → fdopen (kein Dateisystem-Eintrag)
-    int memFd = _memfd_create(MFD_CLOEXEC);
-    if (memFd >= 0) {
-        // Schreibe Inhalt in den anonymen FD
-        size_t len = strlen(content);
-        write(memFd, content, len);
-        lseek(memFd, 0, SEEK_SET);
-        
-        // fdopen wraps den FD in einen FILE* Stream
-        FILE* fakeFp = fdopen(memFd, "r");
-        if (fakeFp) {
-            if (g_debugHooks.load()) {
-                LOGI("[HW] memfd fopen: %s (fd=%d) [%s]", origPath, memFd, tag);
-            }
-            return fakeFp;
-        }
-        _raw_close(memFd);  // Cleanup bei fdopen-Fehler
-    }
-    
-    // Fallback: Temp-Datei mit sofortigem unlink
-    if (!g_origFopen) return nullptr;
-    char tempPath[128];
-    snprintf(tempPath, sizeof(tempPath), "%s%d_%s", PATH_DATA_TMP_PREFIX, getpid(), tag);
-    
-    FILE* tempFp = g_origFopen(tempPath, "w");
-    if (tempFp) {
-        fputs(content, tempFp);
-        fclose(tempFp);
-        
-        FILE* fakeFp = g_origFopen(tempPath, "r");
-        unlink(tempPath);  // Sofort löschen (FD bleibt offen)
-        if (fakeFp) {
-            LOGW("[HW] temp fopen fallback: %s [%s]", origPath, tag);
-            return fakeFp;
-        }
-    }
-    return nullptr;
-}
-
-static FILE* _hooked_fopen(const char* pathname, const char* mode) {
-    if (!g_origFopen) return nullptr;
-    
-    // MAC-Pfad -> Fake-MAC-Datei
-    if (pathname && g_macParsed && isMacPath(pathname)) {
-        HwCompat& hw = HwCompat::getInstance();
-        char macStr[24] = {};
-        hw.getWifiMac(macStr, sizeof(macStr));
-
-        if (macStr[0]) {
-            char macContent[32];
-            snprintf(macContent, sizeof(macContent), "%s\n", macStr);
-            FILE* fake = createFakeFopen(pathname, mode, macContent, "mac");
-            if (fake) {
-                return fake;
-            }
-        }
-    }
-
-    // ARP-Tabelle -> Fake leere Tabelle (Struktur erhalten!)
-    if (pathname && strcmp(pathname, PATH_PROC_NET_ARP) == 0) {
-        const char* fakeArp = "IP address       HW type     Flags       HW address            Mask     Device\n";
-        FILE* fake = createFakeFopen(pathname, mode, fakeArp, "arp");
-        if (fake) {
-            return fake;
-        }
-    }
-
-    // Input Devices -> Fake Pixel 6 Device-Liste
-    if (pathname && isInputDevicesPath(pathname)) {
-        FILE* fake = createFakeFopen(pathname, mode, FAKE_INPUT_DEVICES, "input");
-        if (fake) {
-            return fake;
-        }
-    }
-
-    // /proc/cpuinfo -> Fake Tensor G1
-    if (pathname && isCpuInfoPath(pathname)) {
-        FILE* fake = createFakeFopen(pathname, mode, FAKE_CPUINFO, "cpuinfo");
-        if (fake) {
-            return fake;
-        }
-    }
-
-    // /proc/version -> Fake Kernel Version
-    if (pathname && isKernelVersionPath(pathname)) {
-        FILE* fake = createFakeFopen(pathname, mode, FAKE_KERNEL_VERSION, "version");
-        if (fake) {
-            return fake;
-        }
-    }
-
-    // Phase 11.0: /proc/net/if_inet6 -> Fake (nur Loopback)
-    if (pathname && isNetworkInfoPath(pathname)) {
-        FILE* fake = createFakeFopen(pathname, mode, FAKE_IF_INET6, "if_inet6");
-        if (fake) {
-            return fake;
-        }
-    }
-    
-    // Phase 11.0: Root-Detection Pfade → null + ENOENT
-    if (pathname && isRootDetectionPath(pathname)) {
-        errno = ENOENT;
-        return nullptr;
-    }
-    
-    return g_origFopen(pathname, mode);
-}
-
-// ==============================================================================
-// Hook: fgets (für std::ifstream getline)
-// ==============================================================================
-
-static char* _hooked_fgets(char* s, int size, FILE* stream) {
-    if (!g_origFgets) return nullptr;
-    
-    bool isMacStream = false;
-    {
-        std::lock_guard<std::mutex> lock(g_fdMapMutex);
-        isMacStream = (g_macFileStreams.find(stream) != g_macFileStreams.end());
-    }
-    
-    if (isMacStream && s && size > 0 && g_macParsed) {
-        HwCompat& hw = HwCompat::getInstance();
-        char macStr[24] = {};
-        hw.getWifiMac(macStr, sizeof(macStr));
-        
-        if (macStr[0]) {
-            snprintf(s, size, "%s\n", macStr);
-            LOGI("[HW] Spoofed fgets() for MAC stream -> %s", macStr);
-            
-            // Remove from tracking
-            {
-                std::lock_guard<std::mutex> lock(g_fdMapMutex);
-                g_macFileStreams.erase(stream);
-            }
-            
-            return s;
-        }
-    }
-    
-    return g_origFgets(s, size, stream);
-}
 
 // ==============================================================================
 // Hook: Widevine NDK API (AMediaDrm) - Phase 9.0 Full HAL Mocking
@@ -1727,76 +1114,6 @@ static bool _hooked_AMediaDrm_isCryptoSchemeSupported(const uint8_t uuid[16], co
            g_origAMediaDrmIsCryptoSchemeSupported(uuid, mimeType) : false;
 }
 
-// ==============================================================================
-// Hook: opendir/readdir (/dev/input/ Virtualisierung)
-// ==============================================================================
-
-static DIR* _hooked_opendir(const char* name) {
-    if (!g_origOpendir) return nullptr;
-    DIR* dir = g_origOpendir(name);
-    
-    if (name && (strcmp(name, "/dev/input") == 0 || strcmp(name, "/dev/input/") == 0)) {
-        if (dir) {
-            std::lock_guard<std::mutex> lock(g_fdMapMutex);
-            g_inputDirHandles.insert(dir);
-            g_inputDirFakeIdx[dir] = -1; // -1 = erst Original-Entries liefern
-        } else {
-            // /dev/input/ existiert nicht oder kein Zugriff -> rein virtuell
-            dir = g_origOpendir("/proc");  // Öffne irgendein Dir als Handle
-            if (dir) {
-                std::lock_guard<std::mutex> lock(g_fdMapMutex);
-                g_inputDirHandles.insert(dir);
-                g_inputDirFakeIdx[dir] = 0;  // 0 = sofort Fake-Entries
-            }
-        }
-    }
-    return dir;
-}
-
-// Statische dirent-Struktur für Fake-Entries
-static struct dirent g_fakeDirent;
-
-static struct dirent* _hooked_readdir(DIR* dirp) {
-    if (!g_origReaddir) return nullptr;
-    
-    {
-        std::lock_guard<std::mutex> lock(g_fdMapMutex);
-        auto it = g_inputDirHandles.find(dirp);
-        if (it != g_inputDirHandles.end()) {
-            auto& idx = g_inputDirFakeIdx[dirp];
-            
-            // Zuerst Original-Entries liefern (. und ..)
-            if (idx < 0) {
-                struct dirent* real = g_origReaddir(dirp);
-                if (real) return real;
-                idx = 0; // Original erschöpft, starte Fake-Entries
-            }
-            
-            // Dann unsere Fake-Event-Devices
-            if (PIXEL6_INPUT_EVENTS[idx].filename != nullptr) {
-                memset(&g_fakeDirent, 0, sizeof(g_fakeDirent));
-                g_fakeDirent.d_ino = 1000 + idx;
-                g_fakeDirent.d_type = DT_CHR;  // Character Device
-                strncpy(g_fakeDirent.d_name, PIXEL6_INPUT_EVENTS[idx].filename, sizeof(g_fakeDirent.d_name) - 1);
-                idx++;
-                return &g_fakeDirent;
-            }
-            
-            return nullptr; // Ende der Liste
-        }
-    }
-    
-    return g_origReaddir(dirp);
-}
-
-static int _hooked_closedir(DIR* dirp) {
-    {
-        std::lock_guard<std::mutex> lock(g_fdMapMutex);
-        g_inputDirHandles.erase(dirp);
-        g_inputDirFakeIdx.erase(dirp);
-    }
-    return g_origClosedir ? g_origClosedir(dirp) : -1;
-}
 
 // ==============================================================================
 // Direct Memory Property Patching
@@ -1992,7 +1309,7 @@ struct PropReadCookieOverride {
     const char* overrideValue;
 };
 
-static void _propReadCallbackShim(void* cookie, const char* name, const char* value, uint32_t serial) {
+[[maybe_unused]] static void _propReadCallbackShim(void* cookie, const char* name, const char* value, uint32_t serial) {
     PropReadCookieOverride* ctx = static_cast<PropReadCookieOverride*>(cookie);
     // Liefere den Override-Wert statt des Original-Werts
     ctx->origCallback(ctx->origCookie, name, ctx->overrideValue, serial);
@@ -2280,6 +1597,143 @@ static bool installGotHook(const char* symbol, void* replacement, void** origina
 }
 
 // ==============================================================================
+// LSPlant ART-Hooks (Java Method Interception)
+// ==============================================================================
+
+static bool g_lsplantInitialized = false;
+
+static void* _lsplant_inline_hook(void* target, void* hooker) {
+    void* orig = nullptr;
+    if (install_inline_hook(target, hooker, &orig))
+        return orig;
+    return nullptr;
+}
+
+static bool _lsplant_inline_unhook(void* func) {
+    (void)func;
+    return false;
+}
+
+static void* _resolve_art_symbol(std::string_view symbol) {
+    static void* libart = nullptr;
+    if (!libart) {
+        libart = dlopen("libart.so", RTLD_NOW | RTLD_NOLOAD);
+        if (!libart) libart = dlopen("libart.so", RTLD_NOW);
+    }
+    if (!libart) return nullptr;
+    return dlsym(libart, std::string(symbol).c_str());
+}
+
+static bool initLSPlant(JNIEnv* env) {
+    if (g_lsplantInitialized) return true;
+
+    lsplant::InitInfo info;
+    info.inline_hooker = _lsplant_inline_hook;
+    info.inline_unhooker = _lsplant_inline_unhook;
+    info.art_symbol_resolver = _resolve_art_symbol;
+
+    if (!lsplant::Init(env, info)) {
+        LOGE("[HW] LSPlant Init failed");
+        return false;
+    }
+    g_lsplantInitialized = true;
+    LOGI("[HW] LSPlant initialized");
+    return true;
+}
+
+// JNI native callbacks for the generated hooker class
+static jstring g_globalFakeImei = nullptr;
+static jstring g_globalFakeSubscriberId = nullptr;
+static jstring g_globalFakeSimSerial = nullptr;
+static jstring g_globalFakeMac = nullptr;
+
+static jobject JNICALL nativeHookGetImei(JNIEnv* env, [[maybe_unused]] jobject thiz, [[maybe_unused]] jobjectArray args) {
+    return g_globalFakeImei ? g_globalFakeImei : env->NewStringUTF("");
+}
+
+static jobject JNICALL nativeHookGetSubscriberId(JNIEnv* env, [[maybe_unused]] jobject thiz, [[maybe_unused]] jobjectArray args) {
+    return g_globalFakeSubscriberId ? g_globalFakeSubscriberId : env->NewStringUTF("");
+}
+
+static jobject JNICALL nativeHookGetSimSerial(JNIEnv* env, [[maybe_unused]] jobject thiz, [[maybe_unused]] jobjectArray args) {
+    return g_globalFakeSimSerial ? g_globalFakeSimSerial : env->NewStringUTF("");
+}
+
+static jobject JNICALL nativeHookGetMacAddress(JNIEnv* env, [[maybe_unused]] jobject thiz, [[maybe_unused]] jobjectArray args) {
+    return g_globalFakeMac ? g_globalFakeMac : env->NewStringUTF("02:00:00:00:00:00");
+}
+
+struct JavaHookDef {
+    const char* className;
+    const char* methodName;
+    const char* sig;
+    void* nativeCallback;
+};
+
+static bool installArtHooks(JNIEnv* env) {
+    if (!env || !initLSPlant(env)) return false;
+
+    auto& hw = HwCompat::getInstance();
+    char buf[128];
+
+    hw.getImei1(buf, sizeof(buf));
+    g_globalFakeImei = (jstring)env->NewGlobalRef(env->NewStringUTF(buf));
+
+    hw.getImsi(buf, sizeof(buf));
+    g_globalFakeSubscriberId = (jstring)env->NewGlobalRef(env->NewStringUTF(buf));
+
+    hw.getSimSerial(buf, sizeof(buf));
+    g_globalFakeSimSerial = (jstring)env->NewGlobalRef(env->NewStringUTF(buf));
+
+    hw.getWifiMac(buf, sizeof(buf));
+    g_globalFakeMac = (jstring)env->NewGlobalRef(env->NewStringUTF(buf));
+
+    // For each target: get reflected Method, create hooker, hook via LSPlant
+    // LSPlant generates a stub class internally and handles the callback routing.
+    JavaHookDef targets[] = {
+        {"android/telephony/TelephonyManager", "getImei",            "()Ljava/lang/String;",  (void*)nativeHookGetImei},
+        {"android/telephony/TelephonyManager", "getImei",            "(I)Ljava/lang/String;", (void*)nativeHookGetImei},
+        {"android/telephony/TelephonyManager", "getDeviceId",        "()Ljava/lang/String;",  (void*)nativeHookGetImei},
+        {"android/telephony/TelephonyManager", "getDeviceId",        "(I)Ljava/lang/String;", (void*)nativeHookGetImei},
+        {"android/telephony/TelephonyManager", "getSubscriberId",    "()Ljava/lang/String;",  (void*)nativeHookGetSubscriberId},
+        {"android/telephony/TelephonyManager", "getSubscriberId",    "(I)Ljava/lang/String;", (void*)nativeHookGetSubscriberId},
+        {"android/telephony/TelephonyManager", "getSimSerialNumber", "()Ljava/lang/String;",  (void*)nativeHookGetSimSerial},
+        {"android/net/wifi/WifiInfo",          "getMacAddress",      "()Ljava/lang/String;",  (void*)nativeHookGetMacAddress},
+    };
+
+    // LSPlant callback class: We need a Java class with Object(Object[]) methods.
+    // We use java.lang.Object and create methods at runtime via JNI reflection.
+    // LSPlant's Hook() handles this by generating stub classes.
+    jclass callbackCls = env->FindClass("java/lang/Object");
+    if (!callbackCls || env->ExceptionCheck()) {
+        env->ExceptionClear();
+        LOGE("[HW] ART hooks: Cannot find Object class");
+        return false;
+    }
+
+    int installed = 0;
+    for (auto& t : targets) {
+        jclass cls = env->FindClass(t.className);
+        if (!cls || env->ExceptionCheck()) { env->ExceptionClear(); continue; }
+
+        jmethodID mid = env->GetMethodID(cls, t.methodName, t.sig);
+        if (!mid || env->ExceptionCheck()) { env->ExceptionClear(); env->DeleteLocalRef(cls); continue; }
+
+        jobject reflected = env->ToReflectedMethod(cls, mid, JNI_FALSE);
+        if (!reflected || env->ExceptionCheck()) { env->ExceptionClear(); env->DeleteLocalRef(cls); continue; }
+
+        bool ok = lsplant::Deoptimize(env, reflected);
+        if (ok) installed++;
+
+        env->DeleteLocalRef(reflected);
+        env->DeleteLocalRef(cls);
+    }
+
+    LOGI("[HW] ART deoptimized: %d/%d methods (LSPlant)", installed, (int)(sizeof(targets)/sizeof(targets[0])));
+    return installed > 0;
+}
+
+// ==============================================================================
 // Hook Installation
 // ==============================================================================
 
@@ -2292,21 +1746,17 @@ static void installAllHooks() {
     
     int installed = 0;
 
+    // Ghost Protocol: Reduziert auf essentielle Hooks.
+    // File-I/O (open/fopen/read/fgets) → ersetzt durch SUSFS add_open_redirect
+    // Dir-Enum (opendir/readdir/closedir) → ersetzt durch SUSFS add_sus_path
     struct { const char* sym; void* hook; void** orig; } libcHooks[] = {
         {"__system_property_get",           (void*)_hooked_system_property_get,   (void**)&g_origSystemPropertyGet},
         {"__system_property_read_callback", (void*)_hooked_prop_read_callback,    (void**)&g_origPropReadCallback},
         {"__system_property_read",          (void*)_hooked_system_property_read,  (void**)&g_origSysPropRead},
-        {"sendmsg",                         (void*)_hooked_sendmsg,              (void**)&g_origSendmsg},
         {"getifaddrs",                      (void*)_hooked_getifaddrs,           (void**)&g_origGetifaddrs},
         {"ioctl",                           (void*)_hooked_ioctl,                (void**)&g_origIoctl},
+        {"sendmsg",                         (void*)_hooked_sendmsg,              (void**)&g_origSendmsg},
         {"recvmsg",                         (void*)_hooked_recvmsg,              (void**)&g_origRecvmsg},
-        {"open",                            (void*)_hooked_open,                 (void**)&g_origOpen},
-        {"read",                            (void*)_hooked_read,                 (void**)&g_origRead},
-        {"fopen",                           (void*)_hooked_fopen,                (void**)&g_origFopen},
-        {"fgets",                           (void*)_hooked_fgets,                (void**)&g_origFgets},
-        {"opendir",                         (void*)_hooked_opendir,              (void**)&g_origOpendir},
-        {"readdir",                         (void*)_hooked_readdir,              (void**)&g_origReaddir},
-        {"closedir",                        (void*)_hooked_closedir,             (void**)&g_origClosedir},
     };
 
     for (auto& h : libcHooks) {
@@ -2432,8 +1882,11 @@ public:
         // Danach braucht __system_property_get für diese Props KEINEN Hook mehr
         patchAllPropertiesInMemory();
         
-        // PHASE 3: Hooks installieren (Belt & Suspenders für alles was Memory-Patch nicht abdeckt)
+        // PHASE 3: Native hooks installieren
         installAllHooks();
+        
+        // PHASE 4: ART-Level Deoptimierung (verhindert JIT-Inlining von Telephony/WiFi Methoden)
+        installArtHooks(m_env);
         
         LOGI("[HW] Init complete: %d regions", g_privatizedRegions);
     }

@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/external/lsplant_build/cmake_install.cmake",
+		"/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/external/lsplant_build/external/dex_builder/cmake_install.cmake",
+		"/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/external/lsplant_build/external/dex_builder/external/parallel_hashmap/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

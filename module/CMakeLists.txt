@@ -22,7 +22,9 @@ else()
     set(HW_DEBUG OFF)
 endif()
 
-# Dobby removed (v8.0) — using signal-based hooks for stealth
+# Dobby removed (v8.0)
+# LSPlant v6.4 (pre-module commit 386200f) — pre-built static library
+# Built with NDK r27d (Clang 18) targeting arm64-v8a, Android API 31, c++_static
 
 # ==============================================================================
 # Compiler Flags (Stealth + Performance)
@@ -80,8 +82,20 @@ add_library(compat SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/hw_compat.cpp
 )
 
+# LSPlant pre-built static libraries
+add_library(lsplant_static STATIC IMPORTED)
+set_target_properties(lsplant_static PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libs/${ANDROID_ABI}/liblsplant_static.a
+)
+
+add_library(dex_builder_static STATIC IMPORTED)
+set_target_properties(dex_builder_static PROPERTIES
+    IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/libs/${ANDROID_ABI}/libdex_builder_static.a
+)
+
 target_include_directories(compat PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/lsplant
     ${CMAKE_CURRENT_SOURCE_DIR}/../common
 )
 
@@ -102,6 +116,8 @@ endif()
 target_link_libraries(compat PRIVATE
     android
     log
+    lsplant_static
+    dex_builder_static
 )
 
 
@@ -160,6 +176,6 @@ message(STATUS "Build Type:     ${CMAKE_BUILD_TYPE}")
 message(STATUS "Android ABI:    ${ANDROID_ABI}")
 message(STATUS "Android API:    ${ANDROID_NATIVE_API_LEVEL}")
 message(STATUS "Stealth Mode:   ${HW_STEALTH_MODE}")
-message(STATUS "Hook Engine:    Signal-based (SIGILL)")
+message(STATUS "Hook Engine:    LSPlant (ART) + Inline (Native)")
 message(STATUS "Output:         ${CMAKE_BINARY_DIR}/lib/${ANDROID_ABI}/")
 message(STATUS "===============================================")

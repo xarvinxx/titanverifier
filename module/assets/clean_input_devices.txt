@@ -1,0 +1,41 @@
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="goodix_fingerprint"
+P: Phys=
+S: Sysfs=/devices/virtual/input/input0
+U: Uniq=
+H: Handlers=event0 keycombo 
+B: PROP=0
+B: EV=3
+B: KEY=3100000 40000800 1c16c000000000 0
+
+I: Bus=0019 Vendor=0001 Product=0001 Version=0100
+N: Name="gpio_keys"
+P: Phys=gpio-keys/input0
+S: Sysfs=/devices/platform/gpio_keys/input/input1
+U: Uniq=
+H: Handlers=event1 keycombo 
+B: PROP=0
+B: EV=3
+B: KEY=1c000000000000 0
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="STM VL53L1 proximity sensor"
+P: Phys=
+S: Sysfs=/devices/virtual/input/input2
+U: Uniq=
+H: Handlers=event2 
+B: PROP=0
+B: EV=9
+B: ABS=1011eff07c0
+
+I: Bus=001c Vendor=0001 Product=0002 Version=0100
+N: Name="fts"
+P: Phys=fts/input0
+S: Sysfs=/devices/platform/10d40000.spi/spi_master/spi11/spi11.0/input/input3
+U: Uniq=fts
+H: Handlers=event3 
+B: PROP=2
+B: EV=b
+B: KEY=400 0 0 0 0 0
+B: ABS=ef3800000000000
+

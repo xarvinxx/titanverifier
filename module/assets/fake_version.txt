@@ -1,0 +1,1 @@
+Linux version 5.10.149-android13-4-00003-g05231a35ff43-ab9850636 (build-user@build-host) (Android (8508608, based on r450784e) clang version 14.0.7, LLD 14.0.7) #1 SMP PREEMPT Mon Jan 30 19:12:27 UTC 2023

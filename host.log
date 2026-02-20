@@ -21072,3 +21072,747 @@ AttributeError: type object 'FlowStepStatus' has no attribute 'ERROR'
 2026-02-20 17:36:14 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=56149)
 2026-02-20 17:36:14 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=56285)
 2026-02-20 17:36:16 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 16db9633868387cd051b359cd99ba2e2)
+2026-02-20 17:41:36 [hookguard] WARNING: Guard heartbeat stale: 91s since last update
+2026-02-20 17:41:37 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=56285)
+2026-02-20 17:41:37 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=58065)
+2026-02-20 17:41:40 [hookguard] WARNING: Guard heartbeat stale: 94s since last update
+2026-02-20 17:41:43 [hookguard] WARNING: Guard heartbeat stale: 98s since last update
+2026-02-20 17:41:47 [hookguard] WARNING: Guard heartbeat stale: 102s since last update
+2026-02-20 17:42:56 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=58065)
+2026-02-20 17:43:38 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=58721)
+2026-02-20 17:46:09 [hookguard] WARNING: Guard heartbeat stale: 92s since last update
+2026-02-20 17:46:12 [hookguard] WARNING: Guard heartbeat stale: 96s since last update
+2026-02-20 17:46:16 [hookguard] WARNING: Guard heartbeat stale: 100s since last update
+2026-02-20 17:46:20 [hookguard] WARNING: Guard heartbeat stale: 103s since last update
+2026-02-20 17:46:24 [hookguard] WARNING: Guard heartbeat stale: 107s since last update
+2026-02-20 17:46:28 [hookguard] WARNING: Guard heartbeat stale: 111s since last update
+2026-02-20 17:46:32 [hookguard] WARNING: Guard heartbeat stale: 115s since last update
+2026-02-20 17:46:35 [hookguard] WARNING: Guard heartbeat stale: 119s since last update
+2026-02-20 17:46:39 [hookguard] WARNING: Guard heartbeat stale: 123s since last update
+2026-02-20 17:46:43 [hookguard] WARNING: Guard heartbeat stale: 126s since last update
+2026-02-20 17:46:47 [hookguard] WARNING: Guard heartbeat stale: 130s since last update
+2026-02-20 17:46:51 [hookguard] WARNING: Guard heartbeat stale: 134s since last update
+2026-02-20 17:46:55 [hookguard] WARNING: Guard heartbeat stale: 138s since last update
+2026-02-20 17:46:59 [hookguard] WARNING: Guard heartbeat stale: 142s since last update
+2026-02-20 17:47:03 [hookguard] WARNING: Guard heartbeat stale: 146s since last update
+2026-02-20 17:47:07 [hookguard] WARNING: Guard heartbeat stale: 150s since last update
+2026-02-20 17:47:10 [hookguard] WARNING: Guard heartbeat stale: 154s since last update
+2026-02-20 17:47:14 [hookguard] WARNING: Guard heartbeat stale: 158s since last update
+2026-02-20 17:47:18 [hookguard] WARNING: Guard heartbeat stale: 161s since last update
+2026-02-20 17:47:22 [hookguard] WARNING: Guard heartbeat stale: 165s since last update
+2026-02-20 17:47:26 [hookguard] WARNING: Guard heartbeat stale: 170s since last update
+2026-02-20 17:47:30 [hookguard] WARNING: Guard heartbeat stale: 173s since last update
+2026-02-20 17:47:34 [hookguard] WARNING: Guard heartbeat stale: 177s since last update
+2026-02-20 17:47:38 [hookguard] WARNING: Guard heartbeat stale: 181s since last update
+2026-02-20 17:47:41 [hookguard] WARNING: Guard heartbeat stale: 185s since last update
+2026-02-20 17:47:45 [hookguard] WARNING: Guard heartbeat stale: 188s since last update
+2026-02-20 17:47:49 [hookguard] WARNING: Guard heartbeat stale: 192s since last update
+2026-02-20 17:47:53 [hookguard] WARNING: Guard heartbeat stale: 196s since last update
+2026-02-20 17:47:57 [hookguard] WARNING: Guard heartbeat stale: 200s since last update
+2026-02-20 17:48:01 [hookguard] WARNING: Guard heartbeat stale: 204s since last update
+2026-02-20 17:48:04 [hookguard] WARNING: Guard heartbeat stale: 208s since last update
+2026-02-20 17:48:08 [hookguard] WARNING: Guard heartbeat stale: 211s since last update
+2026-02-20 17:48:12 [hookguard] WARNING: Guard heartbeat stale: 215s since last update
+2026-02-20 17:48:16 [hookguard] WARNING: Guard heartbeat stale: 219s since last update
+2026-02-20 17:48:20 [hookguard] WARNING: Guard heartbeat stale: 223s since last update
+2026-02-20 17:48:24 [hookguard] WARNING: Guard heartbeat stale: 227s since last update
+2026-02-20 17:48:28 [hookguard] WARNING: Guard heartbeat stale: 231s since last update
+2026-02-20 17:48:32 [hookguard] WARNING: Guard heartbeat stale: 235s since last update
+2026-02-20 17:48:36 [hookguard] WARNING: Guard heartbeat stale: 239s since last update
+2026-02-20 17:48:39 [hookguard] WARNING: Guard heartbeat stale: 242s since last update
+2026-02-20 17:48:43 [hookguard] WARNING: Guard heartbeat stale: 246s since last update
+2026-02-20 17:48:47 [hookguard] WARNING: Guard heartbeat stale: 250s since last update
+2026-02-20 17:48:51 [hookguard] WARNING: Guard heartbeat stale: 254s since last update
+2026-02-20 17:48:54 [hookguard] WARNING: Guard heartbeat stale: 258s since last update
+2026-02-20 17:48:59 [hookguard] WARNING: Guard heartbeat stale: 262s since last update
+2026-02-20 17:49:03 [hookguard] WARNING: Guard heartbeat stale: 266s since last update
+2026-02-20 17:49:06 [hookguard] WARNING: Guard heartbeat stale: 270s since last update
+2026-02-20 17:49:10 [hookguard] WARNING: Guard heartbeat stale: 274s since last update
+2026-02-20 17:49:14 [hookguard] WARNING: Guard heartbeat stale: 277s since last update
+2026-02-20 17:49:18 [hookguard] WARNING: Guard heartbeat stale: 281s since last update
+2026-02-20 17:49:22 [hookguard] WARNING: Guard heartbeat stale: 285s since last update
+2026-02-20 17:49:25 [hookguard] WARNING: Guard heartbeat stale: 289s since last update
+2026-02-20 17:49:30 [hookguard] WARNING: Guard heartbeat stale: 293s since last update
+2026-02-20 17:49:34 [hookguard] WARNING: Guard heartbeat stale: 297s since last update
+2026-02-20 17:49:37 [hookguard] WARNING: Guard heartbeat stale: 300s since last update
+2026-02-20 17:49:41 [hookguard] WARNING: Guard heartbeat stale: 304s since last update
+2026-02-20 17:49:45 [hookguard] WARNING: Guard heartbeat stale: 308s since last update
+2026-02-20 17:49:48 [hookguard] WARNING: Guard heartbeat stale: 312s since last update
+2026-02-20 17:49:52 [hookguard] WARNING: Guard heartbeat stale: 316s since last update
+2026-02-20 17:49:54 [host.api.control] INFO: Genesis-Flow gestartet: FirstTryAfterRefactoring
+2026-02-20 17:49:54 [host.flows.genesis] INFO: ============================================================
+2026-02-20 17:49:54 [host.flows.genesis] INFO:   GENESIS FLOW: FirstTryAfterRefactoring
+2026-02-20 17:49:54 [host.flows.genesis] INFO: ============================================================
+2026-02-20 17:49:54 [host.flows.genesis] INFO: Genesis Frequency: 1/2h, 6/24h, 54 total (Limits: 9999/2h, 9999/24h, Cooldown 0min)
+2026-02-20 17:49:54 [host.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-20 17:49:54 [host.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-20 17:49:54 [host.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-20 17:49:54 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'Ghost_Protocol_v91_Test' hat keinen TikTok-Account — Checkbox nicht gesetzt
+2026-02-20 17:49:54 [host.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-20 17:49:54 [host.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-20 17:49:56 [host.shifter] INFO: [Clean] pm clear com.zhiliaoapp.musically: OK (firstInstallTime unverändert)
+2026-02-20 17:49:56 [host.shifter] INFO: [Clean] com.ss.android.ugc.trill nicht installiert — überspringe
+2026-02-20 17:49:56 [host.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-20 17:49:56 [host.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-20 17:49:56 [host.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-20 17:50:01 [host.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-20 17:50:02 [host.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-20 17:50:03 [host.shifter] INFO: AAID Reset: über Content-Provider (GMS-Dateien unberührt)
+2026-02-20 17:50:03 [host.shifter] WARNING: Deep Clean: 40/41 OK — FEHLGESCHLAGEN: compiler_reset_com.ss.android.ugc.trill
+2026-02-20 17:50:03 [host.flows.genesis] INFO: [3/11] Sterilize: OK (40/41 Operationen (GMS geschützt) | nicht-kritisch fehlgeschlagen: compiler_reset_com.ss.android.ugc.trill)
+2026-02-20 17:50:03 [host.shifter] INFO: Clearing system clipboard...
+2026-02-20 17:50:04 [host.shifter] INFO: Clipboard cleared
+2026-02-20 17:50:04 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-20 17:50:12 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-20 17:50:12 [host.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-20 17:50:12 [host.identity] INFO: Identität generiert: name=FirstTryAfterRefactoring serial=B9WCBV2SEDBU imei1=355543…7575 carrier=O2-DE
+2026-02-20 17:50:12 [host.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 5677...4755 (v5.0 — FINAL, kein Platzhalter)
+2026-02-20 17:50:12 [host.flows.genesis] INFO: [4/11] Generate: OK (serial=B9WCBV2SEDBU)
+2026-02-20 17:50:12 [host.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-20 17:50:12 [host.db_ops] INFO: Auto-Profil erstellt: id=55, name=FirstTryAfterRefactoring
+2026-02-20 17:50:12 [host.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=55
+2026-02-20 17:50:12 [host.flows.genesis] INFO: [5/11] Persist: OK (identity_id=61, profile_id=55)
+2026-02-20 17:50:12 [host.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-20 17:50:12 [host.injector] INFO: Injecting identity: serial=B9WCBV2SEDBU imei1=355543…7575
+2026-02-20 17:50:12 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/bridge_haki5fxc.bridge → /data/local/tmp/.bridge_staging
+2026-02-20 17:50:12 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-20 17:50:12 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #61 auf 'active' gesetzt
+2026-02-20 17:50:12 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-20 17:50:16 [host.injector] INFO: Bridge verteilt an 8/10 Apps
+2026-02-20 17:50:17 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → e8dbd2e2-6d14-4b78-9e73-e4e6bb67988a
+2026-02-20 17:50:17 [host.injector] INFO: Injection komplett + verifiziert: B9WCBV2SEDBU
+2026-02-20 17:50:17 [host.flows.genesis] INFO: [6/11] PIF v5.0: autopif4-First Strategie (BASIC_INTEGRITY)...
+2026-02-20 17:50:17 [host.injector] INFO: PIF v5.0: autopif4 Canary-Fingerprint gefunden — verwende diesen (NICHT unseren statischen Pool)
+2026-02-20 17:50:17 [host.injector] INFO: PIF autopif4: FP=google/oriole_beta/oriole:CANARY/ZP11.260123.011/1… | Patch=2026-02-05 | Estimated Expiry: 2026-03-26
+2026-02-20 17:50:17 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/pif_bpcfibda.prop → /data/local/tmp/.pif_staging.prop
+2026-02-20 17:50:17 [host.injector] INFO: PIF v5.0 OK [autopif4-canary]: custom.pif.prop → /data/adb/modules/playintegrityfix/custom.pif.prop
+2026-02-20 17:50:17 [host.flows.genesis] INFO: [6/11] PIF: custom.pif.prop erfolgreich gepusht
+2026-02-20 17:50:17 [host.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-20 17:50:17 [host.flows.genesis] INFO: [6/11] Ghost Protocol: Kernel-Level Deployment...
+2026-02-20 17:50:17 [host.injector] INFO: Ghost Protocol: SUSFS Fake-Dateien schreiben...
+2026-02-20 17:50:17 [host.injector] INFO:   SUSFS Fake: ARP (leere Tabelle) → /data/adb/ksu/bin/.fake_arp
+2026-02-20 17:50:17 [host.injector] INFO:   SUSFS Fake: WiFi MAC (94:eb:2c:aa:39:9d) → /data/adb/ksu/bin/.fake_mac
+2026-02-20 17:50:17 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/assets/clean_input_devices.txt → /data/local/tmp/.clean_input_devices.txt_staging
+2026-02-20 17:50:17 [host.injector] INFO:   SUSFS Fake: /proc/bus/input/devices → /data/adb/ksu/bin/.fake_input
+2026-02-20 17:50:17 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/assets/fake_cpuinfo.txt → /data/local/tmp/.fake_cpuinfo.txt_staging
+2026-02-20 17:50:18 [host.injector] INFO:   SUSFS Fake: /proc/cpuinfo → /data/adb/ksu/bin/.fake_cpuinfo
+2026-02-20 17:50:18 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/assets/fake_version.txt → /data/local/tmp/.fake_version.txt_staging
+2026-02-20 17:50:18 [host.injector] INFO:   SUSFS Fake: /proc/version → /data/adb/ksu/bin/.fake_version
+2026-02-20 17:50:18 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/assets/fake_if_inet6.txt → /data/local/tmp/.fake_if_inet6.txt_staging
+2026-02-20 17:50:18 [host.adb] WARNING: Push ADB-Bug: returncode=1 but '/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/assets/fake_if_inet6.txt: 1 file pushed, 0 skipped. 0.2 MB/s (54 bytes in 0.000s)
+adb: error: failed to read copy response: EOF' — treating as success
+2026-02-20 17:50:18 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 17:50:18 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 17:50:18 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 17:50:18 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 17:50:18 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 17:50:18 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 17:50:20 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 17:50:21 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 17:50:22 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 17:50:22 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 17:50:22 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 17:50:22 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 17:50:22 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 17:50:23 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 17:50:26 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 17:50:26 [host.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-20 17:50:26 [host.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-20 17:50:26 [host.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-20 17:50:27 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 17:50:28 [host.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-20 17:50:39 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=61428)
+2026-02-20 17:50:58 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 17:50:58 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 17:51:00 [host.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-20 17:51:00 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell getprop ro.serialno
+2026-02-20 17:51:00 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-20 17:51:00 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "cp /data/local/tmp/.fake_if_inet6.txt_staging /data/adb/ksu/bin/.fake_if_inet6 && chmod 644 /data/adb/ksu/bin/.fake_if_inet6 && chown root:root /data/adb/ksu/bin/.fake_if_inet6 && rm -f /data/local/tmp/.fake_if_inet6.txt_staging"
+2026-02-20 17:51:00 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-20 17:51:00 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-20 17:51:00 [host.adb] INFO: ADB Erfolg nach 2 Versuchen: adb shell getprop ro.serialno
+2026-02-20 17:51:00 [host.injector] ERROR:   SUSFS Fake /proc/net/if_inet6 FEHLER: Shell-Befehl fehlgeschlagen (exit 1): cp /data/local/tmp/.fake_if_inet6.txt_staging /data/adb/ksu/bin/.fake_if_inet6 && chmod 644 /data/adb/ksu/bin/.fake_if_inet6 && chown root:root /data/adb/ksu/bin/.fake_if_inet6 && rm -f /data/local/tmp/.fake_if_inet6.txt_staging
+2026-02-20 17:51:00 [host.injector] INFO: Ghost Protocol: Boot-Scripts deployen...
+2026-02-20 17:51:00 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/post-fs-data.sh → /data/local/tmp/.post-fs-data.sh_staging
+2026-02-20 17:51:00 [host.injector] INFO:   Boot-Script → /data/adb/modules/hw_overlay/post-fs-data.sh
+2026-02-20 17:51:00 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/service.sh → /data/local/tmp/.service.sh_staging
+2026-02-20 17:51:00 [host.injector] INFO:   Boot-Script → /data/adb/modules/hw_overlay/service.sh
+2026-02-20 17:51:00 [host.injector] INFO: Ghost Protocol: SSAID patchen fuer 4 Apps...
+2026-02-20 17:51:01 [host.injector] INFO:   SSAID global + per-App gesetzt: 2f5eb985…
+2026-02-20 17:51:01 [host.injector] INFO: Ghost Protocol: GAID Reset...
+2026-02-20 17:51:01 [host.injector] INFO:   GAID XML geloescht, GMS gestoppt → neue GAID bei naechstem Start
+2026-02-20 17:51:01 [host.injector] INFO: Ghost Protocol: Bluetooth Pairing-Daten loeschen...
+2026-02-20 17:51:01 [host.injector] INFO:   BT Daten geloescht: /data/misc/bluetooth
+2026-02-20 17:51:01 [host.flows.genesis] INFO: [6/11] Ghost Protocol: Deployment abgeschlossen
+2026-02-20 17:51:01 [host.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-20 17:51:01 [host.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Ghost Protocol + Kill-Switch entfernt | PIF=OK)
+2026-02-20 17:51:01 [host.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-20 17:51:01 [host.adb] INFO: Reboot: mode=normal
+2026-02-20 17:51:08 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 17:51:08 [host.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-20 17:51:08 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 17:51:08 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 17:51:08 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 17:51:08 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 17:51:08 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 17:51:10 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 17:51:10 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=61649)
+2026-02-20 17:51:11 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 17:51:12 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 17:51:12 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=61649)
+2026-02-20 17:51:13 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 17:51:14 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=58721)
+2026-02-20 17:51:23 [host.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-20 17:51:23 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 17:51:23 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 17:51:23 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 17:51:23 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 17:51:27 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 17:51:27 [host.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-20 17:51:27 [host.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-20 17:51:27 [host.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-20 17:51:27 [host.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-20 17:51:27 [host.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-20 17:51:27 [host.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-20 17:51:28 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 17:51:29 [host.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-20 17:51:29 [host.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-20 17:51:42 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 17:51:44 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-20 17:51:44 [host.flows.genesis] INFO: [7/11] Warte auf Boot (unbegrenzt, pollt alle 3s)...
+2026-02-20 17:51:44 [host.adb] INFO: Warte auf Gerät (unbegrenzt, pollt alle 3s)...
+2026-02-20 17:51:44 [host.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-20 17:51:44 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell getprop ro.serialno
+2026-02-20 17:51:44 [host.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-20 17:51:44 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-20 17:51:44 [host.adb] INFO: ADB Erfolg nach 2 Versuchen: adb shell getprop ro.serialno
+2026-02-20 17:51:53 [host.adb] INFO: Gerät gebootet nach 9.0s
+2026-02-20 17:51:53 [host.flows.genesis] INFO: [7/11] Boot erkannt — warte 5s post-boot...
+2026-02-20 17:52:01 [host.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-20 17:52:01 [host.flows.genesis] INFO: [7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...
+2026-02-20 17:52:01 [host.flows.genesis] WARNING: [7/11] Bridge [primär]: Nicht lesbar! Pfad: /data/adb/modules/hw_overlay/.hw_config
+2026-02-20 17:52:01 [host.flows.genesis] WARNING: [7/11] Bridge-Verifikation: Primärpfad NICHT bestätigt!
+2026-02-20 17:52:01 [host.flows.genesis] INFO: [7/11] Hard Reset: OK (Boot + Unlock in 60.1s)
+2026-02-20 17:52:01 [host.flows.genesis] INFO: [7b/11] DroidGuard Sanitize: Stale Attestierungs-Tokens löschen...
+2026-02-20 17:52:02 [host.shifter] INFO: [DroidGuard+Analytics] Sanitized: 11/11 Einträge gelöscht (Neu-Attestierung + Cross-App-Correlation entfernt)
+2026-02-20 17:52:02 [host.flows.genesis] INFO: [7b/11] DroidGuard-Cache gelöscht — erzwinge GMS-Neustart...
+2026-02-20 17:52:07 [host.flows.genesis] INFO: [7b/11] GMS neu gestartet — frische Attestierung eingeleitet
+2026-02-20 17:52:07 [host.flows.genesis] INFO: [7c/11] Bewohntes Haus: Prüfe Dummy-App-Präsenz...
+2026-02-20 17:52:08 [host.flows.genesis] WARNING: [7c/11] BEWOHNTES HAUS: 10/12 Apps vorhanden (83%). Fehlend: Google Keep, Google Translate — Gerät könnte als 'frisch' erkannt werden!
+2026-02-20 17:52:08 [host.flows.genesis] INFO: [7d/11] Post-Reboot Sterilisierung...
+2026-02-20 17:52:08 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-20 17:52:15 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-20 17:52:15 [host.flows.genesis] INFO: [7d/11] Post-Reboot: Sauber — keine Artefakte gefunden
+2026-02-20 17:52:15 [host.flows.genesis] INFO: [7e/11] HookGuard Pre-Network Start...
+2026-02-20 17:52:15 [host.flows.genesis] INFO: [8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS...
+2026-02-20 17:52:36 [host.flows.genesis] INFO: [8/11] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-20 17:52:36 [host.flows.genesis] INFO: [8/11] Warte 15s auf neue Mobilfunk-Verbindung...
+2026-02-20 17:52:51 [host.network] INFO: HTTP-Tool erkannt: busybox wget (/data/adb/ksu/bin/busybox)
+2026-02-20 17:52:51 [host.network] INFO: Öffentliche IP: 2.205.137.61 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-20 17:52:51 [host.flows.genesis] INFO: [8/11] Network Init: Neue IP = 2.205.137.61 (via api.ipify.org)
+2026-02-20 17:52:51 [host.db_ops] WARNING: IP-COLLISION WARNING: IP 2.205.137.61 wurde bereits von Profil(en) Ghost_Protocol_v91_Test benutzt. Cross-Profile Korrelation möglich.
+2026-02-20 17:52:51 [host.flows.genesis] WARNING: [8/11] IP 2.205.137.61 wurde bereits von Profil(en) Ghost_Protocol_v91_Test benutzt. Cross-Profile Korrelation möglich.
+2026-02-20 17:52:51 [host.flows.genesis] INFO: [9/11] GMS Ready: Dynamisches Readiness-Polling (v6.0)...
+2026-02-20 17:52:51 [host.shifter] INFO: [Readiness] Warte auf sys.boot_completed=1...
+2026-02-20 17:52:51 [host.shifter] INFO: [Readiness] Boot bestätigt nach 0s
+2026-02-20 17:52:51 [host.shifter] INFO: [Readiness] Warte auf GmsCore Service...
+2026-02-20 17:52:51 [host.shifter] INFO: [Readiness] GmsCore aktiv nach 0s
+2026-02-20 17:52:51 [host.shifter] INFO: [Readiness] System bereit — Boot: 0s | GMS: 0s (GMS Verbindung steht - Bereit zum Loslegen!)
+2026-02-20 17:52:51 [host.flows.genesis] INFO: [9/11] GSF-ID: Generierte ID beibehalten. Bridge-GSF: 5677...4755
+2026-02-20 17:52:51 [host.flows.genesis] INFO: [9/11] GMS Verbindung steht - Bereit zum Loslegen! (Boot: 0s | GMS: 0s)
+2026-02-20 17:52:51 [host.flows.genesis] INFO: [9/11] GMS Ready: GMS Verbindung steht (0s) | GSF-ID: generiert beibehalten
+2026-02-20 17:52:51 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...
+2026-02-20 17:52:51 [host.auditor] INFO: Audit starten: FirstTryAfterRefactoring (serial=B9WCBV2SEDBU)
+2026-02-20 17:52:52 [host.auditor] INFO:   [!] bridge_file: fail — Bridge-Datei nicht gefunden oder leer: /data/adb/modules/hw_overlay/.hw_config
+2026-02-20 17:52:52 [host.auditor] INFO:   [-] bridge_serial: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:52 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-20 17:52:52 [host.auditor] INFO:   [-] bridge_mac: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:52 [host.auditor] INFO:   [-] bridge_imei1: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:52 [host.auditor] INFO:   [-] bridge_imei2: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:52 [host.auditor] INFO:   [-] bridge_gsf_id: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:52 [host.auditor] INFO:   [-] bridge_android_id: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:52 [host.auditor] INFO:   [-] bridge_widevine_id: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:52 [host.auditor] INFO:   [-] bridge_imsi: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:52 [host.auditor] INFO:   [-] bridge_sim_serial: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:52 [host.auditor] INFO:   [-] bridge_advertising_id: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:52 [host.auditor] INFO:   [-] bridge_bluetooth_mac: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:52 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-20 17:52:52 [host.auditor] INFO: Audit [FirstTryAfterRefactoring]: 0% (2/14 passed)
+2026-02-20 17:52:52 [host.flows.genesis] WARNING: [10/11] Baseline-Trigger: Integrität NICHT bestätigt (0%) — dynamisches GMS-Polling...
+2026-02-20 17:52:52 [host.shifter] INFO: [Readiness] Warte auf sys.boot_completed=1...
+2026-02-20 17:52:52 [host.shifter] INFO: [Readiness] Boot bestätigt nach 0s
+2026-02-20 17:52:52 [host.shifter] INFO: [Readiness] Warte auf GmsCore Service...
+2026-02-20 17:52:52 [host.shifter] INFO: [Readiness] GmsCore aktiv nach 0s
+2026-02-20 17:52:52 [host.shifter] INFO: [Readiness] System bereit — Boot: 0s | GMS: 0s (GMS Verbindung steht - Bereit zum Loslegen!)
+2026-02-20 17:52:52 [host.flows.genesis] INFO: [10/11] GMS bereit nach 0s — Retry Audit
+2026-02-20 17:52:52 [host.auditor] INFO: Audit starten: FirstTryAfterRefactoring (serial=B9WCBV2SEDBU)
+2026-02-20 17:52:53 [host.auditor] INFO:   [!] bridge_file: fail — Bridge-Datei nicht gefunden oder leer: /data/adb/modules/hw_overlay/.hw_config
+2026-02-20 17:52:53 [host.auditor] INFO:   [-] bridge_serial: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:53 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-20 17:52:53 [host.auditor] INFO:   [-] bridge_mac: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:53 [host.auditor] INFO:   [-] bridge_imei1: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:53 [host.auditor] INFO:   [-] bridge_imei2: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:53 [host.auditor] INFO:   [-] bridge_gsf_id: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:53 [host.auditor] INFO:   [-] bridge_android_id: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:53 [host.auditor] INFO:   [-] bridge_widevine_id: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:53 [host.auditor] INFO:   [-] bridge_imsi: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:53 [host.auditor] INFO:   [-] bridge_sim_serial: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:53 [host.auditor] INFO:   [-] bridge_advertising_id: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:53 [host.auditor] INFO:   [-] bridge_bluetooth_mac: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:52:53 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-20 17:52:53 [host.auditor] INFO: Audit [FirstTryAfterRefactoring]: 0% (2/14 passed)
+2026-02-20 17:52:53 [host.flows.genesis] WARNING: [10/11] Baseline-Trigger: Integrität weiterhin 0% — Capture trotzdem fortsetzen
+2026-02-20 17:52:53 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline sichern...
+2026-02-20 17:52:53 [host.shifter] INFO: ============================================================
+2026-02-20 17:52:53 [host.shifter] INFO:   GOLDEN BASELINE CAPTURE: FirstTryAfterRefactoring
+2026-02-20 17:52:53 [host.shifter] INFO:   GSF-ID: 5677...4755
+2026-02-20 17:52:53 [host.shifter] INFO: ============================================================
+2026-02-20 17:52:53 [host.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-20 17:52:55 [host.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-20 17:52:55 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/FirstTryAfterRefactoring/gms/gms_20260220_175255.tar.tmp
+2026-02-20 17:53:03 [host.adb] INFO: Exec-Out fertig: 82770944 Bytes geschrieben
+2026-02-20 17:53:03 [host.shifter] INFO: GMS Backup (3 Pakete): OK (78.9 MB, Versuch 1/3)
+2026-02-20 17:53:03 [host.shifter] INFO: GMS tar: gms_20260220_175255.tar (78.9 MB) — 3 Pakete
+2026-02-20 17:53:03 [host.shifter] INFO: Golden Baseline GMS: OK (gms_20260220_175255.tar)
+2026-02-20 17:53:04 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/FirstTryAfterRefactoring/accounts/accounts_20260220_175304.tar.tmp
+2026-02-20 17:53:04 [host.adb] INFO: Exec-Out fertig: 206336 Bytes geschrieben
+2026-02-20 17:53:04 [host.shifter] INFO: Account-DBs (1 Dateien): OK (0.2 MB, Versuch 1/3)
+2026-02-20 17:53:04 [host.shifter] INFO: Account-DBs tar: accounts_20260220_175304.tar (206336 Bytes, 1 Dateien)
+2026-02-20 17:53:04 [host.shifter] INFO: Golden Baseline Accounts: OK (accounts_20260220_175304.tar)
+2026-02-20 17:53:04 [host.shifter] INFO: Golden Baseline: 2/2 Komponenten gesichert
+2026-02-20 17:53:04 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline komplett
+2026-02-20 17:53:04 [host.flows.genesis] INFO: [11/11] Audit + Account-Check + TikTok ID-Validation (v6.1)...
+2026-02-20 17:53:04 [host.auditor] INFO: Audit starten: FirstTryAfterRefactoring (serial=B9WCBV2SEDBU)
+2026-02-20 17:53:04 [host.auditor] INFO:   [!] bridge_file: fail — Bridge-Datei nicht gefunden oder leer: /data/adb/modules/hw_overlay/.hw_config
+2026-02-20 17:53:04 [host.auditor] INFO:   [-] bridge_serial: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:53:04 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-20 17:53:04 [host.auditor] INFO:   [-] bridge_mac: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:53:04 [host.auditor] INFO:   [-] bridge_imei1: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:53:04 [host.auditor] INFO:   [-] bridge_imei2: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:53:04 [host.auditor] INFO:   [-] bridge_gsf_id: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:53:04 [host.auditor] INFO:   [-] bridge_android_id: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:53:04 [host.auditor] INFO:   [-] bridge_widevine_id: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:53:04 [host.auditor] INFO:   [-] bridge_imsi: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:53:04 [host.auditor] INFO:   [-] bridge_sim_serial: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:53:04 [host.auditor] INFO:   [-] bridge_advertising_id: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:53:04 [host.auditor] INFO:   [-] bridge_bluetooth_mac: skip — Bridge-Datei nicht verfügbar
+2026-02-20 17:53:04 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-20 17:53:04 [host.auditor] INFO: Audit [FirstTryAfterRefactoring]: 0% (2/14 passed)
+2026-02-20 17:53:05 [host.shifter] INFO: [Account-Check] Google-Account gefunden: arvinvaha@gmail.com
+2026-02-20 17:53:05 [host.flows.genesis] INFO: [11/11] Google-Account: arvinvaha@gmail.com
+2026-02-20 17:53:05 [host.flows.genesis] INFO: [11/11] TikTok Silent Launch: ID-Generierung starten...
+2026-02-20 17:53:05 [host.shifter] INFO: [SilentLaunch] Starte com.zhiliaoapp.musically für ID-Generierung (15s)...
+2026-02-20 17:53:08 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=16db9633868387cd051b359cd99ba2e2 got=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:53:08 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:53:12 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:53:15 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:53:19 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:53:22 [host.flows.genesis] WARNING: [11/11] install_id nicht extrahierbar (TikTok nicht installiert?)
+2026-02-20 17:53:22 [host.flows.genesis] WARNING: [11/11] Audit: FAIL (0%) — markiere als corrupted | Google-Account: arvinvaha@gmail.com
+2026-02-20 17:53:22 [host.flows.genesis] WARNING: ERROR RECOVERY: Flow fehlgeschlagen — räume auf...
+2026-02-20 17:53:22 [host.flows.genesis] INFO: ERROR RECOVERY: Flugmodus AUS
+2026-02-20 17:53:23 [host.flows.genesis] INFO: ERROR RECOVERY: Backup-Manager reaktiviert
+2026-02-20 17:53:23 [host.flows.genesis] INFO: ============================================================
+2026-02-20 17:53:23 [host.flows.genesis] INFO:   GENESIS FEHLGESCHLAGEN: FirstTryAfterRefactoring (208146 ms)
+2026-02-20 17:53:23 [host.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [!] Audit
+2026-02-20 17:53:23 [host.flows.genesis] INFO: ============================================================
+2026-02-20 17:54:14 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=61428)
+2026-02-20 17:54:14 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=63369)
+2026-02-20 17:54:19 [hookguard] INFO: HookGuard stopped
+2026-02-20 17:54:28 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 65edd54866d3975a5c2c23e806459c66)
+2026-02-20 17:54:35 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=65edd54866d3975a5c2c23e806459c66 got=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:54:35 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:54:39 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:54:43 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:54:47 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:54:50 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:54:54 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:54:58 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:02 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:05 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=65edd54866d3975a5c2c23e806459c66 got=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:06 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:10 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:13 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:17 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:21 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:24 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:28 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:32 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:35 [hookguard] WARNING: Bridge TAMPERED for com.zhiliaoapp.musically! expected=65edd54866d3975a5c2c23e806459c66 got=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:35 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:39 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:39 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=63369)
+2026-02-20 17:55:40 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=63786)
+2026-02-20 17:55:40 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=63786)
+2026-02-20 17:55:42 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 17:55:46 [hookguard] WARNING: Bridge mismatch (warning): hash=3afaad2de6e3025e8c983b9dceeaa082
+2026-02-20 18:01:00 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 18:01:00 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 18:01:00 [host.main] INFO: Command Center gestoppt.
+2026-02-20 18:01:00 [host.main] INFO: ============================================================
+2026-02-20 18:01:00 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 18:01:00 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:01:00 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 18:01:00 [host.main] INFO: ============================================================
+2026-02-20 18:01:00 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:01:00 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 18:01:00 [host.main] INFO: Command Center bereit.
+2026-02-20 18:01:11 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 18:01:11 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 18:01:11 [host.main] INFO: Command Center gestoppt.
+2026-02-20 18:01:11 [host.main] INFO: ============================================================
+2026-02-20 18:01:11 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 18:01:11 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:01:11 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 18:01:11 [host.main] INFO: ============================================================
+2026-02-20 18:01:11 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:01:11 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 18:01:11 [host.main] INFO: Command Center bereit.
+2026-02-20 18:01:26 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 18:01:26 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 18:01:26 [host.main] INFO: Command Center gestoppt.
+2026-02-20 18:01:26 [host.main] INFO: ============================================================
+2026-02-20 18:01:26 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 18:01:26 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:01:26 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 18:01:26 [host.main] INFO: ============================================================
+2026-02-20 18:01:26 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:01:26 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 18:01:26 [host.main] INFO: Command Center bereit.
+2026-02-20 18:01:39 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 18:01:39 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 18:01:39 [host.main] INFO: Command Center gestoppt.
+2026-02-20 18:01:40 [host.main] INFO: ============================================================
+2026-02-20 18:01:40 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 18:01:40 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:01:40 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 18:01:40 [host.main] INFO: ============================================================
+2026-02-20 18:01:40 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:01:40 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 18:01:40 [host.main] INFO: Command Center bereit.
+2026-02-20 18:02:28 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 18:02:28 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 18:02:28 [host.main] INFO: Command Center gestoppt.
+2026-02-20 18:02:29 [host.main] INFO: ============================================================
+2026-02-20 18:02:29 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 18:02:29 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:02:29 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 18:02:29 [host.main] INFO: ============================================================
+2026-02-20 18:02:29 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:02:29 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 18:02:29 [host.main] INFO: Command Center bereit.
+2026-02-20 18:02:42 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 18:02:42 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 18:02:42 [host.main] INFO: Command Center gestoppt.
+2026-02-20 18:02:42 [host.main] INFO: ============================================================
+2026-02-20 18:02:42 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 18:02:42 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:02:42 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 18:02:42 [host.main] INFO: ============================================================
+2026-02-20 18:02:42 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:02:42 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 18:02:42 [host.main] INFO: Command Center bereit.
+2026-02-20 18:02:53 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 18:02:53 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 18:02:53 [host.main] INFO: Command Center gestoppt.
+2026-02-20 18:02:54 [host.main] INFO: ============================================================
+2026-02-20 18:02:54 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 18:02:54 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:02:54 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 18:02:54 [host.main] INFO: ============================================================
+2026-02-20 18:02:54 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:02:54 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 18:02:54 [host.main] INFO: Command Center bereit.
+2026-02-20 18:04:07 [host.db_ops] INFO: DNA-Match: Identity #61 'FirstTryAfterRefactoring' automatisch aktiviert (confidence=exact, score=10, fields=serial+imei1+android_id+wifi_mac+gsf_id)
+2026-02-20 18:04:35 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=65352)
+2026-02-20 18:04:43 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 212ad0af739b424e0d2137dede8977d2)
+2026-02-20 18:08:05 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=50130)
+2026-02-20 18:08:07 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=65352)
+2026-02-20 18:08:17 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=50130)
+2026-02-20 18:08:17 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 18:08:17 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 18:08:17 [host.main] INFO: Command Center gestoppt.
+2026-02-20 18:08:18 [host.main] INFO: ============================================================
+2026-02-20 18:08:18 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 18:08:18 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:08:18 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 18:08:18 [host.main] INFO: ============================================================
+2026-02-20 18:08:18 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:08:18 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 18:08:18 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 212ad0af739b424e0d2137dede8977d2)
+2026-02-20 18:08:18 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-20 18:08:18 [host.main] INFO: Command Center bereit.
+2026-02-20 18:08:20 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=50236)
+2026-02-20 18:08:22 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=50236)
+2026-02-20 18:08:23 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 18:08:23 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 18:08:23 [host.main] INFO: Command Center gestoppt.
+2026-02-20 18:08:23 [host.main] INFO: ============================================================
+2026-02-20 18:08:23 [host.main] INFO:   Device Manager v1.0.0
+2026-02-20 18:08:23 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:08:23 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-20 18:08:23 [host.main] INFO: ============================================================
+2026-02-20 18:08:23 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-20 18:08:23 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-20 18:08:23 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 212ad0af739b424e0d2137dede8977d2)
+2026-02-20 18:08:23 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-20 18:08:23 [host.main] INFO: Command Center bereit.
+2026-02-20 18:08:26 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=50316)
+2026-02-20 18:08:54 [host.api.control] INFO: Genesis-Flow gestartet: SecondTryAfterRefactoring
+2026-02-20 18:08:54 [host.flows.genesis] INFO: ============================================================
+2026-02-20 18:08:54 [host.flows.genesis] INFO:   GENESIS FLOW: SecondTryAfterRefactoring
+2026-02-20 18:08:54 [host.flows.genesis] INFO: ============================================================
+2026-02-20 18:08:54 [host.flows.genesis] INFO: Genesis Frequency: 1/2h, 7/24h, 55 total (Limits: 9999/2h, 9999/24h, Cooldown 0min)
+2026-02-20 18:08:54 [host.flows.genesis] INFO: [1/11] Flugmodus AN (Netz sofort trennen)...
+2026-02-20 18:08:54 [host.flows.genesis] INFO: [1/11] Flugmodus: AN
+2026-02-20 18:08:54 [host.flows.genesis] INFO: [2/11] Auto-Backup: Prüfe aktives Profil...
+2026-02-20 18:08:54 [host.flows.genesis] INFO: [2/11] Auto-Backup: Profil 'FirstTryAfterRefactoring' hat keinen TikTok-Account — Checkbox nicht gesetzt
+2026-02-20 18:08:54 [host.flows.genesis] INFO: [3/11] Sterilize: Deep Clean (NUR Target-Apps, GMS bleibt!)...
+2026-02-20 18:08:54 [host.shifter] INFO: Deep Clean starten — Target-App Sterilisierung (GMS geschützt)
+2026-02-20 18:08:55 [host.shifter] INFO: [Clean] pm clear com.zhiliaoapp.musically: OK (firstInstallTime unverändert)
+2026-02-20 18:08:55 [host.shifter] INFO: [Clean] com.ss.android.ugc.trill nicht installiert — überspringe
+2026-02-20 18:08:55 [host.shifter] INFO: GMS-Clear übersprungen (include_gms=False → Golden Baseline schützen)
+2026-02-20 18:08:55 [host.shifter] INFO: ByteDance Deep-Search: Versteckte Tracking-Reste aufspüren...
+2026-02-20 18:08:56 [host.shifter] INFO: Cache-Residual-Check: Reste nach Sterilisierung aufräumen...
+2026-02-20 18:09:00 [host.shifter] INFO: FIX-14: Settings-ContentProvider bereinigen...
+2026-02-20 18:09:01 [host.shifter] INFO: FIX-14: Settings.secure gelöscht: rtt_calling_mode
+2026-02-20 18:09:03 [host.shifter] INFO: AAID Reset: über Content-Provider (GMS-Dateien unberührt)
+2026-02-20 18:09:03 [host.shifter] WARNING: Deep Clean: 40/41 OK — FEHLGESCHLAGEN: compiler_reset_com.ss.android.ugc.trill
+2026-02-20 18:09:03 [host.flows.genesis] INFO: [3/11] Sterilize: OK (40/41 Operationen (GMS geschützt) | nicht-kritisch fehlgeschlagen: compiler_reset_com.ss.android.ugc.trill)
+2026-02-20 18:09:03 [host.shifter] INFO: Clearing system clipboard...
+2026-02-20 18:09:03 [host.shifter] INFO: Clipboard cleared
+2026-02-20 18:09:03 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-20 18:09:11 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-20 18:09:11 [host.flows.genesis] INFO: [4/11] Generate: Neue O2-DE Identität...
+2026-02-20 18:09:11 [host.identity] INFO: Identität generiert: name=SecondTryAfterRefactoring serial=755HSPGFBCUL imei1=355543…3737 carrier=O2-DE
+2026-02-20 18:09:11 [host.flows.genesis] INFO: [4/11] Generate: GSF-ID generiert: 2639...3685 (v5.0 — FINAL, kein Platzhalter)
+2026-02-20 18:09:11 [host.flows.genesis] INFO: [4/11] Generate: OK (serial=755HSPGFBCUL)
+2026-02-20 18:09:11 [host.flows.genesis] INFO: [5/11] Persist: In DB speichern (Status: active)...
+2026-02-20 18:09:11 [host.db_ops] INFO: Auto-Profil erstellt: id=56, name=SecondTryAfterRefactoring
+2026-02-20 18:09:11 [host.flows.genesis] INFO: [5/11] Auto-Profil erstellt: id=56
+2026-02-20 18:09:11 [host.flows.genesis] INFO: [5/11] Persist: OK (identity_id=62, profile_id=56)
+2026-02-20 18:09:11 [host.flows.genesis] INFO: [6/11] Inject: Bridge-Datei schreiben...
+2026-02-20 18:09:11 [host.injector] INFO: Injecting identity: serial=755HSPGFBCUL imei1=355543…3737
+2026-02-20 18:09:11 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/bridge_hnwkch6g.bridge → /data/local/tmp/.bridge_staging
+2026-02-20 18:09:11 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-20 18:09:11 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-20 18:09:12 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #62 auf 'active' gesetzt
+2026-02-20 18:09:15 [host.injector] INFO: Bridge verteilt an 8/10 Apps
+2026-02-20 18:09:15 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → ac3beb28-3ea2-4962-9989-e57cbd4cbecf
+2026-02-20 18:09:16 [host.injector] INFO: Injection komplett + verifiziert: 755HSPGFBCUL
+2026-02-20 18:09:16 [host.flows.genesis] INFO: [6/11] PIF v5.0: autopif4-First Strategie (BASIC_INTEGRITY)...
+2026-02-20 18:09:16 [host.injector] INFO: PIF v5.0: autopif4 Canary-Fingerprint gefunden — verwende diesen (NICHT unseren statischen Pool)
+2026-02-20 18:09:16 [host.injector] INFO: PIF autopif4: FP=google/oriole_beta/oriole:CANARY/ZP11.260123.011/1… | Patch=2026-02-05 | Estimated Expiry: 2026-03-26
+2026-02-20 18:09:16 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/pif_9033t13q.prop → /data/local/tmp/.pif_staging.prop
+2026-02-20 18:09:16 [host.injector] INFO: PIF v5.0 OK [autopif4-canary]: custom.pif.prop → /data/adb/modules/playintegrityfix/custom.pif.prop
+2026-02-20 18:09:16 [host.flows.genesis] INFO: [6/11] PIF: custom.pif.prop erfolgreich gepusht
+2026-02-20 18:09:16 [host.flows.genesis] INFO: [6/11] Namespace-Nuke: Übersprungen (v4.0 — GMS-Schutz)
+2026-02-20 18:09:16 [host.flows.genesis] INFO: [6/11] Ghost Protocol: Kernel-Level Deployment...
+2026-02-20 18:09:16 [host.injector] INFO: Ghost Protocol: SUSFS Fake-Dateien schreiben...
+2026-02-20 18:09:16 [host.injector] INFO:   SUSFS Fake: ARP (leere Tabelle) → /data/adb/ksu/bin/.fake_arp
+2026-02-20 18:09:16 [host.injector] INFO:   SUSFS Fake: WiFi MAC (3c:5a:b4:02:18:f7) → /data/adb/ksu/bin/.fake_mac
+2026-02-20 18:09:16 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/assets/clean_input_devices.txt → /data/local/tmp/.clean_input_devices.txt_staging
+2026-02-20 18:09:17 [host.injector] INFO:   SUSFS Fake: /proc/bus/input/devices → /data/adb/ksu/bin/.fake_input
+2026-02-20 18:09:17 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/assets/fake_cpuinfo.txt → /data/local/tmp/.fake_cpuinfo.txt_staging
+2026-02-20 18:09:17 [host.adb] WARNING: Push ADB-Bug: returncode=1 but '/Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/assets/fake_cpuinfo.txt: 1 file pushed, 0 skipped. 3.5 MB/s (1713 bytes in 0.000s)
+adb: error: failed to read copy response: EOF' — treating as success
+2026-02-20 18:09:17 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 18:09:17 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 18:09:17 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 18:09:19 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 18:09:20 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 18:09:21 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 18:09:21 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 18:09:21 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 18:09:21 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 18:09:25 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 18:09:25 [host.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-20 18:09:25 [host.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-20 18:09:25 [host.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-20 18:09:26 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 18:09:27 [host.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-20 18:10:00 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 18:10:02 [host.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-20 18:10:02 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "cp /data/local/tmp/.fake_cpuinfo.txt_staging /data/adb/ksu/bin/.fake_cpuinfo && chmod 644 /data/adb/ksu/bin/.fake_cpuinfo && chown root:root /data/adb/ksu/bin/.fake_cpuinfo && rm -f /data/local/tmp/.fake_cpuinfo.txt_staging"
+2026-02-20 18:10:02 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-20 18:10:02 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-20 18:10:02 [host.injector] ERROR:   SUSFS Fake /proc/cpuinfo FEHLER: Shell-Befehl fehlgeschlagen (exit 1): cp /data/local/tmp/.fake_cpuinfo.txt_staging /data/adb/ksu/bin/.fake_cpuinfo && chmod 644 /data/adb/ksu/bin/.fake_cpuinfo && chown root:root /data/adb/ksu/bin/.fake_cpuinfo && rm -f /data/local/tmp/.fake_cpuinfo.txt_staging
+2026-02-20 18:10:02 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/assets/fake_version.txt → /data/local/tmp/.fake_version.txt_staging
+2026-02-20 18:10:03 [host.injector] INFO:   SUSFS Fake: /proc/version → /data/adb/ksu/bin/.fake_version
+2026-02-20 18:10:03 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/assets/fake_if_inet6.txt → /data/local/tmp/.fake_if_inet6.txt_staging
+2026-02-20 18:10:03 [host.injector] INFO:   SUSFS Fake: /proc/net/if_inet6 → /data/adb/ksu/bin/.fake_if_inet6
+2026-02-20 18:10:03 [host.injector] INFO: Ghost Protocol: Boot-Scripts deployen...
+2026-02-20 18:10:03 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/post-fs-data.sh → /data/local/tmp/.post-fs-data.sh_staging
+2026-02-20 18:10:03 [host.injector] INFO:   Boot-Script → /data/adb/modules/hw_overlay/post-fs-data.sh
+2026-02-20 18:10:03 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/module/service.sh → /data/local/tmp/.service.sh_staging
+2026-02-20 18:10:03 [host.injector] INFO:   Boot-Script → /data/adb/modules/hw_overlay/service.sh
+2026-02-20 18:10:03 [host.injector] INFO: Ghost Protocol: SSAID patchen fuer 4 Apps...
+2026-02-20 18:10:03 [host.injector] INFO:   SSAID global + per-App gesetzt: 92e83644…
+2026-02-20 18:10:03 [host.injector] INFO: Ghost Protocol: GAID Reset...
+2026-02-20 18:10:04 [host.injector] INFO:   GAID XML geloescht, GMS gestoppt → neue GAID bei naechstem Start
+2026-02-20 18:10:04 [host.injector] INFO: Ghost Protocol: Bluetooth Pairing-Daten loeschen...
+2026-02-20 18:10:04 [host.injector] INFO:   BT Daten geloescht: /data/misc/bluetooth
+2026-02-20 18:10:04 [host.flows.genesis] INFO: [6/11] Ghost Protocol: Deployment abgeschlossen
+2026-02-20 18:10:04 [host.injector] INFO: Kill-Switch entfernt: Hooks aktiv
+2026-02-20 18:10:04 [host.flows.genesis] INFO: [6/11] Inject: OK (Bridge + Ghost Protocol + Kill-Switch entfernt | PIF=OK)
+2026-02-20 18:10:04 [host.flows.genesis] INFO: [7/11] Hard Reset: adb reboot...
+2026-02-20 18:10:04 [host.flows.genesis] INFO: [7/11] Filesystem sync: OK
+2026-02-20 18:10:04 [host.adb] INFO: Reboot: mode=normal
+2026-02-20 18:10:11 [host.flows.genesis] INFO: [7/11] Pre-Wait: 15s bevor ADB-Reconnect...
+2026-02-20 18:10:11 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 18:10:11 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 18:10:11 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 18:10:11 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 18:10:12 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 18:10:12 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 18:10:13 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 18:10:14 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 18:10:16 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 18:10:17 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 18:10:26 [host.flows.genesis] INFO: [7/11] ADB Reconnect: Warte auf Gerät (max 120s)...
+2026-02-20 18:10:26 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 18:10:26 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 18:10:26 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 18:10:26 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 18:10:30 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 18:10:30 [host.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-20 18:10:30 [host.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-20 18:10:31 [host.adb] WARNING: ADB Reconnect: Gerät-State = '' (nicht 'device')
+2026-02-20 18:10:31 [host.adb] WARNING: FIX-6: Standard-Reconnect fehlgeschlagen — versuche USB-Modus-Toggle (Fallback)...
+2026-02-20 18:10:31 [host.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-20 18:10:31 [host.adb] INFO: FIX-6: USB-Modus auf 'none' gesetzt
+2026-02-20 18:10:31 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 18:10:33 [host.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-20 18:10:33 [host.adb] INFO: FIX-6: USB-Modus auf 'mtp,adb' gesetzt
+2026-02-20 18:10:46 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 18:10:48 [host.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-20 18:10:48 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell getprop ro.serialno
+2026-02-20 18:10:48 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-20 18:10:48 [host.flows.genesis] INFO: [7/11] Warte auf Boot (unbegrenzt, pollt alle 3s)...
+2026-02-20 18:10:48 [host.adb] INFO: Warte auf Gerät (unbegrenzt, pollt alle 3s)...
+2026-02-20 18:10:48 [host.adb] INFO: FIX-6: USB-Reconnect erfolgreich — Gerät verbunden
+2026-02-20 18:10:48 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.ss.android.ugc.trill"
+2026-02-20 18:10:48 [host.adb] INFO: ADB Erfolg nach 2 Versuchen: adb shell getprop ro.serialno
+2026-02-20 18:10:55 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-20 18:10:55 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-20 18:10:55 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-20 18:10:59 [host.adb] INFO: ADB Daemon gestartet
+2026-02-20 18:10:59 [host.adb] INFO: Gerät gebootet nach 9.0s
+2026-02-20 18:10:59 [host.flows.genesis] INFO: [7/11] Boot erkannt — warte 5s post-boot...
+2026-02-20 18:11:00 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-20 18:11:00 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-20 18:11:02 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-20 18:11:02 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-20 18:11:07 [host.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-20 18:11:07 [host.flows.genesis] INFO: [7/11] Post-Reboot Bridge-Verifikation (alle Pfade)...
+2026-02-20 18:11:07 [host.flows.genesis] INFO: [7/11] Bridge [primär]: OK (serial=755HSPGFBCUL)
+2026-02-20 18:11:07 [host.flows.genesis] INFO: [7/11] Bridge [sdcard]: OK (serial=755HSPGFBCUL)
+2026-02-20 18:11:07 [host.flows.genesis] INFO: [7/11] Bridge [app]: OK (serial=755HSPGFBCUL)
+2026-02-20 18:11:07 [host.flows.genesis] INFO: [7/11] Bridge-Verifikation: Primärpfad OK
+2026-02-20 18:11:07 [host.flows.genesis] INFO: [7/11] Hard Reset: OK (Boot + Unlock in 62.8s)
+2026-02-20 18:11:07 [host.flows.genesis] INFO: [7b/11] DroidGuard Sanitize: Stale Attestierungs-Tokens löschen...
+2026-02-20 18:11:07 [host.shifter] INFO: [DroidGuard+Analytics] Sanitized: 11/11 Einträge gelöscht (Neu-Attestierung + Cross-App-Correlation entfernt)
+2026-02-20 18:11:07 [host.flows.genesis] INFO: [7b/11] DroidGuard-Cache gelöscht — erzwinge GMS-Neustart...
+2026-02-20 18:11:13 [host.flows.genesis] INFO: [7b/11] GMS neu gestartet — frische Attestierung eingeleitet
+2026-02-20 18:11:13 [host.flows.genesis] INFO: [7c/11] Bewohntes Haus: Prüfe Dummy-App-Präsenz...
+2026-02-20 18:11:13 [host.flows.genesis] WARNING: [7c/11] BEWOHNTES HAUS: 10/12 Apps vorhanden (83%). Fehlend: Google Keep, Google Translate — Gerät könnte als 'frisch' erkannt werden!
+2026-02-20 18:11:13 [host.flows.genesis] INFO: [7d/11] Post-Reboot Sterilisierung...
+2026-02-20 18:11:13 [host.shifter] INFO: Disabling Google auto-backup for TikTok packages (gezielt, nicht global)...
+2026-02-20 18:11:21 [host.shifter] INFO: Google backup for TikTok packages disabled (Backup-Manager bleibt aktiv)
+2026-02-20 18:11:21 [host.flows.genesis] INFO: [7d/11] Post-Reboot: Sauber — keine Artefakte gefunden
+2026-02-20 18:11:21 [host.flows.genesis] INFO: [7e/11] HookGuard Pre-Network Start...
+2026-02-20 18:11:21 [hookguard] INFO: HookGuard stopped
+2026-02-20 18:11:21 [hookguard] INFO: HookGuard v2 started (expected bridge hash: dc511efa2b446982c8fd418a4f699603)
+2026-02-20 18:11:21 [host.flows.genesis] INFO: HookGuard neu gestartet (Bridge-Hash refreshed)
+2026-02-20 18:11:21 [host.flows.genesis] INFO: [8/11] Network Init: Warte 20s post-boot, dann Flugmodus AUS...
+2026-02-20 18:11:41 [host.flows.genesis] INFO: [8/11] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-20 18:11:41 [host.flows.genesis] INFO: [8/11] Warte 15s auf neue Mobilfunk-Verbindung...
+2026-02-20 18:11:57 [host.network] INFO: HTTP-Tool erkannt: busybox wget (/data/adb/ksu/bin/busybox)
+2026-02-20 18:11:57 [host.network] INFO: Öffentliche IP: 2.205.137.61 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-20 18:11:57 [host.flows.genesis] INFO: [8/11] Network Init: Neue IP = 2.205.137.61 (via api.ipify.org)
+2026-02-20 18:11:57 [host.db_ops] WARNING: IP-COLLISION WARNING: IP 2.205.137.61 wurde bereits von Profil(en) FirstTryAfterRefactoring, Ghost_Protocol_v91_Test benutzt. Cross-Profile Korrelation möglich.
+2026-02-20 18:11:57 [host.flows.genesis] WARNING: [8/11] IP 2.205.137.61 wurde bereits von Profil(en) FirstTryAfterRefactoring, Ghost_Protocol_v91_Test benutzt. Cross-Profile Korrelation möglich.
+2026-02-20 18:11:57 [host.flows.genesis] WARNING: [8/11] Subnet-Warnung: 3 Identitäten von 2.205.x.x in 24h — Vorsicht empfohlen
+2026-02-20 18:11:57 [host.flows.genesis] INFO: [9/11] GMS Ready: Dynamisches Readiness-Polling (v6.0)...
+2026-02-20 18:11:57 [host.shifter] INFO: [Readiness] Warte auf sys.boot_completed=1...
+2026-02-20 18:11:57 [host.shifter] INFO: [Readiness] Boot bestätigt nach 0s
+2026-02-20 18:11:57 [host.shifter] INFO: [Readiness] Warte auf GmsCore Service...
+2026-02-20 18:11:57 [host.shifter] INFO: [Readiness] GmsCore aktiv nach 0s
+2026-02-20 18:11:57 [host.shifter] INFO: [Readiness] System bereit — Boot: 0s | GMS: 0s (GMS Verbindung steht - Bereit zum Loslegen!)
+2026-02-20 18:11:57 [host.flows.genesis] INFO: [9/11] GSF-ID: Generierte ID beibehalten. Bridge-GSF: 2639...3685
+2026-02-20 18:11:57 [host.flows.genesis] INFO: [9/11] GMS Verbindung steht - Bereit zum Loslegen! (Boot: 0s | GMS: 0s)
+2026-02-20 18:11:57 [host.flows.genesis] INFO: [9/11] GMS Ready: GMS Verbindung steht (0s) | GSF-ID: generiert beibehalten
+2026-02-20 18:11:57 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Prüfe Bridge-Integrität vor Capture...
+2026-02-20 18:11:57 [host.auditor] INFO: Audit starten: SecondTryAfterRefactoring (serial=755HSPGFBCUL)
+2026-02-20 18:11:58 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-20 18:11:58 [host.auditor] INFO:   [+] bridge_serial: pass — serial=755HSPGFBCUL, boot_serial=755HSPGFBCUL — korrekt
+2026-02-20 18:11:58 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-20 18:11:58 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: 3c:5a:b4:02:18:f7
+2026-02-20 18:11:58 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-20 18:11:58 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-20 18:11:58 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-20 18:11:58 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-20 18:11:58 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-20 18:11:58 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-20 18:11:58 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-20 18:11:58 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-20 18:11:58 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-20 18:11:58 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-20 18:11:58 [host.auditor] INFO: Audit [SecondTryAfterRefactoring]: 100% (14/14 passed)
+2026-02-20 18:11:58 [host.flows.genesis] INFO: [10/11] Baseline-Trigger: Integrität bestätigt (100%)
+2026-02-20 18:11:58 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline sichern...
+2026-02-20 18:11:58 [host.shifter] INFO: ============================================================
+2026-02-20 18:11:58 [host.shifter] INFO:   GOLDEN BASELINE CAPTURE: SecondTryAfterRefactoring
+2026-02-20 18:11:58 [host.shifter] INFO:   GSF-ID: 2639...3685
+2026-02-20 18:11:58 [host.shifter] INFO: ============================================================
+2026-02-20 18:11:58 [host.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-20 18:12:00 [host.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-20 18:12:00 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/SecondTryAfterRefactoring/gms/gms_20260220_181200.tar.tmp
+2026-02-20 18:12:08 [host.adb] INFO: Exec-Out fertig: 82381824 Bytes geschrieben
+2026-02-20 18:12:08 [host.shifter] INFO: GMS Backup (3 Pakete): OK (78.6 MB, Versuch 1/3)
+2026-02-20 18:12:08 [host.shifter] INFO: GMS tar: gms_20260220_181200.tar (78.6 MB) — 3 Pakete
+2026-02-20 18:12:08 [host.shifter] INFO: Golden Baseline GMS: OK (gms_20260220_181200.tar)
+2026-02-20 18:12:08 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/SecondTryAfterRefactoring/accounts/accounts_20260220_181208.tar.tmp
+2026-02-20 18:12:08 [host.adb] INFO: Exec-Out fertig: 210432 Bytes geschrieben
+2026-02-20 18:12:08 [host.shifter] INFO: Account-DBs (1 Dateien): OK (0.2 MB, Versuch 1/3)
+2026-02-20 18:12:08 [host.shifter] INFO: Account-DBs tar: accounts_20260220_181208.tar (210432 Bytes, 1 Dateien)
+2026-02-20 18:12:08 [host.shifter] INFO: Golden Baseline Accounts: OK (accounts_20260220_181208.tar)
+2026-02-20 18:12:08 [host.shifter] INFO: Golden Baseline: 2/2 Komponenten gesichert
+2026-02-20 18:12:08 [host.flows.genesis] INFO: [10/11] Capture State: Golden Baseline komplett
+2026-02-20 18:12:08 [host.flows.genesis] INFO: [11/11] Audit + Account-Check + TikTok ID-Validation (v6.1)...
+2026-02-20 18:12:08 [host.auditor] INFO: Audit starten: SecondTryAfterRefactoring (serial=755HSPGFBCUL)
+2026-02-20 18:12:09 [host.auditor] INFO:   [+] bridge_file: pass — Bridge OK: 51 Felder auf dem Gerät
+2026-02-20 18:12:09 [host.auditor] INFO:   [+] bridge_serial: pass — serial=755HSPGFBCUL, boot_serial=755HSPGFBCUL — korrekt
+2026-02-20 18:12:09 [host.auditor] INFO:   [+] /proc/bus/input/devices: pass — 4 Input-Devices gefunden
+2026-02-20 18:12:09 [host.auditor] INFO:   [+] bridge_mac: pass — Bridge MAC korrekt: 3c:5a:b4:02:18:f7
+2026-02-20 18:12:09 [host.auditor] INFO:   [+] bridge_imei1: pass — imei1 korrekt
+2026-02-20 18:12:09 [host.auditor] INFO:   [+] bridge_imei2: pass — imei2 korrekt
+2026-02-20 18:12:09 [host.auditor] INFO:   [+] bridge_gsf_id: pass — gsf_id korrekt
+2026-02-20 18:12:09 [host.auditor] INFO:   [+] bridge_android_id: pass — android_id korrekt
+2026-02-20 18:12:09 [host.auditor] INFO:   [+] bridge_widevine_id: pass — widevine_id korrekt
+2026-02-20 18:12:09 [host.auditor] INFO:   [+] bridge_imsi: pass — imsi korrekt
+2026-02-20 18:12:09 [host.auditor] INFO:   [+] bridge_sim_serial: pass — sim_serial korrekt
+2026-02-20 18:12:09 [host.auditor] INFO:   [+] bridge_advertising_id: pass — advertising_id korrekt
+2026-02-20 18:12:09 [host.auditor] INFO:   [+] bridge_bluetooth_mac: pass — bluetooth_mac korrekt
+2026-02-20 18:12:09 [host.auditor] INFO:   [+] pif_fingerprint: pass — PIF Fingerprint konfiguriert
+2026-02-20 18:12:09 [host.auditor] INFO: Audit [SecondTryAfterRefactoring]: 100% (14/14 passed)
+2026-02-20 18:12:09 [host.shifter] INFO: [Account-Check] Google-Account gefunden: arvinvaha@gmail.com
+2026-02-20 18:12:09 [host.flows.genesis] INFO: [11/11] Google-Account: arvinvaha@gmail.com
+2026-02-20 18:12:09 [host.flows.genesis] INFO: [11/11] TikTok Silent Launch: ID-Generierung starten...
+2026-02-20 18:12:09 [host.shifter] INFO: [SilentLaunch] Starte com.zhiliaoapp.musically für ID-Generierung (15s)...
+2026-02-20 18:12:27 [host.flows.genesis] WARNING: [11/11] install_id nicht extrahierbar (TikTok nicht installiert?)
+2026-02-20 18:12:27 [host.flows.genesis] INFO: [11/11] Audit: PASS (100%) | Google-Account: arvinvaha@gmail.com
+2026-02-20 18:12:27 [host.flows.genesis] INFO: ============================================================
+2026-02-20 18:12:27 [host.flows.genesis] INFO:   GENESIS ERFOLG: SecondTryAfterRefactoring (212666 ms)
+2026-02-20 18:12:27 [host.flows.genesis] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Sterilize | [+] Generate | [+] Persist | [+] Inject | [+] Hard Reset | [+] Network Init | [+] GMS Ready | [+] Capture State | [+] Audit
+2026-02-20 18:12:27 [host.flows.genesis] INFO: ============================================================
+2026-02-20 18:12:27 [hookguard] INFO: HookGuard stopped
+2026-02-20 18:12:27 [hookguard] INFO: HookGuard v2 started (expected bridge hash: dc511efa2b446982c8fd418a4f699603)
+2026-02-20 18:12:27 [host.flows.genesis] INFO: HookGuard neu gestartet (Bridge-Hash refreshed)
+2026-02-20 18:12:27 [host.db_ops] INFO: Profile log captured: profile=56 trigger=genesis_end apis=0 spoofed=0.0% hooks=11+8/11+8 leaks=0 kills=0
+2026-02-20 18:12:27 [host.flows.genesis] INFO: Profile snapshot captured: log_id=15 trigger=genesis_end
+2026-02-20 18:18:14 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=50316)
+2026-02-20 18:18:14 [hookguard] INFO: HookGuard stopped
+2026-02-20 18:18:14 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-20 18:18:14 [host.database] INFO: Datenbank geschlossen.
+2026-02-20 18:18:14 [host.main] INFO: Command Center gestoppt.

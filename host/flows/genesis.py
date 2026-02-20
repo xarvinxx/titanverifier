@@ -69,16 +69,30 @@ from host.models.identity import IdentityRead, IdentityStatus
 logger = logging.getLogger("host.flows.genesis")
 
 
-async def _auto_start_hookguard() -> None:
-    """Start HookGuard automatically after a successful flow."""
+async def _auto_start_hookguard(restart: bool = False) -> None:
+    """Start or restart HookGuard after a Genesis flow.
+
+    Args:
+        restart: If True, stop+start even if already running (needed after
+                 Genesis because bridge file + identity changed).
+    """
     try:
         import host.main as _main
         guard = getattr(_main, "_hookguard", None)
-        if guard and not guard.is_running:
+        if guard is None:
+            logger.warning("HookGuard Instanz nicht gefunden in host.main")
+            return
+
+        if guard.is_running and restart:
+            await guard.stop()
+            await guard.start()
+            logger.info("HookGuard neu gestartet (Bridge-Hash refreshed)")
+        elif guard.is_running:
+            await guard.refresh_bridge_hash()
+            logger.info("HookGuard laeuft — Bridge-Hash refreshed")
+        else:
             await guard.start()
             logger.info("HookGuard automatisch gestartet")
-        elif guard and guard.is_running:
-            logger.debug("HookGuard laeuft bereits")
     except Exception as e:
         logger.warning("HookGuard Auto-Start fehlgeschlagen: %s", e)
 
@@ -594,6 +608,15 @@ class GenesisFlow:
 
             logger.info("[7/11] Hard Reset: adb reboot...")
 
+            # CRITICAL: Filesystem sync BEVOR wir rebooten!
+            # f2fs Page-Cache muss auf Flash geschrieben werden, sonst
+            # gehen Bridge-Daten verloren (Inode-Size korrekt, Data = 0x00).
+            try:
+                await self._adb.shell("sync", root=True, timeout=15)
+                logger.info("[7/11] Filesystem sync: OK")
+            except (ADBError, ADBTimeoutError):
+                logger.warning("[7/11] Filesystem sync fehlgeschlagen — Reboot trotzdem")
+
             # LSPosed DB sichern VOR dem Reboot (Schutz gegen Korruption)
             try:
                 await self._adb.shell(
@@ -959,7 +982,7 @@ class GenesisFlow:
             # PRE-NETWORK: HookGuard starten BEVOR das Netz eingeschaltet wird
             # =================================================================
             logger.info("[7e/11] HookGuard Pre-Network Start...")
-            await _auto_start_hookguard()
+            await _auto_start_hookguard(restart=True)
 
             # =================================================================
             # Schritt 8: NETWORK INIT (Flugmodus AUS + neue IP)
@@ -1468,7 +1491,7 @@ class GenesisFlow:
             logger.info("=" * 60)
 
             if result.success:
-                await _auto_start_hookguard()
+                await _auto_start_hookguard(restart=True)
 
                 # Profile Log Snapshot: Dokumentiert den Zustand nach Genesis
                 if result.profile_id:

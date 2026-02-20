@@ -176,6 +176,11 @@ class BridgeInjector:
                 f"rm -f {self._REMOTE_TMP}", root=True,
             )
 
+            # 9b. Filesystem sync — f2fs Page-Cache auf Flash schreiben.
+            # Ohne sync gehen Bridge-Daten bei einem Reboot verloren
+            # (Inode-Size bleibt, aber Data-Blocks = 0x00).
+            await self._adb.shell("sync", root=True, timeout=15)
+
             # 10. POST-INJECTION VERIFICATION
             # Lese die Bridge-Datei vom primären Pfad zurück und prüfe
             # ob der Serial korrekt geschrieben wurde. Dies erkennt

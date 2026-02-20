@@ -137,21 +137,26 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from host.config import BACKUP_DIR
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
-    # HookGuard init
+    # HookGuard init + auto-start
     from host.adb.client import ADBClient
     adb = ADBClient()
     global _hookguard
     try:
         _hookguard = HookGuard(adb)
+        await _hookguard.start()
+        logger.info("HookGuard automatisch gestartet")
     except Exception as e:
-        logger.warning("HookGuard init failed: %s", e)
-        _hookguard = None
+        logger.warning("HookGuard init/start failed: %s", e)
+        if _hookguard is None:
+            pass
 
     logger.info("Command Center bereit.")
 
     yield
 
     # --- Shutdown ---
+    if _hookguard and _hookguard.is_running:
+        await _hookguard.stop()
     logger.info("Shutdown: Schliesse Datenbank...")
     await db.close()
     logger.info("Command Center gestoppt.")

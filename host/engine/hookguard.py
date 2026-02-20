@@ -170,6 +170,16 @@ class HookGuard:
         self._state.status = GuardStatus.IDLE
         log.info("HookGuard stopped")
 
+    async def refresh_bridge_hash(self) -> None:
+        """Re-compute expected bridge hash (nach Genesis / Bridge-Rewrite)."""
+        self._expected_bridge_hash = await self._compute_bridge_content_hash(
+            str(BRIDGE_FILE_PATH)
+        )
+        log.info(
+            "HookGuard bridge hash refreshed: %s",
+            self._expected_bridge_hash or "none",
+        )
+
     def register_ws(self, ws: object) -> None:
         self._ws_clients.append(ws)
 
@@ -272,6 +282,22 @@ class HookGuard:
 
         if best is None:
             self._state.guard_loaded = False
+            self._state.bridge_loaded = False
+            self._state.lsplant_ok = False
+            self._state.native_hooks = 0
+            self._state.art_hooks = 0
+            self._state.privatized_regions = 0
+            self._state.guard_pid = 0
+            self._state.guard_timestamp_ms = 0
+            self._state.heartbeat_counter = 0
+            self._state.identity_serial = ""
+            self._state.identity_mac = ""
+            self._state.identity_imei1 = ""
+            self._state.identity_imei2 = ""
+            self._state.identity_imsi = ""
+            self._state.identity_sim_serial = ""
+            self._state.identity_android_id = ""
+            self._state.identity_gsf_id = ""
             return
 
         self._state.guard_loaded = True

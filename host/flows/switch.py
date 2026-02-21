@@ -579,20 +579,29 @@ class SwitchFlow:
             except (ADBError, ADBTimeoutError):
                 logger.warning("[5/10] Sync/Verify fehlgeschlagen")
 
-            # --- Schicht 5: Graceful Zygote Kill ---
-            # SIGTERM (15) zuerst → gibt system_server 2s um offene
-            # SQLite-Transaktionen zu committen und File-Handles zu
-            # schließen. Dann SIGKILL als Fallback.
-            logger.info("[5/10] Soft Reset: Graceful Zygote Kill...")
+            # --- Schicht 4b: Account-State Protection (v8.0) ---
+            # Wenn KEIN Accounts-Backup vorhanden ist, schütze die
+            # bestehenden Accounts über den Zygote-Kill hinweg.
+            if not _has_accounts_backup:
+                logger.info("[5/10] Account-Protection: WAL Checkpoint + Notfall-Backup...")
+                await self._shifter._checkpoint_account_dbs()
+                await self._shifter._backup_account_state()
+
+            # --- Schicht 5: Graceful Zygote Kill (v8.0) ---
+            # SIGTERM (15) zuerst → gibt system_server 3s um offene
+            # SQLite-Transaktionen zu committen, Binder-Verbindungen
+            # zu schließen und GMS-Attestierung sauber abzubrechen.
+            # Dann SIGKILL als Fallback.
+            logger.info("[5/10] Soft Reset: Graceful Zygote Kill (v8.0)...")
             try:
                 await self._adb.shell(
                     "kill -SIGTERM $(pidof zygote64) $(pidof zygote) 2>/dev/null",
                     root=True, timeout=5,
                 )
-                logger.debug("[5/10] SIGTERM gesendet — warte 2s auf Cleanup...")
+                logger.debug("[5/10] SIGTERM gesendet — warte 3s auf Cleanup...")
             except (ADBError, ADBTimeoutError):
                 pass
-            await asyncio.sleep(2)
+            await asyncio.sleep(3)
             try:
                 await self._adb.shell("killall -9 zygote 2>/dev/null", root=True)
             except ADBError:
@@ -636,8 +645,42 @@ class SwitchFlow:
             except (ADBError, ADBTimeoutError):
                 logger.debug("[5/10] LSPosed DB-Check übersprungen")
 
+            # --- Schicht 6b: Post-Restart GMS Health Check (v8.0) ---
+            if not _has_accounts_backup:
+                logger.info("[5/10] Post-Restart: GMS Health + Account Verification...")
+                health = await self._shifter.verify_gms_health(max_wait=30)
+                if health["zombies_killed"] > 0:
+                    logger.warning(
+                        "[5/10] %d GMS-Zombies nach Restart gekillt",
+                        health["zombies_killed"],
+                    )
+                if not health["accounts"]["ok"]:
+                    logger.warning("[5/10] Accounts nach Restart verloren — starte Recovery...")
+                    restored = await self._shifter._restore_account_state()
+                    if restored:
+                        try:
+                            await self._adb.shell(
+                                "kill -9 $(pidof system_server) 2>/dev/null",
+                                root=True, timeout=5,
+                            )
+                        except (ADBError, ADBTimeoutError):
+                            pass
+                        await asyncio.sleep(15)
+                        recovery_check = await self._shifter._verify_accounts_intact()
+                        if recovery_check["ok"]:
+                            logger.info("[5/10] Account-Recovery ERFOLGREICH")
+                        else:
+                            logger.error("[5/10] Account-Recovery FEHLGESCHLAGEN")
+                try:
+                    await self._adb.shell(
+                        "rm -rf /data/local/tmp/.titan_acc_guard",
+                        root=True, timeout=5,
+                    )
+                except (ADBError, ADBTimeoutError):
+                    pass
+
             step.status = FlowStepStatus.SUCCESS
-            step.detail = f"Graceful Zygote-Kill (SIGTERM→SIGKILL) + {TIMING.ZYGOTE_RESTART_WAIT}s Wait"
+            step.detail = f"Graceful Zygote-Kill v8.0 (SIGTERM→3s→SIGKILL) + {TIMING.ZYGOTE_RESTART_WAIT}s Wait"
             step.duration_ms = _now_ms() - step_start
 
             # =================================================================
@@ -698,13 +741,17 @@ class SwitchFlow:
                         logger.info("[6/10] Auto-Recovery: Accounts-DB gelöscht + sync")
                         if EXECUTION_MODE == "local":
                             logger.warning(
-                                "[6/10] On-Device: Zygote-Restart statt Fastboot-Reboot"
+                                "[6/10] On-Device: Graceful Zygote-Restart (v8.0)"
                             )
                             try:
                                 await self._adb.shell(
-                                    "killall zygote 2>/dev/null; "
-                                    "kill -9 $(pidof zygote) $(pidof zygote64) 2>/dev/null || true",
-                                    root=True, timeout=10,
+                                    "kill -SIGTERM $(pidof zygote64) $(pidof zygote) 2>/dev/null",
+                                    root=True, timeout=5,
+                                )
+                                await asyncio.sleep(3)
+                                await self._adb.shell(
+                                    "killall -9 zygote 2>/dev/null",
+                                    root=True, timeout=5,
                                 )
                             except (ADBError, ADBTimeoutError):
                                 pass

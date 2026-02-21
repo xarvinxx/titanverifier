@@ -660,7 +660,7 @@ class TIMING:
     BOOT_WAIT_SECONDS = 0              # 0 = unbegrenzt warten bis Gerät bootet
     BOOT_POLL_INTERVAL = 3              # Polling-Intervall beim Boot-Wait
     POST_BOOT_SETTLE_SECONDS = 5        # Nach Boot warten bevor Unlock
-    ZYGOTE_RESTART_WAIT = 5             # Wartezeit nach killall zygote
+    ZYGOTE_RESTART_WAIT = 8             # v8.0: Erhöht für Graceful Kill (SIGTERM+3s+SIGKILL)
     ADB_COMMAND_TIMEOUT = 30            # Timeout für einzelne ADB-Befehle
     IP_AUDIT_WAIT_SECONDS = 15          # Wartezeit nach Flugmodus-AUS bevor IP-Check
 

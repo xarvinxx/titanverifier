@@ -192,6 +192,355 @@ class AppShifter:
 
         await asyncio.sleep(0.5)
 
+    # =========================================================================
+    # *** v8.0 *** Account-Protected Framework Restart
+    # =========================================================================
+
+    async def _checkpoint_account_dbs(self) -> bool:
+        """
+        SQLite WAL Checkpoint auf Account-Datenbanken erzwingen.
+
+        Ohne Checkpoint bleiben Schreib-Operationen im WAL-Journal.
+        Wenn Zygote stirbt bevor WAL geflusht ist → Account-DB korrupt → Logout.
+        TRUNCATE-Modus: Schreibt WAL in die Haupt-DB UND löscht das WAL-File.
+        """
+        success = True
+        for db_path in [
+            "/data/system_ce/0/accounts_ce.db",
+            "/data/system_de/0/accounts_de.db",
+        ]:
+            try:
+                await self._adb.shell(
+                    f'sqlite3 {db_path} "PRAGMA wal_checkpoint(TRUNCATE);" 2>/dev/null',
+                    root=True, timeout=5,
+                )
+            except (ADBError, ADBTimeoutError):
+                success = False
+        return success
+
+    async def _backup_account_state(self, backup_dir: str = "/data/local/tmp/.titan_acc_guard") -> bool:
+        """
+        Sichert Account-Datenbanken als Notfall-Backup vor Framework-Restart.
+        Wird NUR verwendet wenn die DBs nach dem Restart korrupt sind.
+        """
+        try:
+            await self._adb.shell(
+                f"mkdir -p {backup_dir} && "
+                f"cp /data/system_ce/0/accounts_ce.db {backup_dir}/ 2>/dev/null; "
+                f"cp /data/system_de/0/accounts_de.db {backup_dir}/ 2>/dev/null; "
+                f"cp /data/system_ce/0/accounts_ce.db-wal {backup_dir}/ 2>/dev/null; "
+                f"cp /data/system_de/0/accounts_de.db-wal {backup_dir}/ 2>/dev/null",
+                root=True, timeout=10,
+            )
+            return True
+        except (ADBError, ADBTimeoutError) as e:
+            logger.warning("Account-State Backup fehlgeschlagen: %s", e)
+            return False
+
+    async def _restore_account_state(self, backup_dir: str = "/data/local/tmp/.titan_acc_guard") -> bool:
+        """
+        Stellt Account-Datenbanken aus dem Notfall-Backup wieder her.
+        Setzt Ownership + SELinux-Context korrekt.
+        """
+        try:
+            await self._adb.shell(
+                f"cp {backup_dir}/accounts_ce.db /data/system_ce/0/ 2>/dev/null; "
+                f"cp {backup_dir}/accounts_de.db /data/system_de/0/ 2>/dev/null; "
+                f"cp {backup_dir}/accounts_ce.db-wal /data/system_ce/0/ 2>/dev/null; "
+                f"cp {backup_dir}/accounts_de.db-wal /data/system_de/0/ 2>/dev/null; "
+                f"chown system:system /data/system_ce/0/accounts_ce.db* 2>/dev/null; "
+                f"chown system:system /data/system_de/0/accounts_de.db* 2>/dev/null; "
+                f"chmod 600 /data/system_ce/0/accounts_ce.db* 2>/dev/null; "
+                f"chmod 600 /data/system_de/0/accounts_de.db* 2>/dev/null; "
+                f"restorecon /data/system_ce/0/accounts_ce.db* 2>/dev/null; "
+                f"restorecon /data/system_de/0/accounts_de.db* 2>/dev/null",
+                root=True, timeout=10,
+            )
+            logger.info("Account-State aus Backup wiederhergestellt")
+            return True
+        except (ADBError, ADBTimeoutError) as e:
+            logger.error("Account-State Restore fehlgeschlagen: %s", e)
+            return False
+
+    async def _verify_accounts_intact(self) -> dict:
+        """
+        Prüft ob Google-Accounts nach einem Restart noch eingeloggt sind.
+
+        Returns:
+            dict mit keys: ok (bool), count (int), accounts (list[str]), detail (str)
+        """
+        result = {"ok": False, "count": 0, "accounts": [], "detail": ""}
+        try:
+            r = await self._adb.shell(
+                "dumpsys account 2>/dev/null | grep -E 'Account \\{' | grep 'com.google'",
+                root=True, timeout=10,
+            )
+            if r.success and r.stdout.strip():
+                lines = [l.strip() for l in r.stdout.strip().splitlines() if "com.google" in l]
+                result["count"] = len(lines)
+                for line in lines:
+                    try:
+                        name = line.split("name=")[1].split(",")[0]
+                        result["accounts"].append(name)
+                    except (IndexError, ValueError):
+                        pass
+                result["ok"] = result["count"] > 0
+                result["detail"] = f"{result['count']} Google Account(s): {', '.join(result['accounts'])}"
+            else:
+                result["detail"] = "Keine Google Accounts gefunden"
+        except (ADBError, ADBTimeoutError) as e:
+            result["detail"] = f"Account-Check fehlgeschlagen: {e}"
+        return result
+
+    async def verify_gms_health(self, max_wait: int = 30) -> dict:
+        """
+        Post-Restart GMS Health Monitor mit Auto-Recovery.
+
+        Prüft nach einem Framework-Restart:
+          1. Keine Zombie-Prozesse (Z-State)
+          2. GMS-Hauptprozess läuft (S/R-State)
+          3. Google Accounts noch eingeloggt
+
+        Auto-Recovery: Zombie-Kill → force-stop → Neustart-Zyklus
+
+        Returns:
+            dict: healthy, zombies_killed, gms_running, accounts, detail
+        """
+        result = {
+            "healthy": False,
+            "zombies_killed": 0,
+            "gms_running": False,
+            "accounts": {},
+            "detail": "",
+        }
+
+        elapsed = 0
+        poll = 3
+        while elapsed < max_wait:
+            try:
+                r = await self._adb.shell(
+                    "ps -A -o PID,S,NAME 2>/dev/null | grep gms",
+                    root=True, timeout=5,
+                )
+                if r.success and r.stdout.strip():
+                    break
+            except (ADBError, ADBTimeoutError):
+                pass
+            await asyncio.sleep(poll)
+            elapsed += poll
+
+        try:
+            proc_result = await self._adb.shell(
+                "ps -A -o PID,S,NAME 2>/dev/null | grep gms",
+                root=True, timeout=5,
+            )
+            if proc_result.success and proc_result.stdout.strip():
+                zombies = []
+                healthy_procs = []
+                for line in proc_result.stdout.strip().splitlines():
+                    parts = line.split()
+                    if len(parts) >= 3:
+                        pid, state, name = parts[0], parts[1], parts[2]
+                        if state == "Z":
+                            zombies.append((pid, name))
+                        elif "gms" in name:
+                            healthy_procs.append(name)
+
+                if zombies:
+                    for pid, name in zombies:
+                        try:
+                            await self._adb.shell(
+                                f"kill -9 {pid} 2>/dev/null", root=True, timeout=3,
+                            )
+                            result["zombies_killed"] += 1
+                            logger.warning(
+                                "[GMS-Health] Zombie gekillt: PID %s (%s)", pid, name,
+                            )
+                        except (ADBError, ADBTimeoutError):
+                            pass
+
+                    await asyncio.sleep(2)
+                    await self._adb.shell(
+                        "am force-stop com.google.android.gms", root=True, timeout=10,
+                    )
+                    await asyncio.sleep(5)
+
+                    recheck = await self._adb.shell(
+                        "ps -A -o PID,S,NAME 2>/dev/null | grep gms",
+                        root=True, timeout=5,
+                    )
+                    if recheck.success:
+                        still_zombie = any(
+                            len(l.split()) >= 2 and l.split()[1] == "Z"
+                            for l in recheck.stdout.strip().splitlines()
+                        )
+                        result["gms_running"] = not still_zombie
+                    else:
+                        result["gms_running"] = False
+                else:
+                    result["gms_running"] = len(healthy_procs) > 0
+        except (ADBError, ADBTimeoutError) as e:
+            logger.warning("[GMS-Health] Prozess-Check fehlgeschlagen: %s", e)
+
+        result["accounts"] = await self._verify_accounts_intact()
+        result["healthy"] = result["gms_running"] and result["accounts"]["ok"]
+        result["detail"] = (
+            f"GMS: {'running' if result['gms_running'] else 'DOWN'}, "
+            f"Zombies killed: {result['zombies_killed']}, "
+            f"{result['accounts']['detail']}"
+        )
+        return result
+
+    async def graceful_framework_restart(
+        self,
+        wait_seconds: int = 20,
+        health_check_timeout: int = 45,
+    ) -> dict:
+        """
+        Account-Protected Framework Restart (v8.0).
+
+        Ersetzt den rohen 'killall zygote' durch eine 3-Schichten-Architektur
+        die Google Accounts über den Restart hinweg schützt:
+
+          Layer 1 — Pre-Restart Protection:
+            a) WAL Checkpoint auf allen Account-DBs (flush pending writes)
+            b) Notfall-Backup der Account-DBs
+            c) Filesystem sync
+
+          Layer 2 — Graceful Kill:
+            SIGTERM an zygote → 3s Cleanup-Zeit für system_server →
+            SIGKILL als Fallback. system_server kann in den 3s:
+              - SQLite-Transaktionen committen
+              - Binder-Verbindungen schließen
+              - GMS Attestierung sauber abbrechen
+            → Keine Zombie-Prozesse, keine korrupten DBs.
+
+          Layer 3 — Post-Restart Verification:
+            a) GMS Health Monitor (Zombie-Detection + Auto-Kill)
+            b) Account Integrity Check (Google login erhalten?)
+            c) Notfall-Restore falls Accounts verloren
+
+        Returns:
+            dict: success, gms_healthy, accounts_preserved, detail
+        """
+        BACKUP_PATH = "/data/local/tmp/.titan_acc_guard"
+        result = {
+            "success": False,
+            "gms_healthy": False,
+            "accounts_preserved": False,
+            "recovery_used": False,
+            "detail": "",
+        }
+
+        # ── Layer 1: Pre-Restart Protection ──────────────────────────
+        logger.info("[Framework-Restart] Layer 1: Account-State schützen...")
+
+        pre_accounts = await self._verify_accounts_intact()
+        had_accounts = pre_accounts["ok"]
+        if had_accounts:
+            logger.info(
+                "[Framework-Restart] %d Google Account(s) vor Restart: %s",
+                pre_accounts["count"], ", ".join(pre_accounts["accounts"]),
+            )
+
+        checkpoint_ok = await self._checkpoint_account_dbs()
+        logger.info(
+            "[Framework-Restart] WAL Checkpoint: %s",
+            "OK" if checkpoint_ok else "TEILWEISE",
+        )
+
+        backup_ok = await self._backup_account_state(BACKUP_PATH)
+        logger.info(
+            "[Framework-Restart] Account-Backup: %s",
+            "OK" if backup_ok else "FEHLGESCHLAGEN",
+        )
+
+        try:
+            await self._adb.shell("sync", root=True, timeout=15)
+        except (ADBError, ADBTimeoutError):
+            logger.warning("[Framework-Restart] Filesystem sync fehlgeschlagen")
+
+        # ── Layer 2: Graceful Zygote Kill ────────────────────────────
+        logger.info("[Framework-Restart] Layer 2: Graceful Zygote Kill (SIGTERM→SIGKILL)...")
+        try:
+            await self._adb.shell(
+                "kill -SIGTERM $(pidof zygote64) $(pidof zygote) 2>/dev/null",
+                root=True, timeout=5,
+            )
+            logger.info("[Framework-Restart] SIGTERM gesendet — 3s Cleanup-Zeit...")
+        except (ADBError, ADBTimeoutError):
+            pass
+
+        await asyncio.sleep(3)
+
+        try:
+            await self._adb.shell(
+                "killall -9 zygote 2>/dev/null; "
+                "kill -9 $(pidof zygote) $(pidof zygote64) 2>/dev/null",
+                root=True, timeout=5,
+            )
+        except (ADBError, ADBTimeoutError):
+            pass
+
+        logger.info(
+            "[Framework-Restart] Warte %ds auf Framework-Neustart...",
+            wait_seconds,
+        )
+        await asyncio.sleep(wait_seconds)
+
+        # ── Layer 3: Post-Restart Verification ───────────────────────
+        logger.info("[Framework-Restart] Layer 3: Health Verification...")
+
+        health = await self.verify_gms_health(max_wait=health_check_timeout)
+        result["gms_healthy"] = health["healthy"]
+
+        accounts_ok = health["accounts"]["ok"]
+        if not accounts_ok and had_accounts and backup_ok:
+            logger.warning(
+                "[Framework-Restart] ACCOUNTS VERLOREN — starte Notfall-Recovery...",
+            )
+            restored = await self._restore_account_state(BACKUP_PATH)
+            if restored:
+                result["recovery_used"] = True
+                logger.info(
+                    "[Framework-Restart] Account-DBs restored — "
+                    "erzwinge AccountManager-Neustart..."
+                )
+                try:
+                    await self._adb.shell(
+                        "kill -9 $(pidof system_server) 2>/dev/null",
+                        root=True, timeout=5,
+                    )
+                except (ADBError, ADBTimeoutError):
+                    pass
+                await asyncio.sleep(15)
+
+                recovery_health = await self.verify_gms_health(max_wait=30)
+                accounts_ok = recovery_health["accounts"]["ok"]
+                result["gms_healthy"] = recovery_health["healthy"]
+
+                if accounts_ok:
+                    logger.info("[Framework-Restart] RECOVERY ERFOLGREICH — Accounts wiederhergestellt!")
+                else:
+                    logger.error("[Framework-Restart] RECOVERY FEHLGESCHLAGEN — manueller Login nötig")
+
+        result["accounts_preserved"] = accounts_ok
+        result["success"] = result["gms_healthy"] and (accounts_ok or not had_accounts)
+        result["detail"] = (
+            f"GMS: {'healthy' if result['gms_healthy'] else 'UNHEALTHY'} | "
+            f"Accounts: {'preserved' if accounts_ok else 'LOST'}"
+            f"{' (via Recovery)' if result['recovery_used'] else ''} | "
+            f"Zombies: {health['zombies_killed']}"
+        )
+
+        try:
+            await self._adb.shell(f"rm -rf {BACKUP_PATH}", root=True, timeout=5)
+        except (ADBError, ADBTimeoutError):
+            pass
+
+        logger.info("[Framework-Restart] Ergebnis: %s", result["detail"])
+        return result
+
     async def kill_all_targets(self) -> list[str]:
         """
         Robuster Kill-Flow: Stoppt ALLE relevanten Prozesse VOR einem State-Swap.

@@ -689,29 +689,37 @@ class GenesisFlow:
                 pass
 
             if EXECUTION_MODE == "local":
-                # ─── ON-DEVICE MODUS: Zygote-Restart statt Full-Reboot ───
+                # ─── ON-DEVICE MODUS: Account-Protected Framework Restart (v8.0) ──
                 # Ein Reboot würde Termux und damit diesen Server beenden.
-                # Stattdessen: Zygote-Kill → Android startet alle Apps/Services
-                # neu, Zygisk-Modul lädt die neue Bridge-Datei.
-                logger.info("[7/11] On-Device: Zygote-Restart (kein Reboot)...")
-                try:
-                    await self._adb.shell("killall zygote", root=True, timeout=10)
-                except ADBError:
-                    await self._adb.shell(
-                        "kill -9 $(pidof zygote) $(pidof zygote64) 2>/dev/null || true",
-                        root=True, timeout=10,
-                    )
-                logger.info("[7/11] Zygote gekillt — warte 20s auf Neustart...")
-                await asyncio.sleep(20)
+                # Stattdessen: Graceful Zygote-Kill mit Account-Protection.
+                #
+                # 3-Schichten-Architektur:
+                #   1. WAL Checkpoint + Account-DB Backup (Pre-Restart)
+                #   2. SIGTERM → 3s Cleanup → SIGKILL (Graceful Kill)
+                #   3. GMS Health Monitor + Account Verification (Post-Restart)
+                logger.info("[7/11] On-Device: Account-Protected Framework Restart (v8.0)...")
+                restart_result = await self._shifter.graceful_framework_restart(
+                    wait_seconds=20,
+                    health_check_timeout=45,
+                )
 
-                booted = await self._adb.wait_for_device(timeout=60, poll_interval=3)
+                if not restart_result["gms_healthy"]:
+                    logger.warning(
+                        "[7/11] GMS nicht gesund nach Restart: %s",
+                        restart_result["detail"],
+                    )
+                if not restart_result["accounts_preserved"]:
+                    logger.warning(
+                        "[7/11] WARNUNG: Google Accounts nach Restart verloren! "
+                        "Recovery: %s", "verwendet" if restart_result["recovery_used"] else "nicht nötig/fehlgeschlagen",
+                    )
+
+                booted = await self._adb.wait_for_device(timeout=30, poll_interval=3)
                 if not booted:
                     step.status = FlowStepStatus.FAILED
-                    step.detail = "Zygote-Restart Timeout"
+                    step.detail = f"Framework-Restart Timeout | {restart_result['detail']}"
                     step.duration_ms = _now_ms() - step_start
-                    raise ADBError("Gerät nach Zygote-Restart nicht bereit")
-
-                await asyncio.sleep(5)
+                    raise ADBError("Gerät nach Framework-Restart nicht bereit")
             else:
                 # ─── ADB MODUS: Normaler Full-Reboot ───
                 try:

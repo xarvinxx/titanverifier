@@ -1090,11 +1090,43 @@ class SwitchFlow:
             if result.success:
                 await _auto_start_hookguard(restart=True)
 
-                # switch_in: Snapshot des neuen Profils (nach dem Wechsel)
+                # switch_in: Snapshot erst NACH TikTok-Start aufnehmen.
+                # Ohne laufendes TikTok schreibt das Zygisk-Modul keine
+                # Guard-Datei → Snapshot würde 0 Hooks / 0 Heartbeat zeigen
+                # und irreführende "Leak"-Warnungen produzieren.
                 if profile_id:
-                    await _capture_profile_snapshot(
-                        self._adb, profile_id, identity_id, "switch_in",
-                    )
+                    try:
+                        logger.info("Switch-In Snapshot: Starte TikTok für Hook-Verifikation...")
+                        await self._adb.shell(
+                            "am start -n com.zhiliaoapp.musically/com.ss.android.ugc.aweme.splash.SplashActivity",
+                            root=False, timeout=10,
+                        )
+                        # Warte bis Zygisk-Modul Guard-Datei schreibt + erste Hooks aktiv
+                        import host.main as _main
+                        guard = getattr(_main, "_hookguard", None)
+                        _snapshot_ok = False
+                        for _wait_round in range(8):
+                            await asyncio.sleep(3)
+                            if guard and guard.is_running:
+                                await guard._poll_once()
+                                st = guard.state
+                                if st.guard_loaded and (st.native_hooks > 0 or st.art_hooks > 0):
+                                    logger.info(
+                                        "Switch-In Snapshot: Hooks aktiv (native=%d, art=%d) nach %ds",
+                                        st.native_hooks, st.art_hooks, (_wait_round + 1) * 3,
+                                    )
+                                    _snapshot_ok = True
+                                    break
+                        if not _snapshot_ok:
+                            logger.warning(
+                                "Switch-In Snapshot: Hooks nicht innerhalb von 24s aktiv — "
+                                "Snapshot wird trotzdem aufgenommen"
+                            )
+                        await _capture_profile_snapshot(
+                            self._adb, profile_id, identity_id, "switch_in",
+                        )
+                    except Exception as snap_err:
+                        logger.warning("Switch-In Snapshot fehlgeschlagen: %s", snap_err)
 
         return result
 

@@ -24164,3 +24164,300 @@ drwxrwx---  49 u0_a301 u0_a301  3452 2026-02-20 19:23 files
 2026-02-21 01:36:21 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=59025)
 2026-02-21 01:36:51 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=59124)
 2026-02-21 01:37:01 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=59124)
+2026-02-21 01:42:50 [hookguard] INFO: HookGuard stopped
+2026-02-21 01:42:50 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 01:42:50 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 01:42:50 [host.main] INFO: Command Center gestoppt.
+2026-02-21 01:42:51 [host.main] INFO: ============================================================
+2026-02-21 01:42:51 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 01:42:51 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:42:51 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 01:42:51 [host.main] INFO: ============================================================
+2026-02-21 01:42:51 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:42:51 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 01:42:51 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 01:42:51 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 01:42:51 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 01:42:51 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 01:42:51 [host.main] INFO: Command Center bereit.
+2026-02-21 01:43:13 [hookguard] INFO: HookGuard stopped
+2026-02-21 01:43:13 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 01:43:13 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 01:43:13 [host.main] INFO: Command Center gestoppt.
+2026-02-21 01:43:14 [host.main] INFO: ============================================================
+2026-02-21 01:43:14 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 01:43:14 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:43:14 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 01:43:14 [host.main] INFO: ============================================================
+2026-02-21 01:43:14 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:43:14 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 01:43:14 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 01:43:14 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 01:43:14 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 01:43:14 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 01:43:14 [host.main] INFO: Command Center bereit.
+2026-02-21 01:45:20 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=61081)
+2026-02-21 01:45:22 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=61081)
+2026-02-21 01:45:22 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=61098)
+2026-02-21 01:45:26 [host.api.control] INFO: Switch-Flow gestartet: identity_id=64 [Full-State]
+2026-02-21 01:45:26 [host.flows.switch] INFO: ============================================================
+2026-02-21 01:45:26 [host.flows.switch] INFO:   SWITCH FLOW: WeitererAcc (id=64) [Full-State]
+2026-02-21 01:45:26 [host.flows.switch] INFO: ============================================================
+2026-02-21 01:45:26 [host.flows.switch] INFO: [1/10] Flugmodus AN (Netz sofort trennen)...
+2026-02-21 01:45:26 [host.flows.switch] INFO: [1/10] Flugmodus: AN
+2026-02-21 01:45:26 [host.flows.switch] INFO: [2/10] Auto-Backup: Aktives Profil prüfen...
+2026-02-21 01:45:26 [host.flows.switch] INFO: [2/10] Auto-Backup: Profil 'NikeFrrrMemes' (TikTok: @NikeFrrrMemes) — Full-State (TikTok + GMS + Accounts)...
+2026-02-21 01:45:26 [host.shifter] INFO: ==================================================
+2026-02-21 01:45:26 [host.shifter] INFO:   DUAL-PATH BACKUP: NikeFrrrMemes (TikTok)
+2026-02-21 01:45:26 [host.shifter] INFO: ==================================================
+2026-02-21 01:45:27 [host.adb] INFO: Exec-Out Stream: su -c 'tar -C /data/data/com.zhiliaoapp.musically -cf - shared_prefs databases files 2>/dev/null' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/NikeFrrrMemes/tiktok/tiktok_app_20260221_014526.tar.tmp
+2026-02-21 01:46:19 [host.adb] INFO: Exec-Out fertig: 498359296 Bytes geschrieben
+2026-02-21 01:46:19 [host.shifter] INFO: Pfad A (App-Daten, Whitelist: shared_prefs, databases, files): OK (475.3 MB, Versuch 1/3)
+2026-02-21 01:46:20 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C /storage/emulated/0/Android/data/com.zhiliaoapp.musically . 2>/dev/null' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/NikeFrrrMemes/sandbox/tiktok_sandbox_20260221_014526.tar.tmp
+2026-02-21 01:46:20 [host.adb] INFO: Exec-Out fertig: 2318336 Bytes geschrieben
+2026-02-21 01:46:20 [host.shifter] INFO: Pfad B (Sandbox): OK (2.2 MB, Versuch 1/3)
+2026-02-21 01:46:20 [host.shifter] INFO: Dual-Path Backup: 2/2 Komponenten gesichert
+2026-02-21 01:46:21 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/NikeFrrrMemes/gms/gms_20260221_014621.tar.tmp
+2026-02-21 01:46:27 [host.adb] INFO: Exec-Out fertig: 58714112 Bytes geschrieben
+2026-02-21 01:46:27 [host.shifter] INFO: GMS Backup (3 Pakete): OK (56.0 MB, Versuch 1/3)
+2026-02-21 01:46:27 [host.shifter] INFO: GMS tar: gms_20260221_014621.tar (56.0 MB) — 3 Pakete
+2026-02-21 01:46:27 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/NikeFrrrMemes/accounts/accounts_20260221_014627.tar.tmp
+2026-02-21 01:46:27 [host.adb] INFO: Exec-Out fertig: 157184 Bytes geschrieben
+2026-02-21 01:46:27 [host.shifter] INFO: Account-DBs (1 Dateien): OK (0.1 MB, Versuch 1/3)
+2026-02-21 01:46:27 [host.shifter] INFO: Account-DBs tar: accounts_20260221_014627.tar (157184 Bytes, 1 Dateien)
+2026-02-21 01:46:27 [host.flows.switch] INFO: [2/10] Auto-Backup: Profil 'NikeFrrrMemes' (@NikeFrrrMemes): TikTok=2/2, GMS+Acc=2/2 (Total: 4/4)
+2026-02-21 01:46:28 [host.db_ops] INFO: Profile log captured: profile=57 trigger=switch_out apis=0 spoofed=0.0% hooks=0+0/11+8 leaks=6 kills=0
+2026-02-21 01:46:28 [host.flows.genesis] INFO: Profile snapshot captured: log_id=29 trigger=switch_out
+2026-02-21 01:46:28 [host.flows.switch] INFO: [3/10] Safety Kill: Alle Apps stoppen...
+2026-02-21 01:46:29 [host.flows.switch] INFO: [3/10] Safety Kill: OK (Gestoppt: gms, gsf, vending, musically)
+2026-02-21 01:46:29 [host.flows.switch] INFO: [3→4] FIX-29: Gründlicher State-Wipe vor Restore...
+2026-02-21 01:46:29 [host.shifter] INFO: FIX-29: Switch-Clean — Gründlicher State-Wipe vor Restore...
+2026-02-21 01:46:29 [host.shifter] INFO: FIX-29: /data/data/com.zhiliaoapp.musically — Smart Clean (lib-Symlink bewahrt)
+2026-02-21 01:46:29 [host.shifter] INFO: FIX-29: /data/data/com.ss.android.ugc.trill — Smart Clean (lib-Symlink bewahrt)
+2026-02-21 01:46:33 [host.shifter] INFO: FIX-29: Switch-Clean abgeschlossen: 24/24 Operationen OK
+2026-02-21 01:46:33 [host.flows.switch] INFO: [3→4] FIX-29: State-Wipe 24/24 Operationen ALLE OK
+2026-02-21 01:46:33 [host.flows.switch] INFO: [4/10] Inject: Bridge-Datei aktualisieren...
+2026-02-21 01:46:33 [host.injector] INFO: Injecting identity: serial=6C4MN63MFL94 imei1=355543…1829
+2026-02-21 01:46:33 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/bridge_txbzdcti.bridge → /data/local/tmp/.bridge_staging
+2026-02-21 01:46:33 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-21 01:46:33 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-21 01:46:34 [host.db_ops] INFO: DNA-Match: Identity #64 'WeitererAcc' automatisch aktiviert (confidence=exact, score=10, fields=serial+imei1+android_id+wifi_mac+gsf_id)
+2026-02-21 01:46:34 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #64 auf 'active' gesetzt
+2026-02-21 01:46:36 [host.injector] INFO: Bridge verteilt an 7/10 Apps
+2026-02-21 01:46:37 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → c2ffc619-a66e-4cce-831d-8d60f7946ed0
+2026-02-21 01:46:37 [host.injector] WARNING: Verify: /data/data/com.oem.hardware.service/files/.hw_config nicht lesbar oder leer
+2026-02-21 01:46:37 [host.injector] INFO: Injection komplett + verifiziert: 6C4MN63MFL94
+2026-02-21 01:46:38 [host.injector] INFO: PIF v5.0: autopif4 Canary-Fingerprint gefunden — verwende diesen (NICHT unseren statischen Pool)
+2026-02-21 01:46:38 [host.injector] INFO: PIF autopif4: FP=google/oriole_beta/oriole:CANARY/ZP11.260123.011/1… | Patch=2026-02-05 | Estimated Expiry: 2026-03-26
+2026-02-21 01:46:38 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/pif_ee7c3l_m.prop → /data/local/tmp/.pif_staging.prop
+2026-02-21 01:46:38 [host.injector] INFO: PIF v5.0 OK [autopif4-canary]: custom.pif.prop → /data/adb/modules/playintegrityfix/custom.pif.prop
+2026-02-21 01:46:38 [host.flows.switch] INFO: [4/10] PIF v5.0: custom.pif.prop OK (autopif4-First)
+2026-02-21 01:46:38 [host.flows.switch] INFO: [4/10] Inject: OK (serial=6C4MN63MFL94 | PIF=OK)
+2026-02-21 01:46:38 [host.flows.switch] INFO: [5/10] SQLite WAL Checkpoint: erledigt
+2026-02-21 01:46:38 [host.flows.switch] INFO: [5/10] Accounts-DB entfernt (Backup vorhanden → wird in Step 7 restored)
+2026-02-21 01:46:38 [host.flows.switch] INFO: [5/10] Sync + Verify: accounts_ce.db GELÖSCHT bestätigt
+2026-02-21 01:46:38 [host.flows.switch] INFO: [5/10] Soft Reset: Graceful Zygote Kill...
+2026-02-21 01:46:40 [host.flows.switch] INFO: [5/10] Warte 5s auf Zygote-Restart...
+2026-02-21 01:46:45 [host.flows.switch] INFO: [6/10] GMS Ready: Warte auf Boot + GMS-Readiness...
+2026-02-21 01:46:45 [host.shifter] INFO: [Readiness] Warte auf sys.boot_completed=1...
+2026-02-21 01:46:45 [host.shifter] INFO: [Readiness] Boot bestätigt nach 0s
+2026-02-21 01:46:45 [host.shifter] INFO: [Readiness] Warte auf GmsCore Service...
+2026-02-21 01:46:56 [host.shifter] INFO: [Readiness] GmsCore aktiv nach 11s
+2026-02-21 01:46:56 [host.shifter] INFO: [Readiness] System bereit — Boot: 0s | GMS: 11s (GMS Verbindung steht - Bereit zum Loslegen!)
+2026-02-21 01:46:59 [host.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-21 01:46:59 [host.flows.switch] INFO: [6/10] GMS Verbindung steht - Bereit zum Loslegen! (Boot: 0s | GMS: 11s)
+2026-02-21 01:46:59 [host.flows.switch] INFO: [7/10] Restore State: GMS + Account-DBs (nach Zygote-First)...
+2026-02-21 01:46:59 [host.shifter] INFO: ============================================================
+2026-02-21 01:46:59 [host.shifter] INFO:   FULL-STATE RESTORE: WeitererAcc
+2026-02-21 01:46:59 [host.shifter] INFO: ============================================================
+2026-02-21 01:46:59 [host.shifter] INFO: Kill-All-Targets: Alle Prozesse stoppen vor Restore...
+2026-02-21 01:46:59 [host.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-21 01:47:01 [host.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-21 01:47:01 [host.shifter] INFO: GMS Restore: gms_20260220_192755.tar (79.4 MB)
+2026-02-21 01:47:03 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/WeitererAcc/gms/gms_20260220_192755.tar → /data/local/tmp/_titan_gms_restore.tar
+2026-02-21 01:47:06 [host.shifter] INFO: Magic Fix [com.google.android.gms]: UID 10149
+2026-02-21 01:47:06 [host.shifter] INFO: Magic Fix [com.google.android.gsf]: UID 10149
+2026-02-21 01:47:06 [host.shifter] INFO: Magic Fix [com.android.vending]: UID 10165
+2026-02-21 01:47:06 [host.shifter] INFO: [DroidGuard+Analytics] Sanitized: 11/11 Einträge gelöscht (Neu-Attestierung + Cross-App-Correlation entfernt)
+2026-02-21 01:47:06 [host.shifter] INFO: GMS Restore komplett: 3 Pakete (DroidGuard sanitized)
+2026-02-21 01:47:06 [host.shifter] INFO: GMS Restore: OK
+2026-02-21 01:47:06 [host.shifter] INFO: Account-DBs Restore v4.0 (FBE-Safe): accounts_20260220_192803.tar (210432 Bytes)
+2026-02-21 01:47:07 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/WeitererAcc/accounts/accounts_20260220_192803.tar → /data/local/tmp/_titan_acc_restore.tar
+2026-02-21 01:47:08 [host.shifter] INFO: SELinux Verify: u:object_r:accounts_data_file:s0 /data/system_ce/0/accounts_ce.db
+2026-02-21 01:47:08 [host.shifter] INFO: SELinux OK: accounts_data_file korrekt gesetzt
+2026-02-21 01:47:09 [host.shifter] WARNING: Account-DB Integrity-Check FEHLGESCHLAGEN:  — lösche DB als Bootloop-Schutz
+2026-02-21 01:47:09 [host.shifter] ERROR: Account-DBs Restore fehlgeschlagen: Account-DB integrity check failed after restore
+2026-02-21 01:47:09 [host.shifter] INFO: TikTok-Restore übersprungen — wird in Step 8 (Dual-Path) behandelt
+2026-02-21 01:47:09 [host.shifter] INFO: Full-State Restore abgeschlossen: GMS=OK, Accounts=FAIL (TikTok → Step 8)
+2026-02-21 01:47:09 [host.flows.switch] WARNING: [7/10] Partial Restore — Google Logout möglich
+2026-02-21 01:47:09 [host.flows.switch] INFO: [8/10] TikTok Restore + Sanitize...
+2026-02-21 01:47:09 [host.shifter] INFO: Dual-Path Restore: WeitererAcc (TikTok)
+2026-02-21 01:47:09 [host.shifter] INFO: Pfad A: Kein App-Daten Backup vorhanden — übersprungen
+2026-02-21 01:47:09 [host.shifter] INFO: Pfad B: Kein Sandbox Backup vorhanden — übersprungen
+2026-02-21 01:47:09 [host.shifter] INFO: Dual-Path Restore: 0/2 Komponenten wiederhergestellt
+2026-02-21 01:47:09 [host.flows.switch] INFO: [8/10] Post-Restore Verifikation OK
+2026-02-21 01:47:09 [host.shifter] INFO: Randomizing file timestamps for com.zhiliaoapp.musically...
+2026-02-21 01:47:09 [host.shifter] INFO: Timestamps randomized for com.zhiliaoapp.musically
+2026-02-21 01:47:09 [host.shifter] INFO: Randomizing file timestamps for com.ss.android.ugc.trill...
+2026-02-21 01:47:09 [host.shifter] INFO: Timestamps randomized for com.ss.android.ugc.trill
+2026-02-21 01:47:09 [host.shifter] INFO: Clearing system clipboard...
+2026-02-21 01:47:09 [host.shifter] INFO: Clipboard cleared
+2026-02-21 01:47:09 [host.shifter] INFO: Backup-Sterilisierung: Auto-Restore + TikTok-Backups...
+2026-02-21 01:47:10 [host.shifter] WARNING: Backup Manager war GLOBAL deaktiviert — re-enable (deaktivierter bmgr = Anomalie-Signal für Google)
+2026-02-21 01:47:11 [host.shifter] INFO:   Auto-Restore: DEAKTIVIERT (temporaer)
+2026-02-21 01:47:22 [host.shifter] INFO: Backup-Sterilisierung abgeschlossen (Auto-Restore OFF)
+2026-02-21 01:47:22 [host.flows.switch] INFO: [8b/10] HookGuard Pre-Network Start...
+2026-02-21 01:47:22 [hookguard] INFO: HookGuard stopped
+2026-02-21 01:47:22 [hookguard] INFO: HookGuard v2 started (expected bridge hash: ee1df4cc2636d8893e6d73f9d9dabb54)
+2026-02-21 01:47:22 [host.flows.genesis] INFO: HookGuard neu gestartet (Bridge-Hash refreshed)
+2026-02-21 01:47:22 [host.flows.switch] INFO: [9/10] Network Init: Flugmodus AUS...
+2026-02-21 01:47:33 [host.flows.switch] INFO: [9/10] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-21 01:47:48 [host.network] INFO: HTTP-Tool erkannt: busybox wget (/data/adb/ksu/bin/busybox)
+2026-02-21 01:47:48 [host.network] INFO: Öffentliche IP: 176.6.61.45 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-21 01:47:48 [host.flows.switch] INFO: [9/10] Network Init: IP = 176.6.61.45
+2026-02-21 01:47:48 [host.flows.switch] INFO: [10/10] Quick Audit + Account-Check...
+2026-02-21 01:47:48 [host.auditor] INFO: Quick Audit: OK (5/5 Felder — serial=6C4MN63MFL94)
+2026-02-21 01:47:48 [host.shifter] INFO: [Account-Check] Google-Account vorhanden (Name nicht extrahierbar)
+2026-02-21 01:47:48 [host.shifter] INFO: Auto-Restore re-enabled (TikTok-Erststart vorbei)
+2026-02-21 01:47:48 [host.flows.switch] INFO: ============================================================
+2026-02-21 01:47:48 [host.flows.switch] INFO:   SWITCH ERFOLG: WeitererAcc (142675 ms)
+2026-02-21 01:47:48 [host.flows.switch] INFO:   [+] Airplane Mode | [+] Auto-Backup | [+] Safety Kill | [+] Inject | [+] Soft Reset | [+] GMS Ready | [+] Restore State | [-] Restore TikTok | [+] Network Init | [+] Quick Audit
+2026-02-21 01:47:48 [host.flows.switch] INFO: ============================================================
+2026-02-21 01:47:48 [hookguard] INFO: HookGuard stopped
+2026-02-21 01:47:49 [hookguard] INFO: HookGuard v2 started (expected bridge hash: ee1df4cc2636d8893e6d73f9d9dabb54)
+2026-02-21 01:47:49 [host.flows.genesis] INFO: HookGuard neu gestartet (Bridge-Hash refreshed)
+2026-02-21 01:47:49 [host.flows.switch] INFO: Switch-In Snapshot: Starte TikTok für Hook-Verifikation...
+2026-02-21 01:47:53 [host.flows.switch] INFO: Switch-In Snapshot: Hooks aktiv (native=11, art=8) nach 3s
+2026-02-21 01:47:53 [host.db_ops] INFO: Profile log captured: profile=58 trigger=switch_in apis=0 spoofed=0.0% hooks=11+8/11+8 leaks=0 kills=0
+2026-02-21 01:47:53 [host.flows.genesis] INFO: Profile snapshot captured: log_id=30 trigger=switch_in
+2026-02-21 01:51:13 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=61098)
+2026-02-21 01:51:16 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=64233)
+2026-02-21 01:51:22 [host.api.control] INFO: Switch-Flow gestartet: identity_id=63 [Full-State]
+2026-02-21 01:51:22 [host.flows.switch] INFO: ============================================================
+2026-02-21 01:51:22 [host.flows.switch] INFO:   SWITCH FLOW: NikeFrrrMemes (id=63) [Full-State]
+2026-02-21 01:51:22 [host.flows.switch] INFO: ============================================================
+2026-02-21 01:51:22 [host.flows.switch] INFO: [1/10] Flugmodus AN (Netz sofort trennen)...
+2026-02-21 01:51:22 [host.flows.switch] INFO: [1/10] Flugmodus: AN
+2026-02-21 01:51:22 [host.flows.switch] INFO: [2/10] Auto-Backup: Aktives Profil prüfen...
+2026-02-21 01:51:22 [host.flows.switch] INFO: [2/10] Auto-Backup: Profil 'WeitererAcc' hat keinen TikTok-Account — kein Backup nötig
+2026-02-21 01:51:23 [host.db_ops] INFO: Profile log captured: profile=58 trigger=switch_out apis=0 spoofed=0.0% hooks=11+8/11+8 leaks=0 kills=0
+2026-02-21 01:51:23 [host.flows.genesis] INFO: Profile snapshot captured: log_id=31 trigger=switch_out
+2026-02-21 01:51:23 [host.flows.switch] INFO: [3/10] Safety Kill: Alle Apps stoppen...
+2026-02-21 01:51:24 [host.flows.switch] INFO: [3/10] Safety Kill: OK (Gestoppt: gms, gsf, vending, musically)
+2026-02-21 01:51:24 [host.flows.switch] INFO: [3→4] FIX-29: Gründlicher State-Wipe vor Restore...
+2026-02-21 01:51:24 [host.shifter] INFO: FIX-29: Switch-Clean — Gründlicher State-Wipe vor Restore...
+2026-02-21 01:51:24 [host.shifter] INFO: FIX-29: /data/data/com.zhiliaoapp.musically — Smart Clean (lib-Symlink bewahrt)
+2026-02-21 01:51:24 [host.shifter] INFO: FIX-29: /data/data/com.ss.android.ugc.trill — Smart Clean (lib-Symlink bewahrt)
+2026-02-21 01:51:27 [host.shifter] INFO: FIX-29: Switch-Clean abgeschlossen: 24/24 Operationen OK
+2026-02-21 01:51:27 [host.flows.switch] INFO: [3→4] FIX-29: State-Wipe 24/24 Operationen ALLE OK
+2026-02-21 01:51:27 [host.flows.switch] INFO: [4/10] Inject: Bridge-Datei aktualisieren...
+2026-02-21 01:51:27 [host.injector] INFO: Injecting identity: serial=EG092N99QKDM imei1=355543…8870
+2026-02-21 01:51:27 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/bridge_ehanjk0o.bridge → /data/local/tmp/.bridge_staging
+2026-02-21 01:51:28 [host.injector] INFO: Bridge geschrieben: /data/adb/modules/hw_overlay/.hw_config
+2026-02-21 01:51:28 [host.injector] INFO: Backup: /sdcard/.hw_config
+2026-02-21 01:51:28 [host.db_ops] INFO: DNA-Match: Identity #63 'NikeFrrrMemes' automatisch aktiviert (confidence=exact, score=10, fields=serial+imei1+android_id+wifi_mac+gsf_id)
+2026-02-21 01:51:28 [host.db_ops] INFO: DNA-Sync: 1 Profil(e) für Identity #63 auf 'active' gesetzt
+2026-02-21 01:51:31 [host.injector] INFO: Bridge verteilt an 7/10 Apps
+2026-02-21 01:51:32 [host.injector] INFO: AAID gepatched: /data/data/com.google.android.gms/shared_prefs/adid_settings.xml → 752bf1ed-21c5-434e-92e1-dbf0ce0a0209
+2026-02-21 01:51:32 [host.injector] WARNING: Verify: /data/data/com.oem.hardware.service/files/.hw_config nicht lesbar oder leer
+2026-02-21 01:51:32 [host.injector] INFO: Injection komplett + verifiziert: EG092N99QKDM
+2026-02-21 01:51:32 [host.injector] INFO: PIF v5.0: autopif4 Canary-Fingerprint gefunden — verwende diesen (NICHT unseren statischen Pool)
+2026-02-21 01:51:32 [host.injector] INFO: PIF autopif4: FP=google/oriole_beta/oriole:CANARY/ZP11.260123.011/1… | Patch=2026-02-05 | Estimated Expiry: 2026-03-26
+2026-02-21 01:51:32 [host.adb] INFO: Push: /var/folders/z3/fsfppsjs1sz8jx2h3gymxjsr0000gn/T/pif_8rbft085.prop → /data/local/tmp/.pif_staging.prop
+2026-02-21 01:51:32 [host.injector] INFO: PIF v5.0 OK [autopif4-canary]: custom.pif.prop → /data/adb/modules/playintegrityfix/custom.pif.prop
+2026-02-21 01:51:32 [host.flows.switch] INFO: [4/10] PIF v5.0: custom.pif.prop OK (autopif4-First)
+2026-02-21 01:51:32 [host.flows.switch] INFO: [4/10] Inject: OK (serial=EG092N99QKDM | PIF=OK)
+2026-02-21 01:51:32 [host.flows.switch] INFO: [5/10] SQLite WAL Checkpoint: erledigt
+2026-02-21 01:51:32 [host.flows.switch] INFO: [5/10] Accounts-DB entfernt (Backup vorhanden → wird in Step 7 restored)
+2026-02-21 01:51:32 [host.flows.switch] INFO: [5/10] Sync + Verify: accounts_ce.db GELÖSCHT bestätigt
+2026-02-21 01:51:32 [host.flows.switch] INFO: [5/10] Soft Reset: Graceful Zygote Kill...
+2026-02-21 01:51:35 [host.flows.switch] INFO: [5/10] Warte 5s auf Zygote-Restart...
+2026-02-21 01:51:40 [host.flows.switch] INFO: [6/10] GMS Ready: Warte auf Boot + GMS-Readiness...
+2026-02-21 01:51:40 [host.shifter] INFO: [Readiness] Warte auf sys.boot_completed=1...
+2026-02-21 01:51:40 [host.shifter] INFO: [Readiness] Boot bestätigt nach 0s
+2026-02-21 01:51:40 [host.shifter] INFO: [Readiness] Warte auf GmsCore Service...
+2026-02-21 01:51:50 [host.shifter] INFO: [Readiness] GmsCore aktiv nach 11s
+2026-02-21 01:51:50 [host.shifter] INFO: [Readiness] System bereit — Boot: 0s | GMS: 11s (GMS Verbindung steht - Bereit zum Loslegen!)
+2026-02-21 01:51:53 [host.adb] INFO: Gerät entsperrt (Wakeup + Swipe + Keyguard Dismiss)
+2026-02-21 01:51:53 [host.flows.switch] INFO: [6/10] GMS Verbindung steht - Bereit zum Loslegen! (Boot: 0s | GMS: 11s)
+2026-02-21 01:51:53 [host.flows.switch] INFO: [7/10] Restore State: GMS + Account-DBs (nach Zygote-First)...
+2026-02-21 01:51:53 [host.shifter] INFO: ============================================================
+2026-02-21 01:51:53 [host.shifter] INFO:   FULL-STATE RESTORE: NikeFrrrMemes
+2026-02-21 01:51:53 [host.shifter] INFO: ============================================================
+2026-02-21 01:51:53 [host.shifter] INFO: Kill-All-Targets: Alle Prozesse stoppen vor Restore...
+2026-02-21 01:51:53 [host.shifter] INFO: Kill-All-Targets: Stoppe alle relevanten Prozesse...
+2026-02-21 01:51:54 [host.shifter] INFO: Kill-All-Targets: 6 Apps gestoppt + sync
+2026-02-21 01:51:54 [host.shifter] INFO: Backup gewählt: gms_20260221_014621.tar (56.0 MB, 2 Kandidaten — größtes gewählt)
+2026-02-21 01:51:54 [host.shifter] INFO: GMS Restore: gms_20260221_014621.tar (56.0 MB)
+2026-02-21 01:51:57 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/NikeFrrrMemes/gms/gms_20260221_014621.tar → /data/local/tmp/_titan_gms_restore.tar
+2026-02-21 01:51:58 [host.shifter] INFO: Magic Fix [com.google.android.gms]: UID 10149
+2026-02-21 01:51:59 [host.shifter] INFO: Magic Fix [com.google.android.gsf]: UID 10149
+2026-02-21 01:51:59 [host.shifter] INFO: Magic Fix [com.android.vending]: UID 10165
+2026-02-21 01:51:59 [host.shifter] INFO: [DroidGuard+Analytics] Sanitized: 11/11 Einträge gelöscht (Neu-Attestierung + Cross-App-Correlation entfernt)
+2026-02-21 01:51:59 [host.shifter] INFO: GMS Restore komplett: 3 Pakete (DroidGuard sanitized)
+2026-02-21 01:51:59 [host.shifter] INFO: GMS Restore: OK
+2026-02-21 01:51:59 [host.shifter] INFO: Backup gewählt: accounts_20260221_014627.tar (0.1 MB, 2 Kandidaten — größtes gewählt)
+2026-02-21 01:51:59 [host.shifter] INFO: Account-DBs Restore v4.0 (FBE-Safe): accounts_20260221_014627.tar (157184 Bytes)
+2026-02-21 01:52:00 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/NikeFrrrMemes/accounts/accounts_20260221_014627.tar → /data/local/tmp/_titan_acc_restore.tar
+2026-02-21 01:52:01 [host.shifter] INFO: SELinux Verify: u:object_r:accounts_data_file:s0 /data/system_ce/0/accounts_ce.db
+2026-02-21 01:52:01 [host.shifter] INFO: SELinux OK: accounts_data_file korrekt gesetzt
+2026-02-21 01:52:01 [host.shifter] WARNING: Account-DB Integrity-Check FEHLGESCHLAGEN:  — lösche DB als Bootloop-Schutz
+2026-02-21 01:52:01 [host.shifter] ERROR: Account-DBs Restore fehlgeschlagen: Account-DB integrity check failed after restore
+2026-02-21 01:52:01 [host.shifter] INFO: TikTok-Restore übersprungen — wird in Step 8 (Dual-Path) behandelt
+2026-02-21 01:52:01 [host.shifter] INFO: Full-State Restore abgeschlossen: GMS=OK, Accounts=FAIL (TikTok → Step 8)
+2026-02-21 01:52:01 [host.flows.switch] WARNING: [7/10] Partial Restore — Google Logout möglich
+2026-02-21 01:52:01 [host.flows.switch] INFO: [8/10] TikTok Restore + Sanitize...
+2026-02-21 01:52:01 [host.shifter] INFO: Dual-Path Restore: NikeFrrrMemes (TikTok)
+2026-02-21 01:52:01 [host.shifter] INFO: Backup gewählt: tiktok_app_20260221_014526.tar (475.3 MB, 4 Kandidaten — größtes gewählt)
+2026-02-21 01:52:01 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/NikeFrrrMemes/tiktok/tiktok_app_20260221_014526.tar → /data/local/tmp/_titan_dual_restore.tar
+2026-02-21 01:52:08 [host.shifter] INFO: Pfad A (App-Daten): Restored (tiktok_app_20260221_014526.tar)
+2026-02-21 01:52:09 [host.shifter] WARNING: [Restore] lib-Symlink FEHLT — Repair via install-existing
+2026-02-21 01:52:09 [host.shifter] INFO: Backup gewählt: tiktok_sandbox_20260221_014526.tar (2.2 MB, 4 Kandidaten — größtes gewählt)
+2026-02-21 01:52:09 [host.adb] INFO: Push: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/NikeFrrrMemes/sandbox/tiktok_sandbox_20260221_014526.tar → /data/local/tmp/_titan_sandbox_restore.tar
+2026-02-21 01:52:09 [host.shifter] INFO: Pfad B (Sandbox): Restored (tiktok_sandbox_20260221_014526.tar)
+2026-02-21 01:52:15 [host.shifter] INFO: [TikTok-Sanitize] 11 Instance-ID Einträge aus shared_prefs entfernt
+2026-02-21 01:52:15 [host.shifter] INFO: TikTok Sanitize: 11 Instance-IDs entfernt
+2026-02-21 01:52:15 [host.shifter] INFO: [PermFix] Start: chown + chmod + restorecon für /data/data/com.zhiliaoapp.musically (UID 10301)
+2026-02-21 01:52:15 [host.shifter] INFO: [PermFix] chown -R 10301:10301 — OK
+2026-02-21 01:52:16 [host.shifter] INFO: [PermFix] restorecon -RF — OK (SELinux-Labels repariert)
+2026-02-21 01:52:16 [host.shifter] INFO: [PermFix] Komplett (UID 10301). Verzeichnis:
+total 57
+drwxrwx---   5 u0_a301 u0_a301  3452 2026-02-21 01:52 .
+drwxrwx--x 335 system  system  53248 2026-02-20 19:19 ..
+drwxrwx---   2 u0_a301 u0_a301  8192 2026-02-21 00:42 databases
+drwxrwx---  50 u0_a301 u0_a301  3452 2026-02-21 00:52 files
+2026-02-21 01:52:17 [host.shifter] INFO: Dual-Path Restore: 2/2 Komponenten wiederhergestellt
+2026-02-21 01:52:17 [host.flows.switch] INFO: [8/10] Post-Restore Verifikation OK
+2026-02-21 01:52:17 [host.shifter] INFO: Randomizing file timestamps for com.zhiliaoapp.musically...
+2026-02-21 01:52:17 [host.shifter] INFO: Timestamps randomized for com.zhiliaoapp.musically
+2026-02-21 01:52:17 [host.shifter] INFO: Randomizing file timestamps for com.ss.android.ugc.trill...
+2026-02-21 01:52:17 [host.shifter] INFO: Timestamps randomized for com.ss.android.ugc.trill
+2026-02-21 01:52:17 [host.shifter] INFO: Clearing system clipboard...
+2026-02-21 01:52:17 [host.shifter] INFO: Clipboard cleared
+2026-02-21 01:52:17 [host.shifter] INFO: Backup-Sterilisierung: Auto-Restore + TikTok-Backups...
+2026-02-21 01:52:19 [host.shifter] INFO:   Auto-Restore: DEAKTIVIERT (temporaer)
+2026-02-21 01:52:30 [host.shifter] INFO: Backup-Sterilisierung abgeschlossen (Auto-Restore OFF)
+2026-02-21 01:52:30 [host.flows.switch] INFO: [8b/10] HookGuard Pre-Network Start...
+2026-02-21 01:52:30 [hookguard] INFO: HookGuard stopped
+2026-02-21 01:52:30 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 01:52:30 [host.flows.genesis] INFO: HookGuard neu gestartet (Bridge-Hash refreshed)
+2026-02-21 01:52:30 [host.flows.switch] INFO: [9/10] Network Init: Flugmodus AUS...
+2026-02-21 01:52:40 [host.flows.switch] INFO: [9/10] Flugmodus: AUS — Modem verbindet sich neu
+2026-02-21 01:52:55 [host.network] INFO: Öffentliche IP: 176.6.61.118 (via api.ipify.org, busybox_wget) — Cache für 60s
+2026-02-21 01:52:55 [host.flows.switch] INFO: [9/10] Network Init: IP = 176.6.61.118
+2026-02-21 01:52:55 [host.flows.switch] INFO: [10/10] Quick Audit + Account-Check...
+2026-02-21 01:52:55 [host.auditor] INFO: Quick Audit: OK (5/5 Felder — serial=EG092N99QKDM)
+2026-02-21 01:52:56 [host.shifter] INFO: [Account-Check] Google-Account vorhanden (Name nicht extrahierbar)
+2026-02-21 01:52:56 [host.shifter] INFO: Auto-Restore re-enabled (TikTok-Erststart vorbei)
+2026-02-21 01:52:56 [host.flows.switch] INFO: ============================================================
+2026-02-21 01:52:56 [host.flows.switch] INFO:   SWITCH ERFOLG: NikeFrrrMemes (93733 ms)
+2026-02-21 01:52:56 [host.flows.switch] INFO:   [+] Airplane Mode | [-] Auto-Backup | [+] Safety Kill | [+] Inject | [+] Soft Reset | [+] GMS Ready | [+] Restore State | [+] Restore TikTok | [+] Network Init | [+] Quick Audit
+2026-02-21 01:52:56 [host.flows.switch] INFO: ============================================================
+2026-02-21 01:52:56 [hookguard] INFO: HookGuard stopped
+2026-02-21 01:52:56 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 01:52:56 [host.flows.genesis] INFO: HookGuard neu gestartet (Bridge-Hash refreshed)
+2026-02-21 01:52:56 [host.flows.switch] INFO: Switch-In Snapshot: Starte TikTok für Hook-Verifikation...
+2026-02-21 01:53:00 [host.flows.switch] INFO: Switch-In Snapshot: Hooks aktiv (native=11, art=8) nach 3s
+2026-02-21 01:53:01 [host.db_ops] INFO: Profile log captured: profile=57 trigger=switch_in apis=0 spoofed=0.0% hooks=11+8/11+8 leaks=0 kills=0
+2026-02-21 01:53:01 [host.flows.genesis] INFO: Profile snapshot captured: log_id=32 trigger=switch_in
+2026-02-21 01:53:13 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=64233)

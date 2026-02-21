@@ -1558,8 +1558,37 @@ class GenesisFlow:
             if result.success:
                 await _auto_start_hookguard(restart=True)
 
-                # Profile Log Snapshot: Dokumentiert den Zustand nach Genesis
+                # Profile Log Snapshot: TikTok starten und auf Hooks warten,
+                # damit der Snapshot aussagekräftige Daten enthält.
                 if result.profile_id:
+                    try:
+                        logger.info("Genesis Snapshot: Starte TikTok für Hook-Verifikation...")
+                        await self._adb.shell(
+                            "am start -n com.zhiliaoapp.musically/com.ss.android.ugc.aweme.splash.SplashActivity",
+                            root=False, timeout=10,
+                        )
+                        import host.main as _main
+                        guard = getattr(_main, "_hookguard", None)
+                        _snapshot_ok = False
+                        for _wait_round in range(8):
+                            await asyncio.sleep(3)
+                            if guard and guard.is_running:
+                                await guard._poll_once()
+                                st = guard.state
+                                if st.guard_loaded and (st.native_hooks > 0 or st.art_hooks > 0):
+                                    logger.info(
+                                        "Genesis Snapshot: Hooks aktiv (native=%d, art=%d) nach %ds",
+                                        st.native_hooks, st.art_hooks, (_wait_round + 1) * 3,
+                                    )
+                                    _snapshot_ok = True
+                                    break
+                        if not _snapshot_ok:
+                            logger.warning(
+                                "Genesis Snapshot: Hooks nicht innerhalb von 24s aktiv — "
+                                "Snapshot wird trotzdem aufgenommen"
+                            )
+                    except Exception as snap_err:
+                        logger.warning("Genesis Snapshot: TikTok-Start fehlgeschlagen: %s", snap_err)
                     await _capture_profile_snapshot(
                         self._adb, result.profile_id,
                         db_identity_id, "genesis_end",

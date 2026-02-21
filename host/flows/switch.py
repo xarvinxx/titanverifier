@@ -50,7 +50,15 @@ from pathlib import Path
 from typing import Optional
 
 from host.adb.client import ADBClient, ADBError, ADBTimeoutError
-from host.config import GMS_BACKUP_PACKAGES, LOCAL_TZ, TIKTOK_PACKAGES, TIMING
+from host.config import (
+    BACKUP_ACCOUNTS_SUBDIR,
+    BACKUP_DIR,
+    BACKUP_GMS_SUBDIR,
+    GMS_BACKUP_PACKAGES,
+    LOCAL_TZ,
+    TIKTOK_PACKAGES,
+    TIMING,
+)
 from host.database import db
 from host.engine.auditor import DeviceAuditor
 from host.engine.db_ops import (
@@ -64,6 +72,8 @@ from host.engine.db_ops import (
     update_identity_audit,
     update_identity_network,
     update_profile_activity,
+    update_profile_accounts_backup,
+    update_profile_gms_backup,
     update_profile_tiktok_backup,
 )
 from host.engine.injector import BridgeInjector
@@ -272,18 +282,48 @@ class SwitchFlow:
                     tiktok_user = active_profile.get("tiktok_username")
 
                     if tiktok_user and tiktok_user.strip():
-                        # TikTok-Account eingerichtet → IMMER Backup
+                        # TikTok-Account eingerichtet → Full-State Backup
                         logger.info(
-                            "[2/10] Auto-Backup: Profil '%s' (TikTok: @%s) wird gesichert...",
+                            "[2/10] Auto-Backup: Profil '%s' (TikTok: @%s) — "
+                            "Full-State (TikTok + GMS + Accounts)...",
                             active_name, tiktok_user,
                         )
+
+                        # A) TikTok Dual-Path Backup
                         backup_result = await self._shifter.backup_tiktok_dual(
                             active_name, timeout=300,
                         )
-                        saved = sum(1 for v in backup_result.values() if v is not None)
+                        tt_saved = sum(1 for v in backup_result.values() if v is not None)
 
-                        # DB-Update: Backup-Status in Profil tracken
+                        # B) GMS + Accounts Backup
+                        gms_saved = 0
                         active_pid = active_profile["id"]
+                        profile_dir = BACKUP_DIR / active_name
+                        try:
+                            gms_dir = profile_dir / BACKUP_GMS_SUBDIR
+                            gms_dir.mkdir(parents=True, exist_ok=True)
+                            gms_path = await self._shifter._backup_gms_packages(
+                                gms_dir, timeout=120,
+                            )
+                            gms_saved += 1
+                            await update_profile_gms_backup(
+                                active_pid, str(gms_path), gms_path.stat().st_size,
+                            )
+                        except Exception as gms_err:
+                            logger.warning("[2/10] GMS-Backup fehlgeschlagen: %s", gms_err)
+
+                        try:
+                            acc_dir = profile_dir / BACKUP_ACCOUNTS_SUBDIR
+                            acc_dir.mkdir(parents=True, exist_ok=True)
+                            acc_path = await self._shifter._backup_account_dbs(acc_dir)
+                            gms_saved += 1
+                            await update_profile_accounts_backup(
+                                active_pid, str(acc_path),
+                            )
+                        except Exception as acc_err:
+                            logger.warning("[2/10] Accounts-Backup fehlgeschlagen: %s", acc_err)
+
+                        # C) DB-Update: TikTok Backup-Status
                         tt_path = backup_result.get("app_data")
                         if tt_path and tt_path.exists():
                             try:
@@ -297,8 +337,13 @@ class SwitchFlow:
                                     "[2/10] Backup DB-Update fehlgeschlagen: %s", db_err,
                                 )
 
+                        total_saved = tt_saved + gms_saved
                         step.status = FlowStepStatus.SUCCESS
-                        step.detail = f"Profil '{active_name}' (@{tiktok_user}): {saved}/2 Komponenten"
+                        step.detail = (
+                            f"Profil '{active_name}' (@{tiktok_user}): "
+                            f"TikTok={tt_saved}/2, GMS+Acc={gms_saved}/2 "
+                            f"(Total: {total_saved}/4)"
+                        )
                         logger.info("[2/10] Auto-Backup: %s", step.detail)
                     else:
                         # Kein TikTok-Username → kein Account → nichts zu sichern
@@ -473,46 +518,63 @@ class SwitchFlow:
                     pass
             logger.info("[5/10] SQLite WAL Checkpoint: erledigt")
 
-            # --- Schicht 3: Accounts-DB löschen (IMMER, nicht nur full_state) ---
-            # Auch im Legacy-Modus kann der Zygote-Kill die accounts_ce.db
-            # korruptieren. Android erstellt beim Boot eine leere DB wenn
-            # die Datei fehlt — sicher. In Step 7 wird sie ohnehin restored.
-            try:
-                await self._adb.shell(
-                    "rm -f "
-                    "/data/system_ce/0/accounts_ce.db "
-                    "/data/system_ce/0/accounts_ce.db-journal "
-                    "/data/system_ce/0/accounts_ce.db-wal "
-                    "/data/system_ce/0/accounts_ce.db-shm "
-                    "/data/system_de/0/accounts_de.db "
-                    "/data/system_de/0/accounts_de.db-journal "
-                    "/data/system_de/0/accounts_de.db-wal "
-                    "/data/system_de/0/accounts_de.db-shm",
-                    root=True, timeout=5,
+            # --- Schicht 3: Accounts-DB — NUR löschen wenn Backup existiert ---
+            # Ohne Accounts-Backup → DB behalten! Sonst verliert das Gerät
+            # den Google-Account und GMS/Play Store trennen sich.
+            # WAL-Checkpoint (Schicht 2) schützt bereits vor Korruption.
+            _has_accounts_backup = False
+            if use_full_state and profile_name:
+                _acc_dir = BACKUP_DIR / profile_name / BACKUP_ACCOUNTS_SUBDIR
+                _has_accounts_backup = (
+                    _acc_dir.exists()
+                    and any(_acc_dir.glob("*.tar"))
                 )
-                logger.info("[5/10] Accounts-DB entfernt (CE + DE)")
-            except (ADBError, ADBTimeoutError):
-                logger.warning("[5/10] Accounts-DB entfernen fehlgeschlagen")
+
+            if _has_accounts_backup:
+                try:
+                    await self._adb.shell(
+                        "rm -f "
+                        "/data/system_ce/0/accounts_ce.db "
+                        "/data/system_ce/0/accounts_ce.db-journal "
+                        "/data/system_ce/0/accounts_ce.db-wal "
+                        "/data/system_ce/0/accounts_ce.db-shm "
+                        "/data/system_de/0/accounts_de.db "
+                        "/data/system_de/0/accounts_de.db-journal "
+                        "/data/system_de/0/accounts_de.db-wal "
+                        "/data/system_de/0/accounts_de.db-shm",
+                        root=True, timeout=5,
+                    )
+                    logger.info("[5/10] Accounts-DB entfernt (Backup vorhanden → wird in Step 7 restored)")
+                except (ADBError, ADBTimeoutError):
+                    logger.warning("[5/10] Accounts-DB entfernen fehlgeschlagen")
+            else:
+                logger.info(
+                    "[5/10] Accounts-DB BEHALTEN — kein Backup vorhanden. "
+                    "WAL-Checkpoint schützt vor Korruption."
+                )
 
             # --- Schicht 4: Filesystem sync + Verifikation ---
             try:
                 await self._adb.shell("sync", root=True, timeout=15)
-                verify = await self._adb.shell(
-                    "test -f /data/system_ce/0/accounts_ce.db "
-                    "&& echo EXISTS || echo GONE",
-                    root=True, timeout=5,
-                )
-                if verify.success and "GONE" in (verify.output or ""):
-                    logger.info("[5/10] Sync + Verify: accounts_ce.db GELÖSCHT bestätigt")
+                if _has_accounts_backup:
+                    verify = await self._adb.shell(
+                        "test -f /data/system_ce/0/accounts_ce.db "
+                        "&& echo EXISTS || echo GONE",
+                        root=True, timeout=5,
+                    )
+                    if verify.success and "GONE" in (verify.output or ""):
+                        logger.info("[5/10] Sync + Verify: accounts_ce.db GELÖSCHT bestätigt")
+                    else:
+                        logger.warning(
+                            "[5/10] WARNUNG: accounts_ce.db noch vorhanden nach rm+sync! "
+                            "Versuche erneut..."
+                        )
+                        await self._adb.shell(
+                            "rm -f /data/system_ce/0/accounts_ce.db* && sync",
+                            root=True, timeout=10,
+                        )
                 else:
-                    logger.warning(
-                        "[5/10] WARNUNG: accounts_ce.db noch vorhanden nach rm+sync! "
-                        "Versuche erneut..."
-                    )
-                    await self._adb.shell(
-                        "rm -f /data/system_ce/0/accounts_ce.db* && sync",
-                        root=True, timeout=10,
-                    )
+                    logger.info("[5/10] Sync: OK (Accounts-DB bewahrt)")
             except (ADBError, ADBTimeoutError):
                 logger.warning("[5/10] Sync/Verify fehlgeschlagen")
 

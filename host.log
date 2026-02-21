@@ -23977,3 +23977,190 @@ drwxrwx---  49 u0_a301 u0_a301  3452 2026-02-20 19:23 files
 2026-02-21 00:05:08 [host.flows.genesis] INFO: HookGuard neu gestartet (Bridge-Hash refreshed)
 2026-02-21 00:05:09 [host.db_ops] INFO: Profile log captured: profile=57 trigger=switch_in apis=0 spoofed=0.0% hooks=0+0/11+8 leaks=1 kills=0
 2026-02-21 00:05:09 [host.flows.genesis] INFO: Profile snapshot captured: log_id=28 trigger=switch_in
+2026-02-21 00:58:10 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=57707)
+2026-02-21 01:00:30 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-21 01:00:30 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-21 01:00:30 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-21 01:00:34 [host.adb] INFO: ADB Daemon gestartet
+2026-02-21 01:00:35 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-21 01:01:05 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-21 01:01:07 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-21 01:01:07 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-21 01:06:02 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-21 01:06:02 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-21 01:06:02 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-21 01:06:06 [host.adb] INFO: ADB Daemon gestartet
+2026-02-21 01:06:07 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-21 01:06:36 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-21 01:06:38 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-21 01:06:38 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-21 01:14:49 [host.api.control] INFO: Full-State Backup gestartet: NikeFrrrMemes
+2026-02-21 01:14:49 [host.shifter] INFO: ============================================================
+2026-02-21 01:14:49 [host.shifter] INFO:   FULL-STATE BACKUP: NikeFrrrMemes
+2026-02-21 01:14:49 [host.shifter] INFO: ============================================================
+2026-02-21 01:14:49 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.zhiliaoapp.musically' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/NikeFrrrMemes/tiktok/musically_20260221_011449.tar.tmp
+2026-02-21 01:15:31 [host.adb] INFO: Exec-Out fertig: 539680816 Bytes geschrieben
+2026-02-21 01:15:31 [host.shifter] INFO: Package Backup (com.zhiliaoapp.musically): OK (514.7 MB, Versuch 1/3)
+2026-02-21 01:15:31 [host.shifter] INFO: TikTok Backup: OK (musically_20260221_011449.tar)
+2026-02-21 01:15:31 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/data/com.google.android.gms data/data/com.google.android.gsf data/data/com.android.vending' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/NikeFrrrMemes/gms/gms_20260221_011531.tar.tmp
+2026-02-21 01:15:35 [host.adb] INFO: Exec-Out fertig: 57691648 Bytes geschrieben
+2026-02-21 01:15:35 [host.shifter] INFO: GMS Backup (3 Pakete): OK (55.0 MB, Versuch 1/3)
+2026-02-21 01:15:35 [host.shifter] INFO: GMS tar: gms_20260221_011531.tar (55.0 MB) — 3 Pakete
+2026-02-21 01:15:35 [host.shifter] INFO: GMS Backup: OK (gms_20260221_011531.tar)
+2026-02-21 01:15:36 [host.adb] INFO: Exec-Out Stream: su -c 'tar -cf - -C / data/system_ce/0/accounts_ce.db' → /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/backups/NikeFrrrMemes/accounts/accounts_20260221_011536.tar.tmp
+2026-02-21 01:15:36 [host.adb] INFO: Exec-Out fertig: 144896 Bytes geschrieben
+2026-02-21 01:15:36 [host.shifter] INFO: Account-DBs (1 Dateien): OK (0.1 MB, Versuch 1/3)
+2026-02-21 01:15:36 [host.shifter] INFO: Account-DBs tar: accounts_20260221_011536.tar (144896 Bytes, 1 Dateien)
+2026-02-21 01:15:36 [host.shifter] INFO: Account-DBs Backup: OK (accounts_20260221_011536.tar)
+2026-02-21 01:15:36 [host.shifter] INFO: Full-State Backup abgeschlossen: 3/3 Komponenten gesichert
+2026-02-21 01:15:36 [host.api.control] INFO: Profile 57 Backup-Status aktualisiert: 3/3 Komponenten
+2026-02-21 01:18:25 [hookguard] INFO: HookGuard stopped
+2026-02-21 01:18:25 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 01:18:25 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 01:18:25 [host.main] INFO: Command Center gestoppt.
+2026-02-21 01:18:26 [host.main] INFO: ============================================================
+2026-02-21 01:18:26 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 01:18:26 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:18:26 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 01:18:26 [host.main] INFO: ============================================================
+2026-02-21 01:18:26 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:18:26 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 01:18:26 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 01:18:26 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 01:18:26 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 01:18:26 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 01:18:26 [host.main] INFO: Command Center bereit.
+2026-02-21 01:18:46 [hookguard] INFO: HookGuard stopped
+2026-02-21 01:18:46 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 01:18:46 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 01:18:46 [host.main] INFO: Command Center gestoppt.
+2026-02-21 01:18:47 [host.main] INFO: ============================================================
+2026-02-21 01:18:47 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 01:18:47 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:18:47 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 01:18:47 [host.main] INFO: ============================================================
+2026-02-21 01:18:47 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:18:47 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 01:18:47 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 01:18:47 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 01:18:47 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 01:18:47 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 01:18:47 [host.main] INFO: Command Center bereit.
+2026-02-21 01:19:07 [hookguard] INFO: HookGuard stopped
+2026-02-21 01:19:07 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 01:19:07 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 01:19:07 [host.main] INFO: Command Center gestoppt.
+2026-02-21 01:19:08 [host.main] INFO: ============================================================
+2026-02-21 01:19:08 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 01:19:08 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:19:08 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 01:19:08 [host.main] INFO: ============================================================
+2026-02-21 01:19:08 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:19:08 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 01:19:08 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 01:19:08 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 01:19:08 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 01:19:08 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 01:19:08 [host.main] INFO: Command Center bereit.
+2026-02-21 01:19:24 [hookguard] INFO: HookGuard stopped
+2026-02-21 01:19:24 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 01:19:24 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 01:19:24 [host.main] INFO: Command Center gestoppt.
+2026-02-21 01:19:25 [host.main] INFO: ============================================================
+2026-02-21 01:19:25 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 01:19:25 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:19:25 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 01:19:25 [host.main] INFO: ============================================================
+2026-02-21 01:19:25 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:19:25 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 01:19:25 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 01:19:25 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 01:19:25 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 01:19:25 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 01:19:25 [host.main] INFO: Command Center bereit.
+2026-02-21 01:19:36 [hookguard] INFO: HookGuard stopped
+2026-02-21 01:19:36 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 01:19:36 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 01:19:36 [host.main] INFO: Command Center gestoppt.
+2026-02-21 01:19:36 [host.main] INFO: ============================================================
+2026-02-21 01:19:36 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 01:19:36 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:19:36 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 01:19:36 [host.main] INFO: ============================================================
+2026-02-21 01:19:36 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:19:36 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 01:19:37 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 01:19:37 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 01:19:37 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 01:19:37 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 01:19:37 [host.main] INFO: Command Center bereit.
+2026-02-21 01:19:41 [hookguard] INFO: HookGuard stopped
+2026-02-21 01:19:41 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 01:19:41 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 01:19:41 [host.main] INFO: Command Center gestoppt.
+2026-02-21 01:19:42 [host.main] INFO: ============================================================
+2026-02-21 01:19:42 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 01:19:42 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:19:42 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 01:19:42 [host.main] INFO: ============================================================
+2026-02-21 01:19:42 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:19:42 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 01:19:42 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 01:19:42 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 01:19:42 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 01:19:42 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 01:19:42 [host.main] INFO: Command Center bereit.
+2026-02-21 01:19:55 [hookguard] INFO: HookGuard stopped
+2026-02-21 01:19:55 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 01:19:55 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 01:19:55 [host.main] INFO: Command Center gestoppt.
+2026-02-21 01:19:56 [host.main] INFO: ============================================================
+2026-02-21 01:19:56 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 01:19:56 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:19:56 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 01:19:56 [host.main] INFO: ============================================================
+2026-02-21 01:19:56 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:19:56 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 01:19:56 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 01:19:56 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 01:19:56 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 01:19:56 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 01:19:56 [host.main] INFO: Command Center bereit.
+2026-02-21 01:21:31 [hookguard] INFO: HookGuard stopped
+2026-02-21 01:21:31 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 01:21:31 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 01:21:31 [host.main] INFO: Command Center gestoppt.
+2026-02-21 01:21:32 [host.main] INFO: ============================================================
+2026-02-21 01:21:32 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 01:21:32 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:21:32 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 01:21:32 [host.main] INFO: ============================================================
+2026-02-21 01:21:32 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 01:21:32 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 01:21:32 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 01:21:32 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 01:21:32 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 01:21:32 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 01:21:32 [host.main] INFO: Command Center bereit.
+2026-02-21 01:29:33 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-21 01:29:33 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-21 01:29:33 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-21 01:29:37 [host.adb] INFO: ADB Daemon gestartet
+2026-02-21 01:29:38 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-21 01:30:08 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-21 01:30:10 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-21 01:30:10 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-21 01:30:16 [host.adb] WARNING: ADB Verbindungsfehler (Versuch 1/3) — starte Auto-Reconnect...
+2026-02-21 01:30:16 [host.adb] WARNING: ADB-Verbindung verloren — starte Reconnect (max 120s)...
+2026-02-21 01:30:16 [host.adb] INFO: ADB Daemon gestoppt
+2026-02-21 01:30:20 [host.adb] INFO: ADB Daemon gestartet
+2026-02-21 01:30:21 [host.adb] INFO: ADB wait-for-device (max 120s)...
+2026-02-21 01:30:21 [host.adb] INFO: ADB wait-for-device: Gerät gefunden
+2026-02-21 01:30:23 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
+2026-02-21 01:30:23 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-21 01:36:18 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=59011)
+2026-02-21 01:36:20 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=59011)
+2026-02-21 01:36:20 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=59025)
+2026-02-21 01:36:21 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=59025)
+2026-02-21 01:36:51 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=59124)
+2026-02-21 01:37:01 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=59124)

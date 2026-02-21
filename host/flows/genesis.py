@@ -44,7 +44,13 @@ from typing import Optional
 
 from host.adb.client import ADBClient, ADBError, ADBTimeoutError
 
-from host.config import LOCAL_TZ, TIMING
+from host.config import (
+    BACKUP_ACCOUNTS_SUBDIR,
+    BACKUP_DIR,
+    BACKUP_GMS_SUBDIR,
+    LOCAL_TZ,
+    TIMING,
+)
 from host.database import db
 from host.engine.auditor import AuditResult, DeviceAuditor
 from host.engine.db_ops import (
@@ -58,6 +64,8 @@ from host.engine.db_ops import (
     record_ip,
     update_flow_history,
     update_identity_audit,
+    update_profile_accounts_backup,
+    update_profile_gms_backup,
     update_profile_tiktok_backup,
     update_identity_network,
 )
@@ -385,16 +393,46 @@ class GenesisFlow:
                 if should_backup and active_profile:
                     active_name = active_profile["name"]
                     logger.info(
-                        "[2/11] Auto-Backup: Profil '%s' wird gesichert (%s)...",
+                        "[2/11] Auto-Backup: Profil '%s' — Full-State "
+                        "(TikTok + GMS + Accounts) (%s)...",
                         active_name, backup_reason,
                     )
+
+                    # A) TikTok Dual-Path Backup
                     backup_result = await self._shifter.backup_tiktok_dual(
                         active_name, timeout=300,
                     )
-                    saved = sum(1 for v in backup_result.values() if v is not None)
+                    tt_saved = sum(1 for v in backup_result.values() if v is not None)
 
-                    # DB-Update: Backup-Status in Profil tracken
+                    # B) GMS + Accounts Backup
+                    gms_saved = 0
                     active_pid = active_profile["id"]
+                    profile_dir = BACKUP_DIR / active_name
+                    try:
+                        gms_dir = profile_dir / BACKUP_GMS_SUBDIR
+                        gms_dir.mkdir(parents=True, exist_ok=True)
+                        gms_path = await self._shifter._backup_gms_packages(
+                            gms_dir, timeout=120,
+                        )
+                        gms_saved += 1
+                        await update_profile_gms_backup(
+                            active_pid, str(gms_path), gms_path.stat().st_size,
+                        )
+                    except Exception as gms_err:
+                        logger.warning("[2/11] GMS-Backup fehlgeschlagen: %s", gms_err)
+
+                    try:
+                        acc_dir = profile_dir / BACKUP_ACCOUNTS_SUBDIR
+                        acc_dir.mkdir(parents=True, exist_ok=True)
+                        acc_path = await self._shifter._backup_account_dbs(acc_dir)
+                        gms_saved += 1
+                        await update_profile_accounts_backup(
+                            active_pid, str(acc_path),
+                        )
+                    except Exception as acc_err:
+                        logger.warning("[2/11] Accounts-Backup fehlgeschlagen: %s", acc_err)
+
+                    # C) DB-Update: TikTok Backup-Status
                     tt_path = backup_result.get("app_data")
                     if tt_path and tt_path.exists():
                         try:
@@ -408,8 +446,13 @@ class GenesisFlow:
                                 "[2/11] Backup DB-Update fehlgeschlagen: %s", db_err,
                             )
 
+                    total_saved = tt_saved + gms_saved
                     step.status = FlowStepStatus.SUCCESS
-                    step.detail = f"Profil '{active_name}': {saved}/2 Komponenten ({backup_reason})"
+                    step.detail = (
+                        f"Profil '{active_name}': "
+                        f"TikTok={tt_saved}/2, GMS+Acc={gms_saved}/2 "
+                        f"(Total: {total_saved}/4) ({backup_reason})"
+                    )
                     logger.info("[2/11] Auto-Backup: %s", step.detail)
                 else:
                     step.status = FlowStepStatus.SKIPPED

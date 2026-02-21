@@ -1019,10 +1019,18 @@
                         ${plogs.length > 0 ? `
                         <div class="space-y-2">
                         ${plogs.map((log, idx) => {
-                            const triggerLabels = {genesis_end:'Genesis', switch_in:'Switch In', switch_out:'Switch Out', manual:'Manuell', periodic:'Auto'};
+                            const triggerLabels = {genesis_end:'Genesis abgeschlossen', switch_in:'Profil aktiviert (Switch In)', switch_out:'Profil gesichert (Switch Out)', manual:'Manueller Snapshot', periodic:'Automatischer Check'};
+                            const triggerDescs = {
+                                genesis_end:'Neue Identität wurde erstellt und injiziert',
+                                switch_in:'Auf dieses Profil gewechselt — Backup restored, Hooks aktiviert',
+                                switch_out:'Aktuellen Zustand gesichert bevor auf anderes Profil gewechselt wird',
+                                manual:'Manuell angeforderte Momentaufnahme des aktuellen Zustands',
+                                periodic:'Regelmäßige automatische Überprüfung im Hintergrund',
+                            };
                             const triggerColors = {genesis_end:'emerald', switch_in:'cyan', switch_out:'amber', manual:'blue', periodic:'gray'};
                             const tc = triggerColors[log.trigger] || 'gray';
                             const tl = triggerLabels[log.trigger] || log.trigger;
+                            const tdesc = triggerDescs[log.trigger] || '';
 
                             let liveApis = [];
                             try { const s = JSON.parse(log.live_summary_json || '{}'); liveApis = Object.entries(s.apis || {}); } catch(_){}
@@ -1033,62 +1041,205 @@
                             let kills = [];
                             try { kills = JSON.parse(log.kill_events_json || '[]'); } catch(_){}
 
+                            // Leak-Reasons: aus gespeicherten Daten ODER nachträglich berechnen
+                            let leakReasons = [];
+                            if (hg) {
+                                if (hg._leak_reasons && hg._leak_reasons.length > 0) {
+                                    leakReasons = hg._leak_reasons;
+                                } else {
+                                    const nh = hg.native_hooks || 0;
+                                    const ah = hg.art_hooks || 0;
+                                    const en = hg.expected_native || 11;
+                                    const ea = hg.expected_art || 8;
+                                    if (!hg.bridge_loaded) leakReasons.push('bridge_not_loaded');
+                                    if (!hg.lsplant_ok) leakReasons.push('lsplant_failed');
+                                    if (!hg.bridge_intact && hg.bridge_loaded) leakReasons.push('bridge_tampered');
+                                    if (nh < en) leakReasons.push('native_hooks_missing(' + nh + '/' + en + ')');
+                                    if (ah < ea) leakReasons.push('art_hooks_missing(' + ah + '/' + ea + ')');
+                                    if (hg.maps_leaks && hg.maps_leaks.length) hg.maps_leaks.slice(0,10).forEach(m => leakReasons.push('maps_leak:' + m));
+                                    if (!hg.guard_loaded) leakReasons.push('guard_not_loaded');
+                                }
+                            }
+                            const leakCount = leakReasons.length;
+
+                            // Gesamtbewertung: grün / gelb / rot
+                            let overallColor = 'green';
+                            let overallLabel = 'Schutz vollständig';
+                            if (hg) {
+                                const nh = hg.native_hooks || 0;
+                                const ah = hg.art_hooks || 0;
+                                const totalHooks = nh + ah;
+                                const totalExpected = (hg.expected_native||11) + (hg.expected_art||8);
+                                if (leakCount > 0 || !hg.bridge_intact || totalHooks === 0) {
+                                    overallColor = 'red'; overallLabel = 'Schutz unvollständig';
+                                } else if (totalHooks < totalExpected || hg.heartbeat_counter === 0) {
+                                    overallColor = 'amber'; overallLabel = 'Schutz eingeschränkt';
+                                }
+                            } else {
+                                overallColor = 'gray'; overallLabel = 'Kein Guard-Status';
+                            }
+
+                            // Hooks Zusammenfassung in lesbarem Text
+                            let hooksSummary = '';
+                            if (hg) {
+                                const nh = hg.native_hooks || 0;
+                                const ah = hg.art_hooks || 0;
+                                const total = nh + ah;
+                                const expected = (hg.expected_native||11) + (hg.expected_art||8);
+                                if (total >= expected) hooksSummary = total + ' von ' + expected + ' Hooks aktiv';
+                                else if (total === 0) hooksSummary = 'Keine Hooks aktiv (0/' + expected + ')';
+                                else hooksSummary = total + ' von ' + expected + ' Hooks aktiv';
+                            }
+
                             return `
-                            <div class="rounded-lg border border-gray-800/40 overflow-hidden">
+                            <div class="rounded-lg border ${overallColor === 'green' ? 'border-green-800/30' : overallColor === 'red' ? 'border-red-800/30' : overallColor === 'amber' ? 'border-amber-800/30' : 'border-gray-800/40'} overflow-hidden">
                                 <button onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.chevron').classList.toggle('rotate-90')"
-                                        class="w-full flex items-center justify-between py-2.5 px-4 bg-gray-800/30 hover:bg-gray-800/50 transition-colors cursor-pointer text-left">
-                                    <div class="flex items-center gap-3">
-                                        <svg class="w-3.5 h-3.5 text-gray-500 transition-transform duration-200 chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-${tc}-500/15 text-${tc}-400 font-semibold">${tl}</span>
-                                        <div class="flex items-center gap-3 text-[10px]">
-                                            <span class="text-gray-400">${log.live_api_count} APIs</span>
-                                            <span class="${log.live_spoofed_pct >= 100 ? 'text-green-400' : log.live_spoofed_pct != null ? 'text-amber-400' : 'text-gray-600'}">${log.live_spoofed_pct != null ? log.live_spoofed_pct + '% spoofed' : 'kein Monitor'}</span>
-                                            ${log.hook_count ? `<span class="text-gray-500">Hooks: ${log.hook_count}</span>` : ''}
-                                            ${log.leaks_detected > 0 ? `<span class="text-red-400">${log.leaks_detected} Leaks!</span>` : ''}
-                                            ${log.kill_event_count > 0 ? `<span class="text-red-400">${log.kill_event_count} Kills</span>` : ''}
+                                        class="w-full flex items-center justify-between py-3 px-4 bg-gray-800/30 hover:bg-gray-800/50 transition-colors cursor-pointer text-left">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <svg class="w-3.5 h-3.5 text-gray-500 transition-transform duration-200 chevron shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                        <span class="w-2 h-2 rounded-full shrink-0 bg-${overallColor === 'green' ? 'green' : overallColor === 'red' ? 'red' : overallColor === 'amber' ? 'amber' : 'gray'}-500"></span>
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-${tc}-500/15 text-${tc}-400 font-semibold shrink-0">${esc(tl.split(' (')[0])}</span>
+                                                <span class="text-[11px] text-gray-300">${esc(overallLabel)}</span>
+                                            </div>
+                                            <div class="text-[10px] text-gray-500 mt-0.5">
+                                                ${hooksSummary ? esc(hooksSummary) : ''}${hooksSummary && (log.bridge_intact !== null) ? ' · ' : ''}${log.bridge_intact ? 'Bridge intakt' : log.bridge_intact === 0 ? 'Bridge fehlt/defekt' : ''}${leakCount > 0 ? ' · <span class="text-red-400 font-semibold">' + leakCount + ' Problem' + (leakCount > 1 ? 'e' : '') + ' erkannt</span>' : ''}${log.kill_event_count > 0 ? ' · <span class="text-red-400">' + log.kill_event_count + ' Kill-Event' + (log.kill_event_count > 1 ? 's' : '') + '</span>' : ''}
+                                            </div>
                                         </div>
                                     </div>
-                                    <span class="text-[10px] text-gray-500 shrink-0 ml-3">${fmtDate(log.captured_at)}</span>
+                                    <span class="text-[10px] text-gray-500 shrink-0 ml-3 whitespace-nowrap">${fmtDate(log.captured_at)}</span>
                                 </button>
                                 <div class="hidden">
                                     <div class="px-4 py-3 bg-gray-900/50 border-t border-gray-800/30 space-y-3">
 
+                                        <!-- Kontext: Was ist passiert? -->
+                                        <div class="flex items-start gap-2 py-2 px-3 rounded-lg bg-gray-800/30 border border-gray-800/40">
+                                            <svg class="w-3.5 h-3.5 text-gray-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <div>
+                                                <div class="text-[11px] text-gray-300 font-medium">${esc(tl)}</div>
+                                                <div class="text-[10px] text-gray-500">${esc(tdesc)}</div>
+                                            </div>
+                                        </div>
+
                                         ${hg ? `
+                                        <!-- Hook-Übersicht -->
                                         <div>
-                                            <div class="text-[10px] font-semibold text-teal-400 uppercase tracking-wider mb-1.5">HookGuard Status</div>
-                                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                                <div class="text-center p-2 rounded-lg bg-gray-800/40">
-                                                    <div class="text-[10px] text-gray-500">Status</div>
-                                                    <div class="text-xs font-semibold ${hg.status === 'monitoring' ? 'text-green-400' : 'text-gray-400'}">${hg.status || '?'}</div>
+                                            <div class="text-[10px] font-semibold text-teal-400 uppercase tracking-wider mb-1.5">Schutzstatus zum Zeitpunkt des Snapshots</div>
+                                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
+                                                <div class="p-2.5 rounded-lg bg-gray-800/40">
+                                                    <div class="text-[10px] text-gray-500 mb-0.5">Native Hooks (libc/Widevine)</div>
+                                                    <div class="text-sm font-semibold ${(hg.native_hooks||0) >= (hg.expected_native||11) ? 'text-green-400' : (hg.native_hooks||0) > 0 ? 'text-amber-400' : 'text-red-400'}">${hg.native_hooks||0} von ${hg.expected_native||11}</div>
+                                                    <div class="text-[9px] text-gray-600 mt-0.5">${(hg.native_hooks||0) >= (hg.expected_native||11) ? 'Alle Low-Level Hooks installiert' : (hg.native_hooks||0) === 0 ? 'Kein Hook aktiv — echte Hardware-IDs sichtbar!' : 'Teilweise gehookt — einige IDs könnten durchsickern'}</div>
                                                 </div>
-                                                <div class="text-center p-2 rounded-lg bg-gray-800/40">
-                                                    <div class="text-[10px] text-gray-500">Hooks</div>
-                                                    <div class="text-xs font-semibold text-cyan-400">${log.hook_count || '?'}</div>
+                                                <div class="p-2.5 rounded-lg bg-gray-800/40">
+                                                    <div class="text-[10px] text-gray-500 mb-0.5">ART Hooks (Java-APIs)</div>
+                                                    <div class="text-sm font-semibold ${(hg.art_hooks||0) >= (hg.expected_art||8) ? 'text-green-400' : (hg.art_hooks||0) > 0 ? 'text-amber-400' : 'text-red-400'}">${hg.art_hooks||0} von ${hg.expected_art||8}</div>
+                                                    <div class="text-[9px] text-gray-600 mt-0.5">${(hg.art_hooks||0) >= (hg.expected_art||8) ? 'getImei, getMacAddress etc. gehookt' : (hg.art_hooks||0) === 0 ? 'Nicht gehookt — TikTok sieht echte IMEI/MAC!' : 'Teilweise — einige Java-APIs nicht abgefangen'}</div>
                                                 </div>
-                                                <div class="text-center p-2 rounded-lg bg-gray-800/40">
-                                                    <div class="text-[10px] text-gray-500">Bridge</div>
-                                                    <div class="text-xs font-semibold ${log.bridge_intact ? 'text-green-400' : 'text-red-400'}">${log.bridge_intact ? 'Intakt' : 'Fehlt/Kaputt'}</div>
+                                                <div class="p-2.5 rounded-lg bg-gray-800/40">
+                                                    <div class="text-[10px] text-gray-500 mb-0.5">Identity-Bridge (.hw_config)</div>
+                                                    <div class="text-sm font-semibold ${hg.bridge_intact ? 'text-green-400' : hg.bridge_loaded ? 'text-amber-400' : 'text-red-400'}">${hg.bridge_intact ? 'Intakt' : hg.bridge_loaded ? 'Verändert' : 'Nicht geladen'}</div>
+                                                    <div class="text-[9px] text-gray-600 mt-0.5">${hg.bridge_intact ? 'Spoofing-Datei korrekt geladen und unverändert' : hg.bridge_loaded ? 'Datei geladen aber Hash stimmt nicht' : 'Modul konnte die Datei nicht lesen'}</div>
                                                 </div>
-                                                <div class="text-center p-2 rounded-lg bg-gray-800/40">
-                                                    <div class="text-[10px] text-gray-500">Leaks</div>
-                                                    <div class="text-xs font-semibold ${log.leaks_detected > 0 ? 'text-red-400' : 'text-green-400'}">${log.leaks_detected}</div>
+                                                <div class="p-2.5 rounded-lg bg-gray-800/40">
+                                                    <div class="text-[10px] text-gray-500 mb-0.5">Heartbeat (Modul-Lebenszeichen)</div>
+                                                    <div class="text-sm font-semibold ${hg.heartbeat_counter > 0 ? 'text-green-400' : 'text-amber-400'}">${hg.heartbeat_counter > 0 ? 'Aktiv (#' + hg.heartbeat_counter + ')' : 'Inaktiv'}</div>
+                                                    <div class="text-[9px] text-gray-600 mt-0.5">${hg.heartbeat_counter > 0 ? 'Modul sendet regelmäßig Lebenszeichen' : 'Kein Heartbeat empfangen — TikTok war evtl. nicht geöffnet'}</div>
+                                                </div>
+                                                <div class="p-2.5 rounded-lg bg-gray-800/40">
+                                                    <div class="text-[10px] text-gray-500 mb-0.5">Property-Regions privatisiert</div>
+                                                    <div class="text-sm font-semibold text-cyan-400">${hg.privatized_regions||0}</div>
+                                                    <div class="text-[9px] text-gray-600 mt-0.5">${(hg.privatized_regions||0) > 0 ? 'MAP_SHARED→PRIVATE: Andere Prozesse sehen keine Änderungen' : 'Keine Regions privatisiert'}</div>
+                                                </div>
+                                                <div class="p-2.5 rounded-lg bg-gray-800/40">
+                                                    <div class="text-[10px] text-gray-500 mb-0.5">LSPlant (ART-Engine)</div>
+                                                    <div class="text-sm font-semibold ${hg.lsplant_ok ? 'text-green-400' : 'text-red-400'}">${hg.lsplant_ok ? 'OK' : 'Fehlgeschlagen'}</div>
+                                                    <div class="text-[9px] text-gray-600 mt-0.5">${hg.lsplant_ok ? 'Java-Hooking-Engine erfolgreich initialisiert' : 'Java-Hooks konnten nicht installiert werden'}</div>
                                                 </div>
                                             </div>
-                                        </div>` : '<div class="text-[10px] text-gray-600">HookGuard war nicht aktiv</div>'}
+
+                                            ${hg.identity_serial ? `
+                                            <div class="text-[10px] font-semibold text-teal-400 uppercase tracking-wider mb-1 mt-3">Gespoofete Identität (live vom Zygisk-Modul gemeldet)</div>
+                                            <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] font-mono bg-gray-800/30 rounded-lg p-2.5">
+                                                <div><span class="text-gray-500">Seriennummer:</span> <span class="text-gray-300">${esc(hg.identity_serial)}</span></div>
+                                                <div><span class="text-gray-500">WiFi MAC:</span> <span class="text-gray-300">${esc(hg.identity_mac)}</span></div>
+                                                <div><span class="text-gray-500">IMEI Slot 1:</span> <span class="text-gray-300">${esc(hg.identity_imei1)}</span></div>
+                                                <div><span class="text-gray-500">IMEI Slot 2:</span> <span class="text-gray-300">${esc(hg.identity_imei2)}</span></div>
+                                                <div><span class="text-gray-500">IMSI (SIM-ID):</span> <span class="text-gray-300">${esc(hg.identity_imsi)}</span></div>
+                                                <div><span class="text-gray-500">SIM Seriennr.:</span> <span class="text-gray-300">${esc(hg.identity_sim_serial)}</span></div>
+                                                <div><span class="text-gray-500">Android ID:</span> <span class="text-gray-300">${esc(hg.identity_android_id)}</span></div>
+                                                <div><span class="text-gray-500">GSF ID:</span> <span class="text-gray-300">${esc(hg.identity_gsf_id)}</span></div>
+                                            </div>` : ''}
+                                        </div>
+
+                                        <!-- Leak / Problem Analyse -->
+                                        ${leakCount > 0 ? `
+                                        <div>
+                                            <div class="text-[10px] font-semibold text-red-400 uppercase tracking-wider mb-1.5">Erkannte Probleme (${leakCount})</div>
+                                            <div class="text-[10px] text-red-400/60 mb-1.5">Jedes Problem bedeutet, dass echte Gerätedaten an TikTok durchsickern könnten</div>
+                                            <div class="space-y-1.5">
+                                                ${leakReasons.map(r => {
+                                                    const descs = {
+                                                        'bridge_not_loaded': ['Bridge nicht geladen', 'Die Spoofing-Datei (.hw_config) konnte nicht gelesen werden. Das Modul arbeitet ohne Identitätsdaten — alle Hardware-IDs (IMEI, MAC, Serial) werden im Klartext an Apps weitergegeben.'],
+                                                        'lsplant_failed': ['Java-Hooking fehlgeschlagen', 'Die LSPlant-Engine konnte nicht initialisiert werden. Java-APIs wie getImei(), getMacAddress() und getSubscriberId() geben die echten Werte zurück statt der gespooften.'],
+                                                        'bridge_tampered': ['Bridge-Datei verändert', 'Der Hash der .hw_config stimmt nicht mit dem erwarteten Wert überein. Die Datei wurde seit der Injection verändert — möglicherweise beschädigt oder manipuliert.'],
+                                                        'guard_not_loaded': ['Zygisk-Modul inaktiv', 'Das Zygisk-Modul hat keine Status-Datei geschrieben. Entweder ist das Modul nicht installiert, deaktiviert, oder TikTok wurde seit dem letzten Reboot nicht geöffnet.'],
+                                                    };
+                                                    const isNativeHook = r.startsWith('native_hooks_missing');
+                                                    const isArtHook = r.startsWith('art_hooks_missing');
+                                                    const isMapsLeak = r.startsWith('maps_leak:');
+                                                    let label, detail;
+                                                    if (descs[r]) { label = descs[r][0]; detail = descs[r][1]; }
+                                                    else if (isNativeHook) {
+                                                        const inner = r.slice(r.indexOf('(')+1, r.lastIndexOf(')'));
+                                                        const parts = inner.split('/');
+                                                        label = 'Native Hooks unvollständig';
+                                                        detail = 'Nur ' + (parts[0]||'?') + ' von ' + (parts[1]||'?') + ' Low-Level-Hooks installiert. Fehlende Hooks betreffen libc-Funktionen (open, read) oder Widevine. Ohne diese können Anti-Cheat-Engines den Hook-Mechanismus erkennen.';
+                                                    }
+                                                    else if (isArtHook) {
+                                                        const inner = r.slice(r.indexOf('(')+1, r.lastIndexOf(')'));
+                                                        const parts = inner.split('/');
+                                                        label = 'Java-Hooks unvollständig';
+                                                        detail = 'Nur ' + (parts[0]||'?') + ' von ' + (parts[1]||'?') + ' Java-Methoden gehookt. Nicht abgefangene APIs (z.B. getImei, getDeviceId) geben echte Hardware-Werte an TikTok weiter.';
+                                                    }
+                                                    else if (isMapsLeak) {
+                                                        const path = r.replace('maps_leak:','');
+                                                        label = 'Verdächtiger /proc/maps Eintrag';
+                                                        detail = 'In der Memory-Map des Prozesses wurde ein verdächtiger Eintrag gefunden: "' + path + '". Anti-Cheat-Engines scannen /proc/maps nach bekannten Hooking-Bibliotheken wie Xposed, Magisk oder Frida.';
+                                                    }
+                                                    else { label = r; detail = ''; }
+                                                    return '<div class="flex items-start gap-2.5 py-2 px-3 rounded-lg bg-red-500/8 border border-red-500/20">' +
+                                                        '<div class="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center shrink-0 mt-0.5"><span class="text-red-400 text-[10px]">&#9888;</span></div>' +
+                                                        '<div class="min-w-0"><div class="text-[11px] font-semibold text-red-300">' + esc(label) + '</div>' +
+                                                        (detail ? '<div class="text-[10px] text-gray-400 mt-0.5 leading-relaxed">' + esc(detail) + '</div>' : '') +
+                                                        '</div></div>';
+                                                }).join('')}
+                                            </div>
+                                        </div>` : `
+                                        <div class="flex items-center gap-2.5 py-2.5 px-3.5 rounded-lg bg-green-500/8 border border-green-500/20">
+                                            <div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center shrink-0"><span class="text-green-400 text-[11px]">&#10003;</span></div>
+                                            <div>
+                                                <div class="text-[11px] text-green-300 font-medium">Keine Probleme erkannt</div>
+                                                <div class="text-[10px] text-gray-500">Alle Hooks waren aktiv, Bridge intakt, keine verdächtigen Memory-Einträge</div>
+                                            </div>
+                                        </div>`}
+                                        ` : '<div class="flex items-center gap-2.5 py-2.5 px-3.5 rounded-lg bg-gray-800/30 border border-gray-800/40"><svg class="w-4 h-4 text-gray-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg><div><div class="text-[11px] text-gray-400 font-medium">HookGuard war nicht aktiv</div><div class="text-[10px] text-gray-600">Zum Zeitpunkt dieses Snapshots lief kein HookGuard-Monitoring. TikTok war möglicherweise nicht geöffnet.</div></div></div>'}
 
                                         ${liveApis.length > 0 ? `
                                         <div>
-                                            <div class="text-[10px] font-semibold text-teal-400 uppercase tracking-wider mb-1.5">Live Monitor (${liveApis.length} APIs)</div>
+                                            <div class="text-[10px] font-semibold text-teal-400 uppercase tracking-wider mb-1">API-Zugriffe (Live Monitor)</div>
+                                            <div class="text-[10px] text-gray-600 mb-1.5">Zeigt welche Android-APIs von TikTok aufgerufen wurden und ob sie gespooft wurden</div>
                                             <div class="max-h-48 overflow-y-auto space-y-0.5 rounded-lg bg-gray-800/30 p-2">
                                                 ${liveApis.map(([api, info]) => `
-                                                    <div class="flex items-center justify-between py-1 px-2 rounded hover:bg-gray-800/50 text-[10px]">
+                                                    <div class="flex items-center justify-between py-1.5 px-2 rounded hover:bg-gray-800/50 text-[10px]">
                                                         <div class="flex items-center gap-2 min-w-0">
-                                                            <span class="${info.spoofed ? 'text-green-400' : 'text-red-400'}">${info.spoofed ? '&#10003;' : '&#10007;'}</span>
+                                                            <span class="${info.spoofed ? 'text-green-400' : 'text-red-400'}" title="${info.spoofed ? 'Gespooft — TikTok sieht gefälschten Wert' : 'NICHT gespooft — TikTok sieht echten Wert!'}">${info.spoofed ? '&#10003;' : '&#10007;'}</span>
                                                             <span class="font-mono text-gray-300 truncate">${esc(api)}</span>
                                                         </div>
                                                         <div class="flex items-center gap-2 shrink-0 ml-2">
-                                                            <span class="text-gray-500">${info.count || 0}x</span>
-                                                            <span class="font-mono text-gray-400 max-w-[120px] truncate" title="${esc(String(info.last_value || ''))}">${esc(String(info.last_value || '').slice(0, 20))}</span>
+                                                            <span class="text-gray-500" title="Anzahl der Aufrufe">${info.count || 0}x</span>
+                                                            <span class="font-mono text-gray-400 max-w-[200px] truncate" title="${esc(String(info.last_value || ''))}">${esc(String(info.last_value || ''))}</span>
                                                         </div>
                                                     </div>
                                                 `).join('')}
@@ -1097,12 +1248,25 @@
 
                                         ${kills.length > 0 ? `
                                         <div>
-                                            <div class="text-[10px] font-semibold text-red-400 uppercase tracking-wider mb-1.5">Kill-Switch Events (${kills.length})</div>
-                                            <div class="space-y-1">
+                                            <div class="text-[10px] font-semibold text-red-400 uppercase tracking-wider mb-1">Kill-Switch Events (${kills.length})</div>
+                                            <div class="text-[10px] text-gray-600 mb-1.5">TikTok wurde gestoppt weil kritische Schutzmaßnahmen fehlten</div>
+                                            <div class="space-y-1.5">
                                                 ${kills.map(k => `
-                                                    <div class="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-300 font-mono">${esc(k.raw || k.type || JSON.stringify(k))}</div>
+                                                    <div class="flex items-start gap-2.5 py-2 px-3 rounded-lg bg-red-500/8 border border-red-500/20 text-[10px]">
+                                                        <div class="w-5 h-5 rounded-full bg-red-500/20 flex items-center justify-center shrink-0 mt-0.5"><span class="text-red-400">&#9888;</span></div>
+                                                        <div>
+                                                            <div class="font-semibold text-red-300">${esc(k.type || 'KILL')}</div>
+                                                            <div class="text-gray-400 font-mono mt-0.5">${esc(k.raw || k.reason || JSON.stringify(k))}</div>
+                                                            ${k.timestamp ? '<div class="text-gray-500 mt-0.5">' + fmtDate(k.timestamp) + '</div>' : ''}
+                                                        </div>
+                                                    </div>
                                                 `).join('')}
                                             </div>
+                                        </div>` : ''}
+
+                                        ${hg && hg.bridge_hash ? `
+                                        <div class="text-[10px] text-gray-600 font-mono pt-2 border-t border-gray-800/30">
+                                            Bridge-Hash: ${esc(hg.bridge_hash)} | Prozess-ID: ${hg.guard_pid || 'nicht verfügbar'}
                                         </div>` : ''}
                                     </div>
                                 </div>

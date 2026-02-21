@@ -1221,12 +1221,32 @@ async def capture_profile_log(
     if hookguard_state:
         nh = hookguard_state.get("native_hooks", 0)
         ah = hookguard_state.get("art_hooks", 0)
-        en = hookguard_state.get("expected_native", 13)
+        en = hookguard_state.get("expected_native", 11)
         ea = hookguard_state.get("expected_art", 8)
         hook_count = f"{nh}+{ah}/{en}+{ea}"
         bridge_intact = 1 if hookguard_state.get("bridge_intact") else 0
         heartbeat_ok = 1 if hookguard_state.get("guard_loaded") and hookguard_state.get("heartbeat_counter", 0) > 0 else 0
-        leaks = 0 if hookguard_state.get("lsplant_ok") and hookguard_state.get("bridge_loaded") else 1
+
+        leak_reasons: list[str] = []
+        if not hookguard_state.get("bridge_loaded"):
+            leak_reasons.append("bridge_not_loaded")
+        if not hookguard_state.get("lsplant_ok"):
+            leak_reasons.append("lsplant_failed")
+        if not hookguard_state.get("bridge_intact"):
+            leak_reasons.append("bridge_tampered")
+        if nh < en:
+            leak_reasons.append(f"native_hooks_missing({nh}/{en})")
+        if ah < ea:
+            leak_reasons.append(f"art_hooks_missing({ah}/{ea})")
+        maps_leaks = hookguard_state.get("maps_leaks", [])
+        if maps_leaks:
+            for ml in maps_leaks[:10]:
+                leak_reasons.append(f"maps_leak:{ml}")
+        if not hookguard_state.get("guard_loaded"):
+            leak_reasons.append("guard_not_loaded")
+        leaks = len(leak_reasons)
+        if leak_reasons:
+            hookguard_state["_leak_reasons"] = leak_reasons
 
     kill_count = len(kill_events) if kill_events else 0
 

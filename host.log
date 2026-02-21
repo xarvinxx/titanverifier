@@ -24461,3 +24461,5 @@ drwxrwx---  50 u0_a301 u0_a301  3452 2026-02-21 00:52 files
 2026-02-21 01:53:01 [host.db_ops] INFO: Profile log captured: profile=57 trigger=switch_in apis=0 spoofed=0.0% hooks=11+8/11+8 leaks=0 kills=0
 2026-02-21 01:53:01 [host.flows.genesis] INFO: Profile snapshot captured: log_id=32 trigger=switch_in
 2026-02-21 01:53:13 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=64233)
+2026-02-21 01:53:52 [host.api.dashboard] INFO: WebSocket Client verbunden: Address(host='127.0.0.1', port=49996)
+2026-02-21 01:53:58 [host.api.dashboard] INFO: WebSocket Client getrennt: Address(host='127.0.0.1', port=49996)

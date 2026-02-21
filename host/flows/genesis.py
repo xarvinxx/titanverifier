@@ -48,6 +48,7 @@ from host.config import (
     BACKUP_ACCOUNTS_SUBDIR,
     BACKUP_DIR,
     BACKUP_GMS_SUBDIR,
+    EXECUTION_MODE,
     LOCAL_TZ,
     TIMING,
 )
@@ -687,58 +688,69 @@ class GenesisFlow:
             except (ADBError, ADBTimeoutError):
                 pass
 
-            try:
-                await self._adb.reboot()
-            except ADBError as e:
-                # Erwarteter Verbindungsabbruch beim Reboot — kein Fehler
-                logger.info("[7/11] Reboot gesendet (ADB-Trennung erwartet: %s)", e)
+            if EXECUTION_MODE == "local":
+                # ─── ON-DEVICE MODUS: Zygote-Restart statt Full-Reboot ───
+                # Ein Reboot würde Termux und damit diesen Server beenden.
+                # Stattdessen: Zygote-Kill → Android startet alle Apps/Services
+                # neu, Zygisk-Modul lädt die neue Bridge-Datei.
+                logger.info("[7/11] On-Device: Zygote-Restart (kein Reboot)...")
+                try:
+                    await self._adb.shell("killall zygote", root=True, timeout=10)
+                except ADBError:
+                    await self._adb.shell(
+                        "kill -9 $(pidof zygote) $(pidof zygote64) 2>/dev/null || true",
+                        root=True, timeout=10,
+                    )
+                logger.info("[7/11] Zygote gekillt — warte 20s auf Neustart...")
+                await asyncio.sleep(20)
 
-            # Pre-Wait: 15s warten bevor wir anfangen zu pollen.
-            # Das Gerät braucht Zeit um den Bootloader zu passieren und
-            # den ADB-Daemon neu zu starten.
-            logger.info("[7/11] Pre-Wait: 15s bevor ADB-Reconnect...")
-            await asyncio.sleep(15)
+                booted = await self._adb.wait_for_device(timeout=60, poll_interval=3)
+                if not booted:
+                    step.status = FlowStepStatus.FAILED
+                    step.detail = "Zygote-Restart Timeout"
+                    step.duration_ms = _now_ms() - step_start
+                    raise ADBError("Gerät nach Zygote-Restart nicht bereit")
 
-            # =============================================================
-            # v4.0 ADB AUTO-RECONNECT
-            # =============================================================
-            # Nach dem Reboot muss ADB sich neu verbinden. Statt blind zu
-            # pollen, verwenden wir ensure_connection() das den ADB-Daemon
-            # neu startet und `adb wait-for-device` ausführt.
-            # Das überbrückt USB-Reconnects und Auth-Dialoge zuverlässig.
-            # =============================================================
-            logger.info("[7/11] ADB Reconnect: Warte auf Gerät (max 120s)...")
-            reconnected = await self._adb.ensure_connection(timeout=120)
-            if not reconnected:
-                logger.warning(
-                    "[7/11] ADB Reconnect fehlgeschlagen — "
-                    "versuche trotzdem wait_for_device..."
+                await asyncio.sleep(5)
+            else:
+                # ─── ADB MODUS: Normaler Full-Reboot ───
+                try:
+                    await self._adb.reboot()
+                except ADBError as e:
+                    logger.info("[7/11] Reboot gesendet (ADB-Trennung erwartet: %s)", e)
+
+                logger.info("[7/11] Pre-Wait: 15s bevor ADB-Reconnect...")
+                await asyncio.sleep(15)
+
+                logger.info("[7/11] ADB Reconnect: Warte auf Gerät (max 120s)...")
+                reconnected = await self._adb.ensure_connection(timeout=120)
+                if not reconnected:
+                    logger.warning(
+                        "[7/11] ADB Reconnect fehlgeschlagen — "
+                        "versuche trotzdem wait_for_device..."
+                    )
+
+                logger.info("[7/11] Warte auf Boot (unbegrenzt, pollt alle %ds)...", TIMING.BOOT_POLL_INTERVAL)
+                booted = await self._adb.wait_for_device(
+                    timeout=TIMING.BOOT_WAIT_SECONDS,
+                    poll_interval=TIMING.BOOT_POLL_INTERVAL,
                 )
 
-            logger.info("[7/11] Warte auf Boot (unbegrenzt, pollt alle %ds)...", TIMING.BOOT_POLL_INTERVAL)
-            booted = await self._adb.wait_for_device(
-                timeout=TIMING.BOOT_WAIT_SECONDS,
-                poll_interval=TIMING.BOOT_POLL_INTERVAL,
-            )
+                if not booted:
+                    step.status = FlowStepStatus.FAILED
+                    step.detail = "Boot-Timeout"
+                    step.duration_ms = _now_ms() - step_start
+                    raise ADBError("Gerät nicht gebootet (Timeout)")
 
-            if not booted:
-                step.status = FlowStepStatus.FAILED
-                step.detail = "Boot-Timeout"
-                step.duration_ms = _now_ms() - step_start
-                raise ADBError("Gerät nicht gebootet (Timeout)")
+                logger.info(
+                    "[7/11] Boot erkannt — warte %ds post-boot...",
+                    TIMING.POST_BOOT_SETTLE_SECONDS,
+                )
+                await asyncio.sleep(TIMING.POST_BOOT_SETTLE_SECONDS)
 
-            # Post-Boot Settle: Warten bis alle Services initialisiert sind
-            logger.info(
-                "[7/11] Boot erkannt — warte %ds post-boot...",
-                TIMING.POST_BOOT_SETTLE_SECONDS,
-            )
-            await asyncio.sleep(TIMING.POST_BOOT_SETTLE_SECONDS)
-
-            # v4.0: Nochmal sicherstellen dass ADB stabil verbunden ist
-            # (verhindert Race-Conditions wo ADB kurz da war aber wieder weggeht)
-            if not await self._adb.is_connected():
-                logger.warning("[7/11] ADB nach Boot-Settle weg — Reconnect...")
-                await self._adb.ensure_connection(timeout=60)
+                if not await self._adb.is_connected():
+                    logger.warning("[7/11] ADB nach Boot-Settle weg — Reconnect...")
+                    await self._adb.ensure_connection(timeout=60)
 
             # LSPosed DB Integritätsprüfung nach Reboot
             try:

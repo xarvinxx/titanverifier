@@ -18,10 +18,20 @@ Oder:
 from __future__ import annotations
 
 import logging
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import AsyncGenerator
+
+# .env Datei laden (Supabase Keys, TITAN_MODE etc.)
+_env_path = Path(__file__).resolve().parent.parent / ".env"
+if _env_path.exists():
+    for line in _env_path.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            key, _, val = line.partition("=")
+            os.environ.setdefault(key.strip(), val.strip())
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -115,6 +125,7 @@ templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 # =============================================================================
 
 _hookguard = None  # HookGuard instance, set in lifespan
+_sync_task = None  # Supabase Background-Sync Task
 
 
 @asynccontextmanager
@@ -137,9 +148,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     from host.config import BACKUP_DIR
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Client-Auswahl basierend auf EXECUTION_MODE (adb / local)
+    from host.config import EXECUTION_MODE, create_adb_client
+    adb = create_adb_client()
+    logger.info(
+        "Modus: %s (%s)",
+        EXECUTION_MODE,
+        "On-Device/Termux" if EXECUTION_MODE == "local" else "Laptop+USB",
+    )
+
     # HookGuard init + auto-start
-    from host.adb.client import ADBClient
-    adb = ADBClient()
     global _hookguard
     try:
         _hookguard = HookGuard(adb)
@@ -159,11 +177,40 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception as e:
         logger.warning("Backup-Sync fehlgeschlagen: %s", e)
 
+    # Supabase Auto-Sync: Alle 2 Minuten im Hintergrund
+    global _sync_task
+    from host.engine import supabase_sync
+    if supabase_sync.is_enabled():
+        import asyncio
+
+        async def _periodic_sync():
+            while True:
+                await asyncio.sleep(120)
+                try:
+                    async with db.connection() as conn:
+                        await supabase_sync.full_sync_from_sqlite(conn)
+                except asyncio.CancelledError:
+                    break
+                except Exception as e:
+                    logger.debug("Periodic Supabase-Sync Fehler: %s", e)
+
+        _sync_task = asyncio.create_task(_periodic_sync())
+        logger.info("Supabase Auto-Sync aktiv (alle 120s)")
+    else:
+        logger.info("Supabase nicht konfiguriert — kein Auto-Sync")
+
     logger.info("Command Center bereit.")
 
     yield
 
     # --- Shutdown ---
+    if _sync_task and not _sync_task.done():
+        _sync_task.cancel()
+        try:
+            await _sync_task
+        except Exception:
+            pass
+    await supabase_sync.close()
     if _hookguard and _hookguard.is_running:
         await _hookguard.stop()
     logger.info("Shutdown: Schliesse Datenbank...")
@@ -193,10 +240,12 @@ app = FastAPI(
 from host.api.control import router as control_router  # noqa: E402
 from host.api.dashboard import router as dashboard_router  # noqa: E402
 from host.api.vault import router as vault_router  # noqa: E402
+from host.api.sync import router as sync_router  # noqa: E402
 
 app.include_router(control_router)
 app.include_router(dashboard_router)
 app.include_router(vault_router)
+app.include_router(sync_router)
 
 
 # =============================================================================

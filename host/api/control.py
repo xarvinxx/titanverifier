@@ -30,7 +30,7 @@ from typing import Any, Optional
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from pydantic import BaseModel, Field
 
-from host.adb.client import ADBClient
+from host.config import create_adb_client
 from host.engine.db_ops import (
     check_genesis_frequency,
     create_flow_history,
@@ -170,12 +170,24 @@ async def _run_genesis(name: str, notes: Optional[str], backup_before: bool = Fa
     global _state
     async with _lock:
         try:
-            adb = ADBClient()
+            adb = create_adb_client()
             flow = GenesisFlow(adb)
             result = await flow.execute(name, notes=notes, backup_before=backup_before)
 
             _state.result = _safe_dict(result)
             _state.error = result.error
+
+            # Cloud-Sync: Betroffene Daten an Supabase pushen
+            try:
+                from host.api.sync import auto_sync_after_flow
+                r = _safe_dict(result)
+                await auto_sync_after_flow(
+                    identity_id=r.get("identity_id"),
+                    profile_id=r.get("profile_id"),
+                    flow_id=r.get("flow_id"),
+                )
+            except Exception:
+                pass
 
         except Exception as e:
             logger.error("Genesis Background-Task Fehler: %s", e, exc_info=True)
@@ -246,7 +258,7 @@ async def _run_switch(
     global _state
     async with _lock:
         try:
-            adb = ADBClient()
+            adb = create_adb_client()
             flow = SwitchFlow(adb)
             result = await flow.execute(
                 identity_id=identity_id,
@@ -256,6 +268,17 @@ async def _run_switch(
 
             _state.result = _safe_dict(result)
             _state.error = result.error
+
+            try:
+                from host.api.sync import auto_sync_after_flow
+                r = _safe_dict(result)
+                await auto_sync_after_flow(
+                    identity_id=r.get("identity_id") or identity_id,
+                    profile_id=r.get("profile_id"),
+                    flow_id=r.get("flow_id"),
+                )
+            except Exception:
+                pass
 
         except Exception as e:
             logger.error("Switch Background-Task Fehler: %s", e, exc_info=True)
@@ -337,7 +360,7 @@ async def _run_backup(profile_name: str) -> None:
                 identity_id = None
                 logger.warning("Flow-History für Backup fehlgeschlagen: %s", e)
 
-            adb = ADBClient()
+            adb = create_adb_client()
             shifter = AppShifter(adb)
             results = await shifter.backup_full_state(profile_name)
 
@@ -641,7 +664,7 @@ async def adb_reconnect():
 
     # ── Phase 7: Verbindung verifizieren ──
     await asyncio.sleep(1)
-    adb = ADBClient()
+    adb = create_adb_client()
 
     if rc != 0 or not await adb.is_connected():
         # USB hat nicht geklappt — versuche wadbd Wireless Fallback
@@ -728,7 +751,7 @@ async def safe_input_tap(x: int, y: int):
     Standard `input tap` wird BLOCKIERT wenn ein Target-App-Prozess
     läuft, da es sofort als Bot-Input erkannt wird.
     """
-    adb = ADBClient()
+    adb = create_adb_client()
 
     # Prüfe ob Kernel-Input-Binary vorhanden
     hydra_check = await adb.shell(
@@ -772,7 +795,7 @@ async def safe_input_swipe(x1: int, y1: int, x2: int, y2: int, duration_ms: int 
     """
     Führt einen Swipe aus — bevorzugt über Kernel-Input-Driver.
     """
-    adb = ADBClient()
+    adb = create_adb_client()
 
     hydra_check = await adb.shell(
         f"test -x {HYDRA_INPUT_PATH} && echo OK", root=True, timeout=3,

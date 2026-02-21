@@ -30,6 +30,7 @@ identities.json
 
 # Lokale Configs
 local.properties
+.env
 
 # OS
 .DS_Store

@@ -54,6 +54,7 @@ from host.config import (
     BACKUP_ACCOUNTS_SUBDIR,
     BACKUP_DIR,
     BACKUP_GMS_SUBDIR,
+    EXECUTION_MODE,
     GMS_BACKUP_PACKAGES,
     LOCAL_TZ,
     TIKTOK_PACKAGES,
@@ -695,22 +696,46 @@ class SwitchFlow:
                             root=True, timeout=10,
                         )
                         logger.info("[6/10] Auto-Recovery: Accounts-DB gelöscht + sync")
-                        await self._adb.shell("reboot bootloader", root=True)
-                        logger.info("[6/10] Auto-Recovery: Gerät in Fastboot gesendet")
-                        await asyncio.sleep(10)
+                        if EXECUTION_MODE == "local":
+                            logger.warning(
+                                "[6/10] On-Device: Zygote-Restart statt Fastboot-Reboot"
+                            )
+                            try:
+                                await self._adb.shell(
+                                    "killall zygote 2>/dev/null; "
+                                    "kill -9 $(pidof zygote) $(pidof zygote64) 2>/dev/null || true",
+                                    root=True, timeout=10,
+                                )
+                            except (ADBError, ADBTimeoutError):
+                                pass
+                            await asyncio.sleep(15)
+                        else:
+                            await self._adb.shell("reboot bootloader", root=True)
+                            logger.info("[6/10] Auto-Recovery: Gerät in Fastboot gesendet")
+                            await asyncio.sleep(10)
                     except (ADBError, ADBTimeoutError) as recovery_err:
                         logger.error("[6/10] Auto-Recovery fehlgeschlagen: %s", recovery_err)
 
                     step.status = FlowStepStatus.FAILED
-                    step.detail = (
-                        f"ABORT: Bootloop erkannt (uptime={uptime_secs:.0f}s). "
-                        f"Auto-Recovery: Accounts-DB gelöscht → Gerät in Fastboot. "
-                        f"Bitte manuell 'fastboot reboot' ausführen."
-                    )
-                    raise ADBError(
-                        f"Bootloop erkannt (uptime={uptime_secs:.0f}s) — "
-                        f"Auto-Recovery ausgeführt, Gerät in Fastboot"
-                    )
+                    if EXECUTION_MODE == "local":
+                        step.detail = (
+                            f"ABORT: Bootloop erkannt (uptime={uptime_secs:.0f}s). "
+                            f"Auto-Recovery: Accounts-DB gelöscht → Zygote-Restart."
+                        )
+                        raise ADBError(
+                            f"Bootloop erkannt (uptime={uptime_secs:.0f}s) — "
+                            f"Auto-Recovery ausgeführt, Zygote-Restart"
+                        )
+                    else:
+                        step.detail = (
+                            f"ABORT: Bootloop erkannt (uptime={uptime_secs:.0f}s). "
+                            f"Auto-Recovery: Accounts-DB gelöscht → Gerät in Fastboot. "
+                            f"Bitte manuell 'fastboot reboot' ausführen."
+                        )
+                        raise ADBError(
+                            f"Bootloop erkannt (uptime={uptime_secs:.0f}s) — "
+                            f"Auto-Recovery ausgeführt, Gerät in Fastboot"
+                        )
                 else:
                     step.status = FlowStepStatus.SUCCESS
                     step.detail = f"Boot OK, GMS-Timeout ({readiness['detail']})"

@@ -26,7 +26,8 @@ from typing import Optional
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
-from host.adb.client import ADBClient, ADBError
+from host.adb.client import ADBError
+from host.config import create_adb_client
 from host.config import LOCAL_TZ
 from host.database import db
 from host.config import BRIDGE_FILE_PATH
@@ -205,7 +206,7 @@ async def dashboard_stats():
         return cached
 
     # ── Frische ADB-Daten holen ──
-    adb = ADBClient()
+    adb = create_adb_client()
     stats: dict = {
         "adb_connected": False,
         "device_serial": None,

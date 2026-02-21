@@ -7,6 +7,7 @@ KEINE Zufallswerte hier — nur deterministische Regeln und Constraints.
 """
 
 import logging
+import os
 from datetime import date, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -16,6 +17,40 @@ from zoneinfo import ZoneInfo
 # =============================================================================
 
 LOCAL_TZ = ZoneInfo("Europe/Berlin")
+
+# =============================================================================
+# 0b. Execution Mode — ADB (Laptop+USB) oder Local (On-Device/Termux)
+# =============================================================================
+# "adb"   = Originaler Modus: Laptop steuert Pixel 6 über USB-ADB
+# "local" = On-Device Modus: Server läuft direkt auf dem Pixel 6 (Termux)
+#           Alle ADB-Befehle werden durch direkte su -c Shell-Aufrufe ersetzt.
+#
+# Setze TITAN_MODE=local in der Termux-Umgebung um den On-Device Modus zu aktivieren.
+EXECUTION_MODE: str = os.environ.get("TITAN_MODE", "adb")
+
+# =============================================================================
+# 0c. Supabase Cloud-Sync (Optional)
+# =============================================================================
+# Wenn gesetzt, werden Profil-/Identitäts-Daten nach jedem Flow an Supabase gepusht.
+# Die lokale SQLite bleibt primär — Supabase ist ein Online-Spiegel zum Einsehen.
+SUPABASE_URL: str = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY: str = os.environ.get("SUPABASE_KEY", "")
+
+
+def create_adb_client():
+    """Factory: Erstellt den richtigen Client basierend auf EXECUTION_MODE.
+
+    Verwendung überall statt direktem `ADBClient()` Aufruf:
+        from host.config import create_adb_client
+        adb = create_adb_client()
+    """
+    if EXECUTION_MODE == "local":
+        from host.adb.local_client import LocalShellClient
+        return LocalShellClient()
+    else:
+        from host.adb.client import ADBClient
+        return ADBClient()
+
 
 # =============================================================================
 # 1. Projekt-Pfade (Host-Seite)

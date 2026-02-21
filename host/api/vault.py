@@ -658,7 +658,7 @@ async def capture_profile_snapshot(profile_id: int):
     import dataclasses
     import json as _json
 
-    from host.adb.client import ADBClient
+    from host.config import create_adb_client
     from host.engine.db_ops import capture_profile_log
 
     # Identity-ID für dieses Profil ermitteln
@@ -671,7 +671,7 @@ async def capture_profile_snapshot(profile_id: int):
             raise HTTPException(status_code=404, detail=f"Profil #{profile_id} nicht gefunden")
         identity_id = row["identity_id"]
 
-    adb = ADBClient()
+    adb = create_adb_client()
 
     # Live Monitor Summary
     live_summary = None
@@ -979,7 +979,7 @@ async def trigger_profile_backup(profile_id: int):
       A) App-Daten (/data/data/com.zhiliaoapp.musically/)
       B) Sandbox  (/sdcard/Android/data/com.zhiliaoapp.musically/)
     """
-    from host.adb.client import ADBClient
+    from host.config import create_adb_client
     from host.engine.shifter import AppShifter
 
     # Profil-Name aus DB
@@ -993,7 +993,7 @@ async def trigger_profile_backup(profile_id: int):
         profile_name = row["name"]
 
     try:
-        adb = ADBClient()
+        adb = create_adb_client()
         shifter = AppShifter(adb)
 
         result = await shifter.backup_tiktok_dual(profile_name)

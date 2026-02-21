@@ -24488,3 +24488,654 @@ drwxrwx---  50 u0_a301 u0_a301  3452 2026-02-21 00:52 files
 2026-02-21 02:07:51 [host.adb] INFO: ADB Reconnect erfolgreich — Gerät verbunden
 2026-02-21 02:07:51 [host.adb] INFO: Auto-Reconnect erfolgreich — wiederhole Befehl: adb shell su -c "pidof com.zhiliaoapp.musically"
 2026-02-21 02:07:51 [host.adb] INFO: ADB Erfolg nach 2 Versuchen: adb shell su -c "pidof com.zhiliaoapp.musically"
+2026-02-21 03:44:26 [hookguard] INFO: HookGuard stopped
+2026-02-21 03:44:26 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 03:44:26 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 03:44:26 [host.main] INFO: Command Center gestoppt.
+2026-02-21 03:44:28 [host.main] INFO: ============================================================
+2026-02-21 03:44:28 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:44:28 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:44:28 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:44:28 [host.main] INFO: ============================================================
+2026-02-21 03:44:28 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:44:28 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:44:28 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:44:28 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:44:28 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:44:28 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:44:28 [host.main] INFO: Command Center bereit.
+2026-02-21 03:44:38 [hookguard] INFO: HookGuard stopped
+2026-02-21 03:44:38 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 03:44:38 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 03:44:38 [host.main] INFO: Command Center gestoppt.
+2026-02-21 03:44:38 [host.main] INFO: ============================================================
+2026-02-21 03:44:38 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:44:38 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:44:38 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:44:38 [host.main] INFO: ============================================================
+2026-02-21 03:44:38 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:44:38 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:44:38 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:44:38 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:44:38 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:44:38 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:44:38 [host.main] INFO: Command Center bereit.
+2026-02-21 03:44:46 [hookguard] INFO: HookGuard stopped
+2026-02-21 03:44:46 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 03:44:46 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 03:44:46 [host.main] INFO: Command Center gestoppt.
+2026-02-21 03:44:47 [host.main] INFO: ============================================================
+2026-02-21 03:44:47 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:44:47 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:44:47 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:44:47 [host.main] INFO: ============================================================
+2026-02-21 03:44:47 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:44:47 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:44:47 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:44:47 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:44:47 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:44:47 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:44:47 [host.main] INFO: Command Center bereit.
+2026-02-21 03:44:55 [hookguard] INFO: HookGuard stopped
+2026-02-21 03:44:55 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 03:44:55 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 03:44:55 [host.main] INFO: Command Center gestoppt.
+2026-02-21 03:44:56 [host.main] INFO: ============================================================
+2026-02-21 03:44:56 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:44:56 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:44:56 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:44:56 [host.main] INFO: ============================================================
+2026-02-21 03:44:56 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:44:56 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:44:56 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:44:56 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:44:56 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:44:56 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:44:56 [host.main] INFO: Command Center bereit.
+2026-02-21 03:45:05 [hookguard] INFO: HookGuard stopped
+2026-02-21 03:45:05 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 03:45:05 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 03:45:05 [host.main] INFO: Command Center gestoppt.
+2026-02-21 03:45:05 [host.main] INFO: ============================================================
+2026-02-21 03:45:05 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:45:05 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:45:05 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:45:05 [host.main] INFO: ============================================================
+2026-02-21 03:45:05 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:45:05 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:45:05 [host.main] INFO: ADB Modus (Laptop+USB): ADBClient aktiv
+2026-02-21 03:45:05 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:45:05 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:45:05 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:45:05 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:45:05 [host.main] INFO: Command Center bereit.
+2026-02-21 03:45:41 [hookguard] INFO: HookGuard stopped
+2026-02-21 03:45:41 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 03:45:41 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 03:45:41 [host.main] INFO: Command Center gestoppt.
+2026-02-21 03:45:41 [host.main] INFO: ============================================================
+2026-02-21 03:45:41 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:45:41 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:45:41 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:45:41 [host.main] INFO: ============================================================
+2026-02-21 03:45:41 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:45:41 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:45:41 [host.main] INFO: ADB Modus (Laptop+USB): ADBClient aktiv
+2026-02-21 03:45:41 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:45:41 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:45:41 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:45:41 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:45:41 [host.main] INFO: Command Center bereit.
+2026-02-21 03:45:48 [hookguard] INFO: HookGuard stopped
+2026-02-21 03:45:48 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 03:45:48 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 03:45:48 [host.main] INFO: Command Center gestoppt.
+2026-02-21 03:45:48 [host.main] INFO: ============================================================
+2026-02-21 03:45:48 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:45:48 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:45:48 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:45:48 [host.main] INFO: ============================================================
+2026-02-21 03:45:48 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:45:48 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:45:48 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 03:45:49 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:45:49 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:45:49 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:45:49 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:45:49 [host.main] INFO: Command Center bereit.
+2026-02-21 03:46:24 [hookguard] INFO: HookGuard stopped
+2026-02-21 03:46:24 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 03:46:24 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 03:46:24 [host.main] INFO: Command Center gestoppt.
+2026-02-21 03:46:25 [host.main] INFO: ============================================================
+2026-02-21 03:46:25 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:46:25 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:46:25 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:46:25 [host.main] INFO: ============================================================
+2026-02-21 03:46:25 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:46:25 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:46:25 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 03:46:25 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:46:25 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:46:25 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:46:25 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:46:25 [host.main] INFO: Command Center bereit.
+2026-02-21 03:46:25 [hookguard] INFO: HookGuard stopped
+2026-02-21 03:46:25 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 03:46:25 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 03:46:25 [host.main] INFO: Command Center gestoppt.
+2026-02-21 03:46:26 [host.main] INFO: ============================================================
+2026-02-21 03:46:26 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:46:26 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:46:26 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:46:26 [host.main] INFO: ============================================================
+2026-02-21 03:46:26 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:46:26 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:46:26 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 03:46:26 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:46:26 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:46:26 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:46:26 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:46:26 [host.main] INFO: Command Center bereit.
+2026-02-21 03:46:26 [hookguard] INFO: HookGuard stopped
+2026-02-21 03:46:26 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 03:46:26 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 03:46:26 [host.main] INFO: Command Center gestoppt.
+2026-02-21 03:46:27 [host.main] INFO: ============================================================
+2026-02-21 03:46:27 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:46:27 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:46:27 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:46:27 [host.main] INFO: ============================================================
+2026-02-21 03:46:27 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:46:27 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:46:27 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 03:46:27 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:46:27 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:46:27 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:46:27 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:46:27 [host.main] INFO: Command Center bereit.
+2026-02-21 03:46:28 [host.main] INFO: ============================================================
+2026-02-21 03:46:28 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:46:28 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:46:28 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:46:28 [host.main] INFO: ============================================================
+2026-02-21 03:46:28 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:46:28 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:46:28 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 03:46:28 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:46:28 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:46:28 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:46:28 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:46:28 [host.main] INFO: Command Center bereit.
+2026-02-21 03:46:29 [host.main] INFO: ============================================================
+2026-02-21 03:46:29 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:46:29 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:46:29 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:46:29 [host.main] INFO: ============================================================
+2026-02-21 03:46:29 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:46:29 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:46:29 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 03:46:29 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:46:29 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:46:29 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:46:29 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:46:29 [host.main] INFO: Command Center bereit.
+2026-02-21 03:46:29 [host.main] INFO: ============================================================
+2026-02-21 03:46:29 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:46:29 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:46:29 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:46:29 [host.main] INFO: ============================================================
+2026-02-21 03:46:29 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:46:29 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:46:29 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 03:46:29 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:46:29 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:46:29 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:46:29 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:46:29 [host.main] INFO: Command Center bereit.
+2026-02-21 03:47:25 [hookguard] INFO: HookGuard stopped
+2026-02-21 03:47:25 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 03:47:25 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 03:47:25 [host.main] INFO: Command Center gestoppt.
+2026-02-21 03:47:26 [host.main] INFO: ============================================================
+2026-02-21 03:47:26 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:47:26 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:47:26 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:47:26 [host.main] INFO: ============================================================
+2026-02-21 03:47:26 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:47:26 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:47:26 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 03:47:26 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:47:26 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:47:26 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:47:26 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:47:26 [host.main] INFO: Command Center bereit.
+2026-02-21 03:47:48 [hookguard] INFO: HookGuard stopped
+2026-02-21 03:47:48 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 03:47:48 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 03:47:48 [host.main] INFO: Command Center gestoppt.
+2026-02-21 03:47:48 [host.main] INFO: ============================================================
+2026-02-21 03:47:48 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:47:48 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:47:48 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:47:48 [host.main] INFO: ============================================================
+2026-02-21 03:47:48 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:47:48 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:47:48 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 03:47:48 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:47:48 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:47:49 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:47:49 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:47:49 [host.main] INFO: Command Center bereit.
+2026-02-21 03:48:04 [hookguard] INFO: HookGuard stopped
+2026-02-21 03:48:04 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 03:48:04 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 03:48:04 [host.main] INFO: Command Center gestoppt.
+2026-02-21 03:48:05 [host.main] INFO: ============================================================
+2026-02-21 03:48:05 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:48:05 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:48:05 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:48:05 [host.main] INFO: ============================================================
+2026-02-21 03:48:05 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:48:05 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:48:05 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 03:48:05 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:48:05 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:48:05 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:48:05 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:48:05 [host.main] INFO: Command Center bereit.
+2026-02-21 03:48:15 [hookguard] INFO: HookGuard stopped
+2026-02-21 03:48:15 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 03:48:15 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 03:48:15 [host.main] INFO: Command Center gestoppt.
+2026-02-21 03:48:16 [host.main] INFO: ============================================================
+2026-02-21 03:48:16 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 03:48:16 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:48:16 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 03:48:16 [host.main] INFO: ============================================================
+2026-02-21 03:48:16 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 03:48:16 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 03:48:16 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 03:48:16 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 03:48:16 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 03:48:16 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 03:48:16 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 03:48:16 [host.main] INFO: Command Center bereit.
+2026-02-21 03:49:46 [hookguard] WARNING: Guard heartbeat stale: 93s since last update
+2026-02-21 03:53:13 [hookguard] WARNING: Guard heartbeat stale: 94s since last update
+2026-02-21 03:53:17 [hookguard] WARNING: Guard heartbeat stale: 97s since last update
+2026-02-21 03:53:21 [hookguard] WARNING: Guard heartbeat stale: 101s since last update
+2026-02-21 03:53:25 [hookguard] WARNING: Guard heartbeat stale: 105s since last update
+2026-02-21 03:53:28 [hookguard] WARNING: Guard heartbeat stale: 109s since last update
+2026-02-21 03:56:14 [hookguard] WARNING: Guard heartbeat stale: 91s since last update
+2026-02-21 03:56:18 [hookguard] WARNING: Guard heartbeat stale: 94s since last update
+2026-02-21 03:56:22 [hookguard] WARNING: Guard heartbeat stale: 98s since last update
+2026-02-21 03:56:26 [hookguard] WARNING: Guard heartbeat stale: 102s since last update
+2026-02-21 03:56:29 [hookguard] WARNING: Guard heartbeat stale: 106s since last update
+2026-02-21 03:56:33 [hookguard] WARNING: Guard heartbeat stale: 109s since last update
+2026-02-21 03:56:37 [hookguard] WARNING: Guard heartbeat stale: 113s since last update
+2026-02-21 04:05:00 [hookguard] WARNING: Guard heartbeat stale: 93s since last update
+2026-02-21 04:05:04 [hookguard] WARNING: Guard heartbeat stale: 97s since last update
+2026-02-21 04:05:07 [hookguard] WARNING: Guard heartbeat stale: 100s since last update
+2026-02-21 04:05:11 [hookguard] WARNING: Guard heartbeat stale: 104s since last update
+2026-02-21 04:05:15 [hookguard] WARNING: Guard heartbeat stale: 108s since last update
+2026-02-21 04:05:19 [hookguard] WARNING: Guard heartbeat stale: 112s since last update
+2026-02-21 04:05:23 [hookguard] WARNING: Guard heartbeat stale: 115s since last update
+2026-02-21 04:09:12 [hookguard] WARNING: Guard heartbeat stale: 94s since last update
+2026-02-21 04:09:23 [hookguard] WARNING: Guard heartbeat stale: 105s since last update
+2026-02-21 04:09:32 [hookguard] WARNING: Guard heartbeat stale: 114s since last update
+2026-02-21 04:09:40 [hookguard] WARNING: Guard heartbeat stale: 122s since last update
+2026-02-21 04:09:50 [hookguard] WARNING: Guard heartbeat stale: 132s since last update
+2026-02-21 04:09:59 [hookguard] WARNING: Guard heartbeat stale: 141s since last update
+2026-02-21 04:10:08 [hookguard] WARNING: Guard heartbeat stale: 150s since last update
+2026-02-21 04:10:15 [hookguard] WARNING: Guard heartbeat stale: 157s since last update
+2026-02-21 04:10:24 [hookguard] WARNING: Guard heartbeat stale: 166s since last update
+2026-02-21 04:10:31 [hookguard] WARNING: Guard heartbeat stale: 173s since last update
+2026-02-21 04:10:40 [hookguard] WARNING: Guard heartbeat stale: 182s since last update
+2026-02-21 04:10:52 [hookguard] WARNING: Guard heartbeat stale: 194s since last update
+2026-02-21 04:11:05 [hookguard] WARNING: Guard heartbeat stale: 207s since last update
+2026-02-21 04:13:12 [hookguard] WARNING: Guard heartbeat stale: 92s since last update
+2026-02-21 04:13:16 [hookguard] WARNING: Guard heartbeat stale: 97s since last update
+2026-02-21 04:13:20 [hookguard] WARNING: Guard heartbeat stale: 101s since last update
+2026-02-21 04:13:27 [hookguard] WARNING: Guard heartbeat stale: 107s since last update
+2026-02-21 04:13:31 [hookguard] WARNING: Guard heartbeat stale: 111s since last update
+2026-02-21 04:15:06 [hookguard] WARNING: Guard heartbeat stale: 94s since last update
+2026-02-21 04:15:10 [hookguard] WARNING: Guard heartbeat stale: 98s since last update
+2026-02-21 04:15:14 [hookguard] WARNING: Guard heartbeat stale: 102s since last update
+2026-02-21 04:15:19 [hookguard] WARNING: Guard heartbeat stale: 107s since last update
+2026-02-21 04:15:23 [hookguard] WARNING: Guard heartbeat stale: 111s since last update
+2026-02-21 04:15:27 [hookguard] WARNING: Guard heartbeat stale: 115s since last update
+2026-02-21 04:15:30 [hookguard] WARNING: Guard heartbeat stale: 119s since last update
+2026-02-21 04:15:34 [hookguard] WARNING: Guard heartbeat stale: 123s since last update
+2026-02-21 04:15:38 [hookguard] WARNING: Guard heartbeat stale: 127s since last update
+2026-02-21 04:15:42 [hookguard] WARNING: Guard heartbeat stale: 130s since last update
+2026-02-21 04:15:46 [hookguard] WARNING: Guard heartbeat stale: 134s since last update
+2026-02-21 04:15:50 [hookguard] WARNING: Guard heartbeat stale: 138s since last update
+2026-02-21 04:15:53 [hookguard] WARNING: Guard heartbeat stale: 141s since last update
+2026-02-21 04:15:57 [hookguard] WARNING: Guard heartbeat stale: 145s since last update
+2026-02-21 04:16:01 [hookguard] WARNING: Guard heartbeat stale: 149s since last update
+2026-02-21 04:16:05 [hookguard] WARNING: Guard heartbeat stale: 153s since last update
+2026-02-21 04:16:08 [hookguard] WARNING: Guard heartbeat stale: 156s since last update
+2026-02-21 04:16:12 [hookguard] WARNING: Guard heartbeat stale: 160s since last update
+2026-02-21 04:16:16 [hookguard] WARNING: Guard heartbeat stale: 164s since last update
+2026-02-21 04:16:20 [hookguard] WARNING: Guard heartbeat stale: 168s since last update
+2026-02-21 04:16:24 [hookguard] WARNING: Guard heartbeat stale: 172s since last update
+2026-02-21 04:16:27 [hookguard] WARNING: Guard heartbeat stale: 175s since last update
+2026-02-21 04:16:31 [hookguard] WARNING: Guard heartbeat stale: 179s since last update
+2026-02-21 04:16:35 [hookguard] WARNING: Guard heartbeat stale: 183s since last update
+2026-02-21 04:16:39 [hookguard] WARNING: Guard heartbeat stale: 187s since last update
+2026-02-21 04:18:13 [hookguard] WARNING: Guard heartbeat stale: 94s since last update
+2026-02-21 04:18:17 [hookguard] WARNING: Guard heartbeat stale: 97s since last update
+2026-02-21 04:18:21 [hookguard] WARNING: Guard heartbeat stale: 101s since last update
+2026-02-21 04:18:25 [hookguard] WARNING: Guard heartbeat stale: 105s since last update
+2026-02-21 04:18:29 [hookguard] WARNING: Guard heartbeat stale: 109s since last update
+2026-02-21 04:18:32 [hookguard] WARNING: Guard heartbeat stale: 113s since last update
+2026-02-21 04:18:36 [hookguard] WARNING: Guard heartbeat stale: 116s since last update
+2026-02-21 04:18:40 [hookguard] WARNING: Guard heartbeat stale: 120s since last update
+2026-02-21 04:18:44 [hookguard] WARNING: Guard heartbeat stale: 124s since last update
+2026-02-21 04:18:47 [hookguard] WARNING: Guard heartbeat stale: 128s since last update
+2026-02-21 04:18:51 [hookguard] WARNING: Guard heartbeat stale: 131s since last update
+2026-02-21 04:18:55 [hookguard] WARNING: Guard heartbeat stale: 135s since last update
+2026-02-21 04:18:58 [hookguard] WARNING: Guard heartbeat stale: 139s since last update
+2026-02-21 04:19:02 [hookguard] WARNING: Guard heartbeat stale: 143s since last update
+2026-02-21 04:19:06 [hookguard] WARNING: Guard heartbeat stale: 146s since last update
+2026-02-21 04:19:10 [hookguard] WARNING: Guard heartbeat stale: 150s since last update
+2026-02-21 04:19:14 [hookguard] WARNING: Guard heartbeat stale: 154s since last update
+2026-02-21 04:19:18 [hookguard] WARNING: Guard heartbeat stale: 158s since last update
+2026-02-21 04:19:22 [hookguard] WARNING: Guard heartbeat stale: 162s since last update
+2026-02-21 04:19:26 [hookguard] WARNING: Guard heartbeat stale: 166s since last update
+2026-02-21 04:19:29 [hookguard] WARNING: Guard heartbeat stale: 170s since last update
+2026-02-21 04:19:33 [hookguard] WARNING: Guard heartbeat stale: 173s since last update
+2026-02-21 04:19:37 [hookguard] WARNING: Guard heartbeat stale: 177s since last update
+2026-02-21 04:19:41 [hookguard] WARNING: Guard heartbeat stale: 181s since last update
+2026-02-21 04:19:44 [hookguard] WARNING: Guard heartbeat stale: 185s since last update
+2026-02-21 04:19:48 [hookguard] WARNING: Guard heartbeat stale: 189s since last update
+2026-02-21 04:19:52 [hookguard] WARNING: Guard heartbeat stale: 192s since last update
+2026-02-21 04:19:56 [hookguard] WARNING: Guard heartbeat stale: 196s since last update
+2026-02-21 04:20:00 [hookguard] WARNING: Guard heartbeat stale: 200s since last update
+2026-02-21 04:20:04 [hookguard] WARNING: Guard heartbeat stale: 204s since last update
+2026-02-21 04:20:07 [hookguard] WARNING: Guard heartbeat stale: 208s since last update
+2026-02-21 04:20:12 [hookguard] WARNING: Guard heartbeat stale: 212s since last update
+2026-02-21 04:20:15 [hookguard] WARNING: Guard heartbeat stale: 216s since last update
+2026-02-21 04:20:19 [hookguard] WARNING: Guard heartbeat stale: 219s since last update
+2026-02-21 04:20:23 [hookguard] WARNING: Guard heartbeat stale: 223s since last update
+2026-02-21 04:20:27 [hookguard] WARNING: Guard heartbeat stale: 227s since last update
+2026-02-21 04:20:31 [hookguard] WARNING: Guard heartbeat stale: 231s since last update
+2026-02-21 04:20:35 [hookguard] WARNING: Guard heartbeat stale: 236s since last update
+2026-02-21 04:20:39 [hookguard] WARNING: Guard heartbeat stale: 239s since last update
+2026-02-21 04:20:43 [hookguard] WARNING: Guard heartbeat stale: 243s since last update
+2026-02-21 04:20:47 [hookguard] WARNING: Guard heartbeat stale: 247s since last update
+2026-02-21 04:20:50 [hookguard] WARNING: Guard heartbeat stale: 251s since last update
+2026-02-21 04:20:54 [hookguard] WARNING: Guard heartbeat stale: 254s since last update
+2026-02-21 04:20:58 [hookguard] WARNING: Guard heartbeat stale: 258s since last update
+2026-02-21 04:21:02 [hookguard] WARNING: Guard heartbeat stale: 262s since last update
+2026-02-21 04:21:05 [hookguard] WARNING: Guard heartbeat stale: 266s since last update
+2026-02-21 04:21:09 [hookguard] WARNING: Guard heartbeat stale: 270s since last update
+2026-02-21 04:21:14 [hookguard] WARNING: Guard heartbeat stale: 274s since last update
+2026-02-21 04:21:17 [hookguard] WARNING: Guard heartbeat stale: 278s since last update
+2026-02-21 04:21:21 [hookguard] WARNING: Guard heartbeat stale: 282s since last update
+2026-02-21 04:21:25 [hookguard] WARNING: Guard heartbeat stale: 285s since last update
+2026-02-21 04:21:29 [hookguard] WARNING: Guard heartbeat stale: 289s since last update
+2026-02-21 04:21:33 [hookguard] WARNING: Guard heartbeat stale: 293s since last update
+2026-02-21 04:21:36 [hookguard] WARNING: Guard heartbeat stale: 297s since last update
+2026-02-21 04:21:40 [hookguard] WARNING: Guard heartbeat stale: 300s since last update
+2026-02-21 04:23:13 [hookguard] WARNING: Guard heartbeat stale: 94s since last update
+2026-02-21 04:23:18 [hookguard] WARNING: Guard heartbeat stale: 98s since last update
+2026-02-21 04:23:21 [hookguard] WARNING: Guard heartbeat stale: 102s since last update
+2026-02-21 04:23:25 [hookguard] WARNING: Guard heartbeat stale: 105s since last update
+2026-02-21 04:23:29 [hookguard] WARNING: Guard heartbeat stale: 109s since last update
+2026-02-21 04:23:33 [hookguard] WARNING: Guard heartbeat stale: 113s since last update
+2026-02-21 04:23:37 [hookguard] WARNING: Guard heartbeat stale: 117s since last update
+2026-02-21 04:23:41 [hookguard] WARNING: Guard heartbeat stale: 121s since last update
+2026-02-21 04:23:45 [hookguard] WARNING: Guard heartbeat stale: 125s since last update
+2026-02-21 04:25:18 [hookguard] WARNING: Guard heartbeat stale: 94s since last update
+2026-02-21 04:25:22 [hookguard] WARNING: Guard heartbeat stale: 97s since last update
+2026-02-21 04:25:26 [hookguard] WARNING: Guard heartbeat stale: 101s since last update
+2026-02-21 04:25:29 [hookguard] WARNING: Guard heartbeat stale: 105s since last update
+2026-02-21 04:25:35 [hookguard] WARNING: Guard heartbeat stale: 111s since last update
+2026-02-21 04:25:42 [hookguard] WARNING: Guard heartbeat stale: 118s since last update
+2026-02-21 04:25:46 [hookguard] WARNING: Guard heartbeat stale: 121s since last update
+2026-02-21 04:25:50 [hookguard] WARNING: Guard heartbeat stale: 125s since last update
+2026-02-21 04:25:54 [hookguard] WARNING: Guard heartbeat stale: 129s since last update
+2026-02-21 04:25:57 [hookguard] WARNING: Guard heartbeat stale: 133s since last update
+2026-02-21 04:26:01 [hookguard] WARNING: Guard heartbeat stale: 137s since last update
+2026-02-21 04:26:05 [hookguard] WARNING: Guard heartbeat stale: 141s since last update
+2026-02-21 04:26:09 [hookguard] WARNING: Guard heartbeat stale: 144s since last update
+2026-02-21 04:26:13 [hookguard] WARNING: Guard heartbeat stale: 148s since last update
+2026-02-21 04:26:16 [hookguard] WARNING: Guard heartbeat stale: 152s since last update
+2026-02-21 04:26:17 [hookguard] INFO: HookGuard stopped
+2026-02-21 04:26:17 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 04:26:17 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 04:26:17 [host.main] INFO: Command Center gestoppt.
+2026-02-21 04:26:18 [host.main] INFO: ============================================================
+2026-02-21 04:26:18 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 04:26:18 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:26:18 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 04:26:18 [host.main] INFO: ============================================================
+2026-02-21 04:26:18 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:26:18 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 04:26:18 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 04:26:18 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 04:26:18 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 04:26:18 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 04:26:18 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 04:26:18 [host.main] INFO: Command Center bereit.
+2026-02-21 04:26:19 [hookguard] WARNING: Guard heartbeat stale: 155s since last update
+2026-02-21 04:26:23 [hookguard] WARNING: Guard heartbeat stale: 159s since last update
+2026-02-21 04:26:27 [hookguard] WARNING: Guard heartbeat stale: 162s since last update
+2026-02-21 04:26:31 [hookguard] WARNING: Guard heartbeat stale: 166s since last update
+2026-02-21 04:26:34 [hookguard] WARNING: Guard heartbeat stale: 170s since last update
+2026-02-21 04:26:38 [hookguard] WARNING: Guard heartbeat stale: 174s since last update
+2026-02-21 04:26:52 [hookguard] INFO: HookGuard stopped
+2026-02-21 04:26:52 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 04:26:52 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 04:26:52 [host.main] INFO: Command Center gestoppt.
+2026-02-21 04:26:53 [host.main] INFO: ============================================================
+2026-02-21 04:26:53 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 04:26:53 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:26:53 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 04:26:53 [host.main] INFO: ============================================================
+2026-02-21 04:26:53 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:26:53 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 04:26:53 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 04:26:53 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 04:26:53 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 04:26:53 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 04:26:53 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 04:26:53 [host.main] INFO: Command Center bereit.
+2026-02-21 04:27:40 [hookguard] INFO: HookGuard stopped
+2026-02-21 04:27:40 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 04:27:40 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 04:27:40 [host.main] INFO: Command Center gestoppt.
+2026-02-21 04:27:41 [host.main] INFO: ============================================================
+2026-02-21 04:27:41 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 04:27:41 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:27:41 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 04:27:41 [host.main] INFO: ============================================================
+2026-02-21 04:27:41 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:27:41 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 04:27:41 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 04:27:41 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 04:27:41 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 04:27:41 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 04:27:41 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 04:27:41 [host.main] INFO: Command Center bereit.
+2026-02-21 04:27:51 [hookguard] INFO: HookGuard stopped
+2026-02-21 04:27:51 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 04:27:51 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 04:27:51 [host.main] INFO: Command Center gestoppt.
+2026-02-21 04:27:52 [host.main] INFO: ============================================================
+2026-02-21 04:27:52 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 04:27:52 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:27:52 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 04:27:52 [host.main] INFO: ============================================================
+2026-02-21 04:27:52 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:27:52 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 04:27:52 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 04:27:52 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 04:27:52 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 04:27:52 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 04:27:52 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 04:27:52 [host.main] INFO: Command Center bereit.
+2026-02-21 04:28:12 [hookguard] WARNING: Guard heartbeat stale: 93s since last update
+2026-02-21 04:28:16 [hookguard] WARNING: Guard heartbeat stale: 97s since last update
+2026-02-21 04:28:20 [hookguard] WARNING: Guard heartbeat stale: 100s since last update
+2026-02-21 04:28:24 [hookguard] WARNING: Guard heartbeat stale: 104s since last update
+2026-02-21 04:28:28 [hookguard] WARNING: Guard heartbeat stale: 108s since last update
+2026-02-21 04:28:30 [hookguard] INFO: HookGuard stopped
+2026-02-21 04:28:30 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 04:28:30 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 04:28:30 [host.main] INFO: Command Center gestoppt.
+2026-02-21 04:28:30 [host.main] INFO: ============================================================
+2026-02-21 04:28:30 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 04:28:30 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:28:30 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 04:28:30 [host.main] INFO: ============================================================
+2026-02-21 04:28:30 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:28:30 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 04:28:30 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 04:28:30 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 04:28:30 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 04:28:30 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 04:28:30 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 04:28:30 [host.main] INFO: Command Center bereit.
+2026-02-21 04:28:31 [hookguard] WARNING: Guard heartbeat stale: 112s since last update
+2026-02-21 04:28:35 [hookguard] WARNING: Guard heartbeat stale: 115s since last update
+2026-02-21 04:28:39 [hookguard] WARNING: Guard heartbeat stale: 119s since last update
+2026-02-21 04:28:40 [hookguard] INFO: HookGuard stopped
+2026-02-21 04:28:40 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 04:28:40 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 04:28:40 [host.main] INFO: Command Center gestoppt.
+2026-02-21 04:28:41 [host.main] INFO: ============================================================
+2026-02-21 04:28:41 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 04:28:41 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:28:41 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 04:28:41 [host.main] INFO: ============================================================
+2026-02-21 04:28:41 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:28:41 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 04:28:41 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 04:28:41 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 04:28:41 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 04:28:41 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 04:28:41 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 04:28:41 [host.main] INFO: Command Center bereit.
+2026-02-21 04:28:42 [hookguard] WARNING: Guard heartbeat stale: 122s since last update
+2026-02-21 04:28:46 [hookguard] WARNING: Guard heartbeat stale: 126s since last update
+2026-02-21 04:28:49 [hookguard] WARNING: Guard heartbeat stale: 130s since last update
+2026-02-21 04:28:53 [hookguard] WARNING: Guard heartbeat stale: 134s since last update
+2026-02-21 04:28:57 [hookguard] WARNING: Guard heartbeat stale: 137s since last update
+2026-02-21 04:29:01 [hookguard] WARNING: Guard heartbeat stale: 141s since last update
+2026-02-21 04:29:05 [hookguard] WARNING: Guard heartbeat stale: 145s since last update
+2026-02-21 04:29:08 [hookguard] WARNING: Guard heartbeat stale: 149s since last update
+2026-02-21 04:29:12 [hookguard] WARNING: Guard heartbeat stale: 152s since last update
+2026-02-21 04:29:16 [hookguard] WARNING: Guard heartbeat stale: 156s since last update
+2026-02-21 04:29:20 [hookguard] WARNING: Guard heartbeat stale: 160s since last update
+2026-02-21 04:29:23 [hookguard] WARNING: Guard heartbeat stale: 164s since last update
+2026-02-21 04:29:28 [hookguard] WARNING: Guard heartbeat stale: 168s since last update
+2026-02-21 04:29:31 [hookguard] WARNING: Guard heartbeat stale: 172s since last update
+2026-02-21 04:29:35 [hookguard] WARNING: Guard heartbeat stale: 175s since last update
+2026-02-21 04:29:39 [hookguard] WARNING: Guard heartbeat stale: 179s since last update
+2026-02-21 04:29:43 [hookguard] WARNING: Guard heartbeat stale: 183s since last update
+2026-02-21 04:29:47 [hookguard] WARNING: Guard heartbeat stale: 187s since last update
+2026-02-21 04:33:10 [hookguard] WARNING: Guard heartbeat stale: 92s since last update
+2026-02-21 04:33:14 [hookguard] WARNING: Guard heartbeat stale: 96s since last update
+2026-02-21 04:33:17 [hookguard] WARNING: Guard heartbeat stale: 99s since last update
+2026-02-21 04:33:21 [hookguard] WARNING: Guard heartbeat stale: 103s since last update
+2026-02-21 04:33:25 [hookguard] WARNING: Guard heartbeat stale: 107s since last update
+2026-02-21 04:33:29 [hookguard] WARNING: Guard heartbeat stale: 111s since last update
+2026-02-21 04:33:32 [hookguard] WARNING: Guard heartbeat stale: 114s since last update
+2026-02-21 04:33:36 [hookguard] WARNING: Guard heartbeat stale: 118s since last update
+2026-02-21 04:33:40 [hookguard] WARNING: Guard heartbeat stale: 122s since last update
+2026-02-21 04:35:32 [hookguard] INFO: HookGuard stopped
+2026-02-21 04:35:32 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 04:35:32 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 04:35:32 [host.main] INFO: Command Center gestoppt.
+2026-02-21 04:35:33 [host.main] INFO: ============================================================
+2026-02-21 04:35:33 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 04:35:33 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:35:33 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 04:35:33 [host.main] INFO: ============================================================
+2026-02-21 04:35:33 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:35:33 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 04:35:33 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 04:35:33 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 04:35:33 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 04:35:33 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 04:35:34 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 04:35:34 [host.main] INFO: Command Center bereit.
+2026-02-21 04:37:04 [hookguard] INFO: HookGuard stopped
+2026-02-21 04:37:04 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 04:37:04 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 04:37:04 [host.main] INFO: Command Center gestoppt.
+2026-02-21 04:37:05 [host.main] INFO: ============================================================
+2026-02-21 04:37:05 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 04:37:05 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:37:05 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 04:37:05 [host.main] INFO: ============================================================
+2026-02-21 04:37:05 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:37:05 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 04:37:05 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 04:37:05 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 04:37:05 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 04:37:05 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 04:37:05 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 04:37:05 [host.main] INFO: Command Center bereit.
+2026-02-21 04:38:11 [hookguard] WARNING: Guard heartbeat stale: 91s since last update
+2026-02-21 04:38:15 [hookguard] WARNING: Guard heartbeat stale: 95s since last update
+2026-02-21 04:38:19 [hookguard] WARNING: Guard heartbeat stale: 99s since last update
+2026-02-21 04:38:22 [hookguard] WARNING: Guard heartbeat stale: 103s since last update
+2026-02-21 04:38:26 [hookguard] WARNING: Guard heartbeat stale: 107s since last update
+2026-02-21 04:38:30 [hookguard] WARNING: Guard heartbeat stale: 110s since last update
+2026-02-21 04:38:34 [hookguard] WARNING: Guard heartbeat stale: 114s since last update
+2026-02-21 04:38:38 [hookguard] WARNING: Guard heartbeat stale: 118s since last update
+2026-02-21 04:38:42 [hookguard] WARNING: Guard heartbeat stale: 122s since last update
+2026-02-21 04:38:46 [hookguard] WARNING: Guard heartbeat stale: 126s since last update
+2026-02-21 04:38:48 [hookguard] INFO: HookGuard stopped
+2026-02-21 04:38:48 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 04:38:48 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 04:38:48 [host.main] INFO: Command Center gestoppt.
+2026-02-21 04:38:48 [host.main] INFO: ============================================================
+2026-02-21 04:38:48 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 04:38:48 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:38:48 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 04:38:48 [host.main] INFO: ============================================================
+2026-02-21 04:38:48 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:38:48 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 04:38:48 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 04:38:48 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 04:38:48 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 04:38:48 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 04:38:48 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 04:38:48 [host.main] INFO: Command Center bereit.
+2026-02-21 04:38:50 [hookguard] WARNING: Guard heartbeat stale: 130s since last update
+2026-02-21 04:38:53 [hookguard] WARNING: Guard heartbeat stale: 134s since last update
+2026-02-21 04:38:57 [hookguard] WARNING: Guard heartbeat stale: 138s since last update
+2026-02-21 04:39:00 [hookguard] INFO: HookGuard stopped
+2026-02-21 04:39:00 [host.main] INFO: Shutdown: Schliesse Datenbank...
+2026-02-21 04:39:00 [host.database] INFO: Datenbank geschlossen.
+2026-02-21 04:39:00 [host.main] INFO: Command Center gestoppt.
+2026-02-21 04:39:01 [host.main] INFO: ============================================================
+2026-02-21 04:39:01 [host.main] INFO:   Device Manager v1.0.0
+2026-02-21 04:39:01 [host.main] INFO:   Database: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:39:01 [host.main] INFO:   Dashboard: http://0.0.0.0:8000
+2026-02-21 04:39:01 [host.main] INFO: ============================================================
+2026-02-21 04:39:01 [host.database] INFO: Initialisiere Datenbank: /Users/arvin/Documents/Android/Chaos/TitanXFarm/titanverifier/device_manager.db
+2026-02-21 04:39:01 [host.database] INFO: Tabellen bereit: audit_history, flow_history, identities, ip_history, profiles
+2026-02-21 04:39:01 [host.main] INFO: Modus: adb (Laptop+USB)
+2026-02-21 04:39:01 [hookguard] INFO: HookGuard v2 started (expected bridge hash: 092095f47464b96af97e6c50cbefa5fe)
+2026-02-21 04:39:01 [host.main] INFO: HookGuard automatisch gestartet
+2026-02-21 04:39:01 [host.db_ops] INFO: Backup-Sync: 56 Profil(e) aus Dateisystem aktualisiert
+2026-02-21 04:39:01 [host.main] INFO: Backup-Sync: 56 Profile aktualisiert
+2026-02-21 04:39:01 [host.main] INFO: Supabase Auto-Sync aktiv (alle 120s)
+2026-02-21 04:39:01 [host.main] INFO: Command Center bereit.
+2026-02-21 04:39:02 [hookguard] WARNING: Guard heartbeat stale: 142s since last update
+2026-02-21 04:39:06 [hookguard] WARNING: Guard heartbeat stale: 146s since last update
+2026-02-21 04:39:10 [hookguard] WARNING: Guard heartbeat stale: 150s since last update
+2026-02-21 04:39:14 [hookguard] WARNING: Guard heartbeat stale: 154s since last update
+2026-02-21 04:39:18 [hookguard] WARNING: Guard heartbeat stale: 158s since last update
+2026-02-21 04:39:21 [hookguard] WARNING: Guard heartbeat stale: 162s since last update
+2026-02-21 04:39:25 [hookguard] WARNING: Guard heartbeat stale: 166s since last update
+2026-02-21 04:39:29 [hookguard] WARNING: Guard heartbeat stale: 169s since last update
+2026-02-21 04:39:33 [hookguard] WARNING: Guard heartbeat stale: 173s since last update
+2026-02-21 04:39:37 [hookguard] WARNING: Guard heartbeat stale: 177s since last update
+2026-02-21 04:39:41 [hookguard] WARNING: Guard heartbeat stale: 181s since last update
